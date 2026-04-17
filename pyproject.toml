@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tfwr-simulator"
+version = "0.1.0"
+description = "Standalone TFWR game parity simulator package."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "MLJ" }
+]
+
+[project.scripts]
+tfwr-parity = "gamesimulator.runner:main"
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+include = ["gamesimulator*"]
+where = ["src"]
