@@ -10,6 +10,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 from gamesimulator import Duration, SideEffect, just_sha256_it, num_drones, world_size_scale
 from gamesimulator.config import REPO_ROOT, resolve_save_root
@@ -1286,6 +1287,81 @@ class RunnerTests(unittest.TestCase):
             self.assertEqual(result.target, "simulate.py")
             self.assertTrue(any(line.startswith("child") for line in result.logs))
             self.assertTrue(any(line.startswith("simulate_done") for line in result.logs))
+
+    def test_run_file_forwards_logs_to_sink(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "mini.py").write_text(
+                "from __builtins__ import *\n"
+                "quick_print('one')\n"
+                "quick_print('two')\n",
+                encoding="utf-8",
+            )
+            streamed: list[str] = []
+            result = run_file("mini", tmp_path, seed=1, log_sink=streamed.append)
+            self.assertTrue(result.terminated)
+            self.assertEqual(result.logs, ["one", "two"])
+            self.assertEqual(streamed, ["one", "two"])
+
+    def test_runner_executes_leaderboard_run_script(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "lb_probe.py").write_text(
+                "from __builtins__ import *\n"
+                "print('tick')\n",
+                encoding="utf-8",
+            )
+            (tmp_path / "lb_start.py").write_text(
+                "from __builtins__ import *\n"
+                "leaderboard_run(Leaderboards.Hay_Single, 'lb_probe', 10000)\n",
+                encoding="utf-8",
+            )
+            with mock.patch("gamesimulator.runtime.execution.MIN_LEADERBOARD_TOTAL_SECONDS", 2.0, create=True), mock.patch(
+                "gamesimulator.runtime.execution.MAX_LEADERBOARD_WORKERS", 2, create=True
+            ):
+                result = run_file("lb_start", tmp_path, seed=1)
+            self.assertTrue(result.terminated)
+            self.assertFalse(any(line == "tick" for line in result.logs))
+            self.assertEqual(result.logs[0], "leaderboard_run lb_probe.py start")
+            self.assertTrue(any("leaderboard_run run=1" in line for line in result.logs))
+            self.assertTrue(any("leaderboard_run run=2" in line for line in result.logs))
+            average_lines = [line for line in result.logs if "leaderboard_run lb_probe.py pass average=" in line]
+            self.assertTrue(average_lines)
+            self.assertTrue(any("min=" in line and "max=" in line for line in average_lines))
+            self.assertFalse(any("average_seconds=" in line for line in average_lines))
+            self.assertFalse(any("min_seconds=" in line for line in average_lines))
+            self.assertFalse(any("max_seconds=" in line for line in average_lines))
+            self.assertFalse(any("finished=" in line for line in average_lines))
+            self.assertFalse(any("runs=" in line for line in average_lines))
+            self.assertFalse(any("total=" in line for line in average_lines))
+
+    def test_runner_executes_failed_leaderboard_run_script(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "lb_probe.py").write_text(
+                "from __builtins__ import *\n",
+                encoding="utf-8",
+            )
+            (tmp_path / "lb_start.py").write_text(
+                "from __builtins__ import *\n"
+                "leaderboard_run(Leaderboards.Hay_Single, 'lb_probe', 10000)\n",
+                encoding="utf-8",
+            )
+            with mock.patch("gamesimulator.runtime.execution.MIN_LEADERBOARD_TOTAL_SECONDS", 2.0, create=True), mock.patch(
+                "gamesimulator.runtime.execution.MAX_LEADERBOARD_WORKERS", 2, create=True
+            ):
+                result = run_file("lb_start", tmp_path, seed=1)
+            self.assertTrue(result.terminated)
+            self.assertEqual(result.logs[0], "leaderboard_run lb_probe.py start")
+            average_lines = [line for line in result.logs if "leaderboard_run lb_probe.py fail average=" in line]
+            self.assertTrue(average_lines)
+            self.assertTrue(any("min=" in line and "max=" in line for line in average_lines))
+            self.assertFalse(any("finished=" in line for line in average_lines))
+            self.assertFalse(any("runs=" in line for line in average_lines))
+            self.assertFalse(any("total=" in line for line in average_lines))
 
     def test_runner_cli_parsing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

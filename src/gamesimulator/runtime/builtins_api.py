@@ -214,6 +214,17 @@ def simulate_builtin(parameters, sim, execution, drone_id) -> float:
     return 0.0
 
 
+def leaderboard_run_builtin(parameters, sim, execution, drone_id) -> float:
+    if len(parameters) != 3:
+        raise ValueError("leaderboard_run expects 3 parameters")
+    if execution.states[drone_id] is not execution.main_state:
+        raise ExecuteException("leaderboard_run can only be called from the main execution")
+    state = execution.states[drone_id]
+    state.current_side_effect = SideEffect.RUN_LEADERBOARD
+    state.current_side_effect_argument = PyList(list(parameters))
+    return 0.0
+
+
 def num_items(parameters, sim, execution, drone_id) -> float:
     if len(parameters) != 1:
         raise ValueError("num_items expects 1 parameter")
@@ -426,6 +437,7 @@ def default_functions() -> dict[str, PyFunction]:
         "set_execution_speed": PyFunction("set_execution_speed", binding=set_execution_speed),
         "set_world_size": PyFunction("set_world_size", binding=set_world_size),
         "simulate": PyFunction("simulate", binding=simulate_builtin),
+        "leaderboard_run": PyFunction("leaderboard_run", binding=leaderboard_run_builtin),
         "quick_print": PyFunction("quick_print", binding=quick_print, is_free=True),
         "print": PyFunction("print", binding=print_builtin),
         "len": PyFunction("len", binding=len_builtin),

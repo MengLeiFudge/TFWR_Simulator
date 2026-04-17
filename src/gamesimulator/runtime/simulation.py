@@ -36,6 +36,8 @@ class Simulation:
         self.current_time = Duration(0)
         self.paused = False
         self.logs: list[str] = []
+        self.log_sink = None
+        self.capture_logs = True
         self._farm = None
 
     @property
@@ -129,4 +131,7 @@ class Simulation:
         return self.op_duration * ops
 
     def log(self, message: str) -> None:
-        self.logs.append(message)
+        if self.capture_logs:
+            self.logs.append(message)
+        if self.log_sink is not None:
+            self.log_sink(message)

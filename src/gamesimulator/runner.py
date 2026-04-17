@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import sys
+from typing import Callable
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 SOURCE_ROOT = PACKAGE_DIR.parent
@@ -42,6 +43,15 @@ class RunResult:
     elapsed_seconds: float
     logs: list[str]
     terminated: bool
+    final_farm: FarmState | None = None
+
+
+@dataclass
+class LeaderboardIterationResult:
+    seed: int
+    elapsed_seconds: float
+    terminated: bool
+    progress_text: str
 
 
 def resolve_target_path(target: str, save_root: str | Path | None) -> Path:
@@ -51,7 +61,13 @@ def resolve_target_path(target: str, save_root: str | Path | None) -> Path:
     return save_root / f"{target}.py"
 
 
-def run_file(target: str, save_root: str | Path | None = None, seed: int = 1) -> RunResult:
+def run_file(
+    target: str,
+    save_root: str | Path | None = None,
+    seed: int = 1,
+    log_sink: Callable[[str], None] | None = None,
+    capture_logs: bool = True,
+) -> RunResult:
     return run_file_with_context(
         target,
         save_root,
@@ -59,6 +75,8 @@ def run_file(target: str, save_root: str | Path | None = None, seed: int = 1) ->
         unlock_levels=None,
         items=None,
         globals_override=None,
+        log_sink=log_sink,
+        capture_logs=capture_logs,
     )
 
 
@@ -69,6 +87,8 @@ def run_file_with_context(
     unlock_levels: dict[object, int] | None = None,
     items: dict[object, float] | None = None,
     globals_override: dict[str, object] | None = None,
+    log_sink: Callable[[str], None] | None = None,
+    capture_logs: bool = True,
 ) -> RunResult:
     resolved_save_root = resolve_save_root(save_root)
     path = resolve_target_path(target, resolved_save_root)
@@ -79,6 +99,8 @@ def run_file_with_context(
     program = parse(stream)
     sim = Simulation(seed=seed)
     sim.save_root = str(resolved_save_root)
+    sim.log_sink = log_sink
+    sim.capture_logs = capture_logs
     bindings = build_global_bindings(resolved_save_root)
     global_bindings = dict(bindings)
     if globals_override:
@@ -100,6 +122,7 @@ def run_file_with_context(
         elapsed_seconds=sim.current_time.seconds,
         logs=list(sim.logs),
         terminated=terminated,
+        final_farm=sim.farm,
     )
 
 
@@ -135,6 +158,71 @@ def _default_items(target_name: str, bindings: dict[str, object]) -> dict[object
     if target_name not in ("lb_sunflowers", "lb_sunflowers_single"):
         items[item_bag.evaluate("Power")] = 1_000_000_000.0
     return items
+
+
+_LEADERBOARD_GOALS: dict[str, tuple[str, str, int]] = {
+    "lb_fastest_reset": ("unlock", "Leaderboard", 1),
+    "lb_hay": ("item", "Hay", 2_000_000_000),
+    "lb_hay_single": ("item", "Hay", 200_000_000),
+    "lb_wood": ("item", "Wood", 10_000_000_000),
+    "lb_wood_single": ("item", "Wood", 1_000_000_000),
+    "lb_carrots": ("item", "Carrot", 2_000_000_000),
+    "lb_carrots_single": ("item", "Carrot", 200_000_000),
+    "lb_pumpkins": ("item", "Pumpkin", 200_000_000),
+    "lb_pumpkins_single": ("item", "Pumpkin", 20_000_000),
+    "lb_cactus": ("item", "Cactus", 33_554_432),
+    "lb_cactus_single": ("item", "Cactus", 131_072),
+    "lb_dinosaur": ("item", "Bone", 33_488_928),
+    "lb_maze": ("item", "Gold", 9_863_168),
+    "lb_maze_single": ("item", "Gold", 616_448),
+    "lb_sunflowers": ("item", "Power", 100_000),
+    "lb_sunflowers_single": ("item", "Power", 10_000),
+}
+
+
+def format_clock_time(seconds: float) -> str:
+    total_milliseconds = max(0, int(round(seconds * 1000)))
+    milliseconds = total_milliseconds % 1000
+    total_seconds = total_milliseconds // 1000
+    secs = total_seconds % 60
+    total_minutes = total_seconds // 60
+    minutes = total_minutes % 60
+    hours = total_minutes // 60
+    if hours > 0:
+        return f"{hours}:{minutes:02d}:{secs:02d}.{milliseconds:03d}"
+    return f"{minutes}:{secs:02d}.{milliseconds:03d}"
+
+
+def leaderboard_goal_status(target_name: str, farm: FarmState | None) -> tuple[bool | None, str]:
+    # 本地 leaderboard_run 要靠最终农场状态判断这一轮是否真正达标。
+    if farm is None:
+        return None, "goal=missing-farm"
+    goal = _LEADERBOARD_GOALS.get(Path(target_name).stem)
+    if goal is None:
+        return None, "goal=untracked"
+    goal_type, resource_name, amount = goal
+    if goal_type == "item":
+        current = int(farm.num_items(farm.item(resource_name)))
+    else:
+        current = int(farm.num_unlocked(farm.unlock(resource_name)))
+    return current >= amount, f"{resource_name}={current}/{amount}"
+
+
+def run_leaderboard_iteration(target: str, save_root: str | Path | None, seed: int) -> LeaderboardIterationResult:
+    # 子进程只返回 summary，避免把整轮脚本明细日志来回复制。
+    nested = run_file_with_context(
+        target,
+        save_root,
+        seed=seed,
+        capture_logs=False,
+    )
+    _, progress_text = leaderboard_goal_status(target, nested.final_farm)
+    return LeaderboardIterationResult(
+        seed=seed,
+        elapsed_seconds=nested.elapsed_seconds,
+        terminated=nested.terminated,
+        progress_text=progress_text,
+    )
 
 
 def _coerce_bag_key(key, bag_name: str, bindings: dict[str, object]):
@@ -217,9 +305,13 @@ def main(argv: list[str] | None = None) -> int:
         save_root = argv[2]
     else:
         save_root = None
-    result = run_file(target, save_root, seed=seed)
-    for line in result.logs:
-        print(line)
+    result = run_file(
+        target,
+        save_root,
+        seed=seed,
+        log_sink=lambda line: print(line, flush=True),
+        capture_logs=False,
+    )
     return 0
 
 

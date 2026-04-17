@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
 import math
+import os
+import random
 from typing import Any
 
 from .builtins_api import default_functions
@@ -12,6 +15,11 @@ from .py_values import PyList
 from .py_values import PyBool, PyNone, PyNumber
 from .scope import Scope
 from ..common.side_effects import SideEffect
+
+
+MIN_LEADERBOARD_TOTAL_SECONDS = 2.0 * 60.0 * 60.0
+MAX_LEADERBOARD_RUNS = 20_000
+MAX_LEADERBOARD_WORKERS = max(1, min(8, os.cpu_count() or 1))
 
 
 @dataclass
@@ -290,6 +298,88 @@ class Execution:
             elif not was_main:
                 self.sim.farm.remove_drone(state.drone_id)
             return
+        elif state.current_side_effect == SideEffect.RUN_LEADERBOARD:
+            from ..runner import format_clock_time, run_leaderboard_iteration
+
+            payload = state.current_side_effect_argument
+            target = payload.items[1].text
+            total_seconds = 0.0
+            run_count = 0
+            finished = True
+            min_seconds: float | None = None
+            max_seconds: float | None = None
+            save_root = getattr(self.sim, "save_root", None)
+            pending: dict[int, tuple[int, Any]] = {}
+            next_order_to_schedule = 0
+            next_order_to_consume = 0
+            prefetch_random = random.Random()
+            prefetch_random.setstate(self.sim.random_random.getstate())
+
+            def schedule_one(executor: ProcessPoolExecutor) -> None:
+                nonlocal next_order_to_schedule
+                seed = prefetch_random.randrange(1, 2**31)
+                pending[next_order_to_schedule] = (
+                    seed,
+                    executor.submit(run_leaderboard_iteration, target, save_root, seed),
+                )
+                next_order_to_schedule += 1
+
+            self.log(f"leaderboard_run {target}.py start")
+
+            # 本地模拟器没有动画显示，直接并行预跑多轮，再按固定 seed 顺序消费结果。
+            executor = ProcessPoolExecutor(max_workers=MAX_LEADERBOARD_WORKERS)
+            try:
+                while len(pending) < MAX_LEADERBOARD_WORKERS and next_order_to_schedule < MAX_LEADERBOARD_RUNS:
+                    schedule_one(executor)
+                while total_seconds < MIN_LEADERBOARD_TOTAL_SECONDS and next_order_to_consume < MAX_LEADERBOARD_RUNS:
+                    scheduled_seed, future = pending.pop(next_order_to_consume)
+                    iteration = future.result()
+                    actual_seed = self.sim.random_random.randrange(1, 2**31)
+                    if actual_seed != scheduled_seed or iteration.seed != scheduled_seed:
+                        raise RuntimeError("leaderboard seed ordering drifted")
+                    next_order_to_consume += 1
+                    run_count += 1
+                    total_seconds += iteration.elapsed_seconds
+                    min_seconds = iteration.elapsed_seconds if min_seconds is None else min(min_seconds, iteration.elapsed_seconds)
+                    max_seconds = iteration.elapsed_seconds if max_seconds is None else max(max_seconds, iteration.elapsed_seconds)
+                    self.log(
+                        "leaderboard_run"
+                        f" run={run_count}"
+                        f" seed={scheduled_seed}"
+                        f" time={format_clock_time(iteration.elapsed_seconds)}"
+                        f" seconds={iteration.elapsed_seconds:.3f}"
+                        f" total={format_clock_time(total_seconds)}"
+                        f" progress={iteration.progress_text}"
+                    )
+                    if not iteration.terminated or iteration.elapsed_seconds <= 0.0:
+                        finished = False
+                        break
+                    while (
+                        total_seconds < MIN_LEADERBOARD_TOTAL_SECONDS
+                        and len(pending) < MAX_LEADERBOARD_WORKERS
+                        and next_order_to_schedule < MAX_LEADERBOARD_RUNS
+                    ):
+                        schedule_one(executor)
+            finally:
+                executor.shutdown(wait=False, cancel_futures=True)
+
+            if next_order_to_consume >= MAX_LEADERBOARD_RUNS and total_seconds < MIN_LEADERBOARD_TOTAL_SECONDS:
+                finished = False
+            average_seconds = total_seconds / run_count if run_count > 0 else 0.0
+            if run_count == 0:
+                finished = False
+                min_seconds = 0.0
+                max_seconds = 0.0
+            status_word = "pass" if finished else "fail"
+            self.log(
+                f"leaderboard_run {target}.py"
+                f" {status_word}"
+                f" average={format_clock_time(average_seconds)}"
+                f" min={format_clock_time(min_seconds or 0.0)}"
+                f" max={format_clock_time(max_seconds or 0.0)}"
+            )
+            state.return_value = PyNone()
+            state.add_and_consume_ops(200.0)
         elif state.current_side_effect == SideEffect.SIMULATE:
             from ..runner import coerce_globals, coerce_items, coerce_unlock_levels, run_file_with_context
 
