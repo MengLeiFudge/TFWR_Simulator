@@ -10,7 +10,7 @@ from __builtins__ import *
 # 1#用时：1:47.733
 # 当前用时：?:??.???
 
-# leaderboard_run(Leaderboards.Hay_Single, "lb_hay_single", 10000)
+leaderboard_run(Leaderboards.Hay_Single, "lb_hay_single", 10000)
 # 成功条件：num_items(Items.Hay) >= 200000000
 # 1#用时：2:46.4
 # 当前用时：2:52.217

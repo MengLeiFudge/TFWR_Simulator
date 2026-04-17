@@ -7,7 +7,7 @@ REPO_ROOT = Path(__file__).resolve().parent
 SOURCE_ROOT = REPO_ROOT / "src"
 
 # 本地常用入口：直接改这里，然后运行 `py runner.py`
-DEFAULT_TARGET = "simulate.py"
+DEFAULT_TARGET = "lb_start.py"
 DEFAULT_SEED = "1"
 DEFAULT_SPEEDUP = "10000"
 # 留空表示继续走 `.env` 里的 TFWR_SAVE_ROOT
