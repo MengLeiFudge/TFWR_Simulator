@@ -1609,6 +1609,52 @@ class RunnerTests(unittest.TestCase):
             self.assertTrue(result.terminated)
             self.assertEqual(result.logs, [])
 
+    def test_simulation_context_allows_ui_only_builtins(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            bindings = build_global_bindings()
+            timing_unlock = bindings["Unlocks"].evaluate("Timing")
+            debug_unlock = bindings["Unlocks"].evaluate("Debug")
+            expected_pet_ticks = int(1.0 / Simulation(seed=1).op_duration.seconds)
+            expected_tap_ticks = int(0.1 / Simulation(seed=1).op_duration.seconds)
+            (tmp_path / "simulate.py").write_text(
+                "from __builtins__ import *\n"
+                "pet_the_piggy()\n"
+                "quick_print('pet', get_tick_count())\n"
+                "tap()\n"
+                "quick_print('tap', get_tick_count())\n",
+                encoding="utf-8",
+            )
+            result = run_file_with_context(
+                "simulate",
+                tmp_path,
+                seed=1,
+                run_kind="simulation",
+                unlock_levels={timing_unlock: 1, debug_unlock: 1},
+                items={},
+            )
+            self.assertTrue(result.terminated)
+            self.assertEqual(
+                result.logs,
+                [f"pet {expected_pet_ticks}", f"tap {expected_pet_ticks + expected_tap_ticks}"],
+            )
+
+    def test_runner_executes_dict_copy_constructor(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "main.py").write_text(
+                "from __builtins__ import *\n"
+                "source = {Items.Hay: 1}\n"
+                "copy = dict(source)\n"
+                "quick_print('dict', len(copy), copy[Items.Hay])\n",
+                encoding="utf-8",
+            )
+            result = run_file("main", tmp_path, seed=1)
+            self.assertTrue(result.terminated)
+            self.assertEqual(result.logs, ["dict 1.0 1.0"])
+
     def test_runner_script_path_executes_from_repo_root(self) -> None:
         require_save_root()
         game_root = REPO_ROOT

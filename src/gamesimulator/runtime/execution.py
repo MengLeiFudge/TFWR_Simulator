@@ -274,6 +274,9 @@ class Execution:
         elif state.current_side_effect == SideEffect.DO_A_FLIP:
             state.return_value = PyNone()
             state.add_and_consume_ops(math.floor(1.0 / self.sim.op_duration.seconds))
+        elif state.current_side_effect == SideEffect.PET_THE_PIGGY:
+            state.return_value = PyNone()
+            state.add_and_consume_ops(math.floor(1.0 / self.sim.op_duration.seconds))
         elif state.current_side_effect == SideEffect.TERMINATED:
             was_main = state is self.main_state
             for other_state in self.states:

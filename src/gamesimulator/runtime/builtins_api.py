@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from .py_function import PyFunction
 from .execute_exception import ExecuteException
-from .py_values import PyBool, PyDict, PyList, PyNone, PyNumber, PyRange, PySet, PyString, PyTickNumber, PyTuple
+from .py_values import PyBool, PyDict, PyList, PyNone, PyNumber, PyObjectBox, PyRange, PySet, PyString, PyTickNumber, PyTuple
 from ..common.side_effects import SideEffect
 
 
@@ -180,6 +181,13 @@ def do_a_flip_builtin(parameters, sim, execution, drone_id) -> float:
     if parameters:
         raise ValueError("do_a_flip takes no parameters")
     execution.states[drone_id].current_side_effect = SideEffect.DO_A_FLIP
+    return 0.0
+
+
+def pet_the_piggy_builtin(parameters, sim, execution, drone_id) -> float:
+    if parameters:
+        raise ValueError("pet_the_piggy takes no parameters")
+    execution.states[drone_id].current_side_effect = SideEffect.PET_THE_PIGGY
     return 0.0
 
 
@@ -363,7 +371,22 @@ def dict_constructor(parameters, sim, execution, drone_id) -> float:
     if len(parameters) == 0:
         execution.states[drone_id].return_value = PyDict({})
         return 1.0
-    raise ValueError("dict constructor with input not implemented yet")
+    if len(parameters) == 1 and isinstance(parameters[0], PyDict):
+        execution.states[drone_id].return_value = PyDict(
+            {
+                key: PyObjectBox(boxed.obj)
+                for key, boxed in parameters[0].items.items()
+            }
+        )
+        return 1.0 + 2.0 * len(parameters[0].items)
+    raise ValueError("dict expects 0 or 1 parameters")
+
+
+def tap_builtin(parameters, sim, execution, drone_id) -> float:
+    if parameters:
+        raise ValueError("tap takes no parameters")
+    execution.states[drone_id].return_value = PyNone()
+    return math.floor(0.1 / sim.op_duration.seconds)
 
 
 def get_cost_builtin(parameters, sim, execution, drone_id) -> float:
@@ -441,6 +464,8 @@ def default_functions() -> dict[str, PyFunction]:
         "get_companion": PyFunction("get_companion", binding=get_companion),
         "change_hat": PyFunction("change_hat", binding=change_hat),
         "do_a_flip": PyFunction("do_a_flip", binding=do_a_flip_builtin),
+        "pet_the_piggy": PyFunction("pet_the_piggy", binding=pet_the_piggy_builtin),
+        "tap": PyFunction("tap", binding=tap_builtin),
         "clear": PyFunction("clear", binding=clear_builtin),
         "unlock": PyFunction("unlock", binding=unlock_builtin),
         "set_execution_speed": PyFunction("set_execution_speed", binding=set_execution_speed),
