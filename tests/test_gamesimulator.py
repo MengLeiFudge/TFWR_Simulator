@@ -15,6 +15,7 @@ from unittest import mock
 from gamesimulator import Duration, SideEffect, just_sha256_it, num_drones, world_size_scale
 from gamesimulator.config import REPO_ROOT, resolve_save_root
 from gamesimulator.runtime.execute_exception import BreakStatement, ContinueStatement, ReturnStatement
+from gamesimulator.runtime.execute_exception import ExecuteException
 from gamesimulator.runtime.execution import Execution
 from gamesimulator.world.farm import FarmState
 from gamesimulator.loader import build_global_bindings as _build_global_bindings, load_tfwr_builtins as _load_tfwr_builtins
@@ -31,6 +32,7 @@ from gamesimulator.parser.nodes import (
     DictNode,
     ForNode,
     FunctionNode,
+    ImportNode,
     LiteralNode,
     ListNode,
     NoOpNode,
@@ -66,10 +68,14 @@ from gamesimulator.runner import (
     _default_items,
     _default_unlock_levels,
     coerce_items,
+    coerce_globals,
     coerce_unlock_levels,
+    leaderboard_goal_status,
     main as runner_main,
     run_file,
+    run_file_with_context,
 )
+from gamesimulator.leaderboard_metadata import resolve_leaderboard_metadata
 from gamesimulator.common.runtime_types import RuntimeMailbox, RuntimePlaceholders, TimerRecord
 from gamesimulator.runtime.simulation import Simulation
 from gamesimulator.runtime.scope import Scope
@@ -448,7 +454,7 @@ class ParserTests(unittest.TestCase):
         self.assertFalse(has_unknown)
         program = parse(stream)
         self.assertEqual(len(program.syntax_tree.slots), 3)
-        self.assertIsInstance(program.syntax_tree.slots[0], NoOpNode)
+        self.assertIsInstance(program.syntax_tree.slots[0], ImportNode)
         self.assertIsInstance(program.syntax_tree.slots[1], AssignmentNode)
         self.assertIsInstance(program.syntax_tree.slots[1].slots[1], ListNode)
         self.assertIsInstance(program.syntax_tree.slots[2], ForNode)
@@ -737,6 +743,33 @@ class ExecutionTests(unittest.TestCase):
         self.assertTrue(bool(state.current_scope.evaluate("done1").val))
         self.assertEqual(float(state.current_scope.evaluate("count1").val), 1.0)
 
+    def test_execution_get_cost_for_unlocks(self) -> None:
+        bindings = build_global_bindings()
+        code = (
+            "\n"
+            + "loops_cost = get_cost(Unlocks.Loops)\n"
+            + "loops_hay = loops_cost[Items.Hay]\n"
+            + "expand0 = get_cost(Unlocks.Expand, 0)\n"
+            + "expand0_hay = expand0[Items.Hay]\n"
+            + "expand1 = get_cost(Unlocks.Expand, 1)\n"
+            + "expand1_wood = expand1[Items.Wood]\n"
+            + "expand5 = get_cost(Unlocks.Expand, 5)\n"
+            + "expand5_pumpkin = expand5[Items.Pumpkin]\n"
+        )
+        has_unknown, stream = tokenize(code)
+        self.assertFalse(has_unknown)
+        program = parse(stream)
+        farm = FarmState(bindings)
+        sim = Simulation(seed=1)
+        sim.farm = farm
+        execution = Execution(sim, program.syntax_tree, 15, global_bindings=bindings)
+        run_execution_to_termination(execution, max_cycles=80)
+        state = execution.states[0]
+        self.assertEqual(float(state.current_scope.evaluate("loops_hay").val), 5.0)
+        self.assertEqual(float(state.current_scope.evaluate("expand0_hay").val), 30.0)
+        self.assertEqual(float(state.current_scope.evaluate("expand1_wood").val), 20.0)
+        self.assertEqual(float(state.current_scope.evaluate("expand5_pumpkin").val), 8000.0)
+
 
 class LoaderTests(unittest.TestCase):
     def test_build_global_bindings(self) -> None:
@@ -773,8 +806,173 @@ class LoaderTests(unittest.TestCase):
         )
         self.assertEqual(item_levels[inner_bindings["Items"].evaluate("Hay")], 9.0)
 
+    def test_coerce_unlock_levels_for_dict_adds_reset_baseline_and_clamps(self) -> None:
+        outer_bindings = build_global_bindings()
+        inner_bindings = build_global_bindings()
+
+        source = PyDict(
+            {
+                outer_bindings["Unlocks"].evaluate("Expand"): PyObjectBox(PyNumber(99.0)),
+                outer_bindings["Unlocks"].evaluate("Speed"): PyObjectBox(PyNumber(0.0)),
+            }
+        )
+
+        levels = coerce_unlock_levels(source, inner_bindings)
+
+        self.assertEqual(levels[inner_bindings["Unlocks"].evaluate("Expand")], 9)
+        self.assertEqual(levels[inner_bindings["Unlocks"].evaluate("Loops")], 1)
+        self.assertNotIn(inner_bindings["Unlocks"].evaluate("Speed"), levels)
+
+    def test_coerce_unlock_levels_for_iterable_adds_reset_baseline_and_uses_max_level(self) -> None:
+        outer_bindings = build_global_bindings()
+        inner_bindings = build_global_bindings()
+
+        levels = coerce_unlock_levels(
+            PyList([outer_bindings["Unlocks"].evaluate("Expand")]),
+            inner_bindings,
+        )
+
+        self.assertEqual(levels[inner_bindings["Unlocks"].evaluate("Expand")], 9)
+        self.assertEqual(levels[inner_bindings["Unlocks"].evaluate("Loops")], 1)
+
+    def test_coerce_unlock_levels_for_iterable_tuple_overrides_level(self) -> None:
+        outer_bindings = build_global_bindings()
+        inner_bindings = build_global_bindings()
+
+        levels = coerce_unlock_levels(
+            PyList(
+                [
+                    PyTuple([outer_bindings["Unlocks"].evaluate("Expand"), PyNumber(3.0)]),
+                    PyTuple([outer_bindings["Unlocks"].evaluate("Watering"), PyNumber(-1.0)]),
+                ]
+            ),
+            inner_bindings,
+        )
+
+        self.assertEqual(levels[inner_bindings["Unlocks"].evaluate("Expand")], 3)
+        self.assertEqual(levels[inner_bindings["Unlocks"].evaluate("Watering")], 9)
+
+    def test_coerce_unlock_levels_for_dict_uses_negative_as_max_level(self) -> None:
+        outer_bindings = build_global_bindings()
+        inner_bindings = build_global_bindings()
+
+        source = PyDict(
+            {
+                outer_bindings["Unlocks"].evaluate("Expand"): PyObjectBox(PyNumber(-1.0)),
+                outer_bindings["Unlocks"].evaluate("Watering"): PyObjectBox(PyNumber(-3.0)),
+            }
+        )
+
+        levels = coerce_unlock_levels(source, inner_bindings)
+
+        self.assertEqual(levels[inner_bindings["Unlocks"].evaluate("Expand")], 9)
+        self.assertEqual(levels[inner_bindings["Unlocks"].evaluate("Watering")], 9)
+
+    def test_coerce_unlock_levels_rejects_non_unlock_keys(self) -> None:
+        bindings = build_global_bindings()
+
+        with self.assertRaises(ExecuteException):
+            coerce_unlock_levels(
+                PyDict({PyString("Expand"): PyObjectBox(PyNumber(1.0))}),
+                bindings,
+            )
+
+        with self.assertRaises(ExecuteException):
+            coerce_unlock_levels(
+                PyList([PyString("Expand")]),
+                bindings,
+            )
+
+    def test_coerce_items_clamps_negative_values_to_zero(self) -> None:
+        outer_bindings = build_global_bindings()
+        inner_bindings = build_global_bindings()
+
+        item_levels = coerce_items(
+            PyDict(
+                {
+                    outer_bindings["Items"].evaluate("Hay"): PyObjectBox(PyNumber(-5.0)),
+                    outer_bindings["Items"].evaluate("Wood"): PyObjectBox(PyNumber(9.0)),
+                }
+            ),
+            inner_bindings,
+        )
+
+        self.assertEqual(item_levels[inner_bindings["Items"].evaluate("Hay")], 0.0)
+        self.assertEqual(item_levels[inner_bindings["Items"].evaluate("Wood")], 9.0)
+
+    def test_coerce_items_rejects_non_item_keys(self) -> None:
+        with self.assertRaises(ExecuteException):
+            coerce_items(
+                PyDict({PyString("Hay"): PyObjectBox(PyNumber(1.0))}),
+                build_global_bindings(),
+            )
+
+    def test_coerce_globals_accepts_string_keys_only(self) -> None:
+        globals_map = coerce_globals(
+            PyDict({PyString("seed_hint"): PyObjectBox(PyNumber(13.0))})
+        )
+        self.assertIn("seed_hint", globals_map)
+        self.assertEqual(float(globals_map["seed_hint"].num), 13.0)
+
+        with self.assertRaises(ExecuteException):
+            coerce_globals(
+                PyDict({build_global_bindings()["Items"].evaluate("Hay"): PyObjectBox(PyNumber(1.0))})
+            )
+
 
 class WorldCoreTests(unittest.TestCase):
+    def test_dependency_gate_rejects_locked_syntax_and_builtins(self) -> None:
+        bindings = build_global_bindings()
+
+        code_assignment = "\n" + "x = 1\n"
+        has_unknown, stream = tokenize(code_assignment)
+        self.assertFalse(has_unknown)
+        program = parse(stream)
+        farm = FarmState(bindings, unlock_levels={})
+        sim = Simulation(seed=1, leaderboard_type="simulation")
+        sim.farm = farm
+        execution = Execution(sim, program.syntax_tree, 101, global_bindings=bindings)
+        with self.assertRaises(ExecuteException):
+            run_execution_to_termination(execution, max_cycles=20)
+
+        code_for = "\n" + "for i in range(1):\n" + "    pass\n"
+        has_unknown, stream = tokenize(code_for)
+        self.assertFalse(has_unknown)
+        program = parse(stream)
+        expand = bindings["Unlocks"].evaluate("Expand")
+
+        farm_expand1 = FarmState(bindings, unlock_levels={expand: 1})
+        sim_expand1 = Simulation(seed=1, leaderboard_type="simulation")
+        sim_expand1.farm = farm_expand1
+        execution_expand1 = Execution(sim_expand1, program.syntax_tree, 102, global_bindings=bindings)
+        with self.assertRaises(ExecuteException):
+            run_execution_to_termination(execution_expand1, max_cycles=40)
+
+        farm_expand2 = FarmState(bindings, unlock_levels={expand: 2})
+        sim_expand2 = Simulation(seed=1, leaderboard_type="simulation")
+        sim_expand2.farm = farm_expand2
+        execution_expand2 = Execution(sim_expand2, program.syntax_tree, 103, global_bindings=bindings)
+        run_execution_to_termination(execution_expand2, max_cycles=40)
+
+        code_world_size = "\n" + "x = get_world_size()\n"
+        has_unknown, stream = tokenize(code_world_size)
+        self.assertFalse(has_unknown)
+        program = parse(stream)
+        variables = bindings["Unlocks"].evaluate("Variables")
+
+        farm_expand1_builtin = FarmState(bindings, unlock_levels={expand: 1, variables: 1})
+        sim_expand1_builtin = Simulation(seed=1, leaderboard_type="simulation")
+        sim_expand1_builtin.farm = farm_expand1_builtin
+        execution_expand1_builtin = Execution(sim_expand1_builtin, program.syntax_tree, 104, global_bindings=bindings)
+        with self.assertRaises(ExecuteException):
+            run_execution_to_termination(execution_expand1_builtin, max_cycles=20)
+
+        farm_expand2_builtin = FarmState(bindings, unlock_levels={expand: 2, variables: 1})
+        sim_expand2_builtin = Simulation(seed=1, leaderboard_type="simulation")
+        sim_expand2_builtin.farm = farm_expand2_builtin
+        execution_expand2_builtin = Execution(sim_expand2_builtin, program.syntax_tree, 105, global_bindings=bindings)
+        run_execution_to_termination(execution_expand2_builtin, max_cycles=20)
+
     def test_basic_world_queries_and_move(self) -> None:
         bindings = build_global_bindings()
         unlocks_bag = bindings["Unlocks"]
@@ -1236,6 +1434,181 @@ class EntityParityTests(unittest.TestCase):
 
 
 class RunnerTests(unittest.TestCase):
+    def test_leaderboard_metadata_uses_asset_snapshot_for_start_items_and_steam_name(self) -> None:
+        save_root = require_save_root()
+        hay_single = resolve_leaderboard_metadata("lb_hay_single", save_root)
+        sunflowers_single = resolve_leaderboard_metadata("lb_sunflowers_single", save_root)
+        fastest_reset = resolve_leaderboard_metadata("lb_fastest_reset", save_root)
+
+        self.assertEqual(hay_single.steam_leaderboard_name, "hay_single")
+        self.assertEqual(hay_single.start_items, (("Power", 1_000_000_000.0),))
+
+        self.assertEqual(sunflowers_single.steam_leaderboard_name, "sunflowers_single")
+        self.assertEqual(sunflowers_single.start_items, (("Carrot", 1_000_000_000.0),))
+
+        self.assertEqual(fastest_reset.steam_leaderboard_name, "fastest_reset_multi")
+        self.assertEqual(fastest_reset.start_items, ())
+        self.assertFalse(fastest_reset.everything_unlocked)
+
+    def test_leaderboard_goal_status_uses_game_single_goals(self) -> None:
+        bindings = build_global_bindings()
+        items_bag = bindings["Items"]
+
+        hay_farm = FarmState(bindings, items={items_bag.evaluate("Hay"): 100_000_000})
+        carrots_farm = FarmState(bindings, items={items_bag.evaluate("Carrot"): 100_000_000})
+        pumpkins_farm = FarmState(bindings, items={items_bag.evaluate("Pumpkin"): 10_000_000})
+
+        self.assertEqual(
+            leaderboard_goal_status("lb_hay_single", hay_farm),
+            (True, "Hay=100000000/100000000"),
+        )
+        self.assertEqual(
+            leaderboard_goal_status("lb_carrots_single", carrots_farm),
+            (True, "Carrot=100000000/100000000"),
+        )
+        self.assertEqual(
+            leaderboard_goal_status("lb_pumpkins_single", pumpkins_farm),
+            (True, "Pumpkin=10000000/10000000"),
+        )
+
+    def test_run_file_uses_single_leaderboard_drone_and_unlock_limits(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "lb_pumpkins_single.py").write_text(
+                "from __builtins__ import *\n"
+                "quick_print('expand_before', num_unlocked(Unlocks.Expand))\n"
+                "quick_print('mega_before', num_unlocked(Unlocks.Megafarm))\n"
+                "quick_print('expand_unlock', unlock(Unlocks.Expand), num_unlocked(Unlocks.Expand), get_world_size())\n"
+                "quick_print('mega_unlock', unlock(Unlocks.Megafarm), num_unlocked(Unlocks.Megafarm))\n",
+                encoding="utf-8",
+            )
+            result = run_file("lb_pumpkins_single", tmp_path, seed=1)
+            self.assertTrue(result.terminated)
+            self.assertEqual(result.logs[0], "expand_before 5.0")
+            self.assertEqual(result.logs[1], "mega_before 0.0")
+            self.assertEqual(result.logs[2], "expand_unlock False 5.0 8.0")
+            self.assertEqual(result.logs[3], "mega_unlock False 0.0")
+
+    def test_single_leaderboard_rejects_spawn_drone(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "lb_pumpkins_single.py").write_text(
+                "from __builtins__ import *\n"
+                "def child():\n"
+                "    return 7\n"
+                "spawn_drone(child)\n",
+                encoding="utf-8",
+            )
+            with self.assertRaises(ExecuteException):
+                run_file("lb_pumpkins_single", tmp_path, seed=1)
+
+    def test_run_file_with_context_propagates_single_leaderboard_metadata_to_probe_script(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "probe.py").write_text(
+                "from __builtins__ import *\n"
+                "quick_print('probe', num_unlocked(Unlocks.Expand), num_unlocked(Unlocks.Megafarm))\n",
+                encoding="utf-8",
+            )
+            result = run_file_with_context(
+                "probe",
+                tmp_path,
+                seed=1,
+                run_kind="leaderboard",
+                leaderboard_key="Pumpkins_Single",
+            )
+            self.assertTrue(result.terminated)
+            self.assertEqual(result.logs, ["probe 5.0 0.0"])
+
+    def test_simulate_does_not_recurse_inside_simulation_context(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "child.py").write_text(
+                "from __builtins__ import *\nquick_print('child-ran')\n",
+                encoding="utf-8",
+            )
+            (tmp_path / "simulate.py").write_text(
+                "from __builtins__ import *\n"
+                "run_time = simulate('child', Unlocks, {}, {}, 1, 10000)\n"
+                "quick_print('simulate_done', run_time)\n",
+                encoding="utf-8",
+            )
+            result = run_file_with_context("simulate", tmp_path, seed=1, run_kind="simulation")
+            self.assertTrue(result.terminated)
+            self.assertFalse(any(line == "child-ran" for line in result.logs))
+            self.assertTrue(any(line.startswith("simulate_done") for line in result.logs))
+
+    def test_leaderboard_run_does_not_recurse_inside_leaderboard_context(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "lb_probe.py").write_text(
+                "from __builtins__ import *\nquick_print('nested-lb-ran')\n",
+                encoding="utf-8",
+            )
+            (tmp_path / "lb_start.py").write_text(
+                "from __builtins__ import *\n"
+                "leaderboard_run(Leaderboards.Hay_Single, 'lb_probe', 10000)\n",
+                encoding="utf-8",
+            )
+            result = run_file_with_context(
+                "lb_start",
+                tmp_path,
+                seed=1,
+                run_kind="leaderboard",
+                leaderboard_key="Hay_Single",
+            )
+            self.assertTrue(result.terminated)
+            self.assertFalse(any("leaderboard_run lb_probe.py start" in line for line in result.logs))
+            self.assertFalse(any(line == "nested-lb-ran" for line in result.logs))
+
+    def test_leaderboard_context_allows_start_unlock_builtins(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "lb_probe.py").write_text(
+                "from __builtins__ import *\n"
+                "quick_print('before')\n"
+                "do_a_flip()\n"
+                "harvest()\n"
+                "quick_print('after')\n",
+                encoding="utf-8",
+            )
+            result = run_file_with_context(
+                "lb_probe",
+                tmp_path,
+                seed=1,
+                run_kind="leaderboard",
+                leaderboard_key="Hay_Single",
+            )
+            self.assertTrue(result.terminated)
+            self.assertEqual(result.logs, ["before", "after"])
+
+    def test_simulation_context_allows_start_unlock_builtins(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "simulate.py").write_text(
+                "from __builtins__ import *\n"
+                "do_a_flip()\n"
+                "harvest()\n",
+                encoding="utf-8",
+            )
+            result = run_file_with_context(
+                "simulate",
+                tmp_path,
+                seed=1,
+                run_kind="simulation",
+                unlock_levels={},
+                items={},
+            )
+            self.assertTrue(result.terminated)
+            self.assertEqual(result.logs, [])
+
     def test_runner_script_path_executes_from_repo_root(self) -> None:
         require_save_root()
         game_root = REPO_ROOT
@@ -1288,6 +1661,74 @@ class RunnerTests(unittest.TestCase):
             self.assertTrue(any(line.startswith("child") for line in result.logs))
             self.assertTrue(any(line.startswith("simulate_done") for line in result.logs))
 
+    def test_runner_executes_import_script(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "helper.py").write_text(
+                "from __builtins__ import *\n"
+                "x = 3\n"
+                "def inc():\n"
+                "    return x + 1\n",
+                encoding="utf-8",
+            )
+            (tmp_path / "main.py").write_text(
+                "from __builtins__ import *\n"
+                "import helper\n"
+                "quick_print('mod', helper.x)\n"
+                "from helper import inc\n"
+                "quick_print('fn', inc())\n",
+                encoding="utf-8",
+            )
+            result = run_file("main", tmp_path, seed=1)
+            self.assertTrue(result.terminated)
+            self.assertEqual(result.logs, ["mod 3.0", "fn 4.0"])
+
+    def test_runner_executes_from_import_star_script(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "helper.py").write_text(
+                "from __builtins__ import *\n"
+                "x = 3\n"
+                "y = 5\n",
+                encoding="utf-8",
+            )
+            (tmp_path / "main.py").write_text(
+                "from __builtins__ import *\n"
+                "from helper import *\n"
+                "quick_print('vals', x, y)\n",
+                encoding="utf-8",
+            )
+            result = run_file("main", tmp_path, seed=1)
+            self.assertTrue(result.terminated)
+            self.assertEqual(result.logs, ["vals 3.0 5.0"])
+
+    def test_import_requires_unlock_in_simulation_context(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "helper.py").write_text(
+                "from __builtins__ import *\n"
+                "x = 3\n",
+                encoding="utf-8",
+            )
+            (tmp_path / "main.py").write_text(
+                "from __builtins__ import *\n"
+                "import helper\n"
+                "quick_print(helper.x)\n",
+                encoding="utf-8",
+            )
+            with self.assertRaises(ExecuteException):
+                run_file_with_context(
+                    "main",
+                    tmp_path,
+                    seed=1,
+                    run_kind="simulation",
+                    unlock_levels={},
+                    items={},
+                )
+
     def test_run_file_forwards_logs_to_sink(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
@@ -1326,8 +1767,8 @@ class RunnerTests(unittest.TestCase):
             self.assertFalse(any(line == "tick" for line in result.logs))
             self.assertEqual(result.logs[0], "leaderboard_run lb_probe.py start")
             self.assertTrue(any("leaderboard_run run=1" in line for line in result.logs))
-            self.assertTrue(any("leaderboard_run run=2" in line for line in result.logs))
-            average_lines = [line for line in result.logs if "leaderboard_run lb_probe.py pass average=" in line]
+            self.assertFalse(any("leaderboard_run run=2" in line for line in result.logs))
+            average_lines = [line for line in result.logs if "leaderboard_run lb_probe.py fail average=" in line]
             self.assertTrue(average_lines)
             self.assertTrue(any("min=" in line and "max=" in line for line in average_lines))
             self.assertFalse(any("average_seconds=" in line for line in average_lines))
@@ -1394,7 +1835,7 @@ class RunnerTests(unittest.TestCase):
         sim.farm = FarmState(
             bindings,
             unlock_levels=_default_unlock_levels(bindings),
-            items=_default_items("lb_wood_single", bindings),
+            items=_default_items("lb_wood_single", bindings, require_save_root()),
         )
         execution = Execution(sim, program.syntax_tree, 91, global_bindings=bindings)
         run_execution_to_termination(execution)

@@ -13,6 +13,7 @@ from .nodes import (
     DictNode,
     ForNode,
     FunctionNode,
+    ImportNode,
     LiteralNode,
     ListNode,
     NoOpNode,
@@ -210,21 +211,29 @@ def _for_statement(stream: TokenStream, indentation: int, vars_set: set[str], gl
 
 def _import_statement(stream: TokenStream):
     token = stream.consume(TokenType.IMPORT)
+    module_names: list[str] = []
     while stream.current is not None and stream.current.type not in (TokenType.NEW_LINE,):
-        stream.consume()
-    return NoOpNode(BoxedNodeParams(word_start=token.start_index, word_end=token.start_index + len(token.value)))
+        module_names.append(stream.consume(TokenType.IDENTIFIER).value)
+        if stream.current is None or stream.current.type != TokenType.COMMA:
+            break
+        stream.consume(TokenType.COMMA)
+    return ImportNode(module_names, False, False, [], False, BoxedNodeParams(word_start=token.start_index, word_end=token.start_index + len(token.value)))
 
 
 def _from_import_statement(stream: TokenStream):
     token = stream.consume(TokenType.FROM)
-    stream.consume(TokenType.IDENTIFIER)
+    module_name = stream.consume(TokenType.IDENTIFIER).value
     stream.consume(TokenType.IMPORT)
     if stream.current is not None and stream.current.type == TokenType.MULT:
         stream.consume(TokenType.MULT)
-    else:
-        while stream.current is not None and stream.current.type not in (TokenType.NEW_LINE,):
-            stream.consume()
-    return NoOpNode(BoxedNodeParams(word_start=token.start_index, word_end=token.start_index + len(token.value)))
+        return ImportNode([module_name], True, True, [], False, BoxedNodeParams(word_start=token.start_index, word_end=token.start_index + len(token.value)))
+    vars_to_unpack: list[str] = []
+    while stream.current is not None and stream.current.type not in (TokenType.NEW_LINE,):
+        vars_to_unpack.append(stream.consume(TokenType.IDENTIFIER).value)
+        if stream.current is None or stream.current.type != TokenType.COMMA:
+            break
+        stream.consume(TokenType.COMMA)
+    return ImportNode([module_name], True, False, vars_to_unpack, False, BoxedNodeParams(word_start=token.start_index, word_end=token.start_index + len(token.value)))
 
 
 def _expression(stream: TokenStream):

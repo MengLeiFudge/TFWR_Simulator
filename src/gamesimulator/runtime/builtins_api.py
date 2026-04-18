@@ -370,6 +370,15 @@ def get_cost_builtin(parameters, sim, execution, drone_id) -> float:
     if len(parameters) not in (1, 2):
         raise ValueError("get_cost expects 1 or 2 parameters")
     thing = parameters[0]
+    level = -1 if len(parameters) == 1 else int(float(parameters[1].num))
+    unlock_cost = sim.farm.get_unlock_cost(thing, level)
+    if unlock_cost is not None:
+        mapping = {
+            key: __import__("gamesimulator.runtime.py_values", fromlist=["PyObjectBox"]).PyObjectBox(PyNumber(value))
+            for key, value in unlock_cost.items()
+        }
+        execution.states[drone_id].return_value = PyDict(mapping)
+        return 1.0
     if thing in sim.farm.entity_cost:
         mapping = {
             key: __import__("gamesimulator.runtime.py_values", fromlist=["PyObjectBox"]).PyObjectBox(PyNumber(value))

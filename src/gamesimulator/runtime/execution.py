@@ -268,12 +268,9 @@ class Execution:
             state.add_and_consume_ops(200.0)
         elif state.current_side_effect == SideEffect.UNLOCK:
             unlock = state.current_side_effect_argument
-            current = self.sim.farm.num_unlocked(unlock)
-            self.sim.farm.unlock_levels[unlock] = current + 1
-            if str(unlock).split(".")[-1] == "Expand":
-                self.sim.farm.grid.reset_for_expand(self.sim.farm.num_unlocked(unlock))
-            state.return_value = PyBool(True)
-            state.add_and_consume_ops(200.0)
+            ok = self.sim.farm.unlock_or_upgrade(unlock)
+            state.return_value = PyBool(ok)
+            state.add_and_consume_ops(200.0 if ok else 1.0)
         elif state.current_side_effect == SideEffect.DO_A_FLIP:
             state.return_value = PyNone()
             state.add_and_consume_ops(math.floor(1.0 / self.sim.op_duration.seconds))
@@ -301,8 +298,14 @@ class Execution:
         elif state.current_side_effect == SideEffect.RUN_LEADERBOARD:
             from ..runner import format_clock_time, run_leaderboard_iteration
 
+            if getattr(self.sim, "leaderboard_type", "none") != "none":
+                state.return_value = PyNone()
+                state.add_and_consume_ops(200.0)
+                return
+
             payload = state.current_side_effect_argument
             target = payload.items[1].text
+            leaderboard_key = str(payload.items[0]).split(".")[-1]
             total_seconds = 0.0
             run_count = 0
             finished = True
@@ -320,7 +323,7 @@ class Execution:
                 seed = prefetch_random.randrange(1, 2**31)
                 pending[next_order_to_schedule] = (
                     seed,
-                    executor.submit(run_leaderboard_iteration, target, save_root, seed),
+                    executor.submit(run_leaderboard_iteration, target, save_root, seed, leaderboard_key),
                 )
                 next_order_to_schedule += 1
 
@@ -351,7 +354,7 @@ class Execution:
                         f" total={format_clock_time(total_seconds)}"
                         f" progress={iteration.progress_text}"
                     )
-                    if not iteration.terminated or iteration.elapsed_seconds <= 0.0:
+                    if not iteration.terminated or iteration.elapsed_seconds <= 0.0 or not iteration.goal_reached:
                         finished = False
                         break
                     while (
@@ -383,6 +386,11 @@ class Execution:
         elif state.current_side_effect == SideEffect.SIMULATE:
             from ..runner import coerce_globals, coerce_items, coerce_unlock_levels, run_file_with_context
 
+            if getattr(self.sim, "leaderboard_type", "none") != "none":
+                state.return_value = PyNone()
+                state.add_and_consume_ops(200.0)
+                return
+
             payload = state.current_side_effect_argument
             target = payload.items[0].text
             unlock_levels = coerce_unlock_levels(payload.items[1], self.global_bindings or {})
@@ -396,6 +404,7 @@ class Execution:
                 unlock_levels=unlock_levels,
                 items=items,
                 globals_override=globals_override,
+                run_kind="simulation",
             )
             for line in nested.logs:
                 self.log(line)

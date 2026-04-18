@@ -12,7 +12,13 @@ from ..common.runtime_types import TimerRecord
 class Simulation:
     BASE_OP_DURATION = 0.0025
 
-    def __init__(self, seed: int = -1):
+    def __init__(
+        self,
+        seed: int = -1,
+        leaderboard_name: str = "",
+        leaderboard_type: str = "none",
+        single_drone: bool = False,
+    ):
         self.execution = None
         self.main_sim = None
         self.has_error = False
@@ -39,6 +45,9 @@ class Simulation:
         self.log_sink = None
         self.capture_logs = True
         self._farm = None
+        self.leaderboard_name = leaderboard_name
+        self.leaderboard_type = leaderboard_type
+        self.single_drone = single_drone
 
     @property
     def farm(self):

@@ -324,9 +324,29 @@ class PyModule(PyValue):
     def __init__(self, name: str, scope: Any = None):
         self.name = name
         self.scope = scope
+        self.fully_initialized = False
 
     def __repr__(self) -> str:
         return f"<module {self.name}>"
+
+    def evaluate(self, name: str) -> Any:
+        if self.scope is None or name not in self.scope.vars:
+            raise KeyError(name)
+        return self.scope.vars[name].val
+
+    def export(self, name: str):
+        if self.scope is None or name not in self.scope.vars:
+            raise KeyError(name)
+        entry = self.scope.vars[name]
+        return entry.val, entry.is_static
+
+    def iter_exports(self):
+        if self.scope is None:
+            return iter(())
+        return iter(self.scope.vars.items())
+
+    def deep_copy(self, copies: dict[int, Any]) -> "PyModule":
+        return self
 
 
 class PyConstBag(PyValue):

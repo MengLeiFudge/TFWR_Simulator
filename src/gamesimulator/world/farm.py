@@ -8,7 +8,14 @@ from .drone import DroneState
 from .entities import CactusView, PumpkinView, SunflowerView, TreasureView, create_entity_view
 from .grid import GridState
 from ..common.helper import num_drones
+from ..unlock_snapshot import (
+    DEFAULT_UNLOCK_LEVELS,
+    get_unlock_metadata,
+    is_default_available_dependency,
+    resolve_dependency_unlock,
+)
 from ..runtime.py_values import GridDirection
+from ..runtime.execute_exception import ExecuteException
 from ..common.resource_tables import COMPANION_ENTITIES, ENTITY_ALLOWED_GROUNDS, ENTITY_GROWTH_RANGES
 
 
@@ -129,6 +136,30 @@ class FarmState:
                     return float(value)
         return 0.0
 
+    def get_unlock_of(self, name: str) -> tuple[str, int] | None:
+        return resolve_dependency_unlock(name)
+
+    def is_unlocked_name(self, name: str, required_level: int = 1) -> bool:
+        if is_default_available_dependency(name):
+            return True
+        unlock = self.get_unlock_of(name)
+        if unlock is None:
+            return False
+        unlock_name, unlock_level = unlock
+        required = max(required_level, unlock_level)
+        return self.num_unlocked(self.unlock(_to_const_name(unlock_name))) >= required
+
+    def assert_unlocked(self, dependency: str, word_start: int = -1, word_end: int = -1) -> None:
+        if is_default_available_dependency(dependency):
+            return
+        unlock = self.get_unlock_of(dependency)
+        if unlock is None:
+            raise ExecuteException("error_missing_unlock")
+        unlock_name, required_level = unlock
+        if self.num_unlocked(self.unlock(_to_const_name(unlock_name))) >= required_level:
+            return
+        raise ExecuteException(f"error_missing_x_unlock:{_to_const_name(unlock_name)}")
+
     def set_num_items(self, item: Any, value: float) -> None:
         self.items[item] = float(value)
         self._sync_speed_if_needed(item)
@@ -161,6 +192,28 @@ class FarmState:
     def get_entity_cost(self, entity: Any) -> dict[Any, float]:
         return dict(self.entity_cost.get(entity, {}))
 
+    def get_unlock_cost(self, unlock: Any, num_unlocked: int = -1) -> dict[Any, float] | None:
+        unlock_name = self._bag_key_name(unlock)
+        if unlock_name is None:
+            return None
+        metadata = get_unlock_metadata(unlock_name)
+        if metadata is None:
+            return None
+        current = self.num_unlocked(unlock) if num_unlocked < 0 else int(num_unlocked)
+        max_level = int(metadata["max_unlock_level"])
+        if current >= max_level:
+            return {}
+        if current > 0 and metadata["multi_unlock_cost"]:
+            costs = metadata["multi_unlock_cost"]
+            if current <= len(costs):
+                return self._materialize_cost(costs[current - 1])
+            factor = float(metadata["multi_unlock_factor"]) ** (current - len(costs))
+            return {
+                item: round(amount * factor, 3)
+                for item, amount in self._materialize_cost(costs[-1]).items()
+            }
+        return self._materialize_cost(metadata["unlock_cost"])
+
     def _normalize_bag_mapping(self, mapping: dict[Any, Any], bag: Any) -> dict[Any, Any]:
         if bag is None or not hasattr(bag, "evaluate"):
             return dict(mapping)
@@ -189,6 +242,9 @@ class FarmState:
         if not text:
             return None
         return text.split(".")[-1]
+
+    def _materialize_cost(self, pairs) -> dict[Any, float]:
+        return {self.item(name): float(amount) for name, amount in pairs}
 
     def entity_yield(self, entity: Any, cell=None) -> tuple[Any, float]:
         if entity == self.entity("Grass"):
@@ -381,9 +437,28 @@ class FarmState:
         return factor
 
     def max_drones(self) -> int:
+        if self.sim is not None and getattr(self.sim, "single_drone", False):
+            return 1
         if self.unlocks_bag is None:
             return 1
         return num_drones(self.num_unlocked(self.unlock("Megafarm")))
+
+    def unlock_or_upgrade(self, unlock: Any) -> bool:
+        unlock_name = self._bag_key_name(unlock)
+        if unlock_name is None:
+            return False
+        if self.sim is not None and getattr(self.sim, "single_drone", False) and unlock_name in ("Megafarm", "Expand"):
+            return False
+        current = self.num_unlocked(unlock)
+        max_level = int(DEFAULT_UNLOCK_LEVELS.get(unlock_name, max(current, 1)))
+        if current >= max_level:
+            return False
+        self.unlock_levels[unlock] = current + 1
+        if unlock_name == "Expand":
+            self.grid.reset_for_expand(self.num_unlocked(unlock))
+        elif unlock_name == "Speed" and self.sim is not None:
+            self.sim.change_execution_speed(self.max_speed_factor())
+        return True
 
     def add_drone(self, parent_id: int) -> int:
         self.drone_generation += 1
@@ -415,3 +490,7 @@ class FarmState:
             return bag.evaluate(name)
         except Exception:
             return fallback
+
+
+def _to_const_name(asset_name: str) -> str:
+    return "_".join(part.capitalize() for part in asset_name.split("_"))

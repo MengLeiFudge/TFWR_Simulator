@@ -2,13 +2,16 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Iterable
 
 from ..runtime.execute_exception import BreakStatement, ContinueStatement, ExecuteException, ReturnStatement
+from ..runtime.module_state import ModuleState
 from ..runtime.py_function import PyFunction
-from ..runtime.py_values import PyBool, PyDict, PyList, PyNone, PyObjectBox, PySet, PyString, PyTuple
+from ..runtime.py_values import PyBool, PyDict, PyList, PyModule, PyNone, PyObjectBox, PySet, PyString, PyTuple
 from ..runtime.scope import Scope
 from ..common.side_effects import SideEffect
+from ..runtime.builtins_api import default_functions
 
 
 @dataclass
@@ -34,9 +37,18 @@ class Node(ABC):
     def blink(self, state: Any, execution: Any) -> None:
         return None
 
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        return None
+
     def errors_and_breakpoints(self, state: Any, execution: Any, depth: int) -> None:
         if depth > 1100:
             raise ExecuteException("error_max_stack_size_reached")
+        if (
+            getattr(execution, "sim", None) is not None
+            and getattr(execution.sim, "farm", None) is not None
+            and getattr(execution.sim, "leaderboard_type", "none") != "none"
+        ):
+            self.check_dependencies(state, execution)
         state.current_executing_node = self
 
     def check_increment_op_count(self, state: Any, execution: Any, ops: float) -> bool:
@@ -64,6 +76,9 @@ class LiteralNode(Node):
         return "literal"
 
     def execute(self, state: Any, execution: Any, depth: int):
+        from .parser import parse
+        from .tokenizer import tokenize
+
         self.errors_and_breakpoints(state, execution, depth)
         self.blink(state, execution)
         state.return_value = self.value
@@ -91,6 +106,9 @@ class ValueNode(Node):
         return "value"
 
     def execute(self, state: Any, execution: Any, depth: int):
+        from .parser import parse
+        from .tokenizer import tokenize
+
         self.errors_and_breakpoints(state, execution, depth)
         self.blink(state, execution)
         result = state.current_scope.evaluate(self.value)
@@ -194,6 +212,9 @@ class ListNode(Node):
         clone.slots = [slot.deep_copy(copies) if slot is not None else None for slot in self.slots]
         return clone
 
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        execution.sim.farm.assert_unlocked("lists", self.boxed_params.word_start, self.boxed_params.word_end)
+
 
 class DictNode(Node):
     @property
@@ -223,6 +244,9 @@ class DictNode(Node):
         clone.slots = [slot.deep_copy(copies) if slot is not None else None for slot in self.slots]
         return clone
 
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        execution.sim.farm.assert_unlocked("dicts", self.boxed_params.word_start, self.boxed_params.word_end)
+
 
 class SetNode(Node):
     @property
@@ -249,6 +273,9 @@ class SetNode(Node):
         clone.slots = [slot.deep_copy(copies) if slot is not None else None for slot in self.slots]
         return clone
 
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        execution.sim.farm.assert_unlocked("sets", self.boxed_params.word_start, self.boxed_params.word_end)
+
 
 class TupleNode(Node):
     @property
@@ -269,6 +296,97 @@ class TupleNode(Node):
         if key in copies:
             return copies[key]
         clone = TupleNode(self.boxed_params)
+        copies[key] = clone
+        clone.slots = [slot.deep_copy(copies) if slot is not None else None for slot in self.slots]
+        return clone
+
+
+class ImportNode(Node):
+    def __init__(
+        self,
+        module_names: list[str],
+        unpack: bool,
+        unpack_all: bool,
+        vars_to_unpack: list[str],
+        is_static: bool,
+        boxed_params: BoxedNodeParams | None = None,
+    ):
+        super().__init__(boxed_params)
+        self.module_names = module_names
+        self.unpack = unpack
+        self.unpack_all = unpack_all
+        self.vars_to_unpack = vars_to_unpack
+        self.is_static = is_static
+
+    @property
+    def node_name(self) -> str:
+        return "import"
+
+    def execute(self, state: Any, execution: Any, depth: int):
+        from .parser import parse
+        from .tokenizer import tokenize
+
+        self.errors_and_breakpoints(state, execution, depth)
+        self.blink(state, execution)
+        if self.check_increment_op_count(state, execution, 0.0):
+            yield 0.0
+        save_root = Path(getattr(execution.sim, "save_root", ""))
+        for name in self.module_names:
+            if name in ("__builtins__", "builtins"):
+                continue
+            if name not in state.module_cache:
+                module_path = save_root / f"{name}.py"
+                if not module_path.exists():
+                    raise ExecuteException("error_module_not_found")
+                code = module_path.read_text(encoding="utf-8")
+                has_unknown, stream = tokenize(code)
+                if has_unknown:
+                    raise ExecuteException("error_syntax_error_in_import")
+                program = parse(stream)
+                builtins_scope = Scope(None, None, None, set())
+                for function in default_functions().values():
+                    builtins_scope.set_var(function.function_name, function, check_shadow=False, is_static=True)
+                for global_name, value in (execution.global_bindings or {}).items():
+                    builtins_scope.set_var(global_name, value, check_shadow=False, is_static=True)
+                module_scope = Scope(None, None, builtins_scope, set(program.all_vars))
+                module_scope.import_var("__name__", PyString(name))
+                module = PyModule(name, module_scope)
+                state.module_cache[name] = module
+                old_module_state = state.module_state
+                state.module_state = ModuleState(global_scope=module_scope)
+                for item in program.syntax_tree.execute(state, execution, depth):
+                    yield item
+                state.module_state = old_module_state
+                module.fully_initialized = True
+            module = state.module_cache[name]
+            if self.unpack:
+                if self.unpack_all:
+                    for export_name, entry in module.scope.vars.items():
+                        if not export_name.startswith("_"):
+                            state.current_scope.import_var(export_name, entry.val, entry.is_static)
+                    continue
+                for export_name in self.vars_to_unpack:
+                    value, is_static = module.export(export_name)
+                    state.current_scope.import_var(export_name, value, is_static)
+            else:
+                state.current_scope.import_var(name, module, self.is_static)
+
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        if len(self.module_names) != 1 or self.module_names[0] != "__builtins__":
+            execution.sim.farm.assert_unlocked("import", self.boxed_params.word_start, self.boxed_params.word_end)
+
+    def deep_copy(self, copies: dict[int, Any]) -> "ImportNode":
+        key = id(self)
+        if key in copies:
+            return copies[key]
+        clone = ImportNode(
+            self.module_names[:],
+            self.unpack,
+            self.unpack_all,
+            self.vars_to_unpack[:],
+            self.is_static,
+            self.boxed_params,
+        )
         copies[key] = clone
         clone.slots = [slot.deep_copy(copies) if slot is not None else None for slot in self.slots]
         return clone
@@ -349,6 +467,9 @@ class DefNode(Node):
         copies[key] = clone
         clone.slots = [slot.deep_copy(copies) if slot is not None else None for slot in self.slots]
         return clone
+
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        execution.sim.farm.assert_unlocked("functions", self.boxed_params.word_start, self.boxed_params.word_end)
 
 
 class BinaryExprNode(Node):
@@ -532,6 +653,10 @@ class BinaryExprNode(Node):
         clone.slots = [slot.deep_copy(copies) if slot is not None else None for slot in self.slots]
         return clone
 
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        if self.op != ".":
+            execution.sim.farm.assert_unlocked("operators", self.boxed_params.word_start, self.boxed_params.word_end)
+
 
 class UnaryExprNode(Node):
     def __init__(self, op: str, boxed_params: BoxedNodeParams | None = None):
@@ -569,6 +694,9 @@ class UnaryExprNode(Node):
         copies[key] = clone
         clone.slots = [slot.deep_copy(copies) if slot is not None else None for slot in self.slots]
         return clone
+
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        execution.sim.farm.assert_unlocked("operators", self.boxed_params.word_start, self.boxed_params.word_end)
 
 
 class AssignmentNode(Node):
@@ -664,6 +792,9 @@ class AssignmentNode(Node):
         clone.slots = [slot.deep_copy(copies) if slot is not None else None for slot in self.slots]
         return clone
 
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        execution.sim.farm.assert_unlocked("variables", self.boxed_params.word_start, self.boxed_params.word_end)
+
 
 def _normalize_indices(indices: Any) -> list[Any]:
     if isinstance(indices, BracketNode):
@@ -705,6 +836,8 @@ class CallNode(Node):
             state.push_onto_execution_stack(func.syntax_tree.execute(state, execution, 0))
             yield 0.0
             return
+        if getattr(execution, "sim", None) is not None and getattr(execution.sim, "farm", None) is not None and getattr(execution.sim, "leaderboard_type", "none") != "none":
+            execution.sim.farm.assert_unlocked(func.function_name, self.boxed_params.word_start, self.boxed_params.word_end)
         if func.binding is None:
             raise ExecuteException(f"error_name_not_defined:{func.function_name}")
         ops = func.binding(parameters, getattr(execution, "sim", None), execution, state.drone_id)
@@ -848,6 +981,9 @@ class BranchNode(Node):
         clone.slots = [slot.deep_copy(copies) if slot is not None else None for slot in self.slots]
         return clone
 
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        execution.sim.farm.assert_unlocked("while" if self.looping else "if", self.boxed_params.word_start, self.boxed_params.word_end)
+
 
 class ForNode(Node):
     def __init__(self, pattern: Node, boxed_params: BoxedNodeParams | None = None):
@@ -857,6 +993,9 @@ class ForNode(Node):
     @property
     def node_name(self) -> str:
         return "for"
+
+    def check_dependencies(self, state: Any, execution: Any) -> None:
+        execution.sim.farm.assert_unlocked("for", self.boxed_params.word_start, self.boxed_params.word_end)
 
     def execute(self, state: Any, execution: Any, depth: int):
         self.errors_and_breakpoints(state, execution, depth)
