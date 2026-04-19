@@ -40,6 +40,9 @@ else:
     from .parser.tokenizer import tokenize
     from .unlock_snapshot import DEFAULT_UNLOCK_LEVELS, RESET_UNLOCK_LEVELS
 
+_PROGRAM_CACHE: dict[tuple[str, int, int], object] = {}
+_GLOBAL_BINDINGS_CACHE: dict[tuple[str, int, int], dict[str, object]] = {}
+
 
 @dataclass
 class RunResult:
@@ -59,8 +62,47 @@ class LeaderboardIterationResult:
     progress_text: str
 
 
+def _file_signature(path: Path) -> tuple[str, int, int]:
+    stat = path.stat()
+    return (str(path), stat.st_mtime_ns, stat.st_size)
+
+
+def _clone_program(program):
+    copies: dict[int, object] = {}
+    return type(program)(
+        syntax_tree=program.syntax_tree.deep_copy(copies),
+        global_vars=set(program.global_vars),
+        all_vars=set(program.all_vars),
+        imported_modules=set(program.imported_modules),
+    )
+
+
+def _load_program(path: Path):
+    signature = _file_signature(path)
+    cached = _PROGRAM_CACHE.get(signature)
+    if cached is None:
+        code = path.read_text(encoding="utf-8")
+        has_unknown, stream = tokenize(code)
+        if has_unknown:
+            raise ValueError(f"tokenizer found unknown token(s) in {path.name}")
+        cached = parse(stream)
+        _PROGRAM_CACHE.clear()
+        _PROGRAM_CACHE[signature] = cached
+    return _clone_program(cached)
+
+
+def _load_global_bindings(save_root: Path) -> dict[str, object]:
+    signature = _file_signature(save_root / "__builtins__.py")
+    cached = _GLOBAL_BINDINGS_CACHE.get(signature)
+    if cached is None:
+        cached = build_global_bindings(save_root)
+        _GLOBAL_BINDINGS_CACHE.clear()
+        _GLOBAL_BINDINGS_CACHE[signature] = cached
+    return cached
+
+
 def resolve_target_path(target: str, save_root: str | Path | None) -> Path:
-    save_root = resolve_save_root(save_root)
+    save_root = save_root if isinstance(save_root, Path) else resolve_save_root(save_root)
     if target.endswith(".py"):
         return save_root / target
     return save_root / f"{target}.py"
@@ -100,11 +142,7 @@ def run_file_with_context(
 ) -> RunResult:
     resolved_save_root = resolve_save_root(save_root)
     path = resolve_target_path(target, resolved_save_root)
-    code = path.read_text(encoding="utf-8")
-    has_unknown, stream = tokenize(code)
-    if has_unknown:
-        raise ValueError(f"tokenizer found unknown token(s) in {path.name}")
-    program = parse(stream)
+    program = _load_program(path)
     metadata = None
     if run_kind == "leaderboard" or (run_kind == "auto" and path.stem.startswith("lb_")):
         metadata = resolve_leaderboard_metadata(leaderboard_key or path.stem, resolved_save_root)
@@ -120,7 +158,7 @@ def run_file_with_context(
     sim.save_root = str(resolved_save_root)
     sim.log_sink = log_sink
     sim.capture_logs = capture_logs
-    bindings = build_global_bindings(resolved_save_root)
+    bindings = _load_global_bindings(resolved_save_root)
     global_bindings = dict(bindings)
     if globals_override:
         global_bindings.update(globals_override)

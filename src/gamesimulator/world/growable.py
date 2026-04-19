@@ -62,25 +62,7 @@ class GrowableView(FarmObjectView):
         if self.entity_name not in {"Grass", "Bush", "Tree", "Carrot"}:
             return None
         if self.cell.companion is None:
-            choices = [
-                self.farm.entity(name)
-                for name in ("Grass", "Bush", "Tree", "Carrot")
-                if name != self.entity_name
-            ]
-            rng = self.farm.random_source("poly")
-            target = choices[rng.randrange(len(choices))]
-            while True:
-                dx = rng.randint(-3, 3)
-                dy = rng.randint(-3, 3)
-                if (dx, dy) == (0, 0):
-                    continue
-                if abs(dx) + abs(dy) > 3:
-                    continue
-                break
-            width, height = self.farm.grid.world_size
-            cx = (self.pos[0] + dx) % width
-            cy = (self.pos[1] + dy) % height
-            self.cell.companion = (target, (cx, cy))
+            self.cell.companion = self.farm._sample_companion(self.pos, self.entity_name)
         return self.cell.companion
 
     def apply_weird_split(self, amount: float) -> tuple[float, float]:
@@ -94,6 +76,9 @@ class GrowableView(FarmObjectView):
         self.farm.clear_entity_at(self.pos)
 
     def generic_harvest(self) -> bool:
+        if not self.harvestable:
+            self.clear_after_harvest()
+            return True
         item, amount = self.farm.entity_yield(self.entity, self.cell)
         if item is None:
             self.clear_after_harvest()

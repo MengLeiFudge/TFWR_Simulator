@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, TimeoutError as FutureTimeoutError
 from dataclasses import dataclass, field
 import math
 import os
-import random
+import time
 from typing import Any
 
+from ..common.dotnet_random import DotNetRandom
 from .builtins_api import default_functions
 from ..common.duration import Duration
 from .program_state import ProgramState
@@ -19,7 +20,53 @@ from ..common.side_effects import SideEffect
 
 MIN_LEADERBOARD_TOTAL_SECONDS = 2.0 * 60.0 * 60.0
 MAX_LEADERBOARD_RUNS = 20_000
-MAX_LEADERBOARD_WORKERS = max(1, min(8, os.cpu_count() or 1))
+
+
+def resolve_leaderboard_worker_count() -> int:
+    configured = os.environ.get("TFWR_MAX_LEADERBOARD_WORKERS", "").strip()
+    if configured:
+        try:
+            return max(1, int(configured))
+        except ValueError:
+            pass
+    return max(1, os.cpu_count() or 1)
+
+
+MAX_LEADERBOARD_WORKERS = resolve_leaderboard_worker_count()
+# 父层 heartbeat 默认低频输出，避免日志本身反过来拖慢长跑吞吐。
+LEADERBOARD_HEARTBEAT_INTERVAL_SECONDS = 5.0
+# 等待 future 的轮询粒度需要比 heartbeat 更细，这样才能及时打出进度而不长期阻塞。
+LEADERBOARD_WAIT_TIMEOUT_SECONDS = 0.25
+
+
+def should_schedule_more_prefetch(
+    total_seconds: float,
+    run_count: int,
+    pending_count: int,
+    min_total_seconds: float,
+) -> bool:
+    if run_count <= 0:
+        return True
+    average_seconds = total_seconds / run_count
+    buffered_projection = total_seconds + average_seconds * pending_count
+    return buffered_projection < min_total_seconds
+
+
+def shutdown_process_pool_fast(executor: Any) -> None:
+    processes = list(getattr(executor, "_processes", {}).values())
+    executor.shutdown(wait=False, cancel_futures=True)
+    for process in processes:
+        if process.is_alive():
+            process.terminate()
+    for process in processes:
+        if process.is_alive():
+            process.join(timeout=0.2)
+    for process in processes:
+        if process.is_alive():
+            process.kill()
+    for process in processes:
+        if process.is_alive():
+            process.join(timeout=0.2)
 
 
 @dataclass
@@ -127,52 +174,58 @@ class Execution:
                 self.states[0] = self.completed_main_state
 
     def _apply_side_effect(self, state: ProgramState) -> None:
+        def apply_ops(ops: float, consume_immediately: bool = False) -> None:
+            if consume_immediately:
+                state.add_and_consume_ops(ops)
+            else:
+                state.op_count += ops
+
         if state.current_side_effect == SideEffect.GET_TIME:
             state.return_value = PyNumber(self.sim.current_time.seconds)
         elif state.current_side_effect == SideEffect.GET_POS_X:
             state.return_value = PyNumber(self.sim.farm.drones[state.drone_id].x)
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.GET_POS_Y:
             state.return_value = PyNumber(self.sim.farm.drones[state.drone_id].y)
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.GET_WORLD_SIZE:
             state.return_value = PyNumber(self.sim.farm.grid.world_size[1])
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.MOVE:
             ok, ops = self.sim.farm.drones[state.drone_id].move(state.current_side_effect_argument)
             state.return_value = PyBool(ok)
-            state.add_and_consume_ops(ops)
+            apply_ops(ops)
         elif state.current_side_effect == SideEffect.SWAP:
             ok = self.sim.farm.drones[state.drone_id].swap(state.current_side_effect_argument)
             state.return_value = PyBool(ok)
-            state.add_and_consume_ops(200.0 if ok else 1.0)
+            apply_ops(200.0 if ok else 1.0)
         elif state.current_side_effect == SideEffect.CAN_MOVE:
             ok = self.sim.farm.drones[state.drone_id].can_move(state.current_side_effect_argument)
             state.return_value = PyBool(ok)
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.HARVEST:
             ok = self.sim.farm.drones[state.drone_id].harvest()
             state.return_value = PyBool(ok)
-            state.add_and_consume_ops(200.0 if ok else 1.0)
+            apply_ops(200.0 if ok else 1.0)
         elif state.current_side_effect == SideEffect.CAN_HARVEST:
             ok = self.sim.farm.drones[state.drone_id].can_harvest()
             state.return_value = PyBool(ok)
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.PLANT:
             ok = self.sim.farm.drones[state.drone_id].plant(state.current_side_effect_argument)
             state.return_value = PyBool(ok)
-            state.add_and_consume_ops(200.0 if ok else 1.0)
+            apply_ops(200.0 if ok else 1.0)
         elif state.current_side_effect == SideEffect.TILL:
             self.sim.farm.drones[state.drone_id].till()
             state.return_value = PyNone()
-            state.add_and_consume_ops(200.0)
+            apply_ops(200.0)
         elif state.current_side_effect == SideEffect.GET_GROUND_TYPE:
             state.return_value = self.sim.farm.drones[state.drone_id].get_ground_type()
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.GET_ENTITY_TYPE:
             entity = self.sim.farm.drones[state.drone_id].get_entity_type()
             state.return_value = entity if entity is not None else PyNone()
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.MEASURE:
             direction = state.current_side_effect_argument
             if isinstance(direction, PyNone):
@@ -186,10 +239,10 @@ class Execution:
                 state.return_value = PyNumber(value)
             else:
                 state.return_value = value
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.GET_WATER:
             state.return_value = PyNumber(self.sim.farm.drones[state.drone_id].get_water())
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.GET_COMPANION:
             companion = self.sim.farm.drones[state.drone_id].get_companion()
             if companion is None:
@@ -199,7 +252,7 @@ class Execution:
                 state.return_value = __import__("gamesimulator.runtime.py_values", fromlist=["PyTuple"]).PyTuple(
                     [entity, __import__("gamesimulator.runtime.py_values", fromlist=["PyTuple", "PyNumber"]).PyTuple([PyNumber(cx), PyNumber(cy)])]
                 )
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.USE_ITEM:
             item = state.current_side_effect_argument
             amount = int(float(state.current_side_effect_argument2.num))
@@ -221,13 +274,13 @@ class Execution:
                     if ok:
                         self.sim.farm.consume_items(item, amount)
             state.return_value = PyBool(ok)
-            state.add_and_consume_ops(200.0 if use_action_ticks else 1.0)
+            apply_ops(200.0 if use_action_ticks else 1.0)
         elif state.current_side_effect == SideEffect.SPAWN_DRONE:
             payload = state.current_side_effect_argument
             active_count = len([program_state for program_state in self.states if program_state is not None])
             if active_count >= self.sim.farm.max_drones():
                 state.return_value = PyNone()
-                state.add_and_consume_ops(1.0)
+                apply_ops(1.0)
             else:
                 func = payload.items[0]
                 child_id = self.sim.farm.add_drone(state.drone_id)
@@ -241,42 +294,43 @@ class Execution:
                 handle = __import__("gamesimulator.runtime.py_values", fromlist=["PyDroneHandle"]).PyDroneHandle(child_id, self.sim.farm.drone_generation)
                 child_state.drone_handle = handle
                 state.return_value = handle
-                state.add_and_consume_ops(200.0)
+                apply_ops(200.0)
         elif state.current_side_effect == SideEffect.AWAIT:
             handle = state.current_side_effect_argument
             if handle.return_value is not None:
                 state.return_value = handle.return_value
-                state.add_and_consume_ops(1.0)
+                apply_ops(1.0)
             else:
                 state.awaited_drone_id = int(handle.drone_id if hasattr(handle, "drone_id") else handle.id)
-                state.add_and_consume_ops(1.0)
+                apply_ops(1.0)
         elif state.current_side_effect == SideEffect.HAS_FINISHED:
             handle = state.current_side_effect_argument
             state.return_value = PyBool(handle.return_value is not None)
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.CLEAR:
             if self.sim.farm.drones:
                 main = self.sim.farm.drones[0]
                 main.x = 0
                 main.y = 0
             self.sim.farm.grid.clear_grid()
+            self.sim.farm.seed_initial_grass_companions()
             self.states = [self.states[state.drone_id]]
             self.states[0].drone_id = 0
             self.sim.farm.drones = [self.sim.farm.drones[0]]
             state.awaited_drone_id = -1
             state.return_value = PyNone()
-            state.add_and_consume_ops(200.0)
+            apply_ops(200.0)
         elif state.current_side_effect == SideEffect.UNLOCK:
             unlock = state.current_side_effect_argument
             ok = self.sim.farm.unlock_or_upgrade(unlock)
             state.return_value = PyBool(ok)
-            state.add_and_consume_ops(200.0 if ok else 1.0)
+            apply_ops(200.0 if ok else 1.0)
         elif state.current_side_effect == SideEffect.DO_A_FLIP:
             state.return_value = PyNone()
-            state.add_and_consume_ops(math.floor(1.0 / self.sim.op_duration.seconds))
+            apply_ops(math.floor(1.0 / self.sim.op_duration.seconds), consume_immediately=True)
         elif state.current_side_effect == SideEffect.PET_THE_PIGGY:
             state.return_value = PyNone()
-            state.add_and_consume_ops(math.floor(1.0 / self.sim.op_duration.seconds))
+            apply_ops(math.floor(1.0 / self.sim.op_duration.seconds), consume_immediately=True)
         elif state.current_side_effect == SideEffect.TERMINATED:
             was_main = state is self.main_state
             for other_state in self.states:
@@ -303,7 +357,7 @@ class Execution:
 
             if getattr(self.sim, "leaderboard_type", "none") != "none":
                 state.return_value = PyNone()
-                state.add_and_consume_ops(200.0)
+                apply_ops(200.0)
                 return
 
             payload = state.current_side_effect_argument
@@ -318,8 +372,10 @@ class Execution:
             pending: dict[int, tuple[int, Any]] = {}
             next_order_to_schedule = 0
             next_order_to_consume = 0
-            prefetch_random = random.Random()
+            prefetch_random = DotNetRandom(0)
             prefetch_random.setstate(self.sim.random_random.getstate())
+            start_wall_time = time.monotonic()
+            last_heartbeat_time = start_wall_time
 
             def schedule_one(executor: ProcessPoolExecutor) -> None:
                 nonlocal next_order_to_schedule
@@ -335,11 +391,51 @@ class Execution:
             # 本地模拟器没有动画显示，直接并行预跑多轮，再按固定 seed 顺序消费结果。
             executor = ProcessPoolExecutor(max_workers=MAX_LEADERBOARD_WORKERS)
             try:
-                while len(pending) < MAX_LEADERBOARD_WORKERS and next_order_to_schedule < MAX_LEADERBOARD_RUNS:
+                while (
+                    len(pending) < MAX_LEADERBOARD_WORKERS
+                    and next_order_to_schedule < MAX_LEADERBOARD_RUNS
+                    and should_schedule_more_prefetch(
+                        total_seconds=total_seconds,
+                        run_count=run_count,
+                        pending_count=len(pending),
+                        min_total_seconds=MIN_LEADERBOARD_TOTAL_SECONDS,
+                    )
+                ):
                     schedule_one(executor)
                 while total_seconds < MIN_LEADERBOARD_TOTAL_SECONDS and next_order_to_consume < MAX_LEADERBOARD_RUNS:
-                    scheduled_seed, future = pending.pop(next_order_to_consume)
-                    iteration = future.result()
+                    scheduled_seed, future = pending[next_order_to_consume]
+                    try:
+                        iteration = future.result(timeout=LEADERBOARD_WAIT_TIMEOUT_SECONDS)
+                        pending.pop(next_order_to_consume)
+                    except FutureTimeoutError:
+                        now = time.monotonic()
+                        if now - last_heartbeat_time >= LEADERBOARD_HEARTBEAT_INTERVAL_SECONDS:
+                            average_seconds = total_seconds / run_count if run_count > 0 else 0.0
+                            heartbeat_eta = None
+                            if total_seconds > 0.0:
+                                heartbeat_eta = max(0.0, MIN_LEADERBOARD_TOTAL_SECONDS - total_seconds) * (
+                                    (now - start_wall_time) / total_seconds
+                                )
+                            buffered_done = sum(1 for _, buffered_future in pending.values() if buffered_future.done())
+                            eta_text = (
+                                f" eta={format_clock_time(heartbeat_eta)}"
+                                if heartbeat_eta is not None
+                                else " eta=unknown"
+                            )
+                            self.log(
+                                "leaderboard_run heartbeat"
+                                f" completed={next_order_to_consume}"
+                                f" scheduled={next_order_to_schedule}"
+                                f" pending={len(pending)}"
+                                f" buffered_done={buffered_done}"
+                                f" avg={format_clock_time(average_seconds)}"
+                                f" total={format_clock_time(total_seconds)}"
+                                f" wall={format_clock_time(now - start_wall_time)}"
+                                f"{eta_text}"
+                                f" waiting_seed={scheduled_seed}"
+                            )
+                            last_heartbeat_time = now
+                        continue
                     actual_seed = self.sim.random_random.randrange(1, 2**31)
                     if actual_seed != scheduled_seed or iteration.seed != scheduled_seed:
                         raise RuntimeError("leaderboard seed ordering drifted")
@@ -364,10 +460,16 @@ class Execution:
                         total_seconds < MIN_LEADERBOARD_TOTAL_SECONDS
                         and len(pending) < MAX_LEADERBOARD_WORKERS
                         and next_order_to_schedule < MAX_LEADERBOARD_RUNS
+                        and should_schedule_more_prefetch(
+                            total_seconds=total_seconds,
+                            run_count=run_count,
+                            pending_count=len(pending),
+                            min_total_seconds=MIN_LEADERBOARD_TOTAL_SECONDS,
+                        )
                     ):
                         schedule_one(executor)
             finally:
-                executor.shutdown(wait=False, cancel_futures=True)
+                shutdown_process_pool_fast(executor)
 
             if next_order_to_consume >= MAX_LEADERBOARD_RUNS and total_seconds < MIN_LEADERBOARD_TOTAL_SECONDS:
                 finished = False
@@ -385,13 +487,13 @@ class Execution:
                 f" max={format_clock_time(max_seconds or 0.0)}"
             )
             state.return_value = PyNone()
-            state.add_and_consume_ops(200.0)
+            apply_ops(200.0)
         elif state.current_side_effect == SideEffect.SIMULATE:
             from ..runner import coerce_globals, coerce_items, coerce_unlock_levels, run_file_with_context
 
             if getattr(self.sim, "leaderboard_type", "none") != "none":
                 state.return_value = PyNone()
-                state.add_and_consume_ops(200.0)
+                apply_ops(200.0)
                 return
 
             payload = state.current_side_effect_argument
@@ -412,15 +514,18 @@ class Execution:
             for line in nested.logs:
                 self.log(line)
             state.return_value = PyNumber(nested.elapsed_seconds)
-            state.add_and_consume_ops(200.0)
+            apply_ops(200.0)
         elif state.current_side_effect == SideEffect.SET_WORLD_SIZE:
             value = int(float(state.current_side_effect_argument.num))
+            world_size_changed = value != self.sim.farm.grid.world_size[1]
             self.sim.farm.grid.set_size_limit(value)
+            if world_size_changed:
+                self.sim.farm.seed_initial_grass_companions()
             for drone in self.sim.farm.drones:
                 drone.x = 0
                 drone.y = 0
             state.return_value = PyNone()
-            state.add_and_consume_ops(200.0)
+            apply_ops(200.0)
         elif state.current_side_effect == SideEffect.SET_EXECUTION_SPEED:
             value = float(state.current_side_effect_argument.num)
             if value > self.sim.farm.max_speed_factor() or value < 0.1:
@@ -428,22 +533,22 @@ class Execution:
             else:
                 self.sim.change_execution_speed(value)
             state.return_value = PyNone()
-            state.add_and_consume_ops(200.0)
+            apply_ops(200.0)
         elif state.current_side_effect == SideEffect.CHANGE_HAT:
             self.sim.farm.drones[state.drone_id].change_hat(state.current_side_effect_argument)
             state.return_value = PyNone()
-            state.add_and_consume_ops(200.0)
+            apply_ops(200.0)
         elif state.current_side_effect == SideEffect.NUM_ITEMS:
             state.return_value = PyNumber(self.sim.farm.num_items(state.current_side_effect_argument))
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.NUM_UNLOCKED:
             state.return_value = PyNumber(self.sim.farm.num_unlocked(state.current_side_effect_argument))
-            state.add_and_consume_ops(1.0)
+            apply_ops(1.0)
         elif state.current_side_effect == SideEffect.PRINT:
             text = state.current_side_effect_argument.text
             self.log(text)
             state.return_value = PyNone()
-            state.add_and_consume_ops(math.floor(1.0 / self.sim.op_duration.seconds))
+            apply_ops(math.floor(1.0 / self.sim.op_duration.seconds), consume_immediately=True)
         elif state.current_side_effect == SideEffect.ERROR:
             raise state.current_execute_exception or RuntimeError("execution error")
         state.current_side_effect = SideEffect.NONE

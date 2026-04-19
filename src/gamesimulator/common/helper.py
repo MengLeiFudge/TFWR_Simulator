@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import random
 
 
 def world_size_scale(num_expand_upgrades: int) -> int:
@@ -30,7 +29,7 @@ def num_drones(num_megafarm_upgrades: int) -> int:
     return 1 << num_megafarm_upgrades
 
 
-def just_sha256_it(random_source: random.Random) -> int:
+def just_sha256_it(random_source) -> int:
     """Port of Helper.JustSha256It.
 
     The C# code asks the parent RNG for 16 bytes, hashes them with SHA256,

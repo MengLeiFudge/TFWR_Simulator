@@ -201,6 +201,8 @@ class DroneState:
         cell.age = 0.0
         cell.mature = False
         cell.growth_seconds = self.farm.sample_growth_seconds(entity)
+        if entity in self.farm.entities_with_companion:
+            self.farm._assign_initial_companion(self.pos, entity)
         if str(entity).split(".")[-1] == "Sunflower":
             cell.petals = self.farm.random_source("sunflower").randint(7, 15)
         if str(entity).split(".")[-1] == "Cactus":

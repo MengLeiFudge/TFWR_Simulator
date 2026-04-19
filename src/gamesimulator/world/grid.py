@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ..common.duration import Duration
 from ..common.helper import world_size_scale
 
 
@@ -85,6 +86,7 @@ class GridState:
     def __post_init__(self) -> None:
         self.size_limit = 0
         self.had_incorrect_sunflower_harvest = False
+        self.next_water_decay_time = Duration.from_seconds(0.1)
         self._init_arrays()
 
     @property
@@ -173,8 +175,8 @@ class GridState:
                 )
                 if spawn_grass:
                     cell = self.cells[x][y]
-                    cell.mature = True
-                    cell.age = 0.5
+                    cell.mature = False
+                    cell.age = 0.0
                     cell.growth_seconds = 0.5
         self.had_incorrect_sunflower_harvest = False
 
@@ -186,6 +188,6 @@ class GridState:
         ]
         for column in self.cells:
             for cell in column:
-                cell.mature = True
-                cell.age = 0.5
+                cell.mature = False
+                cell.age = 0.0
                 cell.growth_seconds = 0.5

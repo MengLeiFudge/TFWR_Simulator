@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import heapq
+import time
 from typing import Any
-import random
 
+from ..common.dotnet_random import DotNetRandom
 from ..common.duration import Duration
 from ..common.helper import just_sha256_it
 from ..common.runtime_types import TimerRecord
@@ -26,17 +27,26 @@ class Simulation:
         self._timer_seq = 0
         self.step_by_step_mode = False
         if seed >= 0:
-            self.random = random.Random(seed)
+            self.random = DotNetRandom(seed)
         else:
-            self.random = random.Random()
-        self.random_various = random.Random(just_sha256_it(self.random))
-        self.random_maze = random.Random(just_sha256_it(self.random))
-        self.random_snake = random.Random(just_sha256_it(self.random))
-        self.random_cactus = random.Random(just_sha256_it(self.random))
-        self.random_sunflower = random.Random(just_sha256_it(self.random))
-        self.random_pumpkin = random.Random(just_sha256_it(self.random))
-        self.random_poly = random.Random(just_sha256_it(self.random))
-        self.random_random = random.Random(just_sha256_it(self.random))
+            self.random = DotNetRandom(time.time_ns() & 0x7FFFFFFF)
+        self.random_various = self._spawn_random_domain()
+        self.random_maze = self._spawn_random_domain()
+        self.random_snake = self._spawn_random_domain()
+        self.random_cactus = self._spawn_random_domain()
+        self.random_sunflower = self._spawn_random_domain()
+        self.random_pumpkin = self._spawn_random_domain()
+        self.random_poly = self._spawn_random_domain()
+        self.random_random = self._spawn_random_domain()
+        # 兼容当前 Python 端拆分过的调用名，但实际仍映射回原版随机域。
+        self.random_misc = self.random_various
+        self.random_water_decay = self.random_various
+        self.random_grow_time = self.random_various
+        self.random_companion_type = self.random_poly
+        self.random_companion_offset = self.random_poly
+        self.random_grass_respawn = self.random_various
+        self.random_cactus_variant = self.random_cactus
+        self.random_sunflower_petals = self.random_sunflower
         self.speed_factor = 1.0
         self.op_duration = Duration.from_seconds(self.BASE_OP_DURATION)
         self.current_time = Duration(0)
@@ -49,6 +59,9 @@ class Simulation:
         self.leaderboard_type = leaderboard_type
         self.single_drone = single_drone
 
+    def _spawn_random_domain(self) -> DotNetRandom:
+        return DotNetRandom(just_sha256_it(self.random))
+
     @property
     def farm(self):
         return self._farm
@@ -58,6 +71,8 @@ class Simulation:
         self._farm = value
         if value is not None:
             value.sim = self
+            value.seed_initial_grass_companions()
+            value.start_runtime_timers()
             self.change_execution_speed(value.max_speed_factor())
 
     def is_executing(self) -> bool:
@@ -100,6 +115,13 @@ class Simulation:
         self.op_duration = Duration(int((2_500_000 + speed_factor - 1) // speed_factor) if isinstance(speed_factor, int) else int(__import__("math").ceil(2_500_000.0 / speed_factor)))
         self.speed_factor = speed_factor
 
+    def _advance_time_to(self, target_time: Duration) -> None:
+        if target_time <= self.current_time:
+            return
+        if self.farm is not None:
+            self.farm.advance_passive_world(self.current_time, target_time, self.random_water_decay)
+        self.current_time = target_time
+
     def next_execution_step(self) -> None:
         if self.execution is not None and not self.execution.is_performing_a_step:
             self.paused = False
@@ -117,14 +139,14 @@ class Simulation:
         execution_ready = self.is_executing() and self.execution.next_execution_time <= goal_time
         timer_ready = next_timer_finish is not None and next_timer_finish <= goal_time
         if not execution_ready and not timer_ready:
-            self.current_time = goal_time
+            self._advance_time_to(goal_time)
             return
         if timer_ready and (not self.is_executing() or self.execution.next_execution_time >= next_timer_finish):
-            self.current_time = next_timer_finish
+            self._advance_time_to(next_timer_finish)
             _, _, timer = heapq.heappop(self._timers)
             timer.func()
             return
-        self.current_time = self.execution.next_execution_time
+        self._advance_time_to(self.execution.next_execution_time)
         priority2 = next_timer_finish if next_timer_finish is not None else goal_time
         priority2 = Duration(priority2.nanoseconds - 1) if priority2.nanoseconds > 0 else priority2
         target_run_time = Duration.min(priority2, goal_time) - self.current_time
@@ -132,9 +154,7 @@ class Simulation:
 
     def add_ops_to_current_time(self, ops: float) -> None:
         delta = self.op_duration * ops
-        self.current_time = self.current_time + delta
-        if self.farm is not None:
-            self.farm.passive_update(delta.seconds, self.random_various)
+        self._advance_time_to(self.current_time + delta)
 
     def get_action_time(self, ops: float) -> Duration:
         return self.op_duration * ops

@@ -343,7 +343,8 @@ def str_builtin(parameters, sim, execution, drone_id) -> float:
 def random_builtin(parameters, sim, execution, drone_id) -> float:
     if parameters:
         raise ValueError("random expects no parameters")
-    execution.states[drone_id].return_value = PyNumber(sim.random_random.random())
+    state = execution.states[drone_id]
+    state.return_value = PyNumber(state.random_random.random())
     return 1.0
 
 
@@ -402,7 +403,7 @@ def get_cost_builtin(parameters, sim, execution, drone_id) -> float:
         }
         execution.states[drone_id].return_value = PyDict(mapping)
         return 1.0
-    if thing in sim.farm.entity_cost:
+    if str(thing).startswith("Entities."):
         mapping = {
             key: __import__("gamesimulator.runtime.py_values", fromlist=["PyObjectBox"]).PyObjectBox(PyNumber(value))
             for key, value in sim.farm.get_entity_cost(thing).items()

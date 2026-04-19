@@ -371,3 +371,4 @@ FodyWeavers.xsd
 .venv/
 /leaderboard
 /references/DecompiledSource
+.claude/

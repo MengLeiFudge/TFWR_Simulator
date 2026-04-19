@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import lru_cache
 import os
 from pathlib import Path
 import re
@@ -56,6 +57,11 @@ def to_windows_path(path_text: str | Path) -> str:
     return text
 
 
+@lru_cache(maxsize=128)
+def _resolve_normalized_path(path_text: str) -> Path:
+    return normalize_config_path(path_text).resolve()
+
+
 def resolve_save_root(save_root: str | Path | None = None, required: bool = True) -> Path | None:
     if save_root is None:
         load_local_env()
@@ -66,9 +72,9 @@ def resolve_save_root(save_root: str | Path | None = None, required: bool = True
                     f"TFWR_SAVE_ROOT 未配置。请在 {DEFAULT_ENV_FILE} 中设置，或显式传入 save_root。"
                 )
             return None
-        resolved = normalize_config_path(configured).resolve()
+        resolved = _resolve_normalized_path(configured)
     else:
-        resolved = normalize_config_path(save_root).resolve()
+        resolved = _resolve_normalized_path(str(save_root))
     if required and not resolved.exists():
         raise FileNotFoundError(f"配置的 Save0 目录不存在: {resolved}")
     return resolved

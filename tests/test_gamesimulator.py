@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 from pathlib import Path
 import random
+import time
 import subprocess
 from types import SimpleNamespace
 import shutil
@@ -14,10 +16,12 @@ from unittest import mock
 
 from gamesimulator import Duration, SideEffect, just_sha256_it, num_drones, world_size_scale
 from gamesimulator.config import REPO_ROOT, resolve_save_root
+from gamesimulator.common.dotnet_random import DotNetRandom
 from gamesimulator.runtime.execute_exception import BreakStatement, ContinueStatement, ReturnStatement
 from gamesimulator.runtime.execute_exception import ExecuteException
 from gamesimulator.runtime.execution import Execution
 from gamesimulator.world.farm import FarmState
+from gamesimulator.world.entities import create_entity_view
 from gamesimulator.loader import build_global_bindings as _build_global_bindings, load_tfwr_builtins as _load_tfwr_builtins
 from gamesimulator.runtime.module_state import ModuleState
 from gamesimulator.parser.nodes import (
@@ -82,6 +86,7 @@ from gamesimulator.runtime.scope import Scope
 from gamesimulator.parser.token_stream import Token, TokenStream
 from gamesimulator.parser.token_types import TokenType
 from gamesimulator.parser.tokenizer import tokenize
+from gamesimulator.runner import LeaderboardIterationResult
 
 
 try:
@@ -125,6 +130,18 @@ def run_execution_to_termination(execution: Execution, max_cycles: int = 20) -> 
     raise AssertionError("execution did not terminate in test budget")
 
 
+def advance_simulation_clock(sim: Simulation, seconds: float, max_steps: int = 1000) -> None:
+    goal_time = sim.current_time + Duration.from_seconds(seconds)
+    for _ in range(max_steps):
+        if sim.current_time >= goal_time:
+            return
+        previous_time = sim.current_time
+        sim.run_next_step(goal_time)
+        if sim.current_time <= previous_time:
+            raise AssertionError("simulation clock did not advance")
+    raise AssertionError("simulation clock did not reach goal in test budget")
+
+
 class DurationHelperTests(unittest.TestCase):
     def test_duration_port(self) -> None:
         base = Duration.from_seconds(0.0025)
@@ -150,6 +167,26 @@ class DurationHelperTests(unittest.TestCase):
         digest = hashlib.sha256(buffer).digest()
         expected = int.from_bytes(digest[:4], byteorder="little", signed=True) & 0x7FFFFFFF
         self.assertEqual(just_sha256_it(random.Random(seed)), expected)
+
+    def test_dotnet_random_matches_csharp_reference_outputs(self) -> None:
+        rng = DotNetRandom(1)
+        self.assertAlmostEqual(rng.random(), 0.24866858415709278)
+        self.assertAlmostEqual(rng.random(), 0.11074397718102856)
+        self.assertAlmostEqual(rng.random(), 0.46701067987224587)
+
+        rng = DotNetRandom(1)
+        self.assertEqual(rng.randbytes(16).hex("-").upper(), "46-D0-86-82-40-97-E4-A3-95-CF-FF-46-69-9C-73-C4")
+
+        rng = DotNetRandom(1)
+        self.assertEqual(just_sha256_it(rng), 441942086)
+        self.assertEqual(just_sha256_it(rng), 1602955080)
+        self.assertEqual(just_sha256_it(rng), 101590770)
+
+        rng = DotNetRandom(1)
+        state = rng.getstate()
+        first = rng.random()
+        rng.setstate(state)
+        self.assertAlmostEqual(rng.random(), first)
 
     def test_side_effect_members(self) -> None:
         self.assertEqual(
@@ -534,9 +571,21 @@ class SimulationTests(unittest.TestCase):
     def test_seed_fanout_is_stable(self) -> None:
         left = Simulation(seed=123)
         right = Simulation(seed=123)
-        self.assertEqual(left.random_various.random(), right.random_various.random())
+        self.assertEqual(left.random_water_decay.random(), right.random_water_decay.random())
+        self.assertEqual(left.random_grow_time.random(), right.random_grow_time.random())
+        self.assertEqual(left.random_companion_type.random(), right.random_companion_type.random())
+        self.assertEqual(left.random_companion_offset.random(), right.random_companion_offset.random())
+        self.assertEqual(left.random_grass_respawn.random(), right.random_grass_respawn.random())
         self.assertEqual(left.random_cactus.random(), right.random_cactus.random())
         self.assertEqual(left.random_pumpkin.random(), right.random_pumpkin.random())
+
+    def test_random_domains_follow_original_grouping(self) -> None:
+        sim = Simulation(seed=123)
+        self.assertIs(sim.random_water_decay, sim.random_various)
+        self.assertIs(sim.random_grow_time, sim.random_various)
+        self.assertIs(sim.random_grass_respawn, sim.random_various)
+        self.assertIs(sim.random_companion_type, sim.random_poly)
+        self.assertIs(sim.random_companion_offset, sim.random_poly)
 
 
 class ExecutionTests(unittest.TestCase):
@@ -548,6 +597,54 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(state.current_side_effect, SideEffect.TERMINATED)
         self.assertEqual(execution.global_op_count, 199)
         self.assertEqual(execution.next_execution_time.nanoseconds, sim.current_time.nanoseconds)
+
+    def test_action_side_effect_ops_remain_visible_to_consume_ops(self) -> None:
+        bindings = build_global_bindings()
+        farm = FarmState(bindings)
+        sim = Simulation(seed=1)
+        sim.farm = farm
+        has_unknown, stream = tokenize("\npass\n")
+        self.assertFalse(has_unknown)
+        program = parse(stream)
+        execution = Execution(sim, program.syntax_tree, 999, global_bindings=bindings)
+        state = execution.states[0]
+        state.current_side_effect = SideEffect.HARVEST
+
+        execution._apply_side_effect(state)
+
+        self.assertEqual(state.consume_ops(), 200.0)
+
+    def test_set_world_size_noop_does_not_reseed_initial_grass_companions(self) -> None:
+        bindings = build_global_bindings()
+        unlocks_bag = bindings["Unlocks"]
+        farm = FarmState(bindings, unlock_levels={unlocks_bag.evaluate("Expand"): 5})
+        sim = Simulation(seed=1)
+        sim.farm = farm
+        execution = Execution(sim, None, 1000, global_bindings=bindings)
+        state = execution.states[0]
+        before = farm.grid.get_cell((0, 0)).companion
+        state.current_side_effect = SideEffect.SET_WORLD_SIZE
+        state.current_side_effect_argument = PyNumber(8)
+
+        execution._apply_side_effect(state)
+
+        self.assertEqual(farm.grid.get_cell((0, 0)).companion, before)
+
+    def test_random_builtin_uses_program_state_random_domain(self) -> None:
+        code = "\n" + "value = random()\n"
+        has_unknown, stream = tokenize(code)
+        self.assertFalse(has_unknown)
+        program = parse(stream)
+        sim = Simulation(seed=1)
+        execution = Execution(sim, program.syntax_tree, 1001)
+        state = execution.states[0]
+        snapshot = state.random_random.getstate()
+        expected = state.random_random.random()
+        state.random_random.setstate(snapshot)
+
+        run_execution_to_termination(execution)
+
+        self.assertAlmostEqual(float(state.current_scope.evaluate("value").val), expected)
 
     def test_time_and_tick_count_surface(self) -> None:
         sim = Simulation(seed=1)
@@ -1105,6 +1202,49 @@ class WorldCoreTests(unittest.TestCase):
         self.assertIsInstance(comp, PyTuple)
         self.assertEqual(len(comp.elements), 2)
 
+    def test_get_cost_tree_and_bush_return_empty_dict(self) -> None:
+        bindings = build_global_bindings()
+        code = (
+            "\n"
+            + "tree_cost = get_cost(Entities.Tree)\n"
+            + "bush_cost = get_cost(Entities.Bush)\n"
+        )
+        has_unknown, stream = tokenize(code)
+        self.assertFalse(has_unknown)
+        program = parse(stream)
+        sim = Simulation(seed=1)
+        sim.farm = FarmState(bindings)
+        execution = Execution(sim, program.syntax_tree, 18, global_bindings=bindings)
+        run_execution_to_termination(execution)
+        state = execution.states[0]
+        self.assertIsInstance(state.current_scope.evaluate("tree_cost").val, PyDict)
+        self.assertEqual(len(state.current_scope.evaluate("tree_cost").val.items), 0)
+        self.assertIsInstance(state.current_scope.evaluate("bush_cost").val, PyDict)
+        self.assertEqual(len(state.current_scope.evaluate("bush_cost").val.items), 0)
+
+    def test_harvesting_unready_growable_clears_without_yield(self) -> None:
+        bindings = build_global_bindings()
+        items_bag = bindings["Items"]
+        entities_bag = bindings["Entities"]
+        farm = FarmState(
+            bindings,
+            items={
+                items_bag.evaluate("Hay"): 8,
+                items_bag.evaluate("Wood"): 8,
+            },
+        )
+        sim = Simulation(seed=1)
+        sim.farm = farm
+        drone = farm.drones[0]
+        drone.till()
+        self.assertTrue(drone.plant(entities_bag.evaluate("Tree")))
+
+        before_wood = farm.num_items(items_bag.evaluate("Wood"))
+        self.assertTrue(drone.harvest())
+
+        self.assertEqual(farm.num_items(items_bag.evaluate("Wood")), before_wood)
+        self.assertIsNone(farm.grid.get_entity((0, 0)))
+
     def test_measure_and_hat_speed_controls(self) -> None:
         bindings = build_global_bindings()
         entities_bag = bindings["Entities"]
@@ -1236,8 +1376,198 @@ class WorldCoreTests(unittest.TestCase):
         self.assertEqual(float(state.current_scope.evaluate("x0").val), 0.0)
         self.assertEqual(float(state.current_scope.evaluate("y0").val), 0.0)
 
+    def test_get_entity_object_reuses_cached_view(self) -> None:
+        farm = FarmState(build_global_bindings())
+        first = farm.get_entity_object((0, 0))
+        second = farm.get_entity_object((0, 0))
+        self.assertIs(first, second)
+
+    def test_passive_update_skips_view_creation_for_mature_cells(self) -> None:
+        farm = FarmState(build_global_bindings())
+        with mock.patch("gamesimulator.world.farm.create_entity_view", wraps=create_entity_view) as create_view_mock:
+            farm.passive_update(0.1, random.Random(1))
+        self.assertEqual(create_view_mock.call_count, 0)
+
 
 class EntityParityTests(unittest.TestCase):
+    def test_companion_capable_entity_assigns_companion_on_plant(self) -> None:
+        bindings = build_global_bindings()
+        items_bag = bindings["Items"]
+        entities_bag = bindings["Entities"]
+        farm = FarmState(
+            bindings,
+            items={
+                items_bag.evaluate("Hay"): 8,
+                items_bag.evaluate("Wood"): 8,
+            },
+        )
+        sim = Simulation(seed=7)
+        sim.farm = farm
+        drone = farm.drones[0]
+        drone.till()
+
+        self.assertTrue(drone.plant(entities_bag.evaluate("Tree")))
+
+        cell = farm.grid.get_cell((0, 0))
+        self.assertIsNotNone(cell.companion)
+
+    def test_initial_grass_assigns_companion_on_farm_creation(self) -> None:
+        bindings = build_global_bindings()
+        unlocks_bag = bindings["Unlocks"]
+        farm = FarmState(bindings, unlock_levels={unlocks_bag.evaluate("Expand"): 9})
+        sim = Simulation(seed=7)
+        sim.farm = farm
+
+        cell = farm.grid.get_cell((0, 0))
+        self.assertEqual(cell.entity, farm.entity("Grass"))
+        self.assertIsNotNone(cell.companion)
+
+    def test_initial_grass_starts_unready_then_grows_ready(self) -> None:
+        bindings = build_global_bindings()
+        unlocks_bag = bindings["Unlocks"]
+        farm = FarmState(bindings, unlock_levels={unlocks_bag.evaluate("Expand"): 9})
+        sim = Simulation(seed=7)
+        sim.farm = farm
+        drone = farm.drones[0]
+
+        self.assertFalse(drone.can_harvest())
+        advance_simulation_clock(sim, 0.5)
+        self.assertTrue(drone.can_harvest())
+
+    def test_grass_respawn_assigns_companion_immediately(self) -> None:
+        bindings = build_global_bindings()
+        farm = FarmState(bindings)
+        sim = Simulation(seed=7)
+        sim.farm = farm
+        drone = farm.drones[0]
+
+        self.assertTrue(drone.harvest())
+
+        cell = farm.grid.get_cell((0, 0))
+        self.assertEqual(cell.entity, farm.entity("Grass"))
+        self.assertIsNotNone(cell.companion)
+
+    def test_companion_selection_matches_original_randompoly_sequence(self) -> None:
+        bindings = build_global_bindings()
+        entities_bag = bindings["Entities"]
+        unlocks_bag = bindings["Unlocks"]
+        farm = FarmState(bindings, unlock_levels={unlocks_bag.evaluate("Expand"): 9})
+        sim = Simulation(seed=7)
+        sim.farm = farm
+        drone = farm.drones[0]
+
+        expected_rng = DotNetRandom(0)
+        expected_rng.setstate(sim.random_poly.getstate())
+        type_index_to_name = {0: "Grass", 1: "Bush", 2: "Carrot", 3: "Tree"}
+
+        def next_expected(pos, entity):
+            radius = 3
+            while True:
+                dx = expected_rng.randint(-radius, radius)
+                dy = expected_rng.randint(-radius, radius)
+                wrapped = farm.grid.wrap((pos[0] + dx, pos[1] + dy))
+                if farm.grid.world_size[1] != 1 and (wrapped == pos or abs(dx) + abs(dy) > radius):
+                    continue
+                expected_pos = wrapped
+                break
+            while True:
+                expected_type = farm.entity(type_index_to_name[expected_rng.randrange(4)])
+                if expected_type != entity:
+                    return (expected_type, expected_pos)
+
+        tree = entities_bag.evaluate("Tree")
+        bush = entities_bag.evaluate("Bush")
+        expected_tree = next_expected((0, 0), tree)
+        expected_bush = next_expected((1, 0), bush)
+
+        drone.till()
+        self.assertTrue(drone.plant(tree))
+        self.assertEqual(farm.grid.get_cell((0, 0)).companion, expected_tree)
+
+        self.assertTrue(drone.move(bindings["East"])[0])
+        drone.till()
+        self.assertTrue(drone.plant(bush))
+        self.assertEqual(farm.grid.get_cell((1, 0)).companion, expected_bush)
+
+    def test_water_decay_uses_runtime_timer_even_without_actions(self) -> None:
+        farm = FarmState(build_global_bindings())
+        sim = Simulation(seed=7)
+        sim.farm = farm
+        farm.grid.set_water_volume((0, 0), 1.0)
+
+        with mock.patch.object(sim.random_water_decay, "random", return_value=0.0):
+            advance_simulation_clock(sim, 0.1)
+
+        self.assertAlmostEqual(farm.grid.get_water_volume((0, 0)), 0.99)
+
+    def test_power_timer_consumes_used_power(self) -> None:
+        bindings = build_global_bindings()
+        items_bag = bindings["Items"]
+        farm = FarmState(bindings, items={items_bag.evaluate("Power"): 10.0})
+        sim = Simulation(seed=7)
+        sim.farm = farm
+        farm.used_power = 3.5
+
+        advance_simulation_clock(sim, 0.2)
+
+        self.assertAlmostEqual(farm.num_items(items_bag.evaluate("Power")), 6.5)
+        self.assertAlmostEqual(farm.used_power, 0.0)
+
+    def test_growth_reschedules_when_water_decay_changes_speed(self) -> None:
+        bindings = build_global_bindings()
+        items_bag = bindings["Items"]
+        entities_bag = bindings["Entities"]
+        farm = FarmState(
+            bindings,
+            items={
+                items_bag.evaluate("Hay"): 4,
+                items_bag.evaluate("Wood"): 4,
+            },
+        )
+        sim = Simulation(seed=7)
+        sim.farm = farm
+        drone = farm.drones[0]
+        drone.till()
+        with mock.patch.object(farm, "sample_growth_seconds", return_value=10.0):
+            self.assertTrue(drone.plant(entities_bag.evaluate("Carrot")))
+        farm.grid.set_water_volume((0, 0), 1.0)
+
+        with mock.patch.object(sim.random_water_decay, "random", return_value=0.0):
+            advance_simulation_clock(sim, 0.2)
+
+        obj = farm.get_entity_object((0, 0))
+        expected = 0.1 / (10.0 / 5.0) + 0.1 / (10.0 / (1.0 + 4.0 * 0.99))
+        self.assertAlmostEqual(obj.grown_percent, expected, places=6)
+
+    def test_growth_random_consumption_does_not_shift_water_decay_domain(self) -> None:
+        left = Simulation(seed=7)
+        right = Simulation(seed=7)
+        left.farm = FarmState(build_global_bindings())
+        right.farm = FarmState(build_global_bindings())
+
+        _ = left.farm.sample_growth_seconds(left.farm.entity("Carrot"))
+        _ = left.farm.sample_growth_seconds(left.farm.entity("Pumpkin"))
+        _ = left.farm.sample_growth_seconds(left.farm.entity("Sunflower"))
+
+        self.assertEqual(left.random_water_decay.random(), right.random_water_decay.random())
+
+    def test_growth_random_matches_original_various_domain(self) -> None:
+        bindings = build_global_bindings()
+        farm = FarmState(bindings)
+        sim = Simulation(seed=7)
+        sim.farm = farm
+        entity = farm.entity("Carrot")
+        lower, upper = farm.entity_growth_ranges[entity]
+
+        expected_rng = DotNetRandom(0)
+        expected_rng.setstate(sim.random_various.getstate())
+        expected_value = lower + (upper - lower) * expected_rng.random()
+
+        value = farm.sample_growth_seconds(entity)
+
+        self.assertAlmostEqual(value, expected_value)
+        self.assertEqual(sim.random_various.getstate(), expected_rng.getstate())
+
     def test_growable_core(self) -> None:
         bindings = build_global_bindings()
         items_bag = bindings["Items"]
@@ -1434,6 +1764,81 @@ class EntityParityTests(unittest.TestCase):
 
 
 class RunnerTests(unittest.TestCase):
+    def test_resolve_leaderboard_worker_count_uses_cpu_count_and_env_override(self) -> None:
+        import gamesimulator.runtime.execution as execution_module
+
+        with mock.patch.dict("os.environ", {}, clear=False), mock.patch("gamesimulator.runtime.execution.os.cpu_count", return_value=20):
+            self.assertEqual(execution_module.resolve_leaderboard_worker_count(), 20)
+
+        with mock.patch.dict("os.environ", {"TFWR_MAX_LEADERBOARD_WORKERS": "12"}, clear=False), mock.patch(
+            "gamesimulator.runtime.execution.os.cpu_count", return_value=20
+        ):
+            self.assertEqual(execution_module.resolve_leaderboard_worker_count(), 12)
+
+    def test_should_schedule_more_prefetch_stops_when_buffered_average_is_enough(self) -> None:
+        import gamesimulator.runtime.execution as execution_module
+
+        self.assertTrue(
+            execution_module.should_schedule_more_prefetch(
+                total_seconds=0.0,
+                run_count=0,
+                pending_count=8,
+                min_total_seconds=7200.0,
+            )
+        )
+        self.assertTrue(
+            execution_module.should_schedule_more_prefetch(
+                total_seconds=6000.0,
+                run_count=10,
+                pending_count=1,
+                min_total_seconds=7200.0,
+            )
+        )
+        self.assertFalse(
+            execution_module.should_schedule_more_prefetch(
+                total_seconds=7000.0,
+                run_count=10,
+                pending_count=1,
+                min_total_seconds=7200.0,
+            )
+        )
+
+    def test_shutdown_process_pool_fast_terminates_alive_workers(self) -> None:
+        import gamesimulator.runtime.execution as execution_module
+
+        calls: list[str] = []
+
+        class FakeProcess:
+            def __init__(self) -> None:
+                self.alive = True
+
+            def is_alive(self) -> bool:
+                return self.alive
+
+            def terminate(self) -> None:
+                calls.append("terminate")
+
+            def join(self, timeout: float | None = None) -> None:
+                calls.append(f"join:{timeout}")
+
+            def kill(self) -> None:
+                calls.append("kill")
+                self.alive = False
+
+        class FakeExecutor:
+            def __init__(self) -> None:
+                self._processes = {1: FakeProcess()}
+
+            def shutdown(self, wait: bool = True, *, cancel_futures: bool = False) -> None:
+                calls.append(f"shutdown:{wait}:{cancel_futures}")
+
+        execution_module.shutdown_process_pool_fast(FakeExecutor())
+
+        self.assertIn("shutdown:False:True", calls)
+        self.assertIn("terminate", calls)
+        self.assertTrue(any(call.startswith("join:") for call in calls))
+        self.assertIn("kill", calls)
+
     def test_leaderboard_metadata_uses_asset_snapshot_for_start_items_and_steam_name(self) -> None:
         save_root = require_save_root()
         hay_single = resolve_leaderboard_metadata("lb_hay_single", save_root)
@@ -1639,6 +2044,34 @@ class RunnerTests(unittest.TestCase):
                 result.logs,
                 [f"pet {expected_pet_ticks}", f"tap {expected_pet_ticks + expected_tap_ticks}"],
             )
+
+    def test_simulate_context_receives_water_from_watering_timer(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "test.py").write_text(
+                "from __builtins__ import *\n"
+                "clear()\n"
+                "set_world_size(3)\n"
+                "move(East)\n"
+                "move(North)\n"
+                "harvest()\n"
+                "plant(Entities.Tree)\n"
+                "quick_print('use_water', use_item(Items.Water, 4))\n"
+                "quick_print('water_after', get_water())\n",
+                encoding="utf-8",
+            )
+            (tmp_path / "simulate.py").write_text(
+                "from __builtins__ import *\n"
+                "simulate('test', Unlocks, {}, {}, 1, 10000)\n",
+                encoding="utf-8",
+            )
+
+            result = run_file("simulate", tmp_path, seed=1)
+
+            self.assertTrue(result.terminated)
+            self.assertIn("use_water True", result.logs)
+            self.assertIn("water_after 1.0", result.logs)
 
     def test_runner_executes_dict_copy_constructor(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1849,6 +2282,74 @@ class RunnerTests(unittest.TestCase):
             self.assertFalse(any("finished=" in line for line in average_lines))
             self.assertFalse(any("runs=" in line for line in average_lines))
             self.assertFalse(any("total=" in line for line in average_lines))
+
+    def test_runner_executes_leaderboard_run_with_heartbeat(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "lb_start.py").write_text(
+                "from __builtins__ import *\n"
+                "leaderboard_run(Leaderboards.Hay_Single, 'lb_probe', 10000)\n",
+                encoding="utf-8",
+            )
+
+            def fake_iteration(target: str, save_root: str | Path | None, seed: int, leaderboard_key: str | None = None):
+                time.sleep(0.03)
+                return LeaderboardIterationResult(
+                    seed=seed,
+                    elapsed_seconds=2.5,
+                    terminated=True,
+                    goal_reached=True,
+                    progress_text="Hay=100000000/100000000",
+                )
+
+            with mock.patch("gamesimulator.runtime.execution.MIN_LEADERBOARD_TOTAL_SECONDS", 2.0, create=True), mock.patch(
+                "gamesimulator.runtime.execution.MAX_LEADERBOARD_WORKERS", 1, create=True
+            ), mock.patch(
+                "gamesimulator.runtime.execution.LEADERBOARD_HEARTBEAT_INTERVAL_SECONDS", 0.005, create=True
+            ), mock.patch(
+                "gamesimulator.runtime.execution.LEADERBOARD_WAIT_TIMEOUT_SECONDS", 0.001, create=True
+            ), mock.patch(
+                "gamesimulator.runtime.execution.ProcessPoolExecutor", ThreadPoolExecutor
+            ), mock.patch(
+                "gamesimulator.runner.run_leaderboard_iteration", side_effect=fake_iteration
+            ):
+                result = run_file("lb_start", tmp_path, seed=1)
+
+            self.assertTrue(result.terminated)
+            self.assertTrue(any(line.startswith("leaderboard_run heartbeat") for line in result.logs))
+            self.assertTrue(any("leaderboard_run run=1" in line for line in result.logs))
+            self.assertTrue(any("leaderboard_run lb_probe.py pass average=" in line for line in result.logs))
+
+    def test_repeated_run_file_reuses_cached_program_and_bindings(self) -> None:
+        import gamesimulator.runner as runner_module
+
+        runner_module._PROGRAM_CACHE.clear()
+        runner_module._GLOBAL_BINDINGS_CACHE.clear()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "mini.py").write_text(
+                "from __builtins__ import *\n"
+                "quick_print('cached')\n",
+                encoding="utf-8",
+            )
+            with mock.patch("gamesimulator.runner.build_global_bindings", wraps=runner_module.build_global_bindings) as build_mock, mock.patch(
+                "gamesimulator.runner.tokenize", wraps=runner_module.tokenize
+            ) as tokenize_mock, mock.patch(
+                "gamesimulator.runner.parse", wraps=runner_module.parse
+            ) as parse_mock:
+                result1 = run_file("mini", tmp_path, seed=1)
+                result2 = run_file("mini", tmp_path, seed=1)
+
+            self.assertTrue(result1.terminated)
+            self.assertTrue(result2.terminated)
+            self.assertEqual(result1.logs, ["cached"])
+            self.assertEqual(result2.logs, ["cached"])
+            self.assertEqual(build_mock.call_count, 1)
+            self.assertEqual(tokenize_mock.call_count, 1)
+            self.assertEqual(parse_mock.call_count, 1)
 
     def test_runner_cli_parsing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

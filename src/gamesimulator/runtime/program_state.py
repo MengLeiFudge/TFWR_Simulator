@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from collections import deque
-import random
 from typing import Any
 
+from ..common.dotnet_random import DotNetRandom
 from .execute_exception import BreakStatement, ContinueStatement, ExecuteException, ReturnStatement
 from .module_state import ModuleState
 from .py_values import PyString
@@ -19,7 +19,7 @@ class ProgramState:
     preserves the op-count and side-effect surface expected by Execution.
     """
 
-    def __init__(self, op_count: float, random_source: random.Random, drone_id: int):
+    def __init__(self, op_count: float, random_source, drone_id: int):
         global_scope = Scope(None, None, None, set())
         global_scope.import_var("__name__", PyString("__main__"))
         self.module_state = ModuleState(global_scope=global_scope)
@@ -42,7 +42,7 @@ class ProgramState:
         self.drone_id = drone_id
         self.drone_handle = None
         self.target_op_count = 0.0
-        self.random_random = random.Random(random_source.randrange(0, 2**31))
+        self.random_random = DotNetRandom(random_source.randrange(0, 2**31))
         self.mailbox = RuntimeMailbox(self.all_messages_queue, self.message_queues)
 
     @property
