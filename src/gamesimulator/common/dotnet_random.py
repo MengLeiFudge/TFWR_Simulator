@@ -1,4 +1,6 @@
 from __future__ import annotations
+import hashlib
+import struct
 
 
 class DotNetRandom:
@@ -107,3 +109,17 @@ class DotNetRandom:
 
     def randint(self, a: int, b: int) -> int:
         return self.randrange(int(a), int(b) + 1)
+
+    def just_sha256_it(self) -> int:
+        """Helper.JustSha256It implementation from Utils.dll
+        
+        Generates a derived seed by:
+        1. Getting 16 random bytes from this RNG
+        2. Computing SHA256 hash
+        3. Taking first 4 bytes as int32
+        4. Masking to ensure positive value
+        """
+        buffer = self.randbytes(16)
+        hash_bytes = hashlib.sha256(buffer).digest()
+        seed = struct.unpack('<i', hash_bytes[:4])[0]
+        return seed & 0x7FFFFFFF

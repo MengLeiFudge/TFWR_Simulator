@@ -42,7 +42,7 @@ class ProgramState:
         self.drone_id = drone_id
         self.drone_handle = None
         self.target_op_count = 0.0
-        self.random_random = DotNetRandom(random_source.randrange(0, 2**31))
+        self.random_random = DotNetRandom(random_source._internal_sample())
         self.mailbox = RuntimeMailbox(self.all_messages_queue, self.message_queues)
 
     @property
