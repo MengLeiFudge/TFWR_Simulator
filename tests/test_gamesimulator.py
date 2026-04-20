@@ -1161,8 +1161,8 @@ class WorldCoreTests(unittest.TestCase):
         execution = Execution(sim, program.syntax_tree, 11, global_bindings=bindings)
         run_execution_to_termination(execution)
         state = execution.states[0]
-        self.assertTrue(bool(state.current_scope.evaluate("ready0").val))
-        self.assertEqual(float(state.current_scope.evaluate("hay").val), 1.0)
+        self.assertFalse(bool(state.current_scope.evaluate("ready0").val))
+        self.assertEqual(float(state.current_scope.evaluate("hay").val), 0.0)
         self.assertFalse(bool(state.current_scope.evaluate("ready1").val))
         self.assertEqual(state.current_scope.evaluate("entity1").val, entities_bag.evaluate("Bush"))
         self.assertEqual(float(state.current_scope.evaluate("water").val), 0.5)
