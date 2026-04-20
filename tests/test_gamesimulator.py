@@ -1167,6 +1167,28 @@ class WorldCoreTests(unittest.TestCase):
         self.assertEqual(state.current_scope.evaluate("entity1").val, entities_bag.evaluate("Bush"))
         self.assertEqual(float(state.current_scope.evaluate("water").val), 0.5)
 
+    def test_grass_maturity_time(self) -> None:
+        bindings = build_global_bindings()
+        farm = FarmState(bindings)
+        sim = Simulation(seed=1)
+        sim.farm = farm
+        code = (
+            "\n"
+            + "ready0 = can_harvest()\n"
+            + "do_a_flip()\n"
+            + "do_a_flip()\n"
+            + "do_a_flip()\n"
+            + "ready1 = can_harvest()\n"
+        )
+        has_unknown, stream = tokenize(code)
+        self.assertFalse(has_unknown)
+        program = parse(stream)
+        execution = Execution(sim, program.syntax_tree, 11, global_bindings=bindings)
+        run_execution_to_termination(execution)
+        state = execution.states[0]
+        self.assertFalse(bool(state.current_scope.evaluate("ready0").val))
+        self.assertTrue(bool(state.current_scope.evaluate("ready1").val))
+
     def test_growth_companion_and_fertilizer(self) -> None:
         bindings = build_global_bindings()
         items_bag = bindings["Items"]
