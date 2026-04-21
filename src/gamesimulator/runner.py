@@ -85,7 +85,7 @@ def _load_program(path: Path):
         has_unknown, stream = tokenize(code)
         if has_unknown:
             raise ValueError(f"tokenizer found unknown token(s) in {path.name}")
-        cached = parse(stream)
+        cached = parse(stream, file_name=path.name, source_text=code)
         _PROGRAM_CACHE.clear()
         _PROGRAM_CACHE[signature] = cached
     return _clone_program(cached)
@@ -133,6 +133,7 @@ def run_file_with_context(
     save_root: str | Path | None = None,
     seed: int = 1,
     unlock_levels: dict[object, int] | None = None,
+    unlock_strings: list[str] | None = None,
     items: dict[object, float] | None = None,
     globals_override: dict[str, object] | None = None,
     log_sink: Callable[[str], None] | None = None,
@@ -162,11 +163,15 @@ def run_file_with_context(
     global_bindings = dict(bindings)
     if globals_override:
         global_bindings.update(globals_override)
-    sim.farm = FarmState(
-        bindings,
-        unlock_levels=dict(_default_unlock_levels(bindings, metadata) if unlock_levels is None else unlock_levels),
-        items=dict(_default_items(path.stem, bindings, resolved_save_root, metadata) if items is None else items),
-    )
+    farm_items = dict(_default_items(path.stem, bindings, resolved_save_root, metadata) if items is None else items)
+    if unlock_strings is not None:
+        sim.farm = _farm_from_unlock_strings(sim, bindings, unlock_strings, farm_items)
+    else:
+        sim.farm = FarmState(
+            bindings,
+            unlock_levels=dict(_default_unlock_levels(bindings, metadata) if unlock_levels is None else unlock_levels),
+            items=farm_items,
+        )
     sim.farm.random = sim.random_various
     execution = Execution(sim, program.syntax_tree, 1, global_bindings=global_bindings)
     _run_until_terminal(execution)
@@ -338,6 +343,104 @@ def coerce_unlock_levels(source, bindings: dict[str, object]) -> dict[object, in
             continue
         result[current_unlock] = defaults.get(current_unlock, 1)
     return result
+
+
+def coerce_unlock_strings(source, bindings: dict[str, object], single_drone: bool = False) -> list[str]:
+    result = [name.lower() for name in RESET_UNLOCK_LEVELS.keys()]
+
+    def unlock_name_of(value) -> str:
+        if isinstance(value, PyString):
+            raise ExecuteException("error_invalid_sim_unlocks")
+        unlock = _coerce_bag_key(value, "Unlocks", bindings)
+        return str(unlock).split(".")[-1]
+
+    if isinstance(source, PyDict):
+        for key, boxed in source.items.items():
+            name = unlock_name_of(key)
+            level = int(float(boxed.obj.num))
+            if level == 0:
+                continue
+            max_level = int(DEFAULT_UNLOCK_LEVELS.get(name, max(level, 1)))
+            if level < 0:
+                level = max_level
+            else:
+                level = min(level, max_level)
+            result.append(name.lower())
+            if max_level > 1:
+                if single_drone and name == "Expand":
+                    level = min(level, 5)
+                result.append(f"{name.lower()}_{level}")
+        return result
+
+    defaults = _default_unlock_levels(bindings)
+    for unlock in source:
+        if isinstance(unlock, PyString):
+            raise ExecuteException("error_invalid_sim_unlocks")
+        current_unlock = _coerce_bag_key(unlock, "Unlocks", bindings)
+        if isinstance(current_unlock, PyTuple) and len(current_unlock) == 2:
+            name = unlock_name_of(current_unlock[0])
+            level = int(float(current_unlock[1].num))
+            if level == 0:
+                continue
+            max_level = int(DEFAULT_UNLOCK_LEVELS.get(name, max(level, 1)))
+            if level < 0:
+                level = max_level
+            else:
+                level = min(level, max_level)
+            result.append(name.lower())
+            if max_level > 1:
+                if single_drone and name == "Expand":
+                    level = min(level, 5)
+                result.append(f"{name.lower()}_{level}")
+            continue
+        name = str(current_unlock).split(".")[-1]
+        result.append(name.lower())
+        max_level = defaults.get(current_unlock, 1)
+        if max_level > 1:
+            if single_drone and name == "Expand":
+                result.append(f"{name.lower()}_5")
+            elif not (single_drone and name == "Megafarm"):
+                result.append(f"{name.lower()}_{int(max_level)}")
+    return result
+
+
+def _farm_from_unlock_strings(
+    sim: Simulation,
+    bindings: dict[str, object],
+    unlock_strings: list[str],
+    items: dict[object, float],
+) -> FarmState:
+    farm = FarmState(bindings, unlock_levels=_reset_unlock_levels(bindings), items=items)
+    sim.farm = farm
+    unlock_name_map = {
+        key.lower(): key
+        for key in DEFAULT_UNLOCK_LEVELS.keys()
+    }
+    for raw_unlock in unlock_strings:
+        name = raw_unlock
+        level = 1
+        if "_" in raw_unlock and not raw_unlock.startswith("debug_"):
+            maybe_name, maybe_level = raw_unlock.rsplit("_", 1)
+            if maybe_level.isdigit():
+                name = maybe_name
+                level = int(maybe_level)
+        canonical_name = unlock_name_map.get(name, name)
+        unlock = bindings["Unlocks"].evaluate(canonical_name)
+        current = farm.num_unlocked(unlock)
+        if current == level:
+            continue
+        farm.unlock_levels[unlock] = level
+        farm.refresh_entity_costs()
+        if name == "expand":
+            farm.grid.reset_for_expand(level)
+            farm.restart_world_grass()
+        elif name == "speed":
+            sim.change_execution_speed(farm.max_speed_factor())
+    sim._timers.clear()
+    farm._resource_timers_started = False
+    farm.start_runtime_timers()
+    sim.change_execution_speed(farm.max_speed_factor())
+    return farm
 
 
 def coerce_items(source, bindings: dict[str, object]) -> dict[object, float]:

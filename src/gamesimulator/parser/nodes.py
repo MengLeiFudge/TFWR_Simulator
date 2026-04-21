@@ -8,7 +8,7 @@ from typing import Any, Iterable
 from ..runtime.execute_exception import BreakStatement, ContinueStatement, ExecuteException, ReturnStatement
 from ..runtime.module_state import ModuleState
 from ..runtime.py_function import PyFunction
-from ..runtime.py_values import PyBool, PyDict, PyList, PyModule, PyNone, PyObjectBox, PySet, PyString, PyTuple
+from ..runtime.py_values import PyBool, PyConstBag, PyDict, PyList, PyModule, PyNone, PyObjectBox, PySet, PyString, PyTuple
 from ..runtime.scope import Scope
 from ..common.side_effects import SideEffect
 from ..runtime.builtins_api import default_functions
@@ -21,6 +21,12 @@ class BoxedNodeParams:
     word_end: int = 0
     execution_id: int = -1
     is_breakpoint: bool = False
+
+
+@dataclass(frozen=True)
+class CodeWindowRef:
+    file_name: str
+    source_text: str
 
 
 class Node(ABC):
@@ -258,10 +264,11 @@ class SetNode(Node):
         for item in self.slots[0].execute(state, execution, depth + 1):
             yield item
         elements = set(state.return_value)
-        state.return_value = PySet(elements)
+        result = PySet(elements)
+        state.return_value = result
         state.is_expression_static = False
         self.blink(state, execution)
-        if self.check_increment_op_count(state, execution, max(1, len(elements))):
+        if self.check_increment_op_count(state, execution, max(1, result.size())):
             yield 0.0
 
     def deep_copy(self, copies: dict[int, Any]) -> "SetNode":
@@ -342,7 +349,7 @@ class ImportNode(Node):
                 has_unknown, stream = tokenize(code)
                 if has_unknown:
                     raise ExecuteException("error_syntax_error_in_import")
-                program = parse(stream)
+                program = parse(stream, file_name=module_path.name, source_text=code)
                 builtins_scope = Scope(None, None, None, set())
                 for function in default_functions().values():
                     builtins_scope.set_var(function.function_name, function, check_shadow=False, is_static=True)
@@ -487,14 +494,17 @@ class BinaryExprNode(Node):
             yield item
         lhs = state.return_value
         lhs_is_static = state.is_expression_static
-        if self.op == ".":
-            if not hasattr(lhs, "evaluate"):
-                raise ExecuteException("error_unknown_method")
+        if self.op == "." and isinstance(lhs, (PyModule, PyConstBag)):
             rhs = self.slots[1]
             if not isinstance(rhs, ValueNode):
                 raise ExecuteException("error_invalid_const2")
-            state.return_value = lhs.evaluate(rhs.value)
-            state.is_expression_static = lhs_is_static
+            if isinstance(lhs, PyModule):
+                value, is_static = lhs.export(rhs.value)
+            else:
+                value = lhs.evaluate(rhs.value)
+                is_static = True
+            state.return_value = value
+            state.is_expression_static = lhs_is_static and is_static
             if self.check_increment_op_count(state, execution, 0.0 if lhs_is_static else 1.0):
                 yield 0.0
             return
@@ -586,6 +596,7 @@ class BinaryExprNode(Node):
                 yield 0.0
             return
         if self.op in ("in", "not in"):
+            ops = 1.0
             if isinstance(rhs, list):
                 result = lhs in rhs
             elif isinstance(rhs, PyList):
@@ -594,8 +605,10 @@ class BinaryExprNode(Node):
                 result = lhs in rhs.elements
             elif isinstance(rhs, PySet):
                 result = lhs in rhs.items
+                ops = float(getattr(lhs, "size", lambda: 1)())
             elif isinstance(rhs, PyDict):
                 result = lhs in rhs.items
+                ops = float(getattr(lhs, "size", lambda: 1)())
             elif isinstance(rhs, PyString) and isinstance(lhs, PyString):
                 result = lhs.text in rhs.text
             elif hasattr(rhs, "__iter__"):
@@ -605,7 +618,7 @@ class BinaryExprNode(Node):
             if self.op == "not in":
                 result = not result
             state.return_value = PyBool(result)
-            if self.check_increment_op_count(state, execution, 1.0):
+            if self.check_increment_op_count(state, execution, ops):
                 yield 0.0
             return
         if self.op == "[]":
@@ -637,6 +650,15 @@ class BinaryExprNode(Node):
                     yield 0.0
                 return
             raise ExecuteException("error_index_on_non_indexable")
+        if self.op == ".":
+            if not isinstance(rhs, PyFunction):
+                raise ExecuteException("error_unknown_method")
+            bound = rhs.deep_copy({}) if hasattr(rhs, "deep_copy") else rhs
+            bound.method_object = lhs
+            state.return_value = bound
+            if self.check_increment_op_count(state, execution, 0.0):
+                yield 0.0
+            return
         if self.op == "and" or self.op == "or":
             state.return_value = rhs
             if self.check_increment_op_count(state, execution, 1.0):

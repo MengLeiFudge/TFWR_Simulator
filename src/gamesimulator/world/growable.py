@@ -56,6 +56,9 @@ class GrowableView(FarmObjectView):
         if self.cell.age >= self.cell.growth_seconds:
             self.cell.age = self.cell.growth_seconds
             self.on_fully_grown()
+            self.farm.reschedule_grow_timer(self.pos)
+            return True
+        self.farm.reschedule_grow_timer(self.pos)
         return True
 
     def get_companion(self):

@@ -30,8 +30,11 @@ class CellState:
     apple_next_pos: tuple[int, int] | None = None
     can_move_to: bool = False
     tail_owner_id: int | None = None
+    grow_timer: Any = None
 
     def clear_entity_state(self) -> None:
+        if self.grow_timer is not None:
+            self.grow_timer.stopped = True
         self.entity = None
         self.age = 0.0
         self.mature = False
@@ -51,6 +54,7 @@ class CellState:
         self.apple_next_pos = None
         self.can_move_to = False
         self.tail_owner_id = None
+        self.grow_timer = None
 
 
 ENTITY_STATE_FIELDS = [
@@ -73,6 +77,7 @@ ENTITY_STATE_FIELDS = [
     "apple_next_pos",
     "can_move_to",
     "tail_owner_id",
+    "grow_timer",
 ]
 
 

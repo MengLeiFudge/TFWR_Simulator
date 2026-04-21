@@ -62,6 +62,26 @@ class Simulation:
     def _spawn_random_domain(self) -> DotNetRandom:
         return DotNetRandom(just_sha256_it(self.random))
 
+    def _consume_initial_grass_onrestart_for_expand0(self) -> None:
+        """Mirror Farm -> GridManager ctor's initial 1x1 grass SetEntity(...).OnRestart().
+
+        Decompiled Core shows Simulation constructs Farm after all RNG domains, and
+        GridManager.GenerateWorld() immediately seeds a 1x1 grass world before
+        later `Unlock("expand", level)` grows it. That initial grass also consumes
+        `randomVarious` draws from FarmObject/Growable OnRestart before sampling
+        its grow randomFactor.
+        """
+        self.random_various.randrange(4)
+        self.random_various.randrange(4)
+        rng = self.random_poly
+        # WorldSize.y == 1 means the position loop accepts immediately, then wraps.
+        rng.randint(-3, 3)
+        rng.randint(-3, 3)
+        while True:
+            if rng.randrange(4) != 0:
+                break
+        self.random_various.random()
+
     @property
     def farm(self):
         return self._farm
@@ -71,7 +91,10 @@ class Simulation:
         self._farm = value
         if value is not None:
             value.sim = self
-            value.seed_initial_grass_companions()
+            width, height = value.grid.world_size
+            if width > 1 or height > 1:
+                self._consume_initial_grass_onrestart_for_expand0()
+            value.restart_world_grass()
             value.start_runtime_timers()
             self.change_execution_speed(value.max_speed_factor())
 
@@ -164,3 +187,12 @@ class Simulation:
             self.logs.append(message)
         if self.log_sink is not None:
             self.log_sink(message)
+
+    def log_warning(self, message: str, state: Any | None = None) -> None:
+        text = f"Warning: {message}"
+        if state is not None:
+            trace = state.get_trace()
+            if trace:
+                text += "\nIn: " + trace
+        text += "\n--------------------------------------------------------------------"
+        self.log(text)

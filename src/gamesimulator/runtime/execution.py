@@ -212,7 +212,7 @@ class Execution:
             state.return_value = PyBool(ok)
             apply_ops(1.0)
         elif state.current_side_effect == SideEffect.PLANT:
-            ok = self.sim.farm.drones[state.drone_id].plant(state.current_side_effect_argument)
+            ok = self.sim.farm.drones[state.drone_id].plant(state.current_side_effect_argument, state)
             state.return_value = PyBool(ok)
             apply_ops(200.0 if ok else 1.0)
         elif state.current_side_effect == SideEffect.TILL:
@@ -313,7 +313,7 @@ class Execution:
                 main.x = 0
                 main.y = 0
             self.sim.farm.grid.clear_grid()
-            self.sim.farm.seed_initial_grass_companions()
+            self.sim.farm.restart_world_grass()
             self.states = [self.states[state.drone_id]]
             self.states[0].drone_id = 0
             self.sim.farm.drones = [self.sim.farm.drones[0]]
@@ -489,7 +489,7 @@ class Execution:
             state.return_value = PyNone()
             apply_ops(200.0)
         elif state.current_side_effect == SideEffect.SIMULATE:
-            from ..runner import coerce_globals, coerce_items, coerce_unlock_levels, run_file_with_context
+            from ..runner import coerce_globals, coerce_items, coerce_unlock_levels, coerce_unlock_strings, run_file_with_context
 
             if getattr(self.sim, "leaderboard_type", "none") != "none":
                 state.return_value = PyNone()
@@ -499,6 +499,7 @@ class Execution:
             payload = state.current_side_effect_argument
             target = payload.items[0].text
             unlock_levels = coerce_unlock_levels(payload.items[1], self.global_bindings or {})
+            unlock_strings = coerce_unlock_strings(payload.items[1], self.global_bindings or {})
             items = coerce_items(payload.items[2], self.global_bindings or {})
             globals_override = coerce_globals(payload.items[3])
             seed = int(float(payload.items[4].num))
@@ -507,6 +508,7 @@ class Execution:
                 getattr(self.sim, "save_root", None),
                 seed=seed,
                 unlock_levels=unlock_levels,
+                unlock_strings=unlock_strings,
                 items=items,
                 globals_override=globals_override,
                 run_kind="simulation",
@@ -520,7 +522,7 @@ class Execution:
             world_size_changed = value != self.sim.farm.grid.world_size[1]
             self.sim.farm.grid.set_size_limit(value)
             if world_size_changed:
-                self.sim.farm.seed_initial_grass_companions()
+                self.sim.farm.restart_world_grass()
             for drone in self.sim.farm.drones:
                 drone.x = 0
                 drone.y = 0

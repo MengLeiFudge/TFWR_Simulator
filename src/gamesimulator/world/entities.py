@@ -5,6 +5,16 @@ from typing import Any
 
 from .farm_object import FarmObjectView
 from .growable import GrowableView
+from ..runtime.py_values import GridDirection
+
+
+def _reverse_direction(direction):
+    return {
+        GridDirection.NORTH: GridDirection.SOUTH,
+        GridDirection.EAST: GridDirection.WEST,
+        GridDirection.SOUTH: GridDirection.NORTH,
+        GridDirection.WEST: GridDirection.EAST,
+    }[direction]
 
 
 class GenericGrowableView(GrowableView):
@@ -14,25 +24,69 @@ class GenericGrowableView(GrowableView):
 
 class BushView(GenericGrowableView):
     def generate_maze(self, desired_size: int) -> bool:
-        size = min(desired_size, self.farm.grid.world_size[0], self.farm.grid.world_size[1])
+        size = min(desired_size, self.farm.grid.world_size[0])
         if size <= 0:
             return False
-        low_x = max(0, min(self.pos[0] - size // 2, self.farm.grid.world_size[0] - size))
-        low_y = max(0, min(self.pos[1] - size // 2, self.farm.grid.world_size[1] - size))
+        low_x = max(0, self.pos[0] - size // 2)
+        low_y = max(0, self.pos[1] - size // 2)
+        while low_x + size > self.farm.grid.world_size[0]:
+            low_x -= 1
+        while low_y + size > self.farm.grid.world_size[1]:
+            low_y -= 1
         rng = self.farm.random_source("maze")
-        treasure_pos = (low_x + rng.randrange(size), low_y + rng.randrange(size))
-        for x in range(low_x, low_x + size):
-            for y in range(low_y, low_y + size):
-                cell = self.farm.grid.get_cell((x, y))
+        walls: list[list[bool] | None] = [None] * (size * size)
+        start = rng.randrange(size * size)
+        walls[start] = [True, True, True, True]
+        stack = [start]
+        first_dead_end = False
+        dead_ends: list[int] = []
+        directions = [GridDirection.NORTH, GridDirection.EAST, GridDirection.SOUTH, GridDirection.WEST]
+        while stack:
+            current = stack[-1]
+            cx = current % size
+            cy = current // size
+            ordered = sorted(directions, key=lambda _: rng.randrange(2**31))
+            for direction in ordered:
+                dx, dy = {
+                    GridDirection.NORTH: (0, 1),
+                    GridDirection.EAST: (1, 0),
+                    GridDirection.SOUTH: (0, -1),
+                    GridDirection.WEST: (-1, 0),
+                }[direction]
+                nx = cx + dx
+                ny = cy + dy
+                if nx < 0 or ny < 0 or nx >= size or ny >= size:
+                    continue
+                nxt = nx + size * ny
+                if walls[nxt] is not None:
+                    continue
+                stack.append(nxt)
+                walls[nxt] = [True, True, True, True]
+                walls[nxt][self.farm.direction_index(_reverse_direction(direction))] = False
+                walls[current][self.farm.direction_index(direction)] = False
+                first_dead_end = False
+                break
+            if stack[-1] == current:
+                stack.pop()
+                if not first_dead_end:
+                    dead_ends.append(current)
+                    first_dead_end = True
+        treasure_index = dead_ends[rng.randrange(len(dead_ends))]
+        for x in range(size):
+            for y in range(size):
+                is_treasure = treasure_index == x + size * y
+                pos = (x + low_x, y + low_y)
+                cell = self.farm.grid.get_cell(pos)
+                cell.ground = self.farm.ground_grassland
                 cell.clear_entity_state()
-                cell.entity = self.farm.entity("Treasure") if (x, y) == treasure_pos else self.farm.entity("Hedge")
+                cell.entity = self.farm.entity("Treasure") if is_treasure else self.farm.entity("Hedge")
                 cell.mature = True
                 cell.maze_size = size
                 cell.maze_low_left = (low_x, low_y)
-                cell.maze_walls = [False, False, False, False]
-                cell.treasure_factor = 1
-        treasure_cell = self.farm.grid.get_cell(treasure_pos)
-        treasure_cell.treasure_next_pos = treasure_pos
+                cell.maze_walls = list(walls[x + size * y])
+                if is_treasure:
+                    treasure = self.farm.get_entity_object(pos)
+                    treasure.choose_next_position()
         return True
 
 
@@ -201,6 +255,18 @@ class HedgeView(FarmObjectView):
 class TreasureView(HedgeView):
     def measure(self):
         return self.pos
+
+    def choose_next_position(self) -> None:
+        size = self.cell.maze_size
+        low = self.cell.maze_low_left
+        if not size or low is None or size <= 1:
+            return
+        rng = self.farm.random_source("maze")
+        while True:
+            candidate = (low[0] + rng.randrange(size), low[1] + rng.randrange(size))
+            if candidate != self.pos:
+                self.cell.treasure_next_pos = candidate
+                return
 
     def harvest(self, drone) -> bool:
         amount = float((self.cell.maze_size or 1) ** 2)

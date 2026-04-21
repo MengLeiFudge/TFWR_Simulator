@@ -17,7 +17,8 @@ def _stringify(value: Any) -> str:
     if isinstance(value, PyNumber):
         if getattr(value, "display_as_int", False):
             return str(int(round(float(value.num))))
-        return str(float(value.num))
+        text = f"{float(value.num):.2f}".rstrip("0").rstrip(".")
+        return text or "0"
     return repr(value)
 
 
@@ -353,8 +354,9 @@ def list_constructor(parameters, sim, execution, drone_id) -> float:
         execution.states[drone_id].return_value = PyList([])
         return 1.0
     if len(parameters) == 1:
-        execution.states[drone_id].return_value = PyList(list(parameters[0]))
-        return 1.0
+        result = PyList(list(parameters[0]))
+        execution.states[drone_id].return_value = result
+        return 1.0 + len(result.items)
     raise ValueError("list expects 0 or 1 parameters")
 
 
@@ -504,13 +506,13 @@ def default_functions() -> dict[str, PyFunction]:
 def range_builtin(parameters, sim, execution, drone_id) -> float:
     if len(parameters) == 1:
         execution.states[drone_id].return_value = PyRange(0.0, float(parameters[0].num), 1.0)
-        return 0.0
+        return 1.0
     if len(parameters) == 2:
         execution.states[drone_id].return_value = PyRange(float(parameters[0].num), float(parameters[1].num), 1.0)
-        return 0.0
+        return 1.0
     if len(parameters) == 3:
         execution.states[drone_id].return_value = PyRange(float(parameters[0].num), float(parameters[1].num), float(parameters[2].num))
-        return 0.0
+        return 1.0
     raise ValueError("range expects 1 to 3 parameters")
 
 

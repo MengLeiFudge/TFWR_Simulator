@@ -14,7 +14,6 @@ _DIR_TO_DELTA = {
     GridDirection.WEST: (-1, 0),
 }
 
-
 @dataclass
 class DroneState:
     farm: Any
@@ -111,17 +110,13 @@ class DroneState:
         if height <= 1:
             return None
         rng = self.farm.random_source("snake")
-        candidates = []
-        for x in range(width):
-            for y in range(height):
-                if (x, y) == exclude:
-                    continue
-                obj = self.farm.get_entity_object((x, y))
-                if obj is None or obj.entity_name not in {"Dinosaur", "Apple"}:
-                    candidates.append((x, y))
-        if not candidates:
-            return None
-        return candidates[rng.randrange(len(candidates))]
+        while True:
+            candidate = (rng.randrange(width), rng.randrange(height))
+            if candidate == exclude:
+                continue
+            obj = self.farm.get_entity_object(candidate)
+            if obj is None or obj.entity_name not in {"Dinosaur", "Apple"}:
+                return candidate
 
     def _clear_dinosaur_state(self) -> None:
         for pos in list(self.dino_tail):
@@ -166,11 +161,7 @@ class DroneState:
         else:
             self.farm.grid.set_ground(self.pos, self.farm.ground_grassland)
             if not isinstance(self.farm.get_entity_object(self.pos), HedgeView):
-                self.farm.grid.set_entity(self.pos, self.farm.entity_grass)
-                cell = self.farm.grid.get_cell(self.pos)
-                cell.mature = True
-                cell.age = 0.5
-                cell.growth_seconds = 0.5
+                self.farm.restart_entity(self.pos, self.farm.entity_grass)
 
     def get_water(self) -> float:
         return self.farm.grid.get_water_volume(self.pos)
@@ -185,7 +176,7 @@ class DroneState:
             return False
         return obj.harvest(self)
 
-    def plant(self, entity: Any) -> bool:
+    def plant(self, entity: Any, program_state: Any = None) -> bool:
         allowed = self.farm.entity_allowed_grounds.get(entity, set())
         if allowed and str(self.get_ground_type()) not in allowed:
             return False
@@ -194,19 +185,11 @@ class DroneState:
             return False
         cost = self.farm.get_entity_cost(entity)
         if cost and not self.farm.pay_cost(cost):
+            entity_name = str(entity)
+            if self.farm.sim is not None:
+                self.farm.sim.log_warning(f"没有种植 {entity_name} 所需的物品。", program_state)
             return False
-        cell = self.farm.grid.get_cell(self.pos)
-        cell.clear_entity_state()
-        cell.entity = entity
-        cell.age = 0.0
-        cell.mature = False
-        cell.growth_seconds = self.farm.sample_growth_seconds(entity)
-        if entity in self.farm.entities_with_companion:
-            self.farm._assign_initial_companion(self.pos, entity)
-        if str(entity).split(".")[-1] == "Sunflower":
-            cell.petals = self.farm.random_source("sunflower").randint(7, 15)
-        if str(entity).split(".")[-1] == "Cactus":
-            cell.variant = self.farm.random_source("cactus").randrange(10)
+        self.farm.restart_entity(self.pos, entity)
         return True
 
     def water(self, amount: int) -> bool:
@@ -214,6 +197,7 @@ class DroneState:
         if not self.farm.consume_items(water_item, amount):
             return False
         self.farm.grid.set_water_volume(self.pos, self.get_water() + 0.25 * amount)
+        self.farm.reschedule_grow_timer(self.pos)
         return True
 
     def fertilize(self, amount: int) -> bool:

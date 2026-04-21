@@ -142,3 +142,52 @@ class ProgramState:
     def push_onto_execution_stack(self, exec_iterable: Any) -> None:
         self.execution_stack.append(iter(exec_iterable))
         self.execution_stack_index = len(self.execution_stack) - 1
+
+    @staticmethod
+    def _append_line_with_indicator_at_index(text: str, index1: int, index2: int) -> str:
+        line_start = text.rfind("\n", 0, index1) + 1
+        line_end = text.find("\n", index1 + 1) if index1 < len(text) - 1 else -1
+        if line_end < 0:
+            line_end = len(text)
+        line = text[line_start:line_end]
+        trimmed_prefix = len(line) - len(line.lstrip(" \t"))
+        trimmed_line = line.lstrip(" \t")
+        start = min(index1, index2) - line_start - trimmed_prefix
+        end_source = index2 - 1 if index2 > index1 else index2
+        end = max(index1, end_source) - line_start - trimmed_prefix
+        start = max(0, start)
+        end = max(start, end)
+        indicator = []
+        for _ in range(start):
+            indicator.append(" ")
+        for _ in range(start, end + 1):
+            indicator.append("^")
+        for _ in range(end + 1, len(trimmed_line)):
+            indicator.append(" ")
+        return trimmed_line + "\n" + "".join(indicator)
+
+    def get_trace(self) -> str:
+        parts: list[str] = []
+        for scope in self.module_state.call_stack:
+            function_node = getattr(scope, "function_node", None)
+            func_name = getattr(function_node, "func_name", None)
+            if not func_name:
+                continue
+            parts.append(func_name)
+            if len(parts) >= 5:
+                parts.append("...")
+                break
+        trace = " <- ".join(parts[:-1] + ["..."]) if parts and parts[-1] == "..." else " <- ".join(parts)
+        node = self.current_executing_node
+        code_window = getattr(getattr(node, "boxed_params", None), "code_window", None)
+        source_text = getattr(code_window, "source_text", "")
+        if not source_text or node is None:
+            return trace
+        line = self._append_line_with_indicator_at_index(
+            source_text,
+            node.boxed_params.word_start,
+            node.boxed_params.word_end,
+        )
+        if trace:
+            return trace + "\n" + line
+        return line

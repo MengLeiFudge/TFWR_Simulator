@@ -25,6 +25,7 @@
 6. `leaderboard/` 不由运行时自动修改；若 `.env` 改动，需要显式运行 `python tools/refresh_leaderboard_link.py` 来重建链接。
 7. `references/leaderboard_scripts/` 与 `leaderboard/` 之间的同步必须显式运行 `python tools/sync_leaderboard_scripts.py cur2save` 或 `python tools/sync_leaderboard_scripts.py save2cur`；无论哪个方向都只允许影响 `lb_*.py`。
 8. 当需要读取游戏侧输出时，不要写死 `C:\Users\...\output.txt` 这类路径；应从 `.env` / `TFWR_SAVE_ROOT` 推导到对应的游戏目录，再读取 `output.txt`。
+9. 当前已确认的游戏安装目录（Windows 宿主机）是 `D:\Steam\steamapps\common\The Farmer Was Replaced`，在 WSL 中对应 `/mnt/d/Steam/steamapps/common/The Farmer Was Replaced`。后续如果需要读取安装目录下的 `TheFarmerWasReplaced_Data`、`Managed/Core.dll`、`Managed/mscorlib.dll` 或其他原版资源，优先从这个路径查找，不要再全盘盲搜；若用户之后明确给出新的安装位置，再以用户最新提供的路径为准。
 
 ## 4. 权威事实源
 

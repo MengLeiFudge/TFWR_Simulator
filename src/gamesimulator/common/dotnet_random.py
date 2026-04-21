@@ -21,26 +21,30 @@ class DotNetRandom:
         self.seed(seed)
 
     def seed(self, seed: int) -> None:
+        def _int32(value: int) -> int:
+            value &= 0xFFFFFFFF
+            if value >= 0x80000000:
+                value -= 0x100000000
+            return value
+
         seed = int(seed)
         if seed == -(2**31):
             subtraction = self.MBIG
         else:
             subtraction = abs(seed)
-        mj = self.MSEED - subtraction
-        if mj < 0:
-            mj += self.MBIG
+        mj = _int32(self.MSEED - subtraction)
         self._seed_array[55] = mj
         mk = 1
         for i in range(1, 55):
             ii = (21 * i) % 55
             self._seed_array[ii] = mk
-            mk = mj - mk
+            mk = _int32(mj - mk)
             if mk < 0:
                 mk += self.MBIG
             mj = self._seed_array[ii]
         for _ in range(4):
             for i in range(1, 56):
-                self._seed_array[i] -= self._seed_array[1 + (i + 30) % 55]
+                self._seed_array[i] = _int32(self._seed_array[i] - self._seed_array[1 + (i + 30) % 55])
                 if self._seed_array[i] < 0:
                     self._seed_array[i] += self.MBIG
         self._inext = 0

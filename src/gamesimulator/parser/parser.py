@@ -8,6 +8,7 @@ from .nodes import (
     BranchNode,
     BreakNode,
     CallNode,
+    CodeWindowRef,
     ContinueNode,
     DefNode,
     DictNode,
@@ -33,13 +34,34 @@ from .token_stream import TokenStream
 from .token_types import TokenType
 
 
-def parse(stream: TokenStream) -> Program:
+def _attach_source_context(node, code_window: CodeWindowRef, visited: set[int] | None = None) -> None:
+    if node is None:
+        return
+    if visited is None:
+        visited = set()
+    key = id(node)
+    if key in visited:
+        return
+    visited.add(key)
+    if getattr(node, "boxed_params", None) is not None:
+        node.boxed_params.code_window = code_window
+    pattern = getattr(node, "pattern", None)
+    if pattern is not None:
+        _attach_source_context(pattern, code_window, visited)
+    for child in getattr(node, "slots", []) or []:
+        if child is not None:
+            _attach_source_context(child, code_window, visited)
+
+
+def parse(stream: TokenStream, file_name: str = "", source_text: str = "") -> Program:
     global_vars: set[str] = set()
     imported_modules: set[str] = set()
     all_vars: set[str] = set()
     syntax_tree = _block(stream, -1, global_vars, global_vars, all_vars, is_global=True)
     if stream.current is not None:
         raise ParseException("error_code_after_block", stream.current_string_start_index, stream.current_string_end_index)
+    if file_name or source_text:
+        _attach_source_context(syntax_tree, CodeWindowRef(file_name=file_name, source_text=source_text))
     return Program(syntax_tree, global_vars, all_vars, imported_modules)
 
 

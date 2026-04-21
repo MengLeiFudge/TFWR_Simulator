@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ..common.dotnet_random import DotNetRandom
+from ..common.helper import just_sha256_it
 from .drone import DroneState
 from .entities import (
     AppleView,
@@ -40,6 +41,16 @@ _DIRECTION_INDEX = {
 }
 
 WATER_DECAY_INTERVAL = Duration.from_seconds(0.1)
+_GROWABLE_ON_RESTART_BASE_DRAWS = {
+    "Grass": 2,
+    "Bush": 2,
+    "Tree": 2,
+    "Carrot": 1,
+    "Sunflower": 1,
+    "Cactus": 2,
+    "Pumpkin": 2,
+    "Apple": 2,
+}
 
 
 @dataclass
@@ -104,6 +115,9 @@ class FarmState:
             self.entity("Pumpkin"),
             self.entity("Apple"),
         }
+        self.refresh_entity_costs()
+
+    def refresh_entity_costs(self) -> None:
         carrots_level = max(self.num_unlocked(self.unlock("Carrots")) - 1, 0)
         cactus_level = max(self.num_unlocked(self.unlock("Cactus")), 0)
         dinosaur_level = max(self.num_unlocked(self.unlock("Dinosaurs")) - 1, 0)
@@ -118,8 +132,11 @@ class FarmState:
             self.entity("Sunflower"): {
                 self.item("Carrot"): 1,
             },
+            self.entity("Pumpkin"): {
+                self.item("Carrot"): 2 ** max(self.num_unlocked(self.unlock("Pumpkins")) - 1, 0),
+            },
             self.entity("Apple"): {
-                self.item("Cactus"): max(1, 2 ** dinosaur_level),
+                self.item("Cactus"): 2 * max(1, 2 ** dinosaur_level),
             },
         }
 
@@ -132,6 +149,92 @@ class FarmState:
                 cell = self.grid.get_cell((x, y))
                 if cell.entity == self.entity_grass and cell.companion is None:
                     self._assign_initial_companion((x, y), self.entity_grass)
+
+    def restart_world_grass(self) -> None:
+        if self.sim is None:
+            return
+        width, height = self.grid.world_size
+        for x in range(width):
+            for y in range(height):
+                pos = (x, y)
+                if self.grid.get_entity(pos) == self.entity_grass:
+                    self.restart_entity(pos, self.entity_grass)
+
+    def restart_entity(self, pos: tuple[int, int], entity: Any) -> None:
+        cell = self.grid.get_cell(pos)
+        cell.clear_entity_state()
+        cell.entity = entity
+        self._entity_view_cache.pop(pos, None)
+        if entity is None:
+            return
+        if entity in self._growable_entities:
+            self._restart_growable_entity(pos, entity)
+            return
+        entity_name = self._bag_key_name(entity)
+        if entity_name == "Dinosaur":
+            cell.mature = True
+            cell.can_move_to = False
+
+    def _restart_growable_entity(self, pos: tuple[int, int], entity: Any) -> None:
+        cell = self.grid.get_cell(pos)
+        various_rng = self.random_source("various")
+        entity_name = self._bag_key_name(entity) or ""
+        # 对齐原版 FarmObject.OnRestart + Growable.OnRestart 在 randomFactor 前的
+        # randomVarious 消费。当前 v07 growth probe 证据显示该消费并非所有作物都一致。
+        for _ in range(_GROWABLE_ON_RESTART_BASE_DRAWS.get(entity_name, 2)):
+            various_rng.randrange(4)
+        if entity in self.entities_with_companion:
+            self._assign_initial_companion(pos, entity)
+        cell.age = 0.0
+        cell.mature = False
+        cell.growth_seconds = self.sample_growth_seconds(entity)
+        if entity_name == "Sunflower":
+            cell.petals = self.random_source("sunflower").randint(7, 15)
+        elif entity_name == "Cactus":
+            cell.variant = self.random_source("cactus").randrange(10)
+        elif entity_name == "Pumpkin":
+            cell.mysterious_number = float(just_sha256_it(self.random_source("pumpkin")))
+        self.reschedule_grow_timer(pos)
+
+    def growth_multiplier_at(self, pos: tuple[int, int]) -> float:
+        obj = self.get_entity_object(pos)
+        if hasattr(obj, "growth_multiplier"):
+            return obj.growth_multiplier()
+        return 1.0
+
+    def reschedule_grow_timer(self, pos: tuple[int, int]) -> None:
+        if self.sim is None or not self.grid.is_within_bounds(pos):
+            return
+        cell = self.grid.get_cell(pos)
+        if cell.grow_timer is not None:
+            cell.grow_timer.stopped = True
+            cell.grow_timer = None
+        if cell.entity not in self._growable_entities or cell.mature:
+            return
+        multiplier = self.growth_multiplier_at(pos)
+        if multiplier <= 0.0:
+            return
+        remaining = max(0.0, cell.growth_seconds - cell.age)
+        duration = Duration.from_seconds(remaining / multiplier)
+        entity = cell.entity
+        cell.grow_timer = self.sim.start_timer(
+            lambda pos=pos, entity=entity: self._finish_grow_timer(pos, entity),
+            duration,
+        )
+
+    def _finish_grow_timer(self, pos: tuple[int, int], entity: Any) -> None:
+        if not self.grid.is_within_bounds(pos):
+            return
+        cell = self.grid.get_cell(pos)
+        if cell.entity is not entity or cell.mature:
+            return
+        cell.grow_timer = None
+        cell.age = cell.growth_seconds
+        obj = self.get_entity_object(pos)
+        if hasattr(obj, "on_fully_grown"):
+            obj.on_fully_grown()
+            return
+        cell.mature = True
 
     def entity(self, name: str) -> Any:
         return self._bag_value(self.entities_bag, name, f"Entities.{name}")
@@ -447,27 +550,24 @@ class FarmState:
 
     def sample_growth_seconds(self, entity: Any) -> float:
         lower, upper = self.entity_growth_ranges.get(entity, (0.0, 0.0))
-        if lower == upper:
-            return lower
         # 对齐原版 Growable.OnRestart -> randomFactor，成长随机走 randomVarious 域。
         rng = self.random_source("various")
-        return lower + (upper - lower) * rng.random()
+        factor = rng.random()
+        if lower == upper:
+            return lower
+        return lower + (upper - lower) * factor
 
     def clear_entity_at(self, pos: tuple[int, int], regrow_grass: bool = True) -> None:
         cell = self.grid.get_cell(pos)
         ground = cell.ground
         cell.clear_entity_state()
+        self._entity_view_cache.pop(pos, None)
         if regrow_grass and ground == self.ground_grassland:
             self._respawn_grass_after_harvest(pos, cell)
 
     # 对齐原版 GridManager.RemoveEntity(..., regrowGrass=True) -> SetEntity("grass") -> OnRestart()。
     def _respawn_grass_after_harvest(self, pos: tuple[int, int], cell) -> None:
-        cell.entity = self.entity_grass
-        cell.age = 0.0
-        cell.mature = False
-        cell.growth_seconds = self.entity_growth_ranges[self.entity_grass][0]
-        self.random_source("grass_respawn").random()
-        self._assign_initial_companion(pos, self.entity_grass)
+        self.restart_entity(pos, self.entity_grass)
 
     def _assign_initial_companion(self, pos: tuple[int, int], entity: Any) -> None:
         if entity not in self.entities_with_companion:
@@ -570,9 +670,10 @@ class FarmState:
         if current >= max_level:
             return False
         self.unlock_levels[unlock] = current + 1
+        self.refresh_entity_costs()
         if unlock_name == "Expand":
             self.grid.reset_for_expand(self.num_unlocked(unlock))
-            self.seed_initial_grass_companions()
+            self.restart_world_grass()
         elif unlock_name == "Speed" and self.sim is not None:
             self.sim.change_execution_speed(self.max_speed_factor())
         return True

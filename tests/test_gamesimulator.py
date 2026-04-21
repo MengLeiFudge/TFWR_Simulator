@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 import hashlib
 from pathlib import Path
 import random
+import re
 import time
 import subprocess
 from types import SimpleNamespace
@@ -181,6 +182,11 @@ class DurationHelperTests(unittest.TestCase):
         self.assertEqual(just_sha256_it(rng), 441942086)
         self.assertEqual(just_sha256_it(rng), 1602955080)
         self.assertEqual(just_sha256_it(rng), 101590770)
+
+        rng = DotNetRandom(1596770027)
+        self.assertEqual(rng.randbytes(16).hex("-").upper(), "4E-53-E2-2A-2F-00-2B-EA-2A-A9-41-97-02-AE-07-14")
+        rng = DotNetRandom(1596770027)
+        self.assertEqual(just_sha256_it(rng), 1828797890)
 
         rng = DotNetRandom(1)
         state = rng.getstate()
@@ -772,6 +778,170 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual([float(item.num) for item in row.items], [1.0, 2.0])
         self.assertEqual(float(state.current_scope.evaluate("value").val), 2.0)
 
+    def test_bound_list_method_call_cost_matches_free_method_call(self) -> None:
+        def run_elapsed(code: str) -> float:
+            has_unknown, stream = tokenize(code)
+            self.assertFalse(has_unknown)
+            program = parse(stream)
+            sim = Simulation(seed=1)
+            execution = Execution(sim, program.syntax_tree, 110)
+            run_execution_to_termination(execution)
+            return sim.current_time.seconds
+
+        bound_elapsed = run_elapsed(
+            "\n"
+            + "row = []\n"
+            + "for _ in range(64):\n"
+            + "    row.append(None)\n"
+        )
+        free_elapsed = run_elapsed(
+            "\n"
+            + "row = []\n"
+            + "for _ in range(64):\n"
+            + "    append(row, None)\n"
+        )
+
+        self.assertEqual(bound_elapsed, free_elapsed)
+
+    def test_range_builtin_cost_matches_game(self) -> None:
+        import gamesimulator.runtime.builtins_api as builtins_api
+
+        sim = Simulation(seed=1)
+        execution = Execution(sim, None, 11)
+
+        ops = builtins_api.range_builtin([PyNumber(3)], sim, execution, 0)
+
+        self.assertEqual(ops, 1.0)
+        self.assertIsInstance(execution.states[0].return_value, PyRange)
+
+    def test_list_constructor_cost_matches_game(self) -> None:
+        import gamesimulator.runtime.builtins_api as builtins_api
+
+        sim = Simulation(seed=1)
+        execution = Execution(sim, None, 12)
+        source = PyList([PyNumber(1), PyNumber(2), PyNumber(3)])
+
+        ops = builtins_api.list_constructor([source], sim, execution, 0)
+
+        self.assertEqual(ops, 4.0)
+        result = execution.states[0].return_value
+        self.assertIsInstance(result, PyList)
+        self.assertEqual(len(result.items), 3)
+
+    def test_set_literal_cost_uses_element_size_like_game(self) -> None:
+        code = (
+            "\n"
+            + "s = {(1, 2), (3, 4), (5, 6), (7, 8)}\n"
+        )
+        has_unknown, stream = tokenize(code)
+        self.assertFalse(has_unknown)
+        program = parse(stream)
+        sim = Simulation(seed=1)
+        execution = Execution(sim, program.syntax_tree, 13)
+
+        run_execution_to_termination(execution)
+
+        self.assertEqual(sim.current_time.seconds, 0.03)
+
+    def test_set_membership_cost_uses_key_size_like_game(self) -> None:
+        code = (
+            "\n"
+            + "s = {(1, 2)}\n"
+            + "hit = (1, 2) in s\n"
+        )
+        has_unknown, stream = tokenize(code)
+        self.assertFalse(has_unknown)
+        program = parse(stream)
+        sim = Simulation(seed=1)
+        execution = Execution(sim, program.syntax_tree, 14)
+
+        run_execution_to_termination(execution)
+
+        self.assertEqual(sim.current_time.seconds, 0.015)
+
+    def test_pumpkin_measure_matches_random_pumpkin_restart_sequence(self) -> None:
+        bindings = build_global_bindings()
+        items_bag = bindings["Items"]
+        entities_bag = bindings["Entities"]
+        sim = Simulation(seed=7)
+        farm = FarmState(
+            bindings,
+            items={
+                items_bag.evaluate("Carrot"): 1000,
+            },
+        )
+        sim.farm = farm
+        drone = farm.drones[0]
+        drone.till()
+
+        expected_rng = DotNetRandom(0)
+        expected_rng.setstate(sim.random_pumpkin.getstate())
+        expected_value = float(just_sha256_it(expected_rng))
+
+        self.assertTrue(drone.plant(entities_bag.evaluate("Pumpkin")))
+
+        obj = farm.get_entity_object((0, 0))
+        self.assertEqual(obj.measure(), expected_value)
+        self.assertEqual(sim.random_pumpkin.getstate(), expected_rng.getstate())
+
+    def test_dinosaur_hat_initial_apple_target_matches_random_snake_sequence(self) -> None:
+        bindings = build_global_bindings()
+        items_bag = bindings["Items"]
+        hats_bag = bindings["Hats"]
+        sim = Simulation(seed=1)
+        farm = FarmState(
+            bindings,
+            unlock_levels={bindings["Unlocks"].evaluate("Expand"): 5, bindings["Unlocks"].evaluate("Dinosaurs"): 6},
+            items={
+                items_bag.evaluate("Cactus"): 1000,
+            },
+        )
+        sim.farm = farm
+        farm.grid.set_size_limit(7)
+        farm.grid.clear_grid()
+
+        expected_rng = DotNetRandom(0)
+        expected_rng.setstate(sim.random_snake.getstate())
+        while True:
+            candidate = (expected_rng.randrange(7), expected_rng.randrange(7))
+            if candidate != (0, 0):
+                break
+
+        drone = farm.drones[0]
+        drone.change_hat(hats_bag.evaluate("Dinosaur_Hat"))
+
+        self.assertEqual(drone.measure(), candidate)
+        self.assertEqual(sim.random_snake.getstate(), expected_rng.getstate())
+
+    def test_maze_generation_matches_random_maze_sequence(self) -> None:
+        bindings = build_global_bindings()
+        items_bag = bindings["Items"]
+        entities_bag = bindings["Entities"]
+        unlocks_bag = bindings["Unlocks"]
+        farm = FarmState(
+            bindings,
+            unlock_levels={
+                unlocks_bag.evaluate("Expand"): 5,
+                unlocks_bag.evaluate("Mazes"): 6,
+            },
+            items={
+                items_bag.evaluate("Weird_Substance"): 1000,
+            },
+        )
+        sim = Simulation(seed=1)
+        sim.farm = farm
+        farm.grid.set_size_limit(8)
+        farm.grid.clear_grid()
+        drone = farm.drones[0]
+
+        self.assertTrue(drone.plant(entities_bag.evaluate("Bush")))
+        ok, use_action_ticks = drone.apply_weird_substance(64)
+
+        self.assertTrue(ok)
+        self.assertTrue(use_action_ticks)
+        self.assertEqual(drone.get_entity_type(), entities_bag.evaluate("Hedge"))
+        self.assertEqual(drone.measure(), (1, 0))
+
     def test_execution_with_pure_builtins(self) -> None:
         bindings = build_global_bindings()
         items_bag = bindings["Items"]
@@ -808,8 +978,23 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(float(state.current_scope.evaluate("small").val), 2.0)
         self.assertEqual(float(state.current_scope.evaluate("big").val), 5.0)
         self.assertEqual(float(state.current_scope.evaluate("neg").val), 7.0)
-        self.assertEqual(state.current_scope.evaluate("txt").val, PyString("5.0"))
+        self.assertEqual(state.current_scope.evaluate("txt").val, PyString("5"))
         self.assertEqual(float(state.current_scope.evaluate("hay").val), 4.0)
+
+    def test_quick_print_formats_numbers_like_game(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "main.py").write_text(
+                "from __builtins__ import *\n"
+                "quick_print('vals', 3.61516482, 5, False, None)\n",
+                encoding="utf-8",
+            )
+
+            result = run_file_with_context("main", tmp_path, seed=1, items={})
+
+            self.assertTrue(result.terminated)
+            self.assertEqual(result.logs, ["vals 3.62 5 False None"])
 
     def test_execution_with_spawn_wait_and_has_finished(self) -> None:
         code = (
@@ -1786,6 +1971,32 @@ class EntityParityTests(unittest.TestCase):
 
 
 class RunnerTests(unittest.TestCase):
+    def test_unlock_strings_refresh_entity_costs_after_unlock_application(self) -> None:
+        import gamesimulator.runner as runner_module
+
+        bindings = build_global_bindings()
+        entities_bag = bindings["Entities"]
+        items_bag = bindings["Items"]
+        sim = Simulation(seed=1)
+
+        farm = runner_module._farm_from_unlock_strings(
+            sim,
+            bindings,
+            ["carrots", "carrots_10", "cactus", "cactus_6", "pumpkins", "pumpkins_10", "dinosaurs", "dinosaurs_6"],
+            {},
+        )
+
+        carrot_cost = farm.get_entity_cost(entities_bag.evaluate("Carrot"))
+        cactus_cost = farm.get_entity_cost(entities_bag.evaluate("Cactus"))
+        pumpkin_cost = farm.get_entity_cost(entities_bag.evaluate("Pumpkin"))
+        apple_cost = farm.get_entity_cost(entities_bag.evaluate("Apple"))
+
+        self.assertEqual(carrot_cost[items_bag.evaluate("Hay")], 512)
+        self.assertEqual(carrot_cost[items_bag.evaluate("Wood")], 512)
+        self.assertEqual(cactus_cost[items_bag.evaluate("Pumpkin")], 64)
+        self.assertEqual(pumpkin_cost[items_bag.evaluate("Carrot")], 512)
+        self.assertEqual(apple_cost[items_bag.evaluate("Cactus")], 64)
+
     def test_resolve_leaderboard_worker_count_uses_cpu_count_and_env_override(self) -> None:
         import gamesimulator.runtime.execution as execution_module
 
@@ -1912,9 +2123,9 @@ class RunnerTests(unittest.TestCase):
             )
             result = run_file("lb_pumpkins_single", tmp_path, seed=1)
             self.assertTrue(result.terminated)
-            self.assertEqual(result.logs[0], "expand_before 5.0")
+            self.assertEqual(result.logs[0], "expand_before 5")
             self.assertEqual(result.logs[1], "mega_before 0.0")
-            self.assertEqual(result.logs[2], "expand_unlock False 5.0 8.0")
+            self.assertEqual(result.logs[2], "expand_unlock False 5 8")
             self.assertEqual(result.logs[3], "mega_unlock False 0.0")
 
     def test_single_leaderboard_rejects_spawn_drone(self) -> None:
@@ -1948,7 +2159,7 @@ class RunnerTests(unittest.TestCase):
                 leaderboard_key="Pumpkins_Single",
             )
             self.assertTrue(result.terminated)
-            self.assertEqual(result.logs, ["probe 5.0 0.0"])
+            self.assertEqual(result.logs, ["probe 5 0"])
 
     def test_simulate_does_not_recurse_inside_simulation_context(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -2093,7 +2304,7 @@ class RunnerTests(unittest.TestCase):
 
             self.assertTrue(result.terminated)
             self.assertIn("use_water True", result.logs)
-            self.assertIn("water_after 1.0", result.logs)
+            self.assertIn("water_after 1", result.logs)
 
     def test_runner_executes_dict_copy_constructor(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -2108,7 +2319,7 @@ class RunnerTests(unittest.TestCase):
             )
             result = run_file("main", tmp_path, seed=1)
             self.assertTrue(result.terminated)
-            self.assertEqual(result.logs, ["dict 1.0 1.0"])
+            self.assertEqual(result.logs, ["dict 1 1"])
 
     def test_runner_script_path_executes_from_repo_root(self) -> None:
         require_save_root()
@@ -2125,6 +2336,69 @@ class RunnerTests(unittest.TestCase):
 
         self.assertEqual(completed.returncode, 0, completed.stderr or completed.stdout)
         self.assertIn("simulate_probe", completed.stdout)
+
+    def test_repo_random_methods_probe_emits_stage_markers(self) -> None:
+        result = run_file("simulate", REPO_ROOT / "leaderboard", seed=1)
+
+        self.assertTrue(result.terminated)
+        self.assertTrue(any(line.startswith("growth_mark") for line in result.logs))
+        self.assertTrue(any(line.startswith("growth_case") for line in result.logs))
+
+    def test_repo_growth_probe_v07_matches_game_output(self) -> None:
+        result = run_file("simulate", REPO_ROOT / "leaderboard", seed=1)
+
+        self.assertTrue(result.terminated)
+
+        expected = {
+            "tree": {
+                "delta": 34204,
+                "loops": 11334,
+                "item_water_after": 145,
+                "item_fertilizer_after": 4,
+            },
+            "carrot": {
+                "delta": 40528,
+                "loops": 13442,
+                "item_water_after": 319,
+                "item_fertilizer_after": 9,
+            },
+            "sunflower": {
+                "delta": 48823,
+                "loops": 16207,
+                "item_water_after": 527,
+                "item_fertilizer_after": 16,
+            },
+            "pumpkin": {
+                "delta": 14932,
+                "loops": 4910,
+                "item_water_after": 593,
+                "item_fertilizer_after": 18,
+            },
+        }
+
+        observed: dict[str, dict[str, int]] = {}
+        for line in result.logs:
+            if not line.startswith("growth_case"):
+                continue
+            label_match = re.search(r"label=\s*(\w+)", line)
+            if label_match is None:
+                continue
+            label = label_match.group(1)
+
+            def extract_int(name: str) -> int:
+                match = re.search(rf"{name}=\s*(\d+)", line)
+                self.assertIsNotNone(match, f"{name} 未出现在日志中: {line}")
+                assert match is not None
+                return int(match.group(1))
+
+            observed[label] = {
+                "delta": extract_int("delta"),
+                "loops": extract_int("loops"),
+                "item_water_after": extract_int("item_water_after"),
+                "item_fertilizer_after": extract_int("item_fertilizer_after"),
+            }
+
+        self.assertEqual(observed, expected)
 
     def test_runner_executes_minimal_script(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -2183,7 +2457,7 @@ class RunnerTests(unittest.TestCase):
             )
             result = run_file("main", tmp_path, seed=1)
             self.assertTrue(result.terminated)
-            self.assertEqual(result.logs, ["mod 3.0", "fn 4.0"])
+            self.assertEqual(result.logs, ["mod 3", "fn 4"])
 
     def test_runner_executes_from_import_star_script(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -2203,7 +2477,40 @@ class RunnerTests(unittest.TestCase):
             )
             result = run_file("main", tmp_path, seed=1)
             self.assertTrue(result.terminated)
-            self.assertEqual(result.logs, ["vals 3.0 5.0"])
+            self.assertEqual(result.logs, ["vals 3 5"])
+
+    def test_runner_warning_includes_trace_and_source_line(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            copy_test_builtins(tmp_path)
+            (tmp_path / "helper.py").write_text(
+                "from __builtins__ import *\n"
+                "def inner(ct):\n"
+                "    till()\n"
+                "    plant(ct)\n",
+                encoding="utf-8",
+            )
+            (tmp_path / "main.py").write_text(
+                "from __builtins__ import *\n"
+                "from helper import inner\n"
+                "def outer():\n"
+                "    ct = Entities.Carrot\n"
+                "    inner(ct)\n"
+                "outer()\n",
+                encoding="utf-8",
+            )
+
+            result = run_file("main", tmp_path, seed=1)
+
+            self.assertTrue(result.terminated)
+            self.assertIn(
+                "Warning: 没有种植 Entities.Carrot 所需的物品。\n"
+                "In: outer <- inner\n"
+                "plant(ct)\n"
+                "      ^^ \n"
+                "--------------------------------------------------------------------",
+                result.logs,
+            )
 
     def test_import_requires_unlock_in_simulation_context(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
