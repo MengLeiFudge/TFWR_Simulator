@@ -323,10 +323,6 @@ paket-files/
 # CodeRush personal settings
 .cr/personal
 
-# Python Tools for Visual Studio (PTVS)
-__pycache__/
-*.pyc
-
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
@@ -375,7 +371,5 @@ FodyWeavers.xsd
 
 .sisyphus/
 .env
-.pytest_cache/
-.venv/
 /leaderboard
 .claude/
