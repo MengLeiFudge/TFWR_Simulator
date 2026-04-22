@@ -1,16 +1,39 @@
-# TFWR_Simulator
+# TFWR Oracle Workflow Workspace
 
-独立的 `gamesimulator` Python 仓库。真实 `Save0` 仍保留在游戏目录；仓库只保留 `lb_*.py` 的参考副本，不把整个存档当成源码管理。
+这个仓库现在的主线不是本地 parity simulator，而是“真实游戏 oracle 工作流”：
+
+- `oracle_runner_mod/`
+  - Unity / BepInEx 模组
+  - 常驻轮询 `BepInEx/config/mlj.tfwr.oracle-runner.state.json`
+  - 在真实游戏里执行 `lb_start`
+  - 把生命周期日志与 leaderboard 每轮/平均时间写到 `BepInEx/LogOutput.log`
+
+- `python/tfwr_orchestrator/`
+  - Python 子项目
+  - 负责配置解析、脚本部署、`lb_start.py` 生成、状态机请求、双通道输出读取
+
+- `references/leaderboard_scripts/`
+  - 仓库内的 `lb_*.py` 真源
+
+- `leaderboard/`
+  - 指向真实 `Save0` 的本地链接目录
+
+- `tools/`
+  - 根目录薄包装器
+  - 只负责把 `python/tfwr_orchestrator/src` 加入 `sys.path` 并转调新包
 
 ## 目录结构
 
 ```text
-leaderboard/                     # 指向真实 Save0 的本地链接目录
+oracle_runner_mod/                 Unity / BepInEx 模组
+python/
+└── tfwr_orchestrator/             Python 主项目
 references/
-├── DecompiledSource/            # 反编译源码参考
-└── leaderboard_scripts/         # 仓库内参考的 lb_*.py
-src/
-└── gamesimulator/               # 真实 Python 包
+├── DecompiledSource/              反编译源码参考
+└── leaderboard_scripts/           仓库内 lb_*.py 真源
+tools/                             根目录薄包装器
+leaderboard/                       指向真实 Save0 的链接目录
+src/gamesimulator/                 旧 simulator 代码，已不再是仓库主线
 ```
 
 ## 本地配置
@@ -20,66 +43,92 @@ src/
 
 ```env
 TFWR_SAVE_ROOT=C:\Users\MLJ\AppData\LocalLow\TheFarmerWasReplaced\TheFarmerWasReplaced\Saves\Save0
+TFWR_GAME_ROOT=D:\Steam\steamapps\common\The Farmer Was Replaced
 ```
 
-`.env` 不进 git；如果你已经在 shell 里设置了 `TFWR_SAVE_ROOT`，代码会优先使用环境变量。
+- `TFWR_SAVE_ROOT` 用于：
+  - `leaderboard/` 链接重建
+  - 游戏 `output.txt` 路径推导
+- `TFWR_GAME_ROOT` 用于：
+  - `state.json` 路径推导
+  - `BepInEx/LogOutput.log` 路径推导
+  - 反编译 / snapshot 提取
 
-如果你修改了 `.env` 中的 `TFWR_SAVE_ROOT`，请显式重建 `leaderboard` 链接：
+`.env` 不进 git；如果 shell 已经设置了 `TFWR_SAVE_ROOT` / `TFWR_GAME_ROOT`，代码会优先使用环境变量。
+
+## 核心工作流
+
+### 1. 重建 `leaderboard/` 链接
 
 ```bash
-python tools/refresh_leaderboard_link.py
+python3 tools/refresh_leaderboard_link.py
 ```
 
-## 同步打榜脚本
+### 2. 把单个榜单脚本部署到真实 `Save0`
 
-仓库只跟踪 `references/leaderboard_scripts/` 里的 `lb_*.py`。  
-`leaderboard/` 与参考目录之间的同步必须显式触发：
+默认不再全量同步所有 `lb_*.py`。  
+默认只同步单个目标脚本，并在目标存档里生成派生入口 `lb_start.py`。
 
 ```bash
-py tools/sync_leaderboard_scripts.py save2cur
-py tools/sync_leaderboard_scripts.py cur2save
-py tools/sync_leaderboard_scripts.py
+python3 tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single
 ```
 
-- `save2cur`：`leaderboard/ -> references/leaderboard_scripts/`
-- `cur2save`：`references/leaderboard_scripts/ -> leaderboard/`
-- 不带参数时会提示输入 `1` 或 `2`
-- 无论哪个方向，都只复制 `lb_*.py`
-
-## 运行
-
-仓库根目录直接运行：
+显式全量同步时才使用 `--all`：
 
 ```bash
-py runner.py simulate.py
-py runner.py test.py
-py runner.py lb_wood_single.py 1 10000
+python3 tools/sync_leaderboard_scripts.py cur2save --all
 ```
 
-也可以直接走包入口：
+### 3. 通过 Unity 模组请求真实游戏执行
 
 ```bash
-PYTHONPATH=src python -m gamesimulator.runner simulate.py
+python3 tools/run_real_game_script.py --target-script lb_start --request-timeout 20
 ```
 
-CLI 参数格式：
+Python 协调器会：
 
-```text
-runner.py <target> [seed] [speedup] [save_root]
+1. 启动或复用游戏进程
+2. 等待 `state.json` 进入 `idle`
+3. 记录两路输出的起始签名
+4. 写入 `requested`
+5. 等待 `done / failed / superseded`
+6. 读取本次请求新增的两路输出
+
+## 双通道输出
+
+`python/tfwr_orchestrator` 现在会同时读取：
+
+- 游戏 `output.txt`
+  - 承接脚本 `print(...)`
+  - 承接 probe / 游戏原生文本结果
+
+- `BepInEx/LogOutput.log`
+  - 承接模组生命周期日志
+  - 承接 leaderboard `start / run / summary`
+  - 承接超时、取消、失败诊断
+
+不要再把这两路输出混成一个“统一 output”概念。
+
+## 其他工具
+
+```bash
+python3 tools/refresh_decompiled_sources.py --help
+python3 tools/extract_unlock_snapshot.py --help
+python3 tools/extract_leaderboard_snapshot.py --help
 ```
 
-- `target`：`simulate.py` / `test.py` / `lb_*.py`
-- `seed`：默认 `1`
-- `speedup`：保留兼容位，默认 `10000`
-- `save_root`：可选；不传时从 `.env` / `TFWR_SAVE_ROOT` 读取
+这些根脚本也都只做薄包装，真实逻辑在 `python/tfwr_orchestrator/src/tfwr_orchestrator/`。
 
 ## 测试
 
+Python 主项目测试：
+
 ```bash
-python -m unittest tests.test_gamesimulator
-python -m unittest tests.test_tooling
+PYTHONPATH=python/tfwr_orchestrator/src python3 -m unittest discover -s python/tfwr_orchestrator/tests -p 'test_*.py' -v
 ```
 
-测试里依赖真实 `Save0/__builtins__.py` 的部分也会读取 `.env` / `TFWR_SAVE_ROOT`。
+兼容入口：
 
-默认 unlock 快照不再使用文本 dump 文件，而是内置在 `src/gamesimulator/unlock_snapshot.py`。
+```bash
+python3 -m unittest tests.test_tooling -v
+```

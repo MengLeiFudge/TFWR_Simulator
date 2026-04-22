@@ -1,0 +1,102 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RestoreAdditionalProjectSources>https://api.nuget.org/v3/index.json;https://nuget.bepinex.dev/v3/index.json</RestoreAdditionalProjectSources>
+    <TFWRGameRoot Condition="'$(TFWRGameRoot)' == '' and '$(TFWR_GAME_ROOT)' != ''">$(TFWR_GAME_ROOT)</TFWRGameRoot>
+    <TFWRGameRoot Condition="'$(TFWRGameRoot)' == ''">/mnt/d/Steam/steamapps/common/The Farmer Was Replaced</TFWRGameRoot>
+    <TFWRManagedDir>$(TFWRGameRoot)/TheFarmerWasReplaced_Data/Managed</TFWRManagedDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Unity.Mono" Version="6.0.0-be.755" ExcludeAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="BepInEx.Core" Version="6.0.0-be.755" ExcludeAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="HarmonyX" Version="2.10.2" ExcludeAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="MonoMod.Utils" Version="22.7.31.1" ExcludeAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="SemanticVersioning" Version="2.0.2" ExcludeAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests/**/*.cs" />
+    <None Include="tests/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx.Core">
+      <HintPath>$(PkgBepInEx_Core)/lib/netstandard2.0/BepInEx.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx.Unity.Mono">
+      <HintPath>$(PkgBepInEx_Unity_Mono)/lib/netstandard2.0/BepInEx.Unity.Mono.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(PkgHarmonyX)/lib/netstandard2.0/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>$(PkgMonoMod_Utils)/lib/netstandard2.0/MonoMod.Utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SemanticVersioning">
+      <HintPath>$(PkgSemanticVersioning)/lib/netstandard2.0/SemanticVersioning.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('$(TFWRManagedDir)')">
+    <Reference Include="Core">
+      <HintPath>$(TFWRManagedDir)/Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(TFWRManagedDir)/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Utils">
+      <HintPath>$(TFWRManagedDir)/Utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="FMODUnity">
+      <HintPath>$(TFWRManagedDir)/FMODUnity.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(TFWRManagedDir)/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(TFWRManagedDir)/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(TFWRManagedDir)/UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(TFWRManagedDir)/UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(TFWRManagedDir)/UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputModule">
+      <HintPath>$(TFWRManagedDir)/UnityEngine.InputModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(TFWRManagedDir)/UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(TFWRManagedDir)/Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="VerifyGameAssemblies" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(TFWRManagedDir)')" Text="未找到 TFWR Managed 目录：$(TFWRManagedDir)。请通过 TFWRGameRoot MSBuild 属性或 TFWR_GAME_ROOT 环境变量指向游戏安装目录。" />
+  </Target>
+</Project>

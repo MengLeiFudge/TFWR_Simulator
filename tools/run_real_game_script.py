@@ -6,7 +6,7 @@ from _bootstrap_tfwr_orchestrator import add_orchestrator_src_to_path
 add_orchestrator_src_to_path()
 
 
-from tfwr_orchestrator.leaderboard_snapshot_tool import main
+from tfwr_orchestrator.real_game_runner import main
 
 
 if __name__ == "__main__":

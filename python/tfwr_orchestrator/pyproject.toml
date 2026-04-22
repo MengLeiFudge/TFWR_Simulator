@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tfwr-orchestrator"
+version = "0.1.0"
+description = "Real-game oracle workflow utilities for The Farmer Was Replaced."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "MLJ" }
+]
+
+[project.scripts]
+tfwr-orchestrator-run = "tfwr_orchestrator.real_game_runner:main"
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+include = ["tfwr_orchestrator*"]
+where = ["src"]
