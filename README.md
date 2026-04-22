@@ -8,7 +8,7 @@
   - 在真实游戏里执行 `lb_start`
   - 把生命周期日志与 leaderboard 每轮/平均时间写到 `BepInEx/LogOutput.log`
 
-- `python/tfwr_orchestrator/`
+- `tfwr_orchestrator/`
   - Python 子项目
   - 负责配置解析、脚本部署、`lb_start.py` 生成、状态机请求、双通道输出读取
 
@@ -18,20 +18,18 @@
 - `gamesave/`
   - 指向真实 `Save0` 的本地链接目录
 
-- `tools/`
-  - 根目录薄包装器
-  - 只负责把 `python/tfwr_orchestrator/src` 加入 `sys.path` 并转调新包
+- `tfwr_orchestrator/tools/`
+  - Python 子项目 CLI 入口
+  - 直接调用 `tfwr_orchestrator/src/tfwr_orchestrator/` 里的真实逻辑
 
 ## 目录结构
 
 ```text
 oracle_runner_mod/                 Unity / BepInEx 模组
-python/
-└── tfwr_orchestrator/             Python 主项目
+tfwr_orchestrator/                 Python 主项目
 references/
 ├── DecompiledSource/              反编译源码参考
 └── leaderboard_scripts/           仓库内 lb_*.py 真源
-tools/                             根目录薄包装器
 gamesave/                          指向真实 Save0 的链接目录
 ```
 
@@ -60,7 +58,7 @@ TFWR_GAME_ROOT=D:\Steam\steamapps\common\The Farmer Was Replaced
 ### 1. 重建 `gamesave/` 链接
 
 ```bash
-python3 tools/refresh_gamesave_link.py
+python3 tfwr_orchestrator/tools/refresh_gamesave_link.py
 ```
 
 ### 2. 把单个榜单脚本部署到真实 `Save0`
@@ -69,19 +67,19 @@ python3 tools/refresh_gamesave_link.py
 默认只同步单个目标脚本，并在目标存档里生成派生入口 `lb_start.py`。
 
 ```bash
-python3 tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single
+python3 tfwr_orchestrator/tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single
 ```
 
 显式全量同步时才使用 `--all`：
 
 ```bash
-python3 tools/sync_leaderboard_scripts.py cur2save --all
+python3 tfwr_orchestrator/tools/sync_leaderboard_scripts.py cur2save --all
 ```
 
 ### 3. 通过 Unity 模组请求真实游戏执行
 
 ```bash
-python3 tools/run_real_game_script.py --target-script lb_start --request-timeout 20
+python3 tfwr_orchestrator/tools/run_real_game_script.py --target-script lb_start --request-timeout 20
 ```
 
 Python 协调器会：
@@ -95,7 +93,7 @@ Python 协调器会：
 
 ## 双通道输出
 
-`python/tfwr_orchestrator` 现在会同时读取：
+`tfwr_orchestrator` 现在会同时读取：
 
 - 游戏 `output.txt`
   - 承接脚本 `print(...)`
@@ -111,23 +109,17 @@ Python 协调器会：
 ## 其他工具
 
 ```bash
-python3 tools/refresh_decompiled_sources.py --help
-python3 tools/extract_unlock_snapshot.py --help
-python3 tools/extract_leaderboard_snapshot.py --help
+python3 tfwr_orchestrator/tools/refresh_decompiled_sources.py --help
+python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --help
+python3 tfwr_orchestrator/tools/extract_leaderboard_snapshot.py --help
 ```
 
-这些根脚本也都只做薄包装，真实逻辑在 `python/tfwr_orchestrator/src/tfwr_orchestrator/`。
+这些 CLI 入口都放在 `tfwr_orchestrator/tools/`，真实逻辑在 `tfwr_orchestrator/src/tfwr_orchestrator/`。
 
 ## 测试
 
 Python 主项目测试：
 
 ```bash
-PYTHONPATH=python/tfwr_orchestrator/src python3 -m unittest discover -s python/tfwr_orchestrator/tests -p 'test_*.py' -v
-```
-
-兼容入口：
-
-```bash
-python3 -m unittest tests.test_tooling -v
+PYTHONPATH=tfwr_orchestrator/src python3 -m unittest discover -s tfwr_orchestrator/tests -p 'test_*.py' -v
 ```

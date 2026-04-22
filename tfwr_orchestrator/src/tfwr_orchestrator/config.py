@@ -11,8 +11,7 @@ import subprocess
 PACKAGE_DIR = Path(__file__).resolve().parent
 SOURCE_ROOT = PACKAGE_DIR.parent
 PROJECT_ROOT = SOURCE_ROOT.parent
-PYTHON_ROOT = PROJECT_ROOT.parent
-REPO_ROOT = PYTHON_ROOT.parent
+REPO_ROOT = PROJECT_ROOT.parent
 
 GAMESAVE_LINK = REPO_ROOT / "gamesave"
 REFERENCES_ROOT = REPO_ROOT / "references"

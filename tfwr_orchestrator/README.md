@@ -10,7 +10,7 @@
    - 游戏 `output.txt`
    - `BepInEx/LogOutput.log`
 
-仓库根目录的 `tools/*.py` 只是薄包装器。真正逻辑都在：
+子项目里的 `tools/*.py` 是可直接执行的 CLI 入口。真正业务逻辑都在：
 
 - `src/tfwr_orchestrator/config.py`
 - `src/tfwr_orchestrator/leaderboard_sync.py`
@@ -22,5 +22,5 @@
 开发期测试：
 
 ```bash
-PYTHONPATH=src python3 -m unittest discover -s tests -p 'test_*.py' -v
+PYTHONPATH=tfwr_orchestrator/src python3 -m unittest discover -s tfwr_orchestrator/tests -p 'test_*.py' -v
 ```

@@ -5,7 +5,7 @@
 1. 本仓库当前主线是“真实游戏 oracle 工作流 + leaderboard 优化”，不是本地 parity simulator。
 2. 真实执行环境由三部分组成：
    - `oracle_runner_mod/`：Unity / BepInEx 模组
-   - `python/tfwr_orchestrator/`：Python 协调器
+   - `tfwr_orchestrator/`：Python 协调器
    - 真实游戏存档 `Save0`
 3. 后续默认工作目标是：
    - 部署目标 `lb_*.py`
@@ -17,8 +17,8 @@
 
 ## 2. 仓库范围与路径
 
-1. Python 主项目路径固定为 `python/tfwr_orchestrator/`。
-2. 根目录 `tools/*.py` 只是薄包装器；真实业务逻辑必须放在 `python/tfwr_orchestrator/src/tfwr_orchestrator/`。
+1. Python 主项目路径固定为 `tfwr_orchestrator/`。
+2. Python CLI 入口放在 `tfwr_orchestrator/tools/`；真实业务逻辑必须放在 `tfwr_orchestrator/src/tfwr_orchestrator/`。
 3. `oracle_runner_mod/` 是 Unity/BepInEx 模组工程。
 4. `references/leaderboard_scripts/` 是仓库内 `lb_*.py` 真源。
 5. `gamesave/` 是指向真实 `Save0` 的本地链接目录，不进 git。
@@ -30,7 +30,7 @@
 1. 默认通过仓库根目录 `.env` 中的 `TFWR_SAVE_ROOT` 指向真实 `Save0`。
 2. 默认通过仓库根目录 `.env` 中的 `TFWR_GAME_ROOT` 指向游戏安装目录。
 3. `.env` 仅用于本地，不应提交。
-4. 路径与环境变量解析统一收口在 `python/tfwr_orchestrator/src/tfwr_orchestrator/config.py`。
+4. 路径与环境变量解析统一收口在 `tfwr_orchestrator/src/tfwr_orchestrator/config.py`。
 5. 在 WSL 中运行时，允许把 `C:\...` 自动转换成 `/mnt/c/...`；相关兼容逻辑也必须只放在 `config.py`。
 6. 当前已确认的游戏安装目录（Windows 宿主机）是 `D:\Steam\steamapps\common\The Farmer Was Replaced`，在 WSL 中对应 `/mnt/d/Steam/steamapps/common/The Farmer Was Replaced`。
 7. 需要读取游戏输出时：
@@ -84,11 +84,11 @@
 ## 6. 代码边界
 
 1. Python 真实工作流代码必须放在：
-   - `python/tfwr_orchestrator/src/tfwr_orchestrator/config.py`
-   - `python/tfwr_orchestrator/src/tfwr_orchestrator/leaderboard_sync.py`
-   - `python/tfwr_orchestrator/src/tfwr_orchestrator/output_capture.py`
-   - `python/tfwr_orchestrator/src/tfwr_orchestrator/real_game_runner.py`
-2. 根目录 `tools/*.py` 不应重复实现业务逻辑。
+   - `tfwr_orchestrator/src/tfwr_orchestrator/config.py`
+   - `tfwr_orchestrator/src/tfwr_orchestrator/leaderboard_sync.py`
+   - `tfwr_orchestrator/src/tfwr_orchestrator/output_capture.py`
+   - `tfwr_orchestrator/src/tfwr_orchestrator/real_game_runner.py`
+2. `tfwr_orchestrator/tools/*.py` 只应作为 CLI 入口，不应重复实现业务逻辑。
 3. 如果任务涉及真实 `Save0/test.py`、`Save0/simulate.py` 或 `Save0/__builtins__.py`，那是外部游戏资源修改；默认不要顺手改。
 4. `oracle_runner_mod/` 的修改应只围绕：
    - 状态机请求
@@ -99,13 +99,13 @@
 ## 7. 验证与回归
 
 1. 改 Python 协调器或路径解析后，优先验证：
-   - `PYTHONPATH=python/tfwr_orchestrator/src python3 -m unittest discover -s python/tfwr_orchestrator/tests -p 'test_*.py' -v`
-   - `python3 tools/run_real_game_script.py --help`
-   - `python3 tools/sync_leaderboard_scripts.py --help`
-   - `python3 tools/refresh_decompiled_sources.py --help`
-   - `python3 tools/extract_unlock_snapshot.py --help`
+   - `PYTHONPATH=tfwr_orchestrator/src python3 -m unittest discover -s tfwr_orchestrator/tests -p 'test_*.py' -v`
+   - `python3 tfwr_orchestrator/tools/run_real_game_script.py --help`
+   - `python3 tfwr_orchestrator/tools/sync_leaderboard_scripts.py --help`
+   - `python3 tfwr_orchestrator/tools/refresh_decompiled_sources.py --help`
+   - `python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --help`
 2. 改 `refresh_gamesave_link` 时，额外验证：
-   - `python3 tools/refresh_gamesave_link.py`
+   - `python3 tfwr_orchestrator/tools/refresh_gamesave_link.py`
 3. 改 Unity 模组时，优先验证：
    - `dotnet build oracle_runner_mod/TFWROracleRunner.csproj`
 4. 如果没有新鲜验证证据，不要声称“已完成”“已修复”“可提交”。

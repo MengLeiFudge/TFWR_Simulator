@@ -42,7 +42,9 @@ def ensure_target_dir(path: Path) -> None:
     if path == GAMESAVE_LINK:
         if path.is_dir():
             return
-        raise FileNotFoundError(f"gamesave 目录不存在: {path}。请先运行 python3 tools/refresh_gamesave_link.py")
+        raise FileNotFoundError(
+            f"gamesave 目录不存在: {path}。请先运行 python3 tfwr_orchestrator/tools/refresh_gamesave_link.py"
+        )
     path.mkdir(parents=True, exist_ok=True)
 
 

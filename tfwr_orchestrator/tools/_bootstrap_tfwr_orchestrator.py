@@ -4,8 +4,8 @@ from pathlib import Path
 import sys
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-ORCHESTRATOR_SOURCE_ROOT = REPO_ROOT / "python" / "tfwr_orchestrator" / "src"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+ORCHESTRATOR_SOURCE_ROOT = PROJECT_ROOT / "src"
 
 
 def add_orchestrator_src_to_path() -> Path:
