@@ -201,33 +201,32 @@ def step3():
         unlock(Unlocks.Fertilizer)
     unlock(Unlocks.Mazes)
     # 刷奇异物质-刷金币-解锁更多无人机（能量不够要刷能量）
-    idx = 0
-    directions = [North, East, South, West]
-    while num_items(Items.Gold) < 2000:
-        if get_entity_type() == Entities.Treasure:
-            harvest()
-        elif get_entity_type() == Entities.Hedge:
-            idx = (idx - 1) % 4
-            while not can_move(directions[idx]):
-                idx = (idx + 1) % 4
-            move(directions[idx])
-        else:
-            harvest()
-            plant(Entities.Bush)
-            use_item(Items.Weird_Substance, get_world_size() * 2**(num_unlocked(Unlocks.Mazes) - 1))
-    unlock(Unlocks.Megafarm)
+    # 下面这个不对，会因为没有奇异物质而死循环
+    # idx = 0
+    # directions = [North, East, South, West]
+    # while num_items(Items.Gold) < 2000:
+    #     if get_entity_type() == Entities.Treasure:
+    #         harvest()
+    #     elif get_entity_type() == Entities.Hedge:
+    #         idx = (idx - 1) % 4
+    #         while not can_move(directions[idx]):
+    #             idx = (idx + 1) % 4
+    #         move(directions[idx])
+    #     else:
+    #         harvest()
+    #         plant(Entities.Bush)
+    #         use_item(Items.Weird_Substance, get_world_size() * 2 ** (num_unlocked(Unlocks.Mazes) - 1))
+    # unlock(Unlocks.Megafarm)
 
 
 # 扩张升到最大（9级）
 def step4():
-    while True:
-        do_a_flip()
+    return
 
 
 # 解锁排行榜
 def step5():
-    while True:
-        do_a_flip()
+    return
 
 
 if __name__ == "__main__":

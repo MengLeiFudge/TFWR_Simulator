@@ -289,5 +289,153 @@ def pourwater(p=.75):
         use_item(Items.Water)
 
 
+# main3: 去掉 main2 里的 `create_task` 闭包 + 嵌套 `def action`。
+# 本地 sim 直接触发 `error_assign_type_mismatch`，把可疑闭包/嵌套函数全扁平化即可避开。
+# 策略：4x4 = 16 块 6x6 南瓜田，每块 1 个 drone；每块内部沿用 main2 的
+# “整田种满 -> 轮询补种未熟 -> 等全熟一次性 harvest” 的波次写法。
+def main3():
+    # 16 块 6x6，每块 +1 缓冲 => 7*4 - 1 = 27。32 世界里剩下的 column/row 做边界缓冲。
+    set_world_size(27)
+
+    # 主机占 (0, 0) 这块；剩余 15 块用 spawn_drone（先 goto 再 spawn 确保子机起点正确）。
+    for kx in range(4):
+        for ky in range(4):
+            if kx == 0 and ky == 0:
+                continue
+            main3_goto(kx * 7, ky * 7)
+            spawn_drone(main3_region_thread)
+
+    main3_goto(0, 0)
+    main3_region_thread()
+
+
+def main3_goto(tx, ty):
+    size = get_world_size()
+    half = size // 2
+    x = get_pos_x()
+    y = get_pos_y()
+    dx = (tx - x) % size
+    if dx <= half:
+        for _ in range(dx):
+            move(East)
+    else:
+        for _ in range(size - dx):
+            move(West)
+    dy = (ty - y) % size
+    if dy <= half:
+        for _ in range(dy):
+            move(North)
+    else:
+        for _ in range(size - dy):
+            move(South)
+
+
+# 每块子线程只靠“起点 == (x0, y0)”识别自己的 6x6 田。
+# 从 (x0, y0) 开始蛇形扫 6x6：种 -> 轮询没熟的位置 -> 全熟后一起收。
+def main3_region_thread():
+    x0 = get_pos_x()
+    y0 = get_pos_y()
+    goal = 200000000
+    while num_items(Items.Pumpkin) < goal:
+        main3_plant_block(x0, y0)
+        main3_wait_block(x0, y0)
+        main3_harvest_block(x0, y0)
+
+
+def main3_plant_block(x0, y0):
+    # 初次种植：回到 (x0, y0)，6x6 全种。死南瓜 / 空格也填回 Pumpkin。
+    main3_goto(x0, y0)
+    for dy in range(6):
+        if dy % 2 == 0:
+            dirs = East
+            end_dx = 5
+            step = 1
+        else:
+            dirs = West
+            end_dx = 0
+            step = -1
+        dx = get_pos_x() - x0
+        while True:
+            if get_ground_type() != Grounds.Soil:
+                till()
+            entity = get_entity_type()
+            if entity != Entities.Pumpkin:
+                if entity != None:
+                    harvest()
+                plant(Entities.Pumpkin)
+            main3_water()
+            if dx == end_dx:
+                break
+            move(dirs)
+            dx = dx + step
+        if dy < 5:
+            move(North)
+
+
+def main3_wait_block(x0, y0):
+    # 等整块成熟；每轮回查 6x6 未熟格子，空/死格补种，否则补水。
+    while True:
+        pending = 0
+        main3_goto(x0, y0)
+        for dy in range(6):
+            if dy % 2 == 0:
+                dirs = East
+                end_dx = 5
+                step = 1
+            else:
+                dirs = West
+                end_dx = 0
+                step = -1
+            dx = get_pos_x() - x0
+            while True:
+                entity = get_entity_type()
+                if entity == Entities.Pumpkin:
+                    if not can_harvest():
+                        pending = pending + 1
+                        main3_water()
+                else:
+                    if entity != None and entity != Entities.Dead_Pumpkin:
+                        harvest()
+                    plant(Entities.Pumpkin)
+                    pending = pending + 1
+                    main3_water()
+                if dx == end_dx:
+                    break
+                move(dirs)
+                dx = dx + step
+            if dy < 5:
+                move(North)
+        if pending == 0:
+            return
+
+
+def main3_harvest_block(x0, y0):
+    main3_goto(x0, y0)
+    for dy in range(6):
+        if dy % 2 == 0:
+            dirs = East
+            end_dx = 5
+            step = 1
+        else:
+            dirs = West
+            end_dx = 0
+            step = -1
+        dx = get_pos_x() - x0
+        while True:
+            if get_entity_type() == Entities.Pumpkin and can_harvest():
+                harvest()
+            if dx == end_dx:
+                break
+            move(dirs)
+            dx = dx + step
+        if dy < 5:
+            move(North)
+
+
+def main3_water():
+    if get_water() < 0.5 and num_items(Items.Water) > 5:
+        use_item(Items.Water)
+
+
 if __name__ == "__main__":
-    main2()
+    main3()
