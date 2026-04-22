@@ -24,12 +24,12 @@ class LeaderboardSyncTests(unittest.TestCase):
             (source_dir / "lb_beta.py").write_text("beta = 2\n", encoding="utf-8")
             (source_dir / "simulate.py").write_text("simulate = True\n", encoding="utf-8")
 
-            original_link = leaderboard_sync.LEADERBOARD_LINK
+            original_link = leaderboard_sync.GAMESAVE_LINK
             try:
-                leaderboard_sync.LEADERBOARD_LINK = target_dir
+                leaderboard_sync.GAMESAVE_LINK = target_dir
                 copied = leaderboard_sync.sync_single_leaderboard_file(source_dir, target_dir, "lb_beta")
             finally:
-                leaderboard_sync.LEADERBOARD_LINK = original_link
+                leaderboard_sync.GAMESAVE_LINK = original_link
 
             self.assertEqual(copied, ["lb_beta.py", "lb_start.py"])
             self.assertFalse((target_dir / "lb_alpha.py").exists())

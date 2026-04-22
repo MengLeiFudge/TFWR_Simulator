@@ -371,5 +371,5 @@ FodyWeavers.xsd
 
 .sisyphus/
 .env
-/leaderboard
+/gamesave
 .claude/

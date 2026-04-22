@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 import shutil
 
-from .config import LEADERBOARD_LINK, LEADERBOARD_REFERENCE_ROOT
+from .config import GAMESAVE_LINK, LEADERBOARD_REFERENCE_ROOT
 
 
 DEFAULT_LEADERBOARD_ITERATIONS = 10_000
@@ -26,9 +26,9 @@ def normalize_target_script_name(target_script: str) -> str:
 
 def resolve_sync_paths(direction: str) -> tuple[Path, Path]:
     if direction == "cur2save":
-        return (LEADERBOARD_REFERENCE_ROOT, LEADERBOARD_LINK)
+        return (LEADERBOARD_REFERENCE_ROOT, GAMESAVE_LINK)
     if direction == "save2cur":
-        return (LEADERBOARD_LINK, LEADERBOARD_REFERENCE_ROOT)
+        return (GAMESAVE_LINK, LEADERBOARD_REFERENCE_ROOT)
     raise ValueError(f"未知同步方向: {direction}")
 
 
@@ -39,10 +39,10 @@ def ensure_source_dir(path: Path) -> None:
 
 
 def ensure_target_dir(path: Path) -> None:
-    if path == LEADERBOARD_LINK:
+    if path == GAMESAVE_LINK:
         if path.is_dir():
             return
-        raise FileNotFoundError(f"leaderboard 目录不存在: {path}。请先运行 python3 tools/refresh_leaderboard_link.py")
+        raise FileNotFoundError(f"gamesave 目录不存在: {path}。请先运行 python3 tools/refresh_gamesave_link.py")
     path.mkdir(parents=True, exist_ok=True)
 
 
@@ -81,7 +81,7 @@ def sync_single_leaderboard_file(source_dir: Path, target_dir: Path, target_scri
     copied: list[str] = []
     shutil.copy2(source_file, target_dir / normalized_name)
     copied.append(normalized_name)
-    if target_dir == LEADERBOARD_LINK:
+    if target_dir == GAMESAVE_LINK:
         (target_dir / "lb_start.py").write_text(render_lb_start(normalized_name), encoding="utf-8")
         copied.append("lb_start.py")
     return copied

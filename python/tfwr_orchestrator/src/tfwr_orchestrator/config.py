@@ -14,7 +14,7 @@ PROJECT_ROOT = SOURCE_ROOT.parent
 PYTHON_ROOT = PROJECT_ROOT.parent
 REPO_ROOT = PYTHON_ROOT.parent
 
-LEADERBOARD_LINK = REPO_ROOT / "leaderboard"
+GAMESAVE_LINK = REPO_ROOT / "gamesave"
 REFERENCES_ROOT = REPO_ROOT / "references"
 LEADERBOARD_REFERENCE_ROOT = REFERENCES_ROOT / "leaderboard_scripts"
 DECOMPILED_SOURCE_ROOT = REFERENCES_ROOT / "DecompiledSource"
@@ -206,9 +206,9 @@ def create_directory_link(link_path: Path, target_path: Path) -> None:
     os.symlink(target_path, link_path, target_is_directory=True)
 
 
-def refresh_leaderboard_link(save_root: str | Path | None = None) -> tuple[Path, Path]:
+def refresh_gamesave_link(save_root: str | Path | None = None) -> tuple[Path, Path]:
     target = resolve_save_root(save_root)
-    link_path = LEADERBOARD_LINK
+    link_path = GAMESAVE_LINK
     remove_existing_link(link_path)
     create_directory_link(link_path, target)
     return (link_path, target)

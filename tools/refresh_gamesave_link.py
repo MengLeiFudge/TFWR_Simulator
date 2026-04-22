@@ -6,12 +6,12 @@ from _bootstrap_tfwr_orchestrator import add_orchestrator_src_to_path
 add_orchestrator_src_to_path()
 
 
-from tfwr_orchestrator.config import refresh_leaderboard_link
+from tfwr_orchestrator.config import refresh_gamesave_link
 
 
 def main() -> int:
-    link_path, target = refresh_leaderboard_link()
-    print(f"leaderboard_link {link_path} -> {target}")
+    link_path, target = refresh_gamesave_link()
+    print(f"gamesave_link {link_path} -> {target}")
     return 0
 
 

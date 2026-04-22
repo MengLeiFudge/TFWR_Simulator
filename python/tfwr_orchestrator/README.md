@@ -17,6 +17,8 @@
 - `src/tfwr_orchestrator/real_game_runner.py`
 - `src/tfwr_orchestrator/output_capture.py`
 
+根目录真实存档链接目录名固定为 `gamesave/`。
+
 开发期测试：
 
 ```bash

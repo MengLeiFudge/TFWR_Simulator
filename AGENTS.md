@@ -21,7 +21,7 @@
 2. 根目录 `tools/*.py` 只是薄包装器；真实业务逻辑必须放在 `python/tfwr_orchestrator/src/tfwr_orchestrator/`。
 3. `oracle_runner_mod/` 是 Unity/BepInEx 模组工程。
 4. `references/leaderboard_scripts/` 是仓库内 `lb_*.py` 真源。
-5. `leaderboard/` 是指向真实 `Save0` 的本地链接目录，不进 git。
+5. `gamesave/` 是指向真实 `Save0` 的本地链接目录，不进 git。
 6. `references/DecompiledSource/` 是反编译参考目录。
 7. 仓库内不再保留 `src/gamesimulator/` 这类旧 simulator 源码入口。
 
@@ -58,7 +58,7 @@
    - 派生入口 `lb_start.py`
    - 目标脚本 `lb_xxx.py`
 3. `lb_start.py` 不再作为长期手工维护的真源提交；它应由工具在部署时生成。
-4. `references/leaderboard_scripts/` 才是 `lb_*.py` 真源；不要直接把 `leaderboard/` 当成 git 源码目录。
+4. `references/leaderboard_scripts/` 才是 `lb_*.py` 真源；不要直接把 `gamesave/` 当成 git 源码目录。
 5. 只有显式传 `--all` 时，才允许全量同步全部 `lb_*.py`。
 
 ### 5.2 执行
@@ -104,8 +104,8 @@
    - `python3 tools/sync_leaderboard_scripts.py --help`
    - `python3 tools/refresh_decompiled_sources.py --help`
    - `python3 tools/extract_unlock_snapshot.py --help`
-2. 改 `refresh_leaderboard_link` 时，额外验证：
-   - `python3 tools/refresh_leaderboard_link.py`
+2. 改 `refresh_gamesave_link` 时，额外验证：
+   - `python3 tools/refresh_gamesave_link.py`
 3. 改 Unity 模组时，优先验证：
    - `dotnet build oracle_runner_mod/TFWROracleRunner.csproj`
 4. 如果没有新鲜验证证据，不要声称“已完成”“已修复”“可提交”。

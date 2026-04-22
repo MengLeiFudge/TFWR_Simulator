@@ -10,8 +10,8 @@ from tfwr_orchestrator import config
 
 
 class LayoutConfigTests(unittest.TestCase):
-    def test_leaderboard_paths_stay_at_repo_root(self) -> None:
-        self.assertEqual(config.LEADERBOARD_LINK, config.REPO_ROOT / "leaderboard")
+    def test_gamesave_path_stays_at_repo_root(self) -> None:
+        self.assertEqual(config.GAMESAVE_LINK, config.REPO_ROOT / "gamesave")
         self.assertEqual(config.LEADERBOARD_REFERENCE_ROOT, config.REPO_ROOT / "references" / "leaderboard_scripts")
         self.assertEqual(config.REFERENCES_ROOT, config.REPO_ROOT / "references")
 

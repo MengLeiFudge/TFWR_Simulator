@@ -15,7 +15,7 @@
 - `references/leaderboard_scripts/`
   - 仓库内的 `lb_*.py` 真源
 
-- `leaderboard/`
+- `gamesave/`
   - 指向真实 `Save0` 的本地链接目录
 
 - `tools/`
@@ -32,7 +32,7 @@ references/
 ├── DecompiledSource/              反编译源码参考
 └── leaderboard_scripts/           仓库内 lb_*.py 真源
 tools/                             根目录薄包装器
-leaderboard/                       指向真实 Save0 的链接目录
+gamesave/                          指向真实 Save0 的链接目录
 ```
 
 ## 本地配置
@@ -46,7 +46,7 @@ TFWR_GAME_ROOT=D:\Steam\steamapps\common\The Farmer Was Replaced
 ```
 
 - `TFWR_SAVE_ROOT` 用于：
-  - `leaderboard/` 链接重建
+  - `gamesave/` 链接重建
   - 游戏 `output.txt` 路径推导
 - `TFWR_GAME_ROOT` 用于：
   - `state.json` 路径推导
@@ -57,10 +57,10 @@ TFWR_GAME_ROOT=D:\Steam\steamapps\common\The Farmer Was Replaced
 
 ## 核心工作流
 
-### 1. 重建 `leaderboard/` 链接
+### 1. 重建 `gamesave/` 链接
 
 ```bash
-python3 tools/refresh_leaderboard_link.py
+python3 tools/refresh_gamesave_link.py
 ```
 
 ### 2. 把单个榜单脚本部署到真实 `Save0`
