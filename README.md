@@ -33,7 +33,6 @@ references/
 └── leaderboard_scripts/           仓库内 lb_*.py 真源
 tools/                             根目录薄包装器
 leaderboard/                       指向真实 Save0 的链接目录
-src/gamesimulator/                 旧 simulator 代码，已不再是仓库主线
 ```
 
 ## 本地配置

@@ -13,7 +13,7 @@
    - 请求真实游戏执行
    - 读取双通道输出
    - 用真实结果迭代 leaderboard 脚本
-4. 旧 `src/gamesimulator/` 代码只算遗留资产；除非用户明确要求修它，否则不要再把它当成本仓库主线。
+4. 旧 simulator 资产已经从仓库主线清除；后续不要再把 parity simulator 当成默认开发方向。
 
 ## 2. 仓库范围与路径
 
@@ -23,7 +23,7 @@
 4. `references/leaderboard_scripts/` 是仓库内 `lb_*.py` 真源。
 5. `leaderboard/` 是指向真实 `Save0` 的本地链接目录，不进 git。
 6. `references/DecompiledSource/` 是反编译参考目录。
-7. `src/gamesimulator/` 仍在仓库里，但不再是默认开发入口。
+7. 仓库内不再保留 `src/gamesimulator/` 这类旧 simulator 源码入口。
 
 ## 3. 配置与路径解析
 
