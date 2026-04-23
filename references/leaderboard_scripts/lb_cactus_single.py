@@ -1,12 +1,8 @@
 from __builtins__ import *
 
 
-# Cactus single 版本结论
-# main1: 8x8 世界（单机 Expand 上限 5），全场种成 variant=9 让所有 cactus 变同簇，
-#        一次 harvest 就能 `cactus_cluster` 到整盘 64 格，yield = 64^2 = 4096，
-#        每轮目标 131072 / 4096 = 32 轮即达标。
-#        `is_sorted_cactus` 要求 N/E 邻居 >= self、S/W 邻居 <= self，全 9 自动满足。
-#        代码结构借自 lb_cactus.main2 的单线程版，去掉 spawn_drone、删掉 do_a_flip（UI 动作）。
+# 详细版本结论、失败对照与候选策略见同名 md。
+# 当前默认入口：main1，8x8 全图 reroll 到 variant=9 后统一 harvest。
 
 
 def main1():
@@ -41,7 +37,7 @@ def goto(tx, ty):
             move(South)
 
 
-# 蛇形扫图种 cactus，每格 reroll 到 variant=9；扫完全图后集体 harvest 一次。
+# 蛇形扫图种 cactus，每格 reroll 到 variant=9；扫完全图后统一 harvest 一次。
 def plant_row_wave():
     size = get_world_size()
     for y in range(size):

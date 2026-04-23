@@ -1,12 +1,8 @@
 from __builtins__ import *
 
 
-# Carrots multi 版本结论
-# main1: 32x32 满田胡萝卜，32 个 drone 每机 1 行，直接 harvest+replant 循环。
-#        lb_carrots_single main2 验证过“胡萝卜不值得 reroll companion”的结论，
-#        多机更没必要卷 companion——单机 25 格时 reroll 冲突就已经压过收益。
-#        Carrot 基础 yield = 2^(Carrots-2) = 2^8 = 256；随机 companion 命中时再乘 160。
-#        本版只吃自然命中：靠全田 1024 株 carrot 的 bulk 吞吐覆盖 2B 目标做首版。
+# 详细版本结论、失败对照与候选策略见同名 md。
+# 当前默认入口：main1，32x32 多机满图胡萝卜；当前文件未附可靠真实成绩。
 
 
 def main1():

@@ -1,12 +1,8 @@
 from __builtins__ import *
 
 
-# Maze single 版本结论
-# main1: 2x2 世界，4 格全种 Bush 再连续使用 Weird_Substance 开 2x2 mini-maze。
-#        entities.TreasureView.reposition_treasure 里每次 use_item 命中 Treasure
-#        就加 S*S=4 gold，treasure_factor 最多 301 次；后续再来一次用 harvest
-#        结算当前 Treasure 再拿 S*S=4 gold，整轮约 301*4 + 4 = 1208 gold。
-#        目标 616448 / 1208 ≈ 510 轮。本版先跑通；后续可试 4x4 的 16 gold/次 对比。
+# 详细版本结论、失败对照与候选策略见同名 md。
+# 当前默认入口：main1，2x2 mini-maze；文件内估算单轮约 1208 gold。
 
 
 def main1():

@@ -4,6 +4,7 @@ size = get_world_size()
 max_drone_num = min(max_drones(), size)
 
 
+# 36.258
 def main1():
     goto(0, size - 1)
     while num_items(Items.Cactus) < 33554432:
@@ -162,27 +163,5 @@ def sort_one_way(dir="y"):
             swap(forward)
 
 
-def main2():
-    for _ in range(31):
-        spawn_drone(main2_drone_thread)
-        move(North)
-    main2_drone_thread()
-    while num_drones() > 1:
-        pass
-    do_a_flip()
-    harvest()
-
-
-def main2_drone_thread():
-    for _ in range(32):
-        if get_ground_type() == Grounds.Grassland:
-            till()
-        plant(Entities.Cactus)
-        while measure() != 9:
-            harvest()
-            plant(Entities.Cactus)
-        move(East)
-
-
 if __name__ == "__main__":
-    main2()
+    main1()

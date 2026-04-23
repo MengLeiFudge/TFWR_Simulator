@@ -14,6 +14,7 @@
 
 - `references/leaderboard_scripts/`
   - 仓库内的 `lb_*.py` 真源
+  - 配套的 `lb_*.md` 承接具体榜单策略、基线和候选方向
 
 - `gamesave/`
   - 指向真实 `Save0` 的本地链接目录
@@ -105,6 +106,23 @@ Python 协调器会：
   - 承接超时、取消、失败诊断
 
 不要再把这两路输出混成一个“统一 output”概念。
+
+## 榜单资料组织
+
+- 共用注意事项入口：
+  - `references/leaderboard_scripts/README.md`
+  - 这里承接全榜单共用的优化方法论、文档模板，以及 `lb_*.py` / `lb_*.md` 的职责分层
+
+- 具体榜单资料：
+  - `references/leaderboard_scripts/lb_xxx.py`
+    - 只保留必要实现说明、关键魔法数字来源和当前脚本成绩摘要
+  - `references/leaderboard_scripts/lb_xxx.md`
+    - 记录该榜单的目标、当前基线、版本结论、失败对照、下一步方向
+    - 额外记录若干“猜测 / 待验证”的候选策略，供后续逐个审核
+
+- 特殊说明：
+  - `lb_start.py` 仍然是部署生成物，不属于具体榜单策略真源
+  - 维护某个榜单前，先看目录级 `README.md`，再看对应 `lb_xxx.md`
 
 ## 其他工具
 

@@ -1,15 +1,8 @@
 from __builtins__ import *
 
 
-# Dinosaur 版本结论
-# main1..main4: 早期贪心/局部打分方案，单局死亡过早，bones 结算依赖多局累积，慢。
-# main5: 两阶段贪心 + parity 限制路径。本地模拟器触发 max_cycles，落后 1# 约 11 分钟。
-# main6: 固定哈密顿回路。drone.py 源码证实 bones 一次结算公式为
-#        `tail_length^2 * 2^(Dinosaurs-1)`，默认 Dinosaurs=6 得倍率 32，
-#        因此尾巴长到 ~1023 时单局即可凑到 33488928 bones。
-#        做法：走一条覆盖全部 32x32 格子的固定回路，DinosaurTailView 允许踩到自己尾端，
-#        所以只要按回路顺序走就永远不会自撞。苹果随机生成在空格，
-#        每过一圈必然吃到；累计约 1000 枚后 cash-out 即可达标。
+# 详细版本结论、失败对照与候选策略见同名 md。
+# 当前默认入口：main6，固定哈密顿回路；旧 main1..main5 保留做对照。
 
 
 def main1():
@@ -577,8 +570,7 @@ def main5():
             return
 
 
-# main6: 固定哈密顿回路。
-# 回路设计（32x32）：
+# 固定哈密顿回路设计（32x32）：
 #   1. (0,0) → East 到 (31,0)                          [row0 全扫]
 #   2. 对 y=1..31：North 1，y 奇数向 West 到 (1,y)，偶数向 East 到 (31,y)
 #   3. 最后 y=31（奇数），末尾在 (1,31)；West 1 到 (0,31)；South 31 步回到 (0,0)

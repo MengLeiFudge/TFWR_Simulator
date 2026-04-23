@@ -1,13 +1,8 @@
 from __builtins__ import *
 
 
-# Sunflowers multi 版本结论
-# main1: 32x32 暴力每熟即收。不看花瓣，倍率利用率低。
-# main2: 32x32 每行一机，按行内 max petal 优先收。
-#        单榜 sunflowers_single 的 max_petals 策略证实有效，这里扩展到多机，
-#        每个 drone 只关心自己行内的 petals[0..31]，维护本地 max_petals 即可。
-#        原因：sunflower power 结算主要看“本株花瓣 x 周围成熟株数”，
-#        行内挑最大花瓣收依旧能吃到倍率，且多机之间不需跨线程协调。
+# 详细版本结论、失败对照与候选策略见同名 md。
+# 当前默认入口：main2，32x32 每行一机，优先收高花瓣格。
 
 
 def main1():
@@ -49,9 +44,8 @@ def main1_drone_thread():
         move(East)
 
 
-# main2: 每行 1 个无人机，每机维护自己行内 32 个 petal 值。
-# 主循环优先收行内最大花瓣那株，保证每次收获都吃最高倍率。
-# 收尾阶段目标接近时放松 petal 阈值，避免剩几点功率但还卡着等最大花瓣。
+# 每行 1 个无人机，每机维护自己行内 32 个 petal 值。
+# 主循环优先收高花瓣格，收尾阶段再考虑放松阈值。
 def main2():
     for _ in range(31):
         spawn_drone(main2_drone_thread)

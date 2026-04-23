@@ -1,80 +1,8 @@
 from __builtins__ import *
 
 
-# Wood single 版本结论
-# main1: 老 3x3 对角树 + 二选一伴生版本。文件内旧注释“3min40s”已不可信，
-#        游戏更新后需要按当前版本重新测量。
-# main2: 保留 main1 的核心 3x3 思路，补适合当前版本复盘的阶段日志，并把初始化
-#        四次浇水合并为 use_item(Items.Water, 4)。这个版本先服务于“跑完就能读日志继续优化”。
-# main3: 改成“按精确 companion 坐标即时落格”，不再把同一 x+y 的两格压成一个槽位。
-#        只在“同一精确格且实体不同”时重掷，目标是砍掉 main2 里大量伪 conflict。
-# main4: 改成 8x8 全图蛇形扫图。偶数奇偶格种树，另一半格子做动态 support。
-#        每棵树维护自己的 active companion claim，support 格只按 active claim 改种，
-#        目标是把“无伴生收获”从主路径里清出去。
-# main5: 保留 main4 的 8x8 + active claim，但去掉树位常规浇水。
-#        main4 日志里 `unready=0` 且 `water≈harvest`，说明“每次都浇水”大概率是纯成本。
-# main6: 在 main5 基础上拒绝 `Entities.Carrot` companion。
-#        `output.txt` 已出现 “没有种植 Entities.Carrot 所需的物品” 的真实警告，
-#        说明 wood 路线里接受 Carrot claim 等于接受一个永远无法满足的 0 收益伴生。
-# main7: Carrot 改成“按当前材料是否足够动态接受”，并在初始化时把所有 support 格预翻成 soil。
-#        leaderboard 开局资源为 0，所以早期该拒绝；但当 `get_cost(Entities.Carrot)` 已经付得起时，
-#        就不该像 main6 一样继续无脑重掷。同时把未来可能承担胡萝卜的格子一次性 `till()` 到位。
-# main8: 在 main7 基础上给 sweep 加最小节奏控制。
-#        main7 日志里后半段频繁出现 `d_harvest=32, d_unready=32` 这种半空回访，
-#        说明当前不是单纯缺 companion，而是回访树位太快。
-# main9: 保留 main5 的 8x8 checkerboard + always Carrot，但允许“当前 sweep 后半段的树位”
-#        被前半段新树直接 claim 成 support。
-#        目标是先砍掉一批 “target 落在树位上” 的无谓 reroll；只在目标树位位于当前 sweep 更后面时
-#        才接受，避免把已经处理过的树位回滚成 support。
-#        后验结论：这条线会把活树数压得太低，单机下不划算，保留做失败对照。
-# main10: 回到 main5 的固定 tree/support 主路径，但引入“便宜补水”：
-#         - 第一轮所有树位统一 `use_item(Items.Water, 4)`。
-#         - 后续只有当某树位上一轮没熟时，下一次重种后才补 `use_item(Items.Water, 2)`。
-#         目标是在不承担 main4 那种全量浇水成本的前提下，把 `unready` 和总 sweeps 压下去。
-# main11: 在 main10 基础上不再追求 32 棵树满铺，而是挖掉 8 个均匀分散的树位，
-#         用更稀的 tree/support 网络换更低的 reroll / support 冲突。
-#         当前 8 个空洞坐标是：
-#         `(0,0) (1,3) (2,6) (3,1) (4,4) (5,7) (6,2) (7,5)`
-#         目标是牺牲少量树位，换更低的 `invalid` / `claim conflict` 和更短的均值。
-#         当前阶段结论：
-#         - 这版已做过游戏内实测，`5:40.868`，且与模拟器结果一致，可以作为当前可靠基线。
-#         - 在已对齐的模拟器口径下，5-seed 均值约 `5:37.9`，2h 均值约 `5:39.0`。
-#         - 一换洞、二换洞、随机 8 洞 sparse layout 搜索目前都还没稳定打过这组空洞。
-#         - `Carrot allow` 仍然优于 `dynamic` / `always reject`；support 全 `soil` 仍然优于混合地块。
-#         - 当前更像瓶颈的是 support 改写抖动，而不是树长不熟；探针里 `invalid / claim / support_replants`
-#           明显偏高，而 `unready` 已经不算主矛盾。
-# main12: 延续 main11 的 sparse-tree 思路，但把 8 个空洞重新排成更规整的斜向条带：
-#         `(0,0) (0,2) (0,4) (0,6) (1,3) (2,6) (3,1) (5,7)`
-#         目标不是进一步减少树位数量，而是让 support 空间更连续，减少 sweep 内改种抖动。
-#         后验结论：
-#         - fresh 5-seed 均值约 `5:46.3`，2h 均值约 `5:48.5`，比 main11 更慢。
-#         - 这组“条带型”空洞布局不是更优解，保留做失败对照。
-# main13: 根据 main11 probe，改成“非棋盘 20 树布局”。
-#         坐标：
-#         `(0,0) (0,2) (0,4) (0,6) (1,1) (1,5) (1,7) (2,2) (3,5) (3,7)
-#           (4,0) (4,4) (4,6) (5,1) (5,7) (6,0) (6,2) (6,6) (7,3) (7,5)`
-#         目标是直接降低 3 步 companion 命中 tree slot 的概率，把 `tree_reroll`
-#         从 main11 那种接近 `1 reroll / 1 harvest` 的状态拉下来。
-#         这版先保留 probe，看 fresh 5-seed 是否值得继续。
-# main14: 回到 main11 的 24 树 checkerboard 基线，但只开放少量固定 buffer tree slot
-#         给 later-sweep companion 临时占用。
-#         当前 4 个 buffer tree slot：
-#         `(6,0) (1,1) (6,4) (1,5)`
-#         目标是吃到一部分 tree-slot accept 的收益，同时避免 main9 那种“整片树位都能降级”
-#         导致的活树数明显下滑。
-# main15: 把 tree/support 网络直接缩到 4x4 checkerboard。
-#         草稿里的“双树轮转”按当前木头产量测算吞吐明显不够，所以这里保留“小地图降移动成本”
-#         的方向，但把活树位稳定在 8 格，优先验证“紧凑地图 + 更低 support 抖动”
-#         能不能压过 main11 的 8x8 稀疏布局。
-#
-# 当前建议：
-# 1. 默认从 main11 继续优化。
-# 2. main15 单 seed 约 `6:36.94`，明显慢于 main11 的 `5:46.64`，保留做失败对照。
-# 3. wood_single 后续默认把“未伴生收获”视为策略错误，而不是正常波动。
-# 4. 目前 sparse layout 本身已经接近局部最优；后续优先改 companion 接受/分配策略，减少 support 改写抖动。
-# 5. 如果 companion 侧仍然压不下去，再回头做更大范围的 sparse layout 搜索，而不是继续做一换洞小修。
-# 6. main11 / main15 后续探针的失败标准：如果 `tree_reroll` 或 `support_replant` 仍和 `harvest`
-#    同量级增长，就说明当前主路径还在用大量动作换低效 companion，必须继续改主路径。
+# 详细版本结论、失败对照与候选策略见同名 md。
+# 当前默认入口：main11；可靠基线 `5:40.868`，5-seed≈`5:37.9`，2h≈`5:39.0`。
 
 
 # 旧版本，保留做对照

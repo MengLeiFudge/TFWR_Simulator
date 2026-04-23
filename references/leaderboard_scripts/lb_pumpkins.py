@@ -289,10 +289,8 @@ def pourwater(p=.75):
         use_item(Items.Water)
 
 
-# main3: 去掉 main2 里的 `create_task` 闭包 + 嵌套 `def action`。
-# 本地 sim 直接触发 `error_assign_type_mismatch`，把可疑闭包/嵌套函数全扁平化即可避开。
-# 策略：4x4 = 16 块 6x6 南瓜田，每块 1 个 drone；每块内部沿用 main2 的
-# “整田种满 -> 轮询补种未熟 -> 等全熟一次性 harvest” 的波次写法。
+# 当前默认多机入口：16 块 6x6 南瓜田并行波次。
+# 更早版本和策略对照见同名 md。
 def main3():
     # 16 块 6x6，每块 +1 缓冲 => 7*4 - 1 = 27。32 世界里剩下的 column/row 做边界缓冲。
     set_world_size(27)

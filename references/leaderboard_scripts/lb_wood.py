@@ -1,12 +1,8 @@
 from __builtins__ import *
 
 
-# Wood multi 版本结论
-# main1: 32x32 棋盘（(x+y)%2==0 为 Tree，其余 Bush），32 个 drone 每机 1 行。
-#        Tree 基础 yield = 5 * 2^(Trees-1) = 5 * 512 = 2560；companion match 乘 160。
-#        和 hay 不同，Tree 的 companion pool 是 {Grass, Bush, Carrot}（不是 Tree 自己）。
-#        棋盘排布下，Bush 在 L1<=3 邻居里占 16/24；Bush companion 命中率 1/3 * 2/3 = 2/9。
-#        期望 harvest ≈ 2560 * (1 + 160 * 2/9) ≈ 93k wood。1024 格 / 2B 池子能覆盖目标。
+# 详细版本结论、失败对照与候选策略见同名 md。
+# 当前默认入口：main1，32x32 Tree/Bush 棋盘多机基线。
 
 
 def main1():

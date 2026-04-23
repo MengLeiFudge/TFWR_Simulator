@@ -1,12 +1,8 @@
 from __builtins__ import *
 
 
-# Hay multi 版本结论
-# main1: 32x32 棋盘（(x+y)%2==0 为 Grass，其余 Bush），32 个 drone 每机 1 行。
-#        Grass 单次基础 yield = 2^(Grass-1) = 512；companion match 时乘 5<<Polyculture = 160 倍。
-#        棋盘排布下，Grass 在 L1<=3 邻居里 Bush 占 16/24 个位置，期望 companion Bush 匹配率 ~2/9，
-#        每次 harvest 期望 hay ≈ 18.4k。1024 格并行 => 足够覆盖 2B 目标做首版验证。
-#        不做 reroll：hay_single main10 靠 reroll 榨干吞吐，但多机搜索空间复杂，首版先吃 baseline。
+# 详细版本结论、失败对照与候选策略见同名 md。
+# 当前默认入口：main1，32x32 Grass/Bush 棋盘多机基线。
 
 
 def main1():
@@ -75,9 +71,7 @@ def init_checkerboard():
             move(North)
 
 
-# 每行线程：在自己所在行 y，沿 East 扫；碰到 Grass 成熟就 harvest+plant，
-# 否则跳过。为了省 tick，不做 reroll、不浇水：棋盘本来就让 bush 填 L1=3 邻居，
-# 自然 match 率已到 2/9，再 reroll 几乎吃不到额外收益。
+# 每行线程：在自己所在行 y 沿 East 扫；碰到成熟 Grass 就 harvest+plant，否则跳过。
 def row_thread():
     goal = 2000000000
     y = get_pos_y()

@@ -1,18 +1,8 @@
 from __builtins__ import *
 
 
-# Carrots single 版本结论
-# main1: 5x5 checkerboard 胡萝卜位 + support claim。
-#        草稿里的 3x3 双格轮转按当前满科技产量测算吞吐偏低，这里直接把活跃胡萝卜位
-#        拉到 13 格，同时仍然保留小地图来压移动成本。
-# main2: 5x5 满图胡萝卜，不再做 companion claim。
-#        main1 的 support claim 在当前 25 格小图上冲突太高，单 seed 日志里
-#        `reroll >> harvest`，说明这条线在用大量动作换极低的 companion 收益，直接放弃。
-#
-# 当前建议：
-# 1. 默认从 main2 继续优化。
-# 2. main1 保留做“高冲突 claim 路线”失败对照。
-# 3. main2 先吃自然命中的 `Carrot` companion，不再为了 companion 大量重掷。
+# 详细版本结论、失败对照与候选策略见同名 md。
+# 当前默认入口：main2；main1 保留做高冲突 claim 对照。
 
 
 def create_entity_grid(size):
