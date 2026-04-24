@@ -194,8 +194,8 @@ def harvest_ready_grass():
 
 
 def water_pair_slot():
-    # 32 线程会同时抢水；保留阈值，避免真实游戏日志被缺水警告刷屏。
-    if num_items(Items.Water) > 128:
+    # 32 线程会同时抢水；只在仍有库存时补水，避免无水时反复调用。
+    if num_items(Items.Water) > 0:
         use_item(Items.Water)
 
 
