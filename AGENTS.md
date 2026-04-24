@@ -56,6 +56,8 @@
    - 真实脚本窗口定位 / 打开
    - leaderboard 日志输出
    - 生命周期控制
+5. leaderboard 脚本文件内部不要长期保留大量杂乱历史版本；只有带来明显策略改善、仍值得继续作为候选或对照的 `mainX` 才保留在 `.py` 中。像 `main14` 这类已验证失败的路线，应删除实现代码，只把失败结论、成绩和原因记录到对应 `lb_xxx.md`。
+6. 持续推进榜单时，优先选择策略结构已经明确、实现尚未对齐的榜单；例如多无人机南瓜、单无人机南瓜这类机制和目标布局都比较清楚的榜单，应优先于继续在已接近局部最优但方向不清晰的榜单上微调。
 
 ## 6. 权威事实源与完成标准
 
@@ -81,8 +83,20 @@
    - `python3 tfwr_orchestrator/tools/refresh_gamesave_link.py`
 3. 改 Unity 模组时，优先验证：
    - `dotnet build oracle_runner_mod/TFWROracleRunner.csproj`
+4. 仅在以下两种情况下，允许代理自动结束现有 `TheFarmerWasReplaced.exe` 进程并重新启动游戏：
+   - Unity 模组已更新，必须让 BepInEx 重新加载最新 DLL。
+   - 真实验证中游戏较长时间无响应，且没有新的游戏 `output.txt` 或 `BepInEx/LogOutput.log` 输出。
+5. 真实 leaderboard 复测完成后，必须确认模组能自动关闭 leaderboard 结果页并回到 workspace；如果 `state.json` 长时间停在 `requested`，优先检查是否仍停留在结果页、游戏是否加载了旧 DLL、以及两类输出日志是否仍在刷新。
 
-## 8. Git 约束
+## 8. 长时间 leaderboard 迭代授权
+
+1. 当用户明确进入长时间打榜迭代任务时，代理拥有当前仓库内最高可用权限，可持续修改、同步、验证 leaderboard 脚本，不需要每轮方案确认。
+2. leaderboard 官方完整统计需要约 `2h`，但优化迭代阶段不等待完整打榜；如果真实验证超过 `1min` 仍未结束，应主动停止/结束本次请求并读取游戏 `output.txt` 与 `BepInEx/LogOutput.log`。
+3. 迭代目标是优化脚本，不是实际刷满排行榜；通常 `1min` 内已经能跑出多轮，直接使用当前 `average`、单轮时间和 probe 输出判断方向。
+4. 如果某个排行榜连续数次尝试没有进展，或者已经接近 `#1` 难以继续推进，应切换到其他更可能推进的排行榜，避免把时间耗在单一榜单上。
+5. 切换榜单时，必须把当前榜单的尝试结果、失败原因和下一步判断记录到对应 `lb_xxx.md`，不要把失败实现长期留在 `.py`。
+
+## 9. Git 约束
 
 1. 提交信息必须使用中文，不要用 `feat:`、`fix:`、`refactor:` 这类英文前缀。
 2. 推荐前缀：

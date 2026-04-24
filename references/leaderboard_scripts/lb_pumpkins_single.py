@@ -5,30 +5,6 @@ from __builtins__ import *
 # 当前默认入口：main2，6x6 满田波次；main1 保留做对照。
 
 
-def main1():
-    set_world_size(6)
-    N = 6
-    while num_items(Items.Pumpkin) < 10000000:
-        for i in range(N):
-            for j in range(N):
-                if i == 0 and j == 0:
-                    ca = measure()
-                elif i == N - 1 and j == N - 1:
-                    if measure() == ca:
-                        harvest()
-                entity_type = get_entity_type()
-                if entity_type == Entities.Grass:
-                    harvest()
-                    if get_ground_type() == Grounds.Grassland:
-                        till()
-                    plant(Entities.Pumpkin)
-                elif entity_type == Entities.Dead_Pumpkin or entity_type == None:
-                    if get_ground_type() == Grounds.Grassland:
-                        till()
-                    plant(Entities.Pumpkin)
-                move(East)
-            move(North)
-
 
 def goto(tx, ty):
     size = get_world_size()
@@ -139,6 +115,11 @@ def wait_main2_wave(pending):
             if entity == Entities.Pumpkin:
                 if can_harvest():
                     continue
+                if len(pending) <= 3 and num_items(Items.Fertilizer) > 0:
+                    use_item(Items.Fertilizer)
+                    entity = get_entity_type()
+                    if entity == Entities.Pumpkin and can_harvest():
+                        continue
                 maybe_water_main2_slot()
                 append(next_pending, pos)
                 continue

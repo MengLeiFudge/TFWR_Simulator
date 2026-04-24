@@ -64,6 +64,8 @@
   - 非棋盘 20 树布局，当前主要保留为 probe
 - `main14`
   - 24 树基线上开放少量 buffer tree slot
+  - 2026-04-24 真实游戏复测中出现过单轮 `5:40.090`
+  - 但完整 leaderboard 18 轮均值为 `6:20.046`，明显慢于 `main11` 的 `5:41.061` 级别均值；因此不作为默认入口
 - `main15`
   - 4x4 checkerboard 小图路线，已明确慢于 `main11`
 
@@ -75,6 +77,9 @@
   - 条带型空洞布局，慢于 `main11`
 - `main15`
   - 4x4 小图路线明显慢于 `main11`
+- `main14`
+  - 固定 buffer tree slot 能吃到部分 tree-slot claim，单轮能碰到 `5:40.090`
+  - 但完整 leaderboard 均值劣化到 `6:20.046`，说明尾部波动和维护成本吞掉了收益
 - 文件还明确把以下现象视为失败信号：
   - `tree_reroll` 与 `harvest` 同量级增长
   - `support_replant` 与 `harvest` 同量级增长
