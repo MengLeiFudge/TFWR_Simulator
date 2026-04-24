@@ -230,6 +230,8 @@ public sealed class Plugin : BaseUnityPlugin
 
         if (stopReason != StopReason.None)
         {
+            CloseLeaderboardResultScreen(mainSim);
+
             if (!mainSim.IsExecuting())
             {
                 FinishStopping(mainSim);
@@ -319,6 +321,7 @@ public sealed class Plugin : BaseUnityPlugin
 
         if (!wasLeaderboardRunning)
         {
+            CloseLeaderboardResultScreen(mainSim);
             return;
         }
 
@@ -347,12 +350,36 @@ public sealed class Plugin : BaseUnityPlugin
                 stateStore.Write(activeRequest);
                 activeRequest = null;
             }
+
+            CloseLeaderboardResultScreen(mainSim);
+        }
+        else if (mainSim.leaderboardManager.IsLeaderBoardScreenOpen)
+        {
+            if (activeRequest != null)
+            {
+                RunnerStateProtocol.MarkFailed(activeRequest, "leaderboard finished without completed runs", DateTimeOffset.UtcNow);
+                stateStore.Write(activeRequest);
+                activeRequest = null;
+            }
+
+            CloseLeaderboardResultScreen(mainSim);
         }
 
         wasLeaderboardRunning = false;
         observedLeaderboardRuns = 0;
         observedLeaderboardTotalTime = TimeSpan.Zero;
         observedLeaderboardScriptName = string.Empty;
+    }
+
+    private void CloseLeaderboardResultScreen(MainSim mainSim)
+    {
+        if (mainSim.leaderboardManager == null || !mainSim.leaderboardManager.IsLeaderBoardScreenOpen)
+        {
+            return;
+        }
+
+        mainSim.leaderboardManager.OkPressed();
+        Log.LogInfo("已自动确认 leaderboard 结果页面");
     }
 
     private void BeginStop(MainSim mainSim, StopReason reason)
