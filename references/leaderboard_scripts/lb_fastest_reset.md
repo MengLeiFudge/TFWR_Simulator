@@ -54,41 +54,76 @@
 - 已知结论：
   - 早期草 -> 扩张 -> 种植 -> 灌木木头 -> 胡萝卜 是当前起手骨架
   - 中期通过混种和持续解锁推进到 `1000 power`
-  - 后续尝试走“树 + 奇异物质 + 迷宫 + 更多无人机”的路线
-- 你当前明确给出的第一版目标路线是：
-  - 先把所有科技都解锁到至少 `1` 级
-  - 然后升满：
-    - 无人机速度
-    - 农场大小
-    - 无人机数目
-  - 最后再去解锁 `leaderboard`
-- 也就是说：
-  - 先不要在第一版里讨论“哪些科技可以不升满”
-  - 先做一条“满科技解锁排行榜”的可跑通基线
-- 当前明显未完成：
-  - 扩张升满
-  - 最终解锁排行榜 / reset
+  - 后续走“南瓜扩张 -> 仙人掌 -> 恐龙 -> 迷宫金币 -> leaderboard”的完整路线
+- 当前 `step4()` / `step5()` 已经不是空实现：
+  - `step4()` 会解锁南瓜，把扩张推进到 `Expand 7`，再解锁仙人掌和恐龙
+  - `step5()` 会先凑第一档 `Megafarm`，再补 `1M gold` / `2M bone` 并尝试解锁 `Leaderboard`
+- 这不是最终成绩路线；它是第一条可继续观测的完整候选路线。
+- 真实短窗口验证显示，“满扩张”不是合适第一版：
+  - `Expand 5` 后下一级需要 `8,000 pumpkin`
+  - `Expand 6` 后下一级需要 `64,000 pumpkin`
+  - 再继续还要 `512,000 / 4,100,000 pumpkin`
+  - 60 秒窗口里，满扩张路线主要时间会被南瓜阶段吞掉
+- 因此当前默认路线先在 `Expand 7` 切走，不继续刷后两级扩张。
+
+## 2026-04-24 真实成本探针
+
+- `get_cost(Unlocks.Pumpkins)`：`{Items.Wood:500, Items.Carrot:200}`
+- `get_cost(Unlocks.Cactus)`：`{Items.Pumpkin:5000}`
+- `get_cost(Unlocks.Dinosaurs)`：`{Items.Cactus:2000}`
+- `get_cost(Unlocks.Leaderboard)`：`{Items.Bone:2000000, Items.Gold:1000000}`
+- 实体种植成本：
+  - `get_cost(Entities.Pumpkin)`：`{Items.Carrot:1}`
+  - `get_cost(Entities.Cactus)`：`{Items.Pumpkin:2}`
+- 多级科技关键成本：
+  - `Expand 4 -> 5`：`1,000 pumpkin`
+  - `Expand 5 -> 6`：`8,000 pumpkin`
+  - `Expand 6 -> 7`：`64,000 pumpkin`
+  - `Expand 7 -> 8`：`512,000 pumpkin`
+  - `Expand 8 -> 9`：`4,100,000 pumpkin`
+  - `Megafarm`：`2,000 / 8,000 / 32,000 / 128,000 / 512,000 gold`
+
+## 2026-04-24 真实短窗口结论
+
+- 命令：
+  - `python3 tfwr_orchestrator/tools/sync_leaderboard_scripts.py cur2save --script lb_fastest_reset`
+  - `timeout 100s python3 tfwr_orchestrator/tools/run_real_game_script.py --target-script lb_start --request-timeout 45 --startup-timeout 20 --total-timeout 75 --poll-interval 0.5`
+- 45 秒窗口结果：
+  - 无完成轮次，协调器返回 `leaderboard finished without completed runs`
+  - 但能稳定推进到南瓜扩张阶段
+  - 一次记录到 `Expand 7 time=8779.61 pumpkin=80`
+- 60 秒窗口结果：
+  - 无完成轮次，协调器返回 `leaderboard finished without completed runs`
+  - 在“跳过满扩张”的路线里，曾推进到 `step4 time=10226.29 size=16 cactus=172`
+  - 随后进入 `step5` 的奇异物质准备阶段，记录到 `weird=3019 target=1149`
+- 结论：
+  - `step4()` / `step5()` 现在已经有可执行骨架
+  - 当前短板仍是 `step2/step3` 的种子资源警告、南瓜扩张耗时，以及首轮金币阶段效率
+  - 下一轮不应回到“满扩张”，应继续压缩 `Expand 7` 之前的南瓜成本，或更早切到恐龙 / 金币阶段
 
 ## 失败对照
 
 - 文件里已经保留了一段被注释掉的金币循环
 - 原因很明确：会因为奇异物质不足而死循环
 - 这说明 `fastest_reset` 里不能把“资源前提不满足的阶段跳转”直接当成理所当然
+- “满扩张后再进后续阶段”
+  - 真实短窗口显示这个方向会被 `512,000 / 4,100,000 pumpkin` 吞掉
+  - 当前不再作为默认路线，只保留为失败对照
 - “一开始就直接做科技取舍最优解”
   - 这条线当前不适合当第一版目标
   - 因为在还没有一条完整可跑通路线之前，先卷科技不升满只会把问题空间放大得过早
 
 ## 下一步优化方向
 
-- 先把“满科技解锁排行榜”的第一版路线补完整，再讨论是否接近合理基线
+- 先把 `Expand 7` 候选路线推进到能完成一轮，再讨论是否继续降低扩张等级
 - 必须补证据的关键点：
   - 每个解锁门槛前后的资源短板
   - 迷宫 / 金币 / 无人机阶段是否真的比继续滚基础资源更值
   - `step4()` / `step5()` 最短完成条件
-- 第一版完成后再进入第二层问题：
-  - 哪些科技其实没必要升满
-  - 哪些阶段应该提前切
-  - 哪些资源门槛应当只做到“够用”而不是“拉满”
+- 下一轮优先级：
+  - 清理 `step2/step3` 的胡萝卜 / 肥料 / 向日葵资源警告
+  - 用更少南瓜更早切入仙人掌 / 恐龙
+  - 验证 `Megafarm` 第一档之前的单无人机 2x2 迷宫金币是否足够稳定
 
 ## 候选策略方向（猜测 / 待验证）
 
