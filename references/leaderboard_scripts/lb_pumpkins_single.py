@@ -137,28 +137,11 @@ def wait_main2_wave(pending):
 
 
 def harvest_main2_wave(size, harvest_count):
-    for y in range(size):
-        if y % 2 == 0:
-            end_x = size - 1
-            step = 1
-            move_dir = East
-        else:
-            end_x = 0
-            step = -1
-            move_dir = West
-
-        x = get_pos_x()
-        while True:
-            if get_entity_type() == Entities.Pumpkin and can_harvest():
-                harvest()
-                harvest_count[0] = harvest_count[0] + 1
-
-            if x == end_x:
-                break
-            move(move_dir)
-            x = x + step
-
-        move(North)
+    # 6x6 已合并后任意一格收割都会结算整块；不再浪费一整轮 6x6 扫描。
+    goto(0, 0)
+    if get_entity_type() == Entities.Pumpkin and can_harvest():
+        harvest()
+        harvest_count[0] = harvest_count[0] + 1
 
 
 def maybe_log_main2(
