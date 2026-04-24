@@ -2,7 +2,7 @@ from __builtins__ import *
 
 
 # 详细版本结论、失败对照与候选策略见同名 md。
-# 当前默认入口：main4，32x32 每行一机，高吞吐收割；不再并发抢水。
+# 当前默认入口：main4，32x32 每行一机，高吞吐收割；有水才补水。
 
 
 POWER_GOAL = 100000
@@ -22,6 +22,7 @@ def main4_row_worker():
         if get_ground_type() != Grounds.Soil:
             till()
         plant(Entities.Sunflower)
+        water_if_available()
         move(East)
 
     while num_items(Items.Power) < POWER_GOAL:
@@ -30,7 +31,13 @@ def main4_row_worker():
             if num_items(Items.Power) >= POWER_GOAL:
                 return
             plant(Entities.Sunflower)
+            water_if_available()
         move(East)
+
+
+def water_if_available():
+    if get_water() < 0.425 and num_items(Items.Water) > FIELD_SIZE:
+        use_item(Items.Water)
 
 
 if __name__ == "__main__":
