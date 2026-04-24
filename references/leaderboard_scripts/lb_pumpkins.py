@@ -33,7 +33,7 @@ def main4_block_worker(x0, y0, size):
     while num_items(Items.Pumpkin) < PUMPKIN_GOAL:
         plant_area(x0, y0, size, 0, size)
         wait_block_by_corners(x0, y0, size)
-        harvest_area(x0, y0, size, 0, size)
+        harvest_block(x0, y0)
 
 
 def wait_block_by_corners(x0, y0, size):
@@ -66,6 +66,13 @@ def wait_area(x0, y0, width, y_offset, height):
 
 def harvest_area(x0, y0, width, y_offset, height):
     scan_area(x0, y0, width, y_offset, height, 2)
+
+
+def harvest_block(x0, y0):
+    # 角测确认整块合并后，任意一格收割即可结算整个 giant pumpkin。
+    goto(x0, y0)
+    if get_entity_type() == Entities.Pumpkin and can_harvest():
+        harvest()
 
 
 def scan_area(x0, y0, width, y_offset, height, mode):
