@@ -86,6 +86,10 @@
 - 单草原地 companion 尝试
   - 45 秒窗口没有任何完成轮次，协调器返回 `leaderboard finished without completed runs`
   - 结论：不移动会卡在成熟 / reroll 节奏上，不能直接替代双草轮转
+- 动态兑现非阻塞 companion
+  - 真实平均 `3:50.717`
+  - 具体问题：为了兑现 Tree / Carrot companion 引入大量往返移动；Carrot support 还会快速耗尽种子并输出缺物品警告
+  - 结论：在当前资源与移动成本下，不如固定 Bush support + 原地 reroll
 
 ## 下一步优化方向
 
