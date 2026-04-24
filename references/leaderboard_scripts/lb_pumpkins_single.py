@@ -115,7 +115,7 @@ def wait_main2_wave(pending):
             if entity == Entities.Pumpkin:
                 if can_harvest():
                     continue
-                if len(pending) <= 3 and num_items(Items.Fertilizer) > 0:
+                if len(pending) <= 6 and num_items(Items.Fertilizer) > 0:
                     use_item(Items.Fertilizer)
                     entity = get_entity_type()
                     if entity == Entities.Pumpkin and can_harvest():
