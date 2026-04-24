@@ -5,7 +5,7 @@ PUMPKIN_GOAL = 200000000
 
 
 # main3: 旧 27x27 / 16 块 6x6 并行基线，结论保留在 md。
-# main4: 16x16 混合布局，两个 8x8 + 两个 6x6，每片 2 机分半区。
+# main4: 16x16 混合布局，两个 8x8 + 两个 6x6，每片主机收割、助手补洞。
 def main4():
     set_world_size(16)
 
@@ -18,15 +18,15 @@ def main4():
 
 def spawn_block(x0, y0, size):
     goto(x0, y0)
-    spawn_drone(main4_corner_worker)
+    spawn_drone(main4_helper_worker, x0, y0, size)
     goto(x0, y0)
     spawn_drone(main4_block_worker, x0, y0, size)
 
 
-def main4_corner_worker():
-    # 角 watcher 暂时只占位，避免未来需要通信时再重构 spawn 布局。
+def main4_helper_worker(x0, y0, size):
+    # 助手只补洞、补水、推进未熟格；合并后的收割仍交给主机，避免抢收。
     while num_items(Items.Pumpkin) < PUMPKIN_GOAL:
-        do_a_flip()
+        scan_area(x0, y0, size, 0, size, 1)
 
 
 def main4_block_worker(x0, y0, size):
@@ -99,7 +99,9 @@ def scan_area(x0, y0, width, y_offset, height, mode):
                     pending = pending + 1
                     water_pumpkin()
             else:
-                if entity != None and entity != Entities.Dead_Pumpkin:
+                if entity == Entities.Dead_Pumpkin and get_ground_type() != Grounds.Soil:
+                    harvest()
+                elif entity != None and entity != Entities.Dead_Pumpkin:
                     harvest()
                 if get_ground_type() != Grounds.Soil:
                     till()
