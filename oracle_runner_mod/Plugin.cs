@@ -162,6 +162,7 @@ public sealed class Plugin : BaseUnityPlugin
 
     private void TryStartRequest(MainSim mainSim, OracleRunnerStateFile requestedState)
     {
+        CloseLeaderboardResultScreen(mainSim);
         if (mainSim.workspace == null || !mainSim.workspace.gameObject.activeInHierarchy)
         {
             MaybeLogProgress("等待工作区激活");
