@@ -87,7 +87,7 @@ def step2():
                     use_item(Items.Water, water_needed)
             if not can_harvest() and get_entity_type() != None:
                 if can_use_fertilizer and get_entity_type() == Entities.Tree:
-                    while not can_harvest():
+                    while not can_harvest() and num_items(Items.Fertilizer) > 0:
                         if not use_item(Items.Fertilizer):
                             break
                     if not can_harvest():
@@ -99,11 +99,11 @@ def step2():
             harvest()
             if can_plant_sunflower:
                 if num_unlocked(Unlocks.Speed) < 5:
-                    if num_items(Items.Power) < 100 and plant(Entities.Sunflower):
+                    if num_items(Items.Power) < 100 and plant_if_affordable(Entities.Sunflower):
                         move(North)
                         continue
                 else:
-                    if can_plant_sunflower and plant(Entities.Sunflower):
+                    if can_plant_sunflower and plant_if_affordable(Entities.Sunflower):
                         move(North)
                         continue
             rand = random()
@@ -117,7 +117,7 @@ def step2():
                 if rand < 0.75 and plant(Entities.Tree) and ((get_pos_x() + get_pos_y()) % 2 == 0):
                     move(North)
                     continue
-                if plant(Entities.Carrot):
+                if plant_if_affordable(Entities.Carrot):
                     move(North)
                     continue
             else:
@@ -127,7 +127,7 @@ def step2():
                 if rand < 0.66 and plant(Entities.Bush):
                     move(North)
                     continue
-                if plant(Entities.Carrot):
+                if plant_if_affordable(Entities.Carrot):
                     move(North)
                     continue
             # 种最缺的
@@ -148,7 +148,7 @@ def step2():
                         move(North)
                         continue
             else:
-                if plant(Entities.Carrot):
+                if plant_if_affordable(Entities.Carrot):
                     move(North)
                     continue
             plant(Entities.Grass)
@@ -178,10 +178,12 @@ def step3():
                 if can_harvest():
                     harvest()
                     plant(Entities.Tree)
-                    use_item(Items.Fertilizer)
+                    if num_items(Items.Fertilizer) > 0:
+                        use_item(Items.Fertilizer)
                 elif get_entity_type() == None:
                     plant(Entities.Tree)
-                    use_item(Items.Fertilizer)
+                    if num_items(Items.Fertilizer) > 0:
+                        use_item(Items.Fertilizer)
                 move(North)
             else:
                 # 种最缺的
@@ -198,7 +200,7 @@ def step3():
                 elif wood < hay and wood < carrot:
                     plant(Entities.Bush)
                 else:
-                    plant(Entities.Carrot)
+                    plant_if_affordable(Entities.Carrot)
         move(East)
         unlock(Unlocks.Grass)
         unlock(Unlocks.Trees)
@@ -250,14 +252,37 @@ def step4():
 # 解锁排行榜
 def step5():
     upgrade_mazes_for_gold()
-    farm_gold_until(2000)
-    unlock(Unlocks.Megafarm)
-    quick_print("reset_stage", "megafarm", num_unlocked(Unlocks.Megafarm), "time=", get_time(), "gold=", num_items(Items.Gold))
-
+    upgrade_megafarm_for_final_push(3)
     farm_gold_until(1000000)
     upgrade_dinosaurs_for_bones()
     farm_bones_until(2000000)
     unlock(Unlocks.Leaderboard)
+
+
+def plant_if_affordable(entity):
+    if not can_pay_cost(get_cost(entity)):
+        return False
+    return plant(entity)
+
+
+def can_pay_cost(cost):
+    if cost == None:
+        return True
+    items = [
+        Items.Hay,
+        Items.Wood,
+        Items.Carrot,
+        Items.Pumpkin,
+        Items.Power,
+        Items.Cactus,
+        Items.Gold,
+        Items.Bone,
+        Items.Weird_Substance,
+    ]
+    for item in items:
+        if num_items(item) < cost_amount(cost, item):
+            return False
+    return True
 
 
 def cost_amount(cost, item):
@@ -319,7 +344,7 @@ def farm_basic_for_cost(cost):
 
 
 def upgrade_mazes_for_gold():
-    while num_unlocked(Unlocks.Mazes) < 2:
+    while num_unlocked(Unlocks.Mazes) < 3:
         cost = get_cost(Unlocks.Mazes)
         if cost == None or cost == {}:
             return
@@ -329,6 +354,19 @@ def upgrade_mazes_for_gold():
         if not unlock(Unlocks.Mazes):
             return
         quick_print("reset_stage", "mazes", num_unlocked(Unlocks.Mazes), "time=", get_time(), "weird=", num_items(Items.Weird_Substance))
+
+
+def upgrade_megafarm_for_final_push(target_level):
+    while num_unlocked(Unlocks.Megafarm) < target_level:
+        cost = get_cost(Unlocks.Megafarm)
+        if cost == None or cost == {}:
+            return
+        if cost_amount(cost, Items.Bone) > 0:
+            return
+        farm_for_cost(cost)
+        if not unlock(Unlocks.Megafarm):
+            return
+        quick_print("reset_stage", "megafarm", num_unlocked(Unlocks.Megafarm), "time=", get_time(), "gold=", num_items(Items.Gold), "max_drones=", max_drones())
 
 
 def upgrade_dinosaurs_for_bones():
@@ -579,27 +617,70 @@ def farm_weird_substance_until(target):
         if num_items(Items.Wood) < size * size:
             farm_wood_until(size * size)
         clear()
+    if should_parallel_farm_weird(target):
+        farm_weird_substance_parallel_until(target)
+        return
     while num_items(Items.Weird_Substance) < target:
-        size = get_world_size()
-        for x in range(size):
+        farm_weird_substance_worker(0, 1, target)
+        quick_print("reset_stage", "weird", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target, "wood=", num_items(Items.Wood), "fert=", num_items(Items.Fertilizer))
+
+
+def should_parallel_farm_weird(target):
+    size = get_world_size()
+    return max_drones() > 1 and size >= 4 and target - num_items(Items.Weird_Substance) > size * size * 2
+
+
+def farm_weird_substance_parallel_until(target):
+    size = get_world_size()
+    worker_count = max_drones()
+    if worker_count > size:
+        worker_count = size
+    quick_print("reset_stage", "weird_parallel_start", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target, "drones=", worker_count, "wood=", num_items(Items.Wood), "fert=", num_items(Items.Fertilizer))
+    worker_index = 1
+    while worker_index < worker_count:
+        spawn_drone(farm_weird_substance_worker, worker_index, worker_count, target)
+        worker_index = worker_index + 1
+    next_report = num_items(Items.Weird_Substance) + 4096
+    while num_items(Items.Weird_Substance) < target:
+        farm_weird_substance_worker(0, worker_count, target)
+        current_weird = num_items(Items.Weird_Substance)
+        if current_weird >= target or current_weird >= next_report:
+            quick_print("reset_stage", "weird_parallel", "time=", get_time(), "weird=", current_weird, "target=", target, "drones=", worker_count, "wood=", num_items(Items.Wood), "fert=", num_items(Items.Fertilizer))
+            next_report = current_weird + 4096
+
+
+def farm_weird_substance_worker(start_x, step_x, target):
+    size = get_world_size()
+    while num_items(Items.Weird_Substance) < target:
+        x = start_x
+        while x < size and num_items(Items.Weird_Substance) < target:
+            goto_wrap(x, 0)
             for y in range(size):
+                if num_items(Items.Weird_Substance) >= target:
+                    return
                 if (x + y) % 2 == 0:
                     if can_harvest():
                         harvest()
                     plant(Entities.Tree)
-                    if get_entity_type() == Entities.Tree and num_items(Items.Fertilizer) > 0:
+                    if get_entity_type() == Entities.Tree and num_items(Items.Fertilizer) > step_x:
                         use_item(Items.Fertilizer)
                 elif can_harvest():
                     harvest()
                 move(North)
-            move(East)
-        quick_print("reset_stage", "weird", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target, "wood=", num_items(Items.Wood), "fert=", num_items(Items.Fertilizer))
+            x = x + step_x
 
 
 def farm_gold_until(target):
     while num_items(Items.Gold) < target:
-        farm_gold_single_cycle(target)
+        if should_farm_gold_multi(target):
+            farm_gold_multi_until(target)
+        else:
+            farm_gold_single_cycle(target)
         quick_print("reset_stage", "gold", "time=", get_time(), "gold=", num_items(Items.Gold), "target=", target, "weird=", num_items(Items.Weird_Substance))
+
+
+def should_farm_gold_multi(target):
+    return False
 
 
 def farm_gold_single_cycle(target):
@@ -627,10 +708,14 @@ def farm_gold_single_cycle(target):
         use_item(Items.Weird_Substance, substance)
         maze_graph = build_maze_graph(maze_size)
         for _ in range(paid_move_count):
-            if num_items(Items.Gold) >= target:
-                return
             if not use_treasure_once(substance, maze_graph):
                 return
+            if num_items(Items.Gold) >= target:
+                reset_world_after_maze(maze_size)
+                return
+        if num_items(Items.Gold) >= target:
+            reset_world_after_maze(maze_size)
+            return
         remaining_paid_move_count = remaining_paid_move_count - paid_move_count
         if remaining_paid_move_count <= 0:
             return
@@ -639,42 +724,67 @@ def farm_gold_single_cycle(target):
 
 
 def farm_gold_multi_until(target):
-    if num_drones() < 4:
+    drone_limit = max_drones()
+    if drone_limit < 4:
         farm_gold_single_cycle(target)
         return
-    if num_drones() >= 16:
-        maze_size = 4
-    else:
-        maze_size = 2
+    original_size = get_world_size()
+    maze_size = original_size
     set_world_size(maze_size)
     substance = maze_size * (2 ** (num_unlocked(Unlocks.Mazes) - 1))
-    farm_weird_substance_until(num_items(Items.Weird_Substance) + substance * 12000)
+    worker_count = drone_limit
+    if worker_count > maze_size * maze_size:
+        worker_count = maze_size * maze_size
+    batch_uses = 40
+    while num_items(Items.Gold) < target:
+        before_gold = num_items(Items.Gold)
+        farm_weird_substance_until(num_items(Items.Weird_Substance) + substance * worker_count * batch_uses)
+        set_world_size(maze_size)
+        clear()
+        handles = []
+        spawned = 1
+        for x in range(maze_size):
+            for y in range(maze_size):
+                if x != 0 or y != 0:
+                    if spawned < worker_count:
+                        handle = spawn_drone(gold_worker_at, x, y, target, substance, batch_uses, False)
+                        if handle != None:
+                            handles.append(handle)
+                            spawned = spawned + 1
+        gold_worker_at(0, 0, target, substance, batch_uses, True)
+        for handle in handles:
+            wait_for(handle)
+        if num_items(Items.Gold) >= target:
+            reset_world_after_maze(original_size)
+            return
+        quick_print("reset_stage", "gold_multi", "time=", get_time(), "gold=", num_items(Items.Gold), "target=", target, "workers=", worker_count, "weird=", num_items(Items.Weird_Substance))
+        if num_items(Items.Gold) <= before_gold:
+            break
+    reset_world_after_maze(original_size)
+
+
+def reset_world_after_maze(size):
+    set_world_size(size)
     clear()
-    worker_count = 1
-    for x in range(maze_size):
-        for y in range(maze_size):
-            if x != 0 or y != 0:
-                if worker_count < num_drones():
-                    spawn_drone(gold_worker_at, x, y, target, substance)
-                    worker_count = worker_count + 1
-    gold_worker_at(0, 0, target, substance)
 
 
-def gold_worker_at(x, y, target, substance):
+def gold_worker_at(x, y, target, substance, max_uses, create_maze):
     for _ in range(x):
         move(East)
     for _ in range(y):
         move(North)
-    while num_items(Items.Gold) < target:
-        if get_entity_type() != Entities.Treasure:
-            plant(Entities.Bush)
+    if create_maze:
+        plant(Entities.Bush)
         use_item(Items.Weird_Substance, substance)
-        for _ in range(25):
-            if num_items(Items.Gold) >= target:
-                return
-            use_item(Items.Weird_Substance, substance)
-            if get_entity_type() == Entities.Treasure:
-                harvest()
+    else:
+        while measure() == None and num_items(Items.Gold) < target:
+            pass
+    maze_graph = build_maze_graph(get_world_size())
+    uses = 0
+    while num_items(Items.Gold) < target and uses < max_uses and num_items(Items.Weird_Substance) >= substance:
+        if not use_treasure_once(substance, maze_graph):
+            return
+        uses = uses + 1
 
 
 def use_treasure_once(substance, maze_graph=None):
@@ -882,21 +992,37 @@ def harvest_treasure_once(maze_graph=None):
 
 def farm_bones_until(target):
     set_world_size(get_world_size())
+    clear()
     while num_items(Items.Bone) < target:
         goto_wrap(0, 0)
-        farm_dinosaur_apple_cost()
+        size = get_world_size()
+        target_tail = size * size - 2
+        remaining_cycles = estimate_dinosaur_cycles(target, size, target_tail)
+        farm_dinosaur_apple_cost(target_tail * remaining_cycles)
+        quick_print("reset_stage", "bone_prep", "time=", get_time(), "cycles=", remaining_cycles, "cactus=", num_items(Items.Cactus), "pumpkin=", num_items(Items.Pumpkin))
         change_hat(Hats.Dinosaur_Hat)
-        run_dinosaur_loop(get_world_size(), get_world_size() * get_world_size() - 2)
+        run_dinosaur_loop(size, target_tail)
         change_hat(Hats.Straw_Hat)
         quick_print("reset_stage", "bones", "time=", get_time(), "bone=", num_items(Items.Bone), "target=", target)
 
 
-def farm_dinosaur_apple_cost():
+def estimate_dinosaur_cycles(target, size, target_tail):
     level = num_unlocked(Unlocks.Dinosaurs)
     if level < 1:
         level = 1
     multiplier = 2 ** (level - 1)
-    farm_scaled_cost_for_current_inventory(get_cost(Entities.Apple), multiplier)
+    bone_per_cycle = target_tail * target_tail * multiplier
+    if bone_per_cycle <= 0:
+        return 1
+    remaining = target - num_items(Items.Bone)
+    cycles = (remaining + bone_per_cycle - 1) // bone_per_cycle
+    if cycles < 1:
+        return 1
+    return cycles
+
+
+def farm_dinosaur_apple_cost(apple_count):
+    farm_scaled_cost_for_current_inventory(get_cost(Entities.Apple), apple_count)
 
 
 def goto_wrap(tx, ty):
