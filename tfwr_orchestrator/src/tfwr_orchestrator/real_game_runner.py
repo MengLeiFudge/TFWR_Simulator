@@ -12,9 +12,11 @@ import time
 from .config import load_local_env, resolve_game_root, to_windows_path
 from .output_capture import (
     CapturedOutputs,
+    OutputBaseline,
     capture_output_baseline,
     capture_request_outputs,
     file_signature,
+    read_appended_lines,
 )
 
 
@@ -67,6 +69,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=0.5,
         help="轮询状态机并在结束后读取 output/log 输出的时间间隔，默认 0.5 秒。",
     )
+    parser.add_argument(
+        "--output-stall-timeout",
+        type=float,
+        default=30.0,
+        help="请求运行后游戏 output.txt 连续无新增输出的最长墙钟秒数，默认 30 秒；设为 0 可关闭。",
+    )
     return parser.parse_args(argv)
 
 
@@ -112,6 +120,18 @@ def build_idle_state(*, request_id: int) -> dict[str, object]:
         "started_at": None,
         "finished_at": None,
         "last_error": None,
+    }
+
+
+def build_stop_requested_state(current_state: dict[str, object], message: str) -> dict[str, object]:
+    return {
+        "request_id": int(current_state.get("request_id", 0)),
+        "status": "stop_requested",
+        "target_script": normalize_target_script_name(str(current_state.get("target_script") or "")),
+        "timeout_seconds": current_state.get("timeout_seconds"),
+        "started_at": current_state.get("started_at"),
+        "finished_at": None,
+        "last_error": message,
     }
 
 
@@ -240,8 +260,13 @@ def wait_for_status(
     accepted_statuses: set[str],
     timeout_seconds: float,
     poll_interval: float,
+    baseline: OutputBaseline,
+    output_stall_timeout: float,
 ) -> dict[str, object]:
     deadline = time.monotonic() + timeout_seconds
+    last_game_output_at = time.monotonic()
+    last_game_output_count = 0
+    stop_requested_for_stall = False
     while time.monotonic() < deadline:
         if not is_windows_process_running(pid):
             raise RuntimeError(f"游戏进程已退出: pid={pid}")
@@ -261,6 +286,28 @@ def wait_for_status(
                 }
             if current_request_id == request_id and status in accepted_statuses:
                 return current
+            if (
+                output_stall_timeout > 0
+                and current_request_id == request_id
+                and status == "running"
+            ):
+                game_output_count = len(
+                    read_appended_lines(baseline.game_output_path, baseline.game_output_signature)
+                )
+                if game_output_count > last_game_output_count:
+                    last_game_output_count = game_output_count
+                    last_game_output_at = time.monotonic()
+                elif (
+                    not stop_requested_for_stall
+                    and time.monotonic() - last_game_output_at >= output_stall_timeout
+                ):
+                    message = (
+                        f"game output stalled for {output_stall_timeout:g}s "
+                        f"after {last_game_output_count} appended lines"
+                    )
+                    write_state_file(state_path, build_stop_requested_state(current, message))
+                    stop_requested_for_stall = True
+                    print(f"real_game_runner output_stall request_id={request_id} {message}")
         time.sleep(max(0.05, poll_interval))
     raise TimeoutError(f"等待状态 {sorted(accepted_statuses)} 超时: request_id={request_id} state_path={state_path}")
 
@@ -362,6 +409,8 @@ def main(argv: list[str] | None = None) -> int:
         accepted_statuses={"done", "failed", "superseded"},
         timeout_seconds=args.total_timeout,
         poll_interval=args.poll_interval,
+        baseline=baseline,
+        output_stall_timeout=args.output_stall_timeout,
     )
     outputs = capture_request_outputs(baseline)
     print(

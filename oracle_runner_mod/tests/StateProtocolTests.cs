@@ -42,6 +42,19 @@ public sealed class StateProtocolTests
     }
 
     [Fact]
+    public void MarkStopRequested_UsesDedicatedStatusAndKeepsError()
+    {
+        OracleRunnerStateFile state = RunnerStateProtocol.CreateRequested(8, "lb_start", 25.0);
+
+        RunnerStateProtocol.MarkStopRequested(state, "game output stalled");
+
+        Assert.Equal(RunnerRequestStatus.StopRequested, state.Status);
+        Assert.Equal("stop_requested", RunnerStateProtocol.ToStatusText(state.Status));
+        Assert.Equal("game output stalled", state.LastError);
+        Assert.Equal(RunnerRequestStatus.StopRequested, RunnerStateProtocol.ParseStatusText("stop_requested"));
+    }
+
+    [Fact]
     public void RunnerStateStore_RoundTripsTimeoutSeconds()
     {
         string statePath = Path.Combine(Path.GetTempPath(), $"tfwr-state-{Guid.NewGuid():N}.json");

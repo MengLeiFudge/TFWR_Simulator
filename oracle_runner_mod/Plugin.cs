@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.Mono;
@@ -20,6 +22,7 @@ public sealed class Plugin : BaseUnityPlugin
         None,
         Timeout,
         Superseded,
+        StopRequested,
     }
 
     private static Plugin? instance;
@@ -35,6 +38,7 @@ public sealed class Plugin : BaseUnityPlugin
     private Harmony? harmony;
     private float pluginStartedAt;
     private float lastProgressLogAt;
+    private float lastItemSnapshotLogAt;
     private float activeRequestStartedAt;
     private float stopRequestedAt;
     private bool playInvoked;
@@ -107,6 +111,7 @@ public sealed class Plugin : BaseUnityPlugin
         OracleRunnerStateFile? observedState = stateStore.Read();
         if (observedState != null)
         {
+            ObserveStopRequestedState(mainSim, observedState);
             ObserveRequestedState(mainSim, observedState);
         }
 
@@ -157,6 +162,27 @@ public sealed class Plugin : BaseUnityPlugin
         if (stopReason == StopReason.None)
         {
             BeginStop(mainSim, StopReason.Superseded);
+        }
+    }
+
+    private void ObserveStopRequestedState(MainSim mainSim, OracleRunnerStateFile observedState)
+    {
+        if (activeRequest == null || observedState.Status != RunnerRequestStatus.StopRequested)
+        {
+            return;
+        }
+
+        if (observedState.RequestId != activeRequest.RequestId)
+        {
+            return;
+        }
+
+        activeRequest.LastError = string.IsNullOrWhiteSpace(observedState.LastError)
+            ? "stop requested"
+            : observedState.LastError;
+        if (stopReason == StopReason.None)
+        {
+            BeginStop(mainSim, StopReason.StopRequested);
         }
     }
 
@@ -266,6 +292,7 @@ public sealed class Plugin : BaseUnityPlugin
         MaybeLogProgress(
             $"脚本运行中 request_id={activeRequest.RequestId} timeout={timeoutSeconds:F1}s"
         );
+        MaybeLogItemSnapshot(mainSim);
     }
 
     private void MaybeLogProgress(string message)
@@ -279,6 +306,43 @@ public sealed class Plugin : BaseUnityPlugin
 
         lastProgressLogAt = now;
         Log.LogInfo(message);
+    }
+
+    private void MaybeLogItemSnapshot(MainSim mainSim)
+    {
+        if (activeRequest == null)
+        {
+            return;
+        }
+
+        float now = Time.realtimeSinceStartup;
+        if (now - lastItemSnapshotLogAt < 1.0f)
+        {
+            return;
+        }
+
+        lastItemSnapshotLogAt = now;
+        Log.LogInfo(BuildItemSnapshotLine(mainSim));
+    }
+
+    private string BuildItemSnapshotLine(MainSim mainSim)
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.Append("item_snapshot request_id=");
+        builder.Append(activeRequest?.RequestId ?? 0);
+        builder.Append(" elapsed=");
+        builder.Append((Time.realtimeSinceStartup - activeRequestStartedAt).ToString("0.0", CultureInfo.InvariantCulture));
+
+        ItemBlock inventory = mainSim.GetInventory();
+        foreach (ItemSO item in ResourceManager.GetAllItems())
+        {
+            builder.Append(' ');
+            builder.Append(item.itemName);
+            builder.Append('=');
+            builder.Append(inventory.GetNumber(item.itemId).ToString("0.###", CultureInfo.InvariantCulture));
+        }
+
+        return builder.ToString();
     }
 
     private void ObserveLeaderboardTiming(MainSim mainSim)
@@ -407,11 +471,13 @@ public sealed class Plugin : BaseUnityPlugin
             return;
         }
 
-        if (stopReason == StopReason.Timeout)
+        if (stopReason == StopReason.Timeout || stopReason == StopReason.StopRequested)
         {
             RunnerStateProtocol.MarkFailed(
                 activeRequest,
-                $"request timed out after {(activeRequest.TimeoutSeconds ?? runnerConfig.DefaultRequestTimeoutSeconds.Value):0.###}s",
+                stopReason == StopReason.Timeout
+                    ? $"request timed out after {(activeRequest.TimeoutSeconds ?? runnerConfig.DefaultRequestTimeoutSeconds.Value):0.###}s"
+                    : activeRequest.LastError ?? "stop requested",
                 DateTimeOffset.UtcNow
             );
             stateStore.Write(activeRequest);

@@ -60,6 +60,12 @@ public static class RunnerStateProtocol
         state.LastError = null;
     }
 
+    public static void MarkStopRequested(OracleRunnerStateFile state, string message)
+    {
+        state.Status = RunnerRequestStatus.StopRequested;
+        state.LastError = message;
+    }
+
     public static void MarkDone(OracleRunnerStateFile state, DateTimeOffset finishedAt)
     {
         state.Status = RunnerRequestStatus.Done;
@@ -81,7 +87,11 @@ public static class RunnerStateProtocol
 
     public static string ToStatusText(RunnerRequestStatus status)
     {
-        return status.ToString().ToLowerInvariant();
+        return status switch
+        {
+            RunnerRequestStatus.StopRequested => "stop_requested",
+            _ => status.ToString().ToLowerInvariant(),
+        };
     }
 
     public static RunnerRequestStatus ParseStatusText(string? text)
@@ -91,6 +101,7 @@ public static class RunnerStateProtocol
             "idle" => RunnerRequestStatus.Idle,
             "requested" => RunnerRequestStatus.Requested,
             "running" => RunnerRequestStatus.Running,
+            "stop_requested" => RunnerRequestStatus.StopRequested,
             "done" => RunnerRequestStatus.Done,
             "failed" => RunnerRequestStatus.Failed,
             "superseded" => RunnerRequestStatus.Superseded,

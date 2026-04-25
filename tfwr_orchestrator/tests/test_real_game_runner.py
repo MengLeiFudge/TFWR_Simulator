@@ -9,7 +9,13 @@ import unittest
 from unittest import mock
 
 from tfwr_orchestrator import real_game_runner as runner_module
-from tfwr_orchestrator.output_capture import EMPTY_SIGNATURE, capture_output_baseline, capture_request_outputs, file_signature
+from tfwr_orchestrator.output_capture import (
+    EMPTY_SIGNATURE,
+    OutputBaseline,
+    capture_output_baseline,
+    capture_request_outputs,
+    file_signature,
+)
 
 
 class OutputCaptureTests(unittest.TestCase):
@@ -61,6 +67,8 @@ class RealGameRunnerToolTests(unittest.TestCase):
                 "99",
                 "--poll-interval",
                 "0.2",
+                "--output-stall-timeout",
+                "13",
             ]
         )
         self.assertEqual(args.target_script, "lb_start.py")
@@ -68,6 +76,7 @@ class RealGameRunnerToolTests(unittest.TestCase):
         self.assertEqual(args.startup_timeout, 30.0)
         self.assertEqual(args.total_timeout, 99.0)
         self.assertEqual(args.poll_interval, 0.2)
+        self.assertEqual(args.output_stall_timeout, 13.0)
 
     def test_resolve_game_executable_prefers_non_crash_handler(self) -> None:
         with tempfile.TemporaryDirectory() as game_root_text:
@@ -171,6 +180,8 @@ class RealGameRunnerToolTests(unittest.TestCase):
                 accepted_statuses={"done"},
                 timeout_seconds=5.0,
                 poll_interval=0.01,
+                baseline=OutputBaseline(None, EMPTY_SIGNATURE, None, EMPTY_SIGNATURE),
+                output_stall_timeout=0,
             )
         self.assertEqual(result["status"], "done")
         self.assertEqual(result["request_id"], 3)
@@ -192,10 +203,69 @@ class RealGameRunnerToolTests(unittest.TestCase):
                 accepted_statuses={"done", "failed", "superseded"},
                 timeout_seconds=5.0,
                 poll_interval=0.01,
+                baseline=OutputBaseline(None, EMPTY_SIGNATURE, None, EMPTY_SIGNATURE),
+                output_stall_timeout=0,
             )
         self.assertEqual(result["status"], "superseded")
         self.assertEqual(result["request_id"], 3)
         self.assertEqual(result["last_error"], "superseded by request_id=4")
+
+    def test_wait_for_status_requests_stop_when_game_output_stalls(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_text:
+            output_path = Path(temp_text) / "output.txt"
+            output_path.write_text("old\n", encoding="utf-8")
+            baseline = OutputBaseline(output_path, file_signature(output_path), None, EMPTY_SIGNATURE)
+            state_holder = {
+                "request_id": 3,
+                "status": "running",
+                "target_script": "lb_start",
+                "timeout_seconds": 90.0,
+                "started_at": "2026-04-25T00:00:00Z",
+                "finished_at": None,
+                "last_error": None,
+            }
+            written_states: list[dict[str, object]] = []
+
+            def read_state(_: Path) -> dict[str, object]:
+                return state_holder
+
+            def write_state(_: Path, state: dict[str, object]) -> None:
+                written_states.append(state)
+                state_holder.update(
+                    {
+                        "request_id": 3,
+                        "status": "failed",
+                        "target_script": "lb_start",
+                        "timeout_seconds": 90.0,
+                        "started_at": "2026-04-25T00:00:00Z",
+                        "finished_at": "2026-04-25T00:00:31Z",
+                        "last_error": state["last_error"],
+                    }
+                )
+
+            with mock.patch.object(runner_module, "read_state_file", side_effect=read_state), mock.patch.object(
+                runner_module, "write_state_file", side_effect=write_state
+            ), mock.patch.object(
+                runner_module, "is_windows_process_running", return_value=True
+            ), mock.patch.object(
+                runner_module.time, "monotonic", side_effect=[0.0, 0.0, 31.0, 31.0, 31.1]
+            ), mock.patch.object(
+                runner_module.time, "sleep"
+            ):
+                result = runner_module.wait_for_status(
+                    state_path=Path("/tmp/state.json"),
+                    pid=123,
+                    request_id=3,
+                    accepted_statuses={"done", "failed", "superseded"},
+                    timeout_seconds=60.0,
+                    poll_interval=0.01,
+                    baseline=baseline,
+                    output_stall_timeout=30.0,
+                )
+
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(written_states[0]["status"], "stop_requested")
+        self.assertIn("game output stalled for 30s", str(written_states[0]["last_error"]))
 
     def test_wait_for_ready_state_acknowledges_stale_terminal_state(self) -> None:
         states = iter(
