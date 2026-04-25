@@ -2,7 +2,7 @@ from __builtins__ import *
 
 
 # 详细版本结论、失败对照与候选策略见同名 md。
-# 当前默认入口：main2，32 个分散非相邻双树伴生单元。
+# 当前默认入口：main3，外部 Save0/wood.py 修正目标后的 32 无人机 Tree/Bush 交替路线。
 
 
 FIELD_SIZE = 32
@@ -220,5 +220,33 @@ def roll_bush_companion(blocked_pos):
         water_tree_slot()
 
 
+def main3():
+    while True:
+        if not spawn_drone(main3_worker):
+            main3_worker()
+            break
+        move(East)
+    quick_print("main3 done wood=", num_items(Items.Wood), " time=", get_time())
+
+
+def main3_worker():
+    while num_items(Items.Wood) < GOAL_WOOD:
+        main3_use_water()
+        if can_harvest():
+            harvest()
+        if (get_pos_x() + get_pos_y()) % 2 == 0:
+            plant(Entities.Tree)
+        else:
+            plant(Entities.Bush)
+        if num_items(Items.Fertilizer) > 100:
+            use_item(Items.Fertilizer)
+        move(North)
+
+
+def main3_use_water():
+    while get_water() < min(num_items(Items.Water) / 100, 0.75):
+        use_item(Items.Water)
+
+
 if __name__ == "__main__":
-    main2()
+    main3()
