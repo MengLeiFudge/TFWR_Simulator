@@ -361,7 +361,7 @@ def is_windows_process_running(pid: int) -> bool:
 
 def terminate_windows_process(pid: int) -> None:
     command = ["taskkill" if os.name == "nt" else "taskkill.exe", "/PID", str(pid), "/T", "/F"]
-    subprocess.run(command, check=False, capture_output=True, text=True)
+    subprocess.run(command, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def _print_captured_outputs(outputs: CapturedOutputs) -> None:
