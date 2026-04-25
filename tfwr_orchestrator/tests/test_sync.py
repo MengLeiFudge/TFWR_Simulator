@@ -39,6 +39,18 @@ class LeaderboardSyncTests(unittest.TestCase):
                 (target_dir / "lb_start.py").read_text(encoding="utf-8"),
             )
 
+    def test_sync_single_rejects_unsupported_shift_operator(self) -> None:
+        with tempfile.TemporaryDirectory() as source_text, tempfile.TemporaryDirectory() as target_text:
+            source_dir = Path(source_text)
+            target_dir = Path(target_text)
+            (source_dir / "lb_bad.py").write_text("value = 1 << 2\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                leaderboard_sync.UnsupportedGameSyntaxError,
+                r"游戏脚本不支持运算符 <<: lb_bad.py:L1",
+            ):
+                leaderboard_sync.sync_single_leaderboard_file(source_dir, target_dir, "lb_bad")
+
     def test_sync_all_copies_only_lb_python_files(self) -> None:
         with tempfile.TemporaryDirectory() as source_text, tempfile.TemporaryDirectory() as target_text:
             source_dir = Path(source_text)

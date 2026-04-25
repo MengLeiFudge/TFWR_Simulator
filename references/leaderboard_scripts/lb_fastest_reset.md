@@ -118,16 +118,20 @@
   - `Dinosaurs 4` 单轮骨头为 `161312`，但剩余仙人掌不足以持续支付苹果成本，后续出现 `Entities.Apple` 缺种子警告。
 - `request_id=143` / `request_id=144`：
   - 把恐龙上限改为 `Dinosaurs 3`，并在每轮骨头前按 `get_cost(Entities.Apple)` 与恐龙等级补足苹果成本。
-  - 90 秒窗口和 60 秒窗口均返回 `status=done`，不再卡在迷宫金币或骨头阶段。
+  - 这两轮只返回了外层 `lb_start` 的 `status=done`，没有 `game_output` 里的 `reset_stage done` 或 leaderboard 平均值证据。
+  - 后续发现 `lb_fastest_reset.py` 里残留游戏脚本不支持的 `<<`，因此这两轮不能作为“榜单已完成”的证据。
+- `request_id=149`：
+  - 直接运行 `lb_fastest_reset` 可以解析并运行到 `reset_stage done`，证明 `<<` 修复后脚本语法路径不再阻塞。
+  - 但直接运行继承当前存档资源，不等价于 `Fastest_Reset` 排行榜重置环境，不能作为排行榜完成证据。
 - 当前结论：
-  - 快速重置当前已有可完成路线。
+  - 快速重置当前路线已推进过金币和骨头瓶颈，但真实排行榜完成仍需要新的有效证据。
   - `Expand 7`、`Megafarm 2+`、`Dinosaurs 4+` 都是已验证不适合当前默认路线的过度投资。
   - `Mazes 2` 仍保留，因为它减少金币阶段的宝箱迁移次数；金币单批 `600` 在 `300 / 600 / 1200` 中当前证据最好。
 - 提交后继续 A/B：
-  - `request_id=145`：当前基线墙钟约 `9.64s`。
-  - `request_id=146`：跳过 `Mazes 2` 仍能完成，但墙钟约 `9.98s`，暂不采用。
-  - `request_id=147`：只升到 `Dinosaurs 2` 仍能完成，但墙钟约 `10.60s`，暂不采用。
-  - `request_id=148`：金币单批 `450` 仍能完成，但墙钟约 `10.62s`，暂不采用。
+  - `request_id=145`：外层 `lb_start` 墙钟约 `9.64s`，但因缺少榜单结果证据，不能视为完成成绩。
+  - `request_id=146`：跳过 `Mazes 2` 外层墙钟约 `9.98s`，暂不采用。
+  - `request_id=147`：只升到 `Dinosaurs 2` 外层墙钟约 `10.60s`，暂不采用。
+  - `request_id=148`：金币单批 `450` 外层墙钟约 `10.62s`，暂不采用。
 
 ## 失败对照
 

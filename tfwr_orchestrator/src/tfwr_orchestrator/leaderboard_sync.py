@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import argparse
 from pathlib import Path
 import shutil
@@ -9,6 +10,16 @@ from .config import GAMESAVE_LINK, LEADERBOARD_REFERENCE_ROOT
 
 DEFAULT_LEADERBOARD_ITERATIONS = 10_000
 FASTEST_RESET_ITERATIONS = 200
+
+
+UNSUPPORTED_GAME_SYNTAX = {
+    ast.LShift: "<<",
+    ast.RShift: ">>",
+}
+
+
+class UnsupportedGameSyntaxError(ValueError):
+    pass
 
 
 def normalize_target_script_name(target_script: str) -> str:
@@ -72,6 +83,21 @@ def render_lb_start(target_script_name: str) -> str:
     )
 
 
+def validate_game_compatible_script(path: Path) -> None:
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    except SyntaxError:
+        raise
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.BinOp):
+            operator = UNSUPPORTED_GAME_SYNTAX.get(type(node.op))
+            if operator is not None:
+                raise UnsupportedGameSyntaxError(
+                    f"游戏脚本不支持运算符 {operator}: {path.name}:L{node.lineno}"
+                )
+
+
 def sync_single_leaderboard_file(source_dir: Path, target_dir: Path, target_script_name: str) -> list[str]:
     ensure_source_dir(source_dir)
     ensure_target_dir(target_dir)
@@ -79,6 +105,7 @@ def sync_single_leaderboard_file(source_dir: Path, target_dir: Path, target_scri
     source_file = source_dir / normalized_name
     if not source_file.is_file():
         raise FileNotFoundError(f"未找到目标脚本: {source_file}")
+    validate_game_compatible_script(source_file)
 
     copied: list[str] = []
     shutil.copy2(source_file, target_dir / normalized_name)
@@ -97,6 +124,7 @@ def sync_all_leaderboard_files(source_dir: Path, target_dir: Path) -> list[str]:
     for source_file in sorted(source_dir.glob("lb_*.py")):
         if not source_file.is_file():
             continue
+        validate_game_compatible_script(source_file)
         shutil.copy2(source_file, target_dir / source_file.name)
         copied.append(source_file.name)
     return copied

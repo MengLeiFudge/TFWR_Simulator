@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import time
@@ -23,6 +24,9 @@ load_local_env()
 ORACLE_STATE_FILE_NAME = "mlj.tfwr.oracle-runner.state.json"
 STATE_IO_MAX_ATTEMPTS = 20
 STATE_IO_RETRY_SECONDS = 0.05
+LEADERBOARD_SUCCESS_SUMMARY_RE = re.compile(
+    r"\[lb_[^\]]+\.py\]\s+finished=true\s+runs=[1-9][0-9]*\s+average="
+)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -322,6 +326,14 @@ def _print_captured_outputs(outputs: CapturedOutputs) -> None:
         print(f"mod_output {line}")
 
 
+def target_requires_leaderboard_summary(target_script: str | None) -> bool:
+    return normalize_target_script_name(target_script) == "lb_start"
+
+
+def has_successful_leaderboard_summary(outputs: CapturedOutputs) -> bool:
+    return any(LEADERBOARD_SUCCESS_SUMMARY_RE.search(line) for line in outputs.mod_output_lines)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     exe_path = resolve_game_executable(args.game_root)
@@ -359,6 +371,9 @@ def main(argv: list[str] | None = None) -> int:
     _print_captured_outputs(outputs)
     acknowledge_terminal_state(state_path)
     if result.get("status") == "done":
+        if target_requires_leaderboard_summary(args.target_script) and not has_successful_leaderboard_summary(outputs):
+            print("real_game_runner leaderboard_summary_missing")
+            return 5
         return 0
     if result.get("status") == "superseded":
         return 4

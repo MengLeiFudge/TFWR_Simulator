@@ -267,7 +267,7 @@ class RealGameRunnerToolTests(unittest.TestCase):
         }
         fake_outputs = runner_module.CapturedOutputs(
             game_output_lines=("game-a", "game-b"),
-            mod_output_lines=("mod-a",),
+            mod_output_lines=("mod-a", "[lb_hay.py] finished=true runs=3 average=1:02.003"),
         )
 
         stream = io.StringIO()
@@ -297,8 +297,48 @@ class RealGameRunnerToolTests(unittest.TestCase):
         text = stream.getvalue()
         self.assertIn("game_output_lines=2", text)
         self.assertIn("game_output game-a", text)
-        self.assertIn("mod_output_lines=1", text)
+        self.assertIn("mod_output_lines=2", text)
         self.assertIn("mod_output mod-a", text)
+
+    def test_main_rejects_lb_start_done_without_leaderboard_summary(self) -> None:
+        done_state = {
+            "request_id": 8,
+            "status": "done",
+            "target_script": "lb_start",
+            "timeout_seconds": 20.0,
+            "started_at": "2026-04-22T00:00:00Z",
+            "finished_at": "2026-04-22T00:00:01Z",
+            "last_error": None,
+        }
+        fake_outputs = runner_module.CapturedOutputs(
+            game_output_lines=(),
+            mod_output_lines=("mod-a",),
+        )
+
+        stream = io.StringIO()
+        with mock.patch.object(
+            runner_module, "resolve_game_executable", return_value=Path("/tmp/TheFarmerWasReplaced.exe")
+        ), mock.patch.object(
+            runner_module, "resolve_oracle_state_path", return_value=Path("/tmp/state.json")
+        ), mock.patch.object(
+            runner_module, "ensure_game_running", return_value=(456, False)
+        ), mock.patch.object(
+            runner_module, "wait_for_ready_state", return_value={"request_id": 7, "status": "idle"}
+        ), mock.patch.object(
+            runner_module, "capture_output_baseline", return_value=object()
+        ), mock.patch.object(
+            runner_module, "request_script_run", return_value=8
+        ), mock.patch.object(
+            runner_module, "wait_for_status", return_value=done_state
+        ), mock.patch.object(
+            runner_module, "capture_request_outputs", return_value=fake_outputs
+        ), mock.patch.object(
+            runner_module, "acknowledge_terminal_state"
+        ), contextlib.redirect_stdout(stream):
+            result = runner_module.main(["--target-script", "lb_start", "--request-timeout", "20"])
+
+        self.assertEqual(result, 5)
+        self.assertIn("real_game_runner leaderboard_summary_missing", stream.getvalue())
 
 
 if __name__ == "__main__":

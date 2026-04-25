@@ -895,7 +895,7 @@ def farm_dinosaur_apple_cost():
     level = num_unlocked(Unlocks.Dinosaurs)
     if level < 1:
         level = 1
-    multiplier = 1 << (level - 1)
+    multiplier = 2 ** (level - 1)
     farm_scaled_cost_for_current_inventory(get_cost(Entities.Apple), multiplier)
 
 
