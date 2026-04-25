@@ -67,6 +67,11 @@
   - 真实 3 轮均值 `18:16.497`
   - 慢于当前基线 `18:14.543`
   - 结论：裁剪支撑区没有减少足够成本，反而削弱了稳定灌木支撑，不保留实现
+- 2026-04-25 外部 `Save0/wood_lb.py` 候选
+  - 覆盖真实存档既有 `lb_wood.py` 后请求 `219`
+  - `LogOutput.log` 的 `item_snapshot` 显示约 8 秒 `wood=8746807040`，约 9 秒 `wood=9856929024`
+  - 游戏 `output.txt` 新增 `run=` 行数为 0，模组返回 `leaderboard finished without completed runs`
+  - 结论：资源增长很快，但没有触发 leaderboard 完成轮，疑似目标判定 / 最终 harvest / 结算时机不对；不能直接迁入，后续只能作为“高产结构”拆解参考
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解

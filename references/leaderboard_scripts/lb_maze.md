@@ -42,6 +42,7 @@
 - 但你当前已明确指出：这些 `main2-main8` 文件内时间属于某次更新之前的旧数据
 - 当前真实环境下，`main2-main8` 实测都已经变成 `10` 分钟以上
 - 2026-04-24 复测 `main8`：45 秒窗口没有完成轮次，协调器返回 `leaderboard finished without completed runs`
+- 2026-04-25 外部 `Save0/maze_mzlbe.py` 候选：通过覆盖既有 `gamesave/lb_maze.py` 验证，没有向真实存档新增依赖文件；请求 `215` 连续 `30s` 没有任何 `run=` 输出，按 `output stall` 规则停止。`item_snapshot` 显示 `Gold` 在增加，但这不能替代完成轮次输出，因此暂不作为更优候选。
 - 当前默认路线仍然是 4x4 世界、每格 2 个无人机、所有格子都兼职开迷宫的极致并行方案
 - 证据来源：`lb_maze.py` 文件内注释和默认入口
 
