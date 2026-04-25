@@ -171,6 +171,94 @@
 - `request_id=174`：
   - 尝试在奇异物质阶段跳过自动草收割、直接覆种树，跑到 `reset_stage done time=16725.91`。
   - 相比 `request_id=173` 退步，说明当前真实行为下“先收割再种树”更稳；该 A/B 已回退。
+- `request_id=175`：
+  - 当前默认路线可跑到 `reset_stage done time=16512.99`。
+  - 关键阶段：`step2 time=1312.43 power=1001.82`、`Megafarm 3 time=3777.95`、`gold 1M time=10452.55`。
+  - 这轮确认 `Power` 在后段会归零，但没有主动补电。
+- `request_id=177`：
+  - 在 `Megafarm 3` 后主动补到 `3000 Power`，`power_start time=3808.26 power=0`，`power time=6003.77 power=3054.75`。
+  - 单独补电净耗约 `2195` 游戏秒，`gold 1M time=11103.21`，比不补电更慢；该方向不采用。
+- `request_id=179`：
+  - 把 `step2` 的 `Power` 目标提高到 `3000`，`step2 time=1807.64 power=3011.09`，但到 `Megafarm 3` 后仍归零。
+  - 后续 `gold 1M time=16525.87`，总完成 `reset_stage done time=22523.38`，明显退步；该方向已回退。
+  - `apple_prep_start` 显示苹果成本只需要 `Cactus`，`hay_need/wood_need/carrot_need/pumpkin_need` 均为 `0`，所以骨头阶段不是后段割草根因。
+- `request_id=180`：
+  - 保持 `step2` 目标 `1000 Power`，在奇异物质阶段空闲格尝试顺手补太阳花。
+  - 真实完成 `reset_stage done time=16365.53`，略优于 `request_id=173/175`；但 `Power` 仍在后段为 `0`，说明当前资源结构下没有足够胡萝卜支撑顺手补太阳花。
+  - 当前采用：不再做后段清场补电，保留 `Power` / 苹果成本日志，避免再次误判“补电一定正收益”。
+- `request_id=185` / `request_id=186`：
+  - 用 `gamesave/simulate.py` + `gamesave/test.py` 比较树、伴生树、南瓜获取 `Weird_Substance` 的效率。
+  - 普通感染树 16 株平均约 `2940 weird / 1000 tick`，逐棵伴生树平均约 `2657 weird / 1000 tick`。
+  - 普通 `8x8` 感染南瓜田只有约 `232 weird / 1000 tick`；修复死南瓜并形成完整巨型南瓜后，`6x6` 约 `832 weird / 1000 tick`、`8x8` 约 `806 weird / 1000 tick`。
+  - 结论：南瓜确实能获取奇异物质，但即使满足 `>=6x6` 巨型南瓜条件，专门刷 `Weird_Substance` 仍明显慢于树；南瓜只适合在需要南瓜本体时顺带产出奇异物质。
+- `request_id=187` / `request_id=188` / `request_id=189`：
+  - 用 `gamesave/simulate.py` + `gamesave/test.py` 专测批量伴生树，比较普通树、批量补 companion、种树后先施 1 次肥再批量补 companion、逐棵伴生等路线。
+  - 测试前提后来确认是 `Polyculture 1`、`Trees 10`；因此这组结论只能排除低级伴生，不能外推到高等级伴生。
+  - `request_id=189` 同场均值：`sequential_plain_8_sparse16` 约 `2951 weird / 1000 tick`，`batch_preinfect_8_sparse16` 约 `2965 weird / 1000 tick`，只高约 `0.5%`；同时平均 `conflict_companions=3.00`、`blocked_companions=0.75`，实现复杂度明显更高。
+  - 大田结果反而退步：`plain_12_sparse36` 约 `3068 weird / 1000 tick`，`batch_preinfect_12_sparse36` 约 `2344 weird / 1000 tick`。
+  - 未预感染的批量伴生树会因为补 companion 时间过长导致树自然成熟，后续无法用肥料感染，`batch_companion_12_sparse36` 的 `weird_delta=0`。
+  - 结论修正：`Polyculture 1` 下批量伴生树没有形成稳定、明显的 `Weird_Substance` 效率优势；正式脚本是否要引入 companion 需要看更高伴生等级和解锁成本。
+- `request_id=195`：
+  - 固定 `Trees 10`，分别测试请求 `Polyculture 1/3/6`；真实输出显示请求 `6` 会钳到 `Polyculture 5`，因此满级应为 `5`。
+  - `Polyculture 1`：`batch_preinfect_8_sparse16` 约 `2789 weird / 1000 tick`，`sequential_plain_8_sparse16` 约 `2796`，小图也没有优势；`12x12` 明显落后。
+  - `Polyculture 3`：`batch_preinfect_8_sparse16` 约 `10967`，`sequential_plain_8_sparse16` 约 `9552`，小图约 `+14.8%`；`12x12` 约 `9788` vs `9755`，基本持平。
+  - `Polyculture 5`：`batch_preinfect_8_sparse16` 约 `43677`，`sequential_plain_8_sparse16` 约 `36574`，小图约 `+19.4%`；`12x12` 约 `38933` vs `37449`，约 `+4.0%`。
+  - 结论口径修正：快速重置看收益曲线，`Polyculture 3` 的普通树效率已经从 `Polyculture 1` 的约 `2796` 提到约 `9552`，约 `3.4x`；`Polyculture 5` 的普通树效率约 `36574`，约 `13.1x`。
+  - 因此 `Polyculture` 本身应进入快速重置的高优先级科技，而不是只看批量伴生相对普通树的边际收益。
+  - 批量预感染伴生树在伴生等级提高后继续提供额外收益，`Polyculture 3/5` 的 `8x8/16 株` 分别约 `+14.8%` / `+19.4%`；因此只要路线已经决定刷伴生科技，批量伴生策略也应作为默认 Weird 产线候选，而不是失败对照。
+- `request_id=196`：
+  - 成本 probe 显示 `Polyculture 0 -> 1` 成本是 `{Items.Pumpkin:3000}`。
+  - `Polyculture 1 -> 2` 成本是 `{Items.Bone:10000}`，所以快速重置在骨头阶段前实际只能稳定使用 `Polyculture 1`。
+  - 结论：先把 `Polyculture 1` 接入南瓜阶段；更高伴生等级无法提前服务金币前的 Weird 产线，除非路线结构发生大改。
+- `request_id=197`：
+  - 正式路线在 `step4()` 把南瓜目标从 `5000` 提到 `8000`，先解锁 `Cactus`，再用剩余南瓜解锁 `Polyculture 1`。
+  - 真实输出 `polyculture 1 time=2729.52 pumpkin=784`，额外南瓜成本没有吞掉节奏。
+  - 后续 `gold 1M time=8364.55`，明显优于之前 `request_id=190` 的 `gold 1M time=10437.83`。
+  - 最终跑到 `reset_stage done time=14521.64`，优于此前 `request_id=180` 的 `done time=16365.53`；该改动保留。
+- `request_id=198`：
+  - 在 `Polyculture 1` 已接入后，临时把 `upgrade_mazes_for_gold()` 的目标从 `Mazes 3` 降到 `Mazes 2`。
+  - 真实输出最终 `reset_stage done time=17331.81`，明显慢于 `request_id=197` 的 `14521.64`。
+  - 结论：`Polyculture 1` 改善了 Weird 成本曲线，但还不足以让跳过 `Mazes 3` 变成正收益；正式路线继续保留 `Mazes 3`。
+- `request_id=199`：
+  - 在 `Polyculture 1` 正式路线基础上，`farm_weird_substance_worker()` 对树位调用 `get_companion()`，只在同一无人机列负责的奇偶空格补 companion。
+  - 真实输出 `gold 1M time=7885.12`，`reset_stage done time=13944.29`。
+  - 对比 `request_id=197` 的 `14521.64` 明显正收益；说明即使只有 `Polyculture 1`，正式全路线里显式补 companion 也值得保留。
+- `request_id=200`：
+  - 放宽 `request_id=199` 的列限制，允许跨列补 companion，但仍只补奇偶空格，避免覆盖树位。
+  - 真实输出 `gold 1M time=7349.45`，`reset_stage done time=13409.57`，继续优于同列版 `13944.29`。
+  - 当前保留跨列补 companion 版本；它提高了 Weird 产线，也顺带保留了更多 `Carrot`，没有引入新的缺材料警告。
+- `request_id=201`：
+  - 按“骨头阶段棋盘太小”的怀疑，临时改成 `gold 1M` 之后再补 `Expand 7`，希望用 `16x16` 恐龙棋盘减少骨头轮数。
+  - 真实输出 `gold 1M time=7863.17`，随后在 `12x12` 上刷 `64000 Pumpkin`，到 `expand_bones 7 time=13758.78` 才完成。
+  - 超时前只推进到 `dinosaurs 2 time=13758.87`，没有进入有效骨头循环；尾部持续南瓜/基础资源采集，被用户观察为“像无限收草”。
+  - 结论：金币后补 `Expand 7` 仍被 `64000 Pumpkin` 成本吞掉，不能作为主线；如果要继续处理骨头瓶颈，优先测试更便宜的 `Dinosaurs 4`，而不是继续冲大地图。
+- `request_id=202`：
+  - 临时把骨头前恐龙科技目标从 `Dinosaurs 3` 提到 `Dinosaurs 4`。
+  - 真实输出最终 `reset_stage done time=14979.76`，慢于 `request_id=200` 的 `13409.57`。
+  - 结论：`Dinosaurs 4` 的 `432000 Cactus` 成本高于骨头轮数减半收益；正式路线继续停在 `Dinosaurs 3`。
+- `request_id=203`：
+  - 临时在金币迷宫每 300 次 Treasure 重定位后调用 `harvest_treasure_once()`，尝试补拿第 301 份最终宝箱收益。
+  - 真实输出最终 `reset_stage done time=14051.74`，慢于 `request_id=200` 的 `13409.57`。
+  - 结论：最终宝箱收益太小，额外寻路 / 收割 / 清场成本不值；已回退。
+- `request_id=204`：
+  - 回退 `Expand 7`、`Dinosaurs 4`、最终宝箱补收后，用当前保留版本复测。
+  - 真实 `output.txt` 有完整 `reset_stage done time=14018.42`；`run_real_game_script.py` 本轮没有抓到 `game_output` 正文，但文件尾部证明脚本完成且状态已回到 `idle`。
+  - 结论：当前代码没有残留失败候选；单轮随机波动下仍慢于 `request_id=200`，所以历史最佳证据继续看 `request_id=200`，代码结构保持同一版。
+- `request_id=190`：
+  - 当前 Expand 6 路线短跑到 `gold 1M time=10437.83`，随后骨头阶段在 75 秒墙钟窗口推进到 `bone=1371152` 后超时。
+  - 这轮确认当前短窗口未完成的主因已经转向骨头循环；金币阶段仍是大段耗时，但不是本轮停止点。
+- `request_id=191`：
+  - 用 `gamesave/simulate.py` + `gamesave/test.py` 测多无人机恐龙，单机 `12x12` 一轮为 `bone_delta=80656`、`bone_per_1000tick=116.11`。
+  - 多机尝试直接报错：`恐龙帽只有一个，而且已在使用中。无法将其用于第二架无人机上。`
+  - 结论：骨头阶段不能简单用多无人机并行恐龙；除非找到非恐龙帽的骨头路线，否则正式脚本继续单机恐龙。
+- `request_id=192`：
+  - 把 `step4()` 临时改为推进到 `Expand 7`，验证更大棋盘是否能抵消南瓜成本。
+  - 结果到 `time=8649.02` 才刚 `expand 7`，期间 `64000` 南瓜成本吞掉大量时间并触发一次 `Entities.Carrot` 缺材料警告。
+  - 对比 Expand 6 路线同窗口已进入金币 / 骨头阶段，Expand 7 明显退步；已回退到 `Expand 6`。
+- `request_id=193` / `request_id=194`：
+  - 尝试把骨头阶段改成“一次预留剩余轮数苹果成本后，连续跑完多轮恐龙”，减少重复换帽和循环检查。
+  - 两次短跑都只输出到 `bone_prep cycles=25`，在 `125s` 请求窗口内没有产生 `bones_batch` 或完成输出，无法证明变快，且可观测性差。
+  - 结论：该改法已回退；骨头阶段继续保持每轮恐龙后输出进度，便于短窗口动态判断。
 
 ## 失败对照
 
@@ -192,6 +280,39 @@
 - “奇异物质阶段跳过自动草收割直接覆种树”
   - `request_id=174` 总时间退到 `16725.91`
   - 当前保留先收割再种树的实现
+- “主动清场补 `Power`”
+  - `request_id=177` 补到 `3000 Power` 净耗约 `2195` 游戏秒，金币阶段仍更慢
+  - `request_id=179` 把前期目标提到 `3000 Power` 后总时间退到 `22523.38`
+  - 当前结论：`Power` 归零是事实，但主动补电成本高于后段收益；后续只能考虑不触发额外草/胡萝卜链的顺手补电
+- “专门用南瓜刷 `Weird_Substance`”
+  - `request_id=185/186` 显示完整 `6x6/8x8` 感染南瓜田可以产出大量奇异物质，但单位 tick 效率只有树的约三成以内
+  - 当前不把南瓜作为专职奇异物质来源；更值得继续测试的是批量伴生树，而不是继续优化南瓜 Weird 路线
+  - 2026-04-25 补充结论：南瓜 Weird 路线到此先停止投入；下一轮只用 `gamesave/simulate.py` / `gamesave/test.py` 做批量伴生树 probe，确认“批量补 companion 后统一施肥收割”能否压过普通感染树，再决定是否改正式 `lb_fastest_reset.py`
+- “批量伴生树刷 `Weird_Substance`”
+  - `request_id=187/188/189` 只覆盖 `Polyculture 1`、`Trees 10`，原先“批量伴生树整体排除”的结论过强
+  - `request_id=195` 显示 `Polyculture` 等级本身是主收益曲线：`Polyculture 3` 的普通树 Weird 效率约为 `Polyculture 1` 的 `3.4x`，`Polyculture 5` 约为 `13.1x`
+  - 批量预感染伴生树在高伴生等级上还会进一步抬高收益：小图 `8x8/16 株` 在 `Polyculture 3/5` 分别约 `+14.8%` / `+19.4%`
+  - `request_id=196/197` 已确认 `Polyculture 1` 可用 `3000 Pumpkin` 提前接入，并把完成时间压到 `14521.64`
+  - 当前结论：`Polyculture 1` 保留为正式路线；高等级 `Polyculture` 虽然收益曲线很强，但 `2+` 级需要骨头，暂时不能服务前置 Weird / 金币阶段
+- “多无人机恐龙骨头”
+  - `request_id=191` 真实报错 `恐龙帽只有一个`，不能把恐龙帽同时给第二架无人机
+  - 当前结论：骨头阶段不能按“无人机数 x N”直接并行
+- “`Dinosaurs 4`”
+  - `request_id=202` 完成时间退到 `14979.76`
+  - 当前结论：`432000 Cactus` 成本不值，继续保留 `Dinosaurs 3`
+- “Expand 7 换更大恐龙棋盘”
+  - `request_id=192` 显示 `64000` 南瓜成本到 `time=8649.02` 才完成，远慢于 Expand 6 路线进入金币 / 骨头阶段
+  - `request_id=201` 改成金币后再补 `Expand 7`，仍到 `time=13758.78` 才完成扩张，随后还没形成有效骨头收益
+  - 当前结论：Expand 7 仍不回到默认路线；最大扩张更不应直接测试，除非先把南瓜收益曲线整体改掉
+- “只升到 `Mazes 2`”
+  - `request_id=198` 在 `Polyculture 1` 正式路线基础上完成时间退到 `17331.81`
+  - 当前结论：`Mazes 3` 仍是金币阶段默认配置，不再把 `Mazes 2` 当成当前主线
+- “金币迷宫 300 次后补收最终宝箱”
+  - `request_id=203` 完成时间退到 `14051.74`
+  - 当前结论：不补收最终宝箱，继续靠重定位金币推进
+- “单次帽子状态连续跑多轮恐龙”
+  - `request_id=193/194` 没有在 `125s` 请求窗口内形成可用进度证据，且会让骨头阶段长时间无输出
+  - 当前结论：不采用，保留每轮 `bones` 日志
 
 ## 下一步优化方向
 
@@ -201,10 +322,12 @@
   - 迷宫 / 金币 / 无人机阶段是否真的比继续滚基础资源更值
   - `step4()` / `step5()` 最短完成条件
 - 下一轮优先级：
+  - 骨头阶段现在仍耗时很长，但 `Expand 7` 和 `Dinosaurs 4` 都已被新证据排除；后续只能找更便宜的仙人掌准备方式或更短恐龙行走路径
   - 继续压缩 `Megafarm 3 -> gold 1M`，这是当前最大单段瓶颈
-  - 评估 `Mazes 2` 是否在最终成绩上优于不升迷宫等级
   - 只有重写宝箱分配 / 寻路 / 奇异物质补给后，才重新开启多无人机金币
-  - `Dinosaurs 3` 当前优于 `Dinosaurs 2`，`Dinosaurs 4` 暂不回到默认路线，除非先找到更便宜的仙人掌准备方式
+  - 若继续处理 `Power`，只能在已有资源循环里搭便车；不要再单独清场种太阳花或抬高 `step2` 目标
+  - 奇异物质来源已排除南瓜专职路线；`Polyculture 1` 已接入正式路线，跨列补 companion 已验证正收益，后续只在出现新 companion 排布策略时继续改 Weird 产线
+  - `Dinosaurs 3` 当前优于 `Dinosaurs 2`，多无人机恐龙已被帽子唯一性排除，`Dinosaurs 4` 暂不回到默认路线，除非先找到更便宜的仙人掌准备方式
 
 ## 候选策略方向（猜测 / 待验证）
 

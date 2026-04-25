@@ -1,5 +1,9 @@
 from __builtins__ import *
 
+STEP2_POWER_TARGET = 1000
+WEIRD_POWER_FLOOR = 500
+WEIRD_COMPANION_ENABLED = True
+
 
 def main():
     quick_print("reset_stage", "start", "time=", get_time())
@@ -77,7 +81,7 @@ def step2():
     can_use_water = False
     can_use_fertilizer = False
     can_plant_sunflower = False
-    while num_items(Items.Power) < 1000:
+    while num_items(Items.Power) < STEP2_POWER_TARGET:
         for _ in range(get_world_size()):
             if get_ground_type() == Grounds.Grassland:
                 till()
@@ -243,8 +247,10 @@ def step4():
             break
         quick_print("reset_stage", "expand", num_unlocked(Unlocks.Expand), "time=", get_time(), "pumpkin=", num_items(Items.Pumpkin))
 
-    farm_pumpkins_until(5000)
+    farm_pumpkins_until(8000)
     unlock(Unlocks.Cactus)
+    unlock(Unlocks.Polyculture)
+    quick_print("reset_stage", "polyculture", num_unlocked(Unlocks.Polyculture), "time=", get_time(), "pumpkin=", num_items(Items.Pumpkin))
     farm_cactus_until(2000)
     unlock(Unlocks.Dinosaurs)
 
@@ -369,8 +375,8 @@ def upgrade_megafarm_for_final_push(target_level):
         quick_print("reset_stage", "megafarm", num_unlocked(Unlocks.Megafarm), "time=", get_time(), "gold=", num_items(Items.Gold), "max_drones=", max_drones())
 
 
-def upgrade_dinosaurs_for_bones():
-    while num_unlocked(Unlocks.Dinosaurs) < 3:
+def upgrade_dinosaurs_for_bones(target_level=3):
+    while num_unlocked(Unlocks.Dinosaurs) < target_level:
         cost = get_cost(Unlocks.Dinosaurs)
         if cost == None or cost == {}:
             return
@@ -622,7 +628,7 @@ def farm_weird_substance_until(target):
         return
     while num_items(Items.Weird_Substance) < target:
         farm_weird_substance_worker(0, 1, target)
-        quick_print("reset_stage", "weird", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target, "wood=", num_items(Items.Wood), "fert=", num_items(Items.Fertilizer))
+        quick_print("reset_stage", "weird", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target, "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot), "fert=", num_items(Items.Fertilizer), "power=", num_items(Items.Power))
 
 
 def should_parallel_farm_weird(target):
@@ -635,7 +641,7 @@ def farm_weird_substance_parallel_until(target):
     worker_count = max_drones()
     if worker_count > size:
         worker_count = size
-    quick_print("reset_stage", "weird_parallel_start", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target, "drones=", worker_count, "wood=", num_items(Items.Wood), "fert=", num_items(Items.Fertilizer))
+    quick_print("reset_stage", "weird_parallel_start", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target, "drones=", worker_count, "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot), "fert=", num_items(Items.Fertilizer), "power=", num_items(Items.Power))
     worker_index = 1
     while worker_index < worker_count:
         spawn_drone(farm_weird_substance_worker, worker_index, worker_count, target)
@@ -645,7 +651,7 @@ def farm_weird_substance_parallel_until(target):
         farm_weird_substance_worker(0, worker_count, target)
         current_weird = num_items(Items.Weird_Substance)
         if current_weird >= target or current_weird >= next_report:
-            quick_print("reset_stage", "weird_parallel", "time=", get_time(), "weird=", current_weird, "target=", target, "drones=", worker_count, "wood=", num_items(Items.Wood), "fert=", num_items(Items.Fertilizer))
+            quick_print("reset_stage", "weird_parallel", "time=", get_time(), "weird=", current_weird, "target=", target, "drones=", worker_count, "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot), "fert=", num_items(Items.Fertilizer), "power=", num_items(Items.Power))
             next_report = current_weird + 4096
 
 
@@ -664,10 +670,68 @@ def farm_weird_substance_worker(start_x, step_x, target):
                     plant(Entities.Tree)
                     if get_entity_type() == Entities.Tree and num_items(Items.Fertilizer) > step_x:
                         use_item(Items.Fertilizer)
-                elif can_harvest():
-                    harvest()
+                    maybe_add_weird_tree_companion()
+                else:
+                    maybe_collect_power_in_weird_slot()
                 move(North)
             x = x + step_x
+
+
+def maybe_add_weird_tree_companion():
+    if not WEIRD_COMPANION_ENABLED:
+        return
+    if num_unlocked(Unlocks.Polyculture) < 1:
+        return
+    if get_entity_type() != Entities.Tree:
+        return
+    companion = get_companion()
+    if companion == None:
+        return
+    companion_entity = companion[0]
+    companion_pos = companion[1]
+    if companion_entity == None:
+        return
+    size = get_world_size()
+    companion_x = companion_pos[0]
+    companion_y = companion_pos[1]
+    if (companion_x + companion_y) % 2 == 0:
+        return
+    origin_x = get_pos_x()
+    origin_y = get_pos_y()
+    goto_wrap(companion_x, companion_y)
+    entity = get_entity_type()
+    if entity != companion_entity:
+        if entity != None:
+            if can_harvest():
+                harvest()
+            else:
+                goto_wrap(origin_x, origin_y)
+                return
+        if get_ground_type() == Grounds.Grassland and companion_entity == Entities.Carrot:
+            till()
+        plant_if_affordable(companion_entity)
+    goto_wrap(origin_x, origin_y)
+
+
+def maybe_collect_power_in_weird_slot():
+    if num_items(Items.Power) >= WEIRD_POWER_FLOOR:
+        if can_harvest():
+            harvest()
+        return
+    entity = get_entity_type()
+    if entity == Entities.Sunflower:
+        if can_harvest():
+            harvest()
+            if num_items(Items.Power) < WEIRD_POWER_FLOOR:
+                plant_if_affordable(Entities.Sunflower)
+        return
+    if entity != None:
+        if can_harvest():
+            harvest()
+        return
+    if get_ground_type() == Grounds.Grassland:
+        till()
+    plant_if_affordable(Entities.Sunflower)
 
 
 def farm_gold_until(target):
@@ -676,7 +740,7 @@ def farm_gold_until(target):
             farm_gold_multi_until(target)
         else:
             farm_gold_single_cycle(target)
-        quick_print("reset_stage", "gold", "time=", get_time(), "gold=", num_items(Items.Gold), "target=", target, "weird=", num_items(Items.Weird_Substance))
+        quick_print("reset_stage", "gold", "time=", get_time(), "gold=", num_items(Items.Gold), "target=", target, "weird=", num_items(Items.Weird_Substance), "power=", num_items(Items.Power))
 
 
 def should_farm_gold_multi(target):
@@ -1022,7 +1086,28 @@ def estimate_dinosaur_cycles(target, size, target_tail):
 
 
 def farm_dinosaur_apple_cost(apple_count):
-    farm_scaled_cost_for_current_inventory(get_cost(Entities.Apple), apple_count)
+    cost = get_cost(Entities.Apple)
+    quick_print(
+        "reset_stage",
+        "apple_prep_start",
+        "time=",
+        get_time(),
+        "apples=",
+        apple_count,
+        "hay_need=",
+        cost_amount(cost, Items.Hay) * apple_count,
+        "wood_need=",
+        cost_amount(cost, Items.Wood) * apple_count,
+        "carrot_need=",
+        cost_amount(cost, Items.Carrot) * apple_count,
+        "pumpkin_need=",
+        cost_amount(cost, Items.Pumpkin) * apple_count,
+        "cactus_need=",
+        cost_amount(cost, Items.Cactus) * apple_count,
+        "power=",
+        num_items(Items.Power),
+    )
+    farm_scaled_cost_for_current_inventory(cost, apple_count)
 
 
 def goto_wrap(tx, ty):
