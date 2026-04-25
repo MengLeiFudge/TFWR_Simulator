@@ -6,6 +6,7 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.Mono;
 using HarmonyLib;
+using TMPro;
 using UnityEngine;
 
 namespace TFWROracleRunner;
@@ -32,6 +33,16 @@ public sealed class Plugin : BaseUnityPlugin
         AccessTools.FieldRefAccess<MainSim, MainSim.LeaderboardStartArgs>("prevLeaderboardStart");
     private static readonly AccessTools.FieldRef<LeaderboardManager, GameObject> RunCancelledRef =
         AccessTools.FieldRefAccess<LeaderboardManager, GameObject>("runCancelled");
+    private static readonly AccessTools.FieldRef<LeaderboardManager, TextMeshProUGUI> FinishTimeTextRef =
+        AccessTools.FieldRefAccess<LeaderboardManager, TextMeshProUGUI>("finishTimeText");
+    private static readonly AccessTools.FieldRef<Simulation, bool> SimulationHasErrorRef =
+        AccessTools.FieldRefAccess<Simulation, bool>("hasError");
+    private static readonly AccessTools.FieldRef<CodeWindow, string> CodeWindowErrorStringRef =
+        AccessTools.FieldRefAccess<CodeWindow, string>("errorString");
+    private static readonly AccessTools.FieldRef<CodeWindow, int> CodeWindowErrorStartIndexRef =
+        AccessTools.FieldRefAccess<CodeWindow, int>("errorStartIndex");
+    private static readonly AccessTools.FieldRef<CodeWindow, int> CodeWindowErrorEndIndexRef =
+        AccessTools.FieldRefAccess<CodeWindow, int>("errorEndIndex");
 
     private OracleRunnerConfig runnerConfig = null!;
     private RunnerStateStore stateStore = null!;
@@ -203,7 +214,7 @@ public sealed class Plugin : BaseUnityPlugin
         {
             if (Time.realtimeSinceStartup - pluginStartedAt > runnerConfig.ScriptReadyTimeoutSeconds.Value)
             {
-                RunnerStateProtocol.MarkFailed(
+                MarkFailedWithOutput(
                     requestedState,
                     $"script window not found: {targetScriptName}",
                     DateTimeOffset.UtcNow
@@ -227,9 +238,9 @@ public sealed class Plugin : BaseUnityPlugin
         Node? syntaxTree = targetWindow.Parse();
         if (syntaxTree == null)
         {
-            RunnerStateProtocol.MarkFailed(
+            MarkFailedWithOutput(
                 requestedState,
-                $"parse failed: {targetScriptName}",
+                BuildParseFailureMessage(targetWindow, targetScriptName),
                 DateTimeOffset.UtcNow
             );
             stateStore.Write(requestedState);
@@ -272,6 +283,16 @@ public sealed class Plugin : BaseUnityPlugin
                     $"等待 StopMainExecution 生效 request_id={activeRequest.RequestId} elapsed={stopElapsed:F1}s"
                 );
             }
+            return;
+        }
+
+        if (HasSimulationError(mainSim))
+        {
+            MarkFailedWithOutput(activeRequest, "script runtime error; see output.txt Error block", DateTimeOffset.UtcNow);
+            stateStore.Write(activeRequest);
+            mainSim.StopMainExecution();
+            activeRequest = null;
+            stopReason = StopReason.None;
             return;
         }
 
@@ -330,8 +351,28 @@ public sealed class Plugin : BaseUnityPlugin
         StringBuilder builder = new StringBuilder();
         builder.Append("item_snapshot request_id=");
         builder.Append(activeRequest?.RequestId ?? 0);
-        builder.Append(" elapsed=");
+        builder.Append(" real_elapsed=");
         builder.Append((Time.realtimeSinceStartup - activeRequestStartedAt).ToString("0.0", CultureInfo.InvariantCulture));
+        Simulation? sim = SimRef(mainSim);
+        if (sim != null)
+        {
+            builder.Append(" game_time=");
+            builder.Append(sim.CurrentTime.Seconds.ToString("0.###", CultureInfo.InvariantCulture));
+            if (sim.Execution != null)
+            {
+                builder.Append(" game_tick=");
+                builder.Append(sim.Execution.GlobalOpCount.ToString("0.###", CultureInfo.InvariantCulture));
+            }
+        }
+        builder.Append(" leaderboard_runs=");
+        builder.Append(mainSim.numLeaderboardRuns.ToString(CultureInfo.InvariantCulture));
+        builder.Append(" leaderboard_total_time=");
+        builder.Append(mainSim.totalLeaderboardTime.Seconds.ToString("0.###", CultureInfo.InvariantCulture));
+        if (!string.IsNullOrWhiteSpace(observedLeaderboardScriptName))
+        {
+            builder.Append(" leaderboard_script=");
+            builder.Append(observedLeaderboardScriptName);
+        }
 
         ItemBlock inventory = mainSim.GetInventory();
         foreach (ItemSO item in ResourceManager.GetAllItems())
@@ -410,7 +451,7 @@ public sealed class Plugin : BaseUnityPlugin
                 }
                 else
                 {
-                    RunnerStateProtocol.MarkFailed(activeRequest, "leaderboard cancelled", DateTimeOffset.UtcNow);
+                    MarkFailedWithOutput(activeRequest, "leaderboard cancelled", DateTimeOffset.UtcNow);
                 }
                 stateStore.Write(activeRequest);
                 activeRequest = null;
@@ -420,14 +461,41 @@ public sealed class Plugin : BaseUnityPlugin
         }
         else if (mainSim.leaderboardManager.IsLeaderBoardScreenOpen)
         {
-            if (activeRequest != null)
+            bool finished = !RunCancelledRef(mainSim.leaderboardManager).activeSelf;
+            if (finished)
             {
-                RunnerStateProtocol.MarkFailed(activeRequest, "leaderboard finished without completed runs", DateTimeOffset.UtcNow);
-                stateStore.Write(activeRequest);
-                activeRequest = null;
-            }
+                string scriptName = string.IsNullOrWhiteSpace(observedLeaderboardScriptName)
+                    ? ResolveLeaderboardScriptName(mainSim, sim)
+                    : observedLeaderboardScriptName;
+                TimeSpan averageTime = ParseLeaderboardFinishTime(mainSim.leaderboardManager);
+                string summaryLine = LeaderboardLogFormatter.FormatSummaryLine(
+                    scriptName,
+                    finished: true,
+                    runCount: 1,
+                    averageTime
+                );
+                global::Logger.Log(summaryLine);
 
-            CloseLeaderboardResultScreen(mainSim);
+                if (activeRequest != null)
+                {
+                    RunnerStateProtocol.MarkDone(activeRequest, DateTimeOffset.UtcNow);
+                    stateStore.Write(activeRequest);
+                    activeRequest = null;
+                }
+
+                CloseLeaderboardResultScreen(mainSim);
+            }
+            else
+            {
+                if (activeRequest != null)
+                {
+                    MarkFailedWithOutput(activeRequest, "leaderboard finished without completed runs", DateTimeOffset.UtcNow);
+                    stateStore.Write(activeRequest);
+                    activeRequest = null;
+                }
+
+                CloseLeaderboardResultScreen(mainSim);
+            }
         }
 
         wasLeaderboardRunning = false;
@@ -445,6 +513,65 @@ public sealed class Plugin : BaseUnityPlugin
 
         mainSim.leaderboardManager.OkPressed();
         Log.LogInfo("已自动确认 leaderboard 结果页面");
+    }
+
+    private static TimeSpan ParseLeaderboardFinishTime(LeaderboardManager leaderboardManager)
+    {
+        string rawText = FinishTimeTextRef(leaderboardManager).text.Trim();
+        string[] minuteAndRest = rawText.Split(':', 2);
+        if (minuteAndRest.Length != 2 ||
+            !int.TryParse(minuteAndRest[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int minutes) ||
+            !double.TryParse(minuteAndRest[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double seconds))
+        {
+            return TimeSpan.Zero;
+        }
+
+        return TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
+    }
+
+    private void ObserveLeaderboardStopped(
+        MainSim mainSim,
+        bool finished,
+        string leaderboardName,
+        TimeSpan averageTime,
+        int runCount
+    )
+    {
+        if (activeRequest == null)
+        {
+            return;
+        }
+
+        string scriptName = string.IsNullOrWhiteSpace(observedLeaderboardScriptName)
+            ? ResolveLeaderboardScriptName(mainSim, SimRef(mainSim))
+            : observedLeaderboardScriptName;
+        int normalizedRunCount = Math.Max(1, runCount);
+        string summaryLine = LeaderboardLogFormatter.FormatSummaryLine(
+            scriptName,
+            finished,
+            normalizedRunCount,
+            averageTime
+        );
+        global::Logger.Log(summaryLine);
+
+        if (finished)
+        {
+            RunnerStateProtocol.MarkDone(activeRequest, DateTimeOffset.UtcNow);
+        }
+        else
+        {
+            MarkFailedWithOutput(
+                activeRequest,
+                $"leaderboard cancelled: {leaderboardName}",
+                DateTimeOffset.UtcNow
+            );
+        }
+        stateStore.Write(activeRequest);
+        activeRequest = null;
+        wasLeaderboardRunning = false;
+        observedLeaderboardRuns = 0;
+        observedLeaderboardTotalTime = TimeSpan.Zero;
+        observedLeaderboardScriptName = string.Empty;
     }
 
     private void BeginStop(MainSim mainSim, StopReason reason)
@@ -473,7 +600,7 @@ public sealed class Plugin : BaseUnityPlugin
 
         if (stopReason == StopReason.Timeout || stopReason == StopReason.StopRequested)
         {
-            RunnerStateProtocol.MarkFailed(
+            MarkFailedWithOutput(
                 activeRequest,
                 stopReason == StopReason.Timeout
                     ? $"request timed out after {(activeRequest.TimeoutSeconds ?? runnerConfig.DefaultRequestTimeoutSeconds.Value):0.###}s"
@@ -508,6 +635,43 @@ public sealed class Plugin : BaseUnityPlugin
         stateStore.Write(activeRequest);
         Log.LogInfo($"脚本执行完成 request_id={activeRequest.RequestId}");
         activeRequest = null;
+    }
+
+    private static bool HasSimulationError(MainSim mainSim)
+    {
+        Simulation? sim = SimRef(mainSim);
+        return sim != null && SimulationHasErrorRef(sim);
+    }
+
+    private static string BuildParseFailureMessage(CodeWindow targetWindow, string targetScriptName)
+    {
+        string error = CodeWindowErrorStringRef(targetWindow);
+        int startIndex = CodeWindowErrorStartIndexRef(targetWindow);
+        int endIndex = CodeWindowErrorEndIndexRef(targetWindow);
+        if (string.IsNullOrWhiteSpace(error))
+        {
+            return $"parse failed: {targetScriptName}";
+        }
+
+        return $"parse failed: {targetScriptName} error={error} start={startIndex} end={endIndex}";
+    }
+
+    private static void MarkFailedWithOutput(
+        OracleRunnerStateFile state,
+        string message,
+        DateTimeOffset finishedAt
+    )
+    {
+        RunnerStateProtocol.MarkFailed(state, message, finishedAt);
+        WriteOracleErrorToOutput(state.RequestId, message);
+    }
+
+    private static void WriteOracleErrorToOutput(int requestId, string message)
+    {
+        string normalizedMessage = message
+            .Replace('\r', ' ')
+            .Replace('\n', ' ');
+        global::Logger.Log($"oracle_error request_id={requestId} {normalizedMessage}");
     }
 
     private CodeWindow? FindTargetWindow(Workspace workspace, string targetScriptName)
@@ -555,6 +719,32 @@ public sealed class Plugin : BaseUnityPlugin
         private static void Postfix()
         {
             Instance?.MarkMenuPlayed();
+        }
+    }
+
+    [HarmonyPatch(typeof(LeaderboardManager), nameof(LeaderboardManager.StopLeaderboardRun))]
+    private static class LeaderboardStopPatch
+    {
+        private static void Prefix(
+            LeaderboardManager __instance,
+            bool finished,
+            string leaderboardName,
+            TimeSpan timeSpan
+        )
+        {
+            MainSim? mainSim = MainSim.Inst;
+            if (mainSim == null)
+            {
+                return;
+            }
+
+            Instance?.ObserveLeaderboardStopped(
+                mainSim,
+                finished,
+                leaderboardName,
+                timeSpan,
+                mainSim.numLeaderboardRuns
+            );
         }
     }
 }

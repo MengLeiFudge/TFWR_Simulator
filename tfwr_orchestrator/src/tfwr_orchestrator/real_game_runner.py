@@ -31,6 +31,14 @@ LEADERBOARD_SUCCESS_SUMMARY_RE = re.compile(
 )
 LEADERBOARD_RUN_RE = re.compile(r"\[lb_[^\]]+(?:\.py)?\]\s+run=([1-9][0-9]*)\s+time=")
 CONTROLLED_STOP_PREFIXES = ("reached max leaderboard runs",)
+RESOURCE_TARGETS_BY_SCRIPT = {
+    "lb_cactus": (("cactus", 33554432.0),),
+    "lb_cactus_single": (("cactus", 131072.0),),
+    "lb_maze": (("gold", 9863168.0),),
+    "lb_maze_single": (("gold", 616448.0),),
+}
+ITEM_SNAPSHOT_RE = re.compile(r"\bitem_snapshot\b(?P<body>.*)$")
+LEADERBOARD_SCRIPT_RE = re.compile(r"\[(lb_[^\]]+?)(?:\.py)?\]")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -75,7 +83,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--output-stall-timeout",
         type=float,
         default=30.0,
-        help="请求运行后游戏 output.txt 连续无新增输出的最长墙钟秒数，默认 30 秒；设为 0 可关闭。",
+        help="请求运行后游戏 output.txt 与 BepInEx 日志都连续无新增输出的最长墙钟秒数，默认 30 秒；设为 0 可关闭。",
     )
     parser.add_argument(
         "--max-leaderboard-runs",
@@ -273,8 +281,9 @@ def wait_for_status(
     max_leaderboard_runs: int,
 ) -> dict[str, object]:
     deadline = time.monotonic() + timeout_seconds
-    last_game_output_at = time.monotonic()
+    last_output_activity_at = time.monotonic()
     last_game_output_count = 0
+    last_mod_output_count = 0
     stop_requested_for_stall = False
     controlled_stop_message: str | None = None
     while time.monotonic() < deadline:
@@ -305,10 +314,15 @@ def wait_for_status(
                 and status == "running"
             ):
                 game_output_lines = read_appended_lines(baseline.game_output_path, baseline.game_output_signature)
+                mod_output_lines = read_appended_lines(baseline.mod_output_path, baseline.mod_output_signature)
                 game_output_count = len(game_output_lines)
+                mod_output_count = len(mod_output_lines)
                 if game_output_count > last_game_output_count:
                     last_game_output_count = game_output_count
-                    last_game_output_at = time.monotonic()
+                    last_output_activity_at = time.monotonic()
+                if mod_output_count > last_mod_output_count:
+                    last_mod_output_count = mod_output_count
+                    last_output_activity_at = time.monotonic()
 
                 completed_runs = count_leaderboard_runs(game_output_lines)
                 if max_leaderboard_runs > 0 and completed_runs >= max_leaderboard_runs:
@@ -321,11 +335,11 @@ def wait_for_status(
                     output_stall_timeout > 0
                     and
                     not stop_requested_for_stall
-                    and time.monotonic() - last_game_output_at >= output_stall_timeout
+                    and time.monotonic() - last_output_activity_at >= output_stall_timeout
                 ):
                     message = (
-                        f"game output stalled for {output_stall_timeout:g}s "
-                        f"after {last_game_output_count} appended lines"
+                        f"game output and mod log stalled for {output_stall_timeout:g}s "
+                        f"after game_lines={last_game_output_count} mod_lines={last_mod_output_count}"
                     )
                     write_state_file(state_path, build_stop_requested_state(current, message))
                     stop_requested_for_stall = True
@@ -401,7 +415,10 @@ def target_requires_leaderboard_summary(target_script: str | None) -> bool:
 
 
 def has_successful_leaderboard_summary(outputs: CapturedOutputs) -> bool:
-    return any(LEADERBOARD_SUCCESS_SUMMARY_RE.search(line) for line in outputs.mod_output_lines)
+    return any(
+        LEADERBOARD_SUCCESS_SUMMARY_RE.search(line)
+        for line in (*outputs.game_output_lines, *outputs.mod_output_lines)
+    )
 
 
 def count_leaderboard_runs(lines: tuple[str, ...]) -> int:
@@ -410,6 +427,94 @@ def count_leaderboard_runs(lines: tuple[str, ...]) -> int:
         if LEADERBOARD_RUN_RE.search(line):
             count += 1
     return count
+
+
+def parse_item_snapshot(line: str) -> dict[str, str]:
+    match = ITEM_SNAPSHOT_RE.search(line)
+    if match is None:
+        return {}
+    values: dict[str, str] = {}
+    for token in match.group("body").strip().split():
+        if "=" not in token:
+            continue
+        key, value = token.split("=", 1)
+        values[key] = value
+    return values
+
+
+def to_float(value: str | None) -> float | None:
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def infer_progress_script(outputs: CapturedOutputs, target_script: str | None) -> str | None:
+    normalized = normalize_target_script_name(target_script)
+    if normalized and normalized != "lb_start":
+        return normalized
+    for line in (*outputs.game_output_lines, *outputs.mod_output_lines):
+        snapshot = parse_item_snapshot(line)
+        script = snapshot.get("leaderboard_script")
+        if script:
+            return normalize_target_script_name(script)
+        match = LEADERBOARD_SCRIPT_RE.search(line)
+        if match is not None:
+            return normalize_target_script_name(match.group(1))
+    return None
+
+
+def format_seconds(seconds: float) -> str:
+    if seconds < 0:
+        seconds = 0
+    whole_seconds = int(seconds + 0.5)
+    minutes, second = divmod(whole_seconds, 60)
+    hours, minute = divmod(minutes, 60)
+    if hours > 0:
+        return f"{hours}:{minute:02d}:{second:02d}"
+    return f"{minute}:{second:02d}"
+
+
+def build_progress_estimate_lines(outputs: CapturedOutputs, target_script: str | None) -> tuple[str, ...]:
+    script = infer_progress_script(outputs, target_script)
+    if script is None or script not in RESOURCE_TARGETS_BY_SCRIPT:
+        return ()
+    snapshots = [
+        snapshot
+        for line in outputs.mod_output_lines
+        if (snapshot := parse_item_snapshot(line))
+        and normalize_target_script_name(snapshot.get("leaderboard_script")) == script
+    ]
+    if len(snapshots) < 2:
+        return ()
+
+    lines: list[str] = []
+    first = snapshots[0]
+    latest = snapshots[-1]
+    first_time = to_float(first.get("game_time") or first.get("sim_time"))
+    latest_time = to_float(latest.get("game_time") or latest.get("sim_time"))
+    if first_time is None or latest_time is None or latest_time <= first_time:
+        return ()
+
+    for item, target in RESOURCE_TARGETS_BY_SCRIPT[script]:
+        first_value = to_float(first.get(item))
+        latest_value = to_float(latest.get(item))
+        if first_value is None or latest_value is None or latest_value <= first_value:
+            continue
+        rate = (latest_value - first_value) / (latest_time - first_time)
+        if rate <= 0:
+            continue
+        remaining = max(0.0, target - latest_value)
+        eta_seconds = remaining / rate
+        lines.append(
+            "progress_estimate "
+            f"script={script} item={item} current={latest_value:.0f} target={target:.0f} "
+            f"game_time={latest_time:.3f} rate_per_game_second={rate:.3f} "
+            f"eta_game_seconds={eta_seconds:.3f} eta_game_time={format_seconds(eta_seconds)}"
+        )
+    return tuple(lines)
 
 
 def is_controlled_stop(result: dict[str, object]) -> bool:
@@ -455,6 +560,8 @@ def main(argv: list[str] | None = None) -> int:
         f"error={result.get('last_error')}"
     )
     _print_captured_outputs(outputs)
+    for line in build_progress_estimate_lines(outputs, args.target_script):
+        print(line)
     acknowledge_terminal_state(state_path)
     if result.get("status") == "done":
         if target_requires_leaderboard_summary(args.target_script) and not has_successful_leaderboard_summary(outputs):
