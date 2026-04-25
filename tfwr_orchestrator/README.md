@@ -103,6 +103,13 @@ python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --help
 python3 tfwr_orchestrator/tools/extract_leaderboard_snapshot.py --help
 ```
 
+科技事实表默认固化到 `references/unlocks/`：
+
+```bash
+python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format json --output references/unlocks/unlock_snapshot.json
+python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format markdown --output references/unlocks/unlock_snapshot.md
+```
+
 ## 双通道输出职责
 
 不要把两路输出混成一个“统一 output”概念：

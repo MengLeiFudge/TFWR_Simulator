@@ -1,0 +1,1872 @@
+{
+  "auto_unlock": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_auto_unlock",
+    "levels": [
+      {
+        "cost": {
+          "Pumpkin": 5000
+        },
+        "effect": "解锁符号/能力：Unlocks, unlock, num_unlocked",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "costs",
+    "unlock_cost": [
+      [
+        "Pumpkin",
+        5000
+      ]
+    ],
+    "unlocks": [
+      "Unlocks",
+      "unlock",
+      "num_unlocked"
+    ]
+  },
+  "cactus": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_cactus",
+    "levels": [
+      {
+        "cost": {
+          "Pumpkin": 5000
+        },
+        "effect": "100%（约 1x）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Pumpkin": 20000
+        },
+        "effect": "200%（约 2x）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Pumpkin": 120000
+        },
+        "effect": "400%（约 4x）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Pumpkin": 720000
+        },
+        "effect": "800%（约 8x）",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Pumpkin": 4320000
+        },
+        "effect": "1600%（约 16x）",
+        "level": 5
+      },
+      {
+        "cost": {
+          "Pumpkin": 25920000
+        },
+        "effect": "3200%（约 32x）",
+        "level": 6
+      }
+    ],
+    "max_unlock_level": 6,
+    "multi_unlock_cost": [
+      [
+        [
+          "Pumpkin",
+          20000
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_cactus",
+    "multi_unlock_descr_mode": 1,
+    "multi_unlock_descr_mode_name": "additive_percent",
+    "multi_unlock_factor": 6.0,
+    "parent_unlock": "pumpkins",
+    "unlock_cost": [
+      [
+        "Pumpkin",
+        5000
+      ]
+    ],
+    "unlocks": [
+      "swap",
+      "cactus_seed",
+      "measure"
+    ]
+  },
+  "carrots": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_carrots",
+    "levels": [
+      {
+        "cost": {
+          "Wood": 50
+        },
+        "effect": "100%（约 1x）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Wood": 250
+        },
+        "effect": "200%（约 2x）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Wood": 1250
+        },
+        "effect": "400%（约 4x）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Wood": 6250
+        },
+        "effect": "800%（约 8x）",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Wood": 31250
+        },
+        "effect": "1600%（约 16x）",
+        "level": 5
+      },
+      {
+        "cost": {
+          "Wood": 156250
+        },
+        "effect": "3200%（约 32x）",
+        "level": 6
+      },
+      {
+        "cost": {
+          "Wood": 781250
+        },
+        "effect": "6400%（约 64x）",
+        "level": 7
+      },
+      {
+        "cost": {
+          "Wood": 3906250
+        },
+        "effect": "12800%（约 128x）",
+        "level": 8
+      },
+      {
+        "cost": {
+          "Wood": 19531250
+        },
+        "effect": "25600%（约 256x）",
+        "level": 9
+      },
+      {
+        "cost": {
+          "Wood": 97656250
+        },
+        "effect": "51200%（约 512x）",
+        "level": 10
+      }
+    ],
+    "max_unlock_level": 10,
+    "multi_unlock_cost": [
+      [
+        [
+          "Wood",
+          250
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_carrots",
+    "multi_unlock_descr_mode": 1,
+    "multi_unlock_descr_mode_name": "additive_percent",
+    "multi_unlock_factor": 5.0,
+    "parent_unlock": "plant",
+    "unlock_cost": [
+      [
+        "Wood",
+        50
+      ]
+    ],
+    "unlocks": [
+      "carrot",
+      "till",
+      "can_trade",
+      "trade",
+      "Items",
+      "carrot_seed"
+    ]
+  },
+  "costs": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_costs",
+    "levels": [
+      {
+        "cost": {
+          "Pumpkin": 2500
+        },
+        "effect": "解锁符号/能力：get_cost, Unlocks",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "dictionaries",
+    "unlock_cost": [
+      [
+        "Pumpkin",
+        2500
+      ]
+    ],
+    "unlocks": [
+      "get_cost",
+      "Unlocks"
+    ]
+  },
+  "debug": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_debug",
+    "levels": [
+      {
+        "cost": {
+          "Hay": 50,
+          "Wood": 50
+        },
+        "effect": "解锁符号/能力：print, quick_print, Unlocks, str",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "plant",
+    "unlock_cost": [
+      [
+        "Hay",
+        50
+      ],
+      [
+        "Wood",
+        50
+      ]
+    ],
+    "unlocks": [
+      "print",
+      "quick_print",
+      "Unlocks",
+      "str"
+    ]
+  },
+  "debug_2": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_debug2",
+    "levels": [
+      {
+        "cost": {
+          "Gold": 500
+        },
+        "effect": "解锁符号/能力：set_execution_speed, set_world_size",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "debug",
+    "unlock_cost": [
+      [
+        "Gold",
+        500
+      ]
+    ],
+    "unlocks": [
+      "set_execution_speed",
+      "set_world_size"
+    ]
+  },
+  "dictionaries": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_dicts",
+    "levels": [
+      {
+        "cost": {
+          "Pumpkin": 2500
+        },
+        "effect": "解锁符号/能力：dicts, sets, add, dict, set",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "lists",
+    "unlock_cost": [
+      [
+        "Pumpkin",
+        2500
+      ]
+    ],
+    "unlocks": [
+      "dicts",
+      "sets",
+      "add",
+      "dict",
+      "set"
+    ]
+  },
+  "dinosaurs": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_dinosaurs",
+    "levels": [
+      {
+        "cost": {
+          "Cactus": 2000
+        },
+        "effect": "100%（约 1x）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Cactus": 12000
+        },
+        "effect": "200%（约 2x）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Cactus": 72000
+        },
+        "effect": "400%（约 4x）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Cactus": 432000
+        },
+        "effect": "800%（约 8x）",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Cactus": 2592000
+        },
+        "effect": "1600%（约 16x）",
+        "level": 5
+      },
+      {
+        "cost": {
+          "Cactus": 15552000
+        },
+        "effect": "3200%（约 32x）",
+        "level": 6
+      }
+    ],
+    "max_unlock_level": 6,
+    "multi_unlock_cost": [
+      [
+        [
+          "Cactus",
+          12000
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_dinosaur",
+    "multi_unlock_descr_mode": 1,
+    "multi_unlock_descr_mode_name": "additive_percent",
+    "multi_unlock_factor": 6.0,
+    "parent_unlock": "cactus",
+    "unlock_cost": [
+      [
+        "Cactus",
+        2000
+      ]
+    ],
+    "unlocks": [
+      "dinosaur",
+      "egg",
+      "bone",
+      "change_hat",
+      "hats",
+      "dinosaur_hat",
+      "apple",
+      "can_move"
+    ]
+  },
+  "expand": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_expand",
+    "levels": [
+      {
+        "cost": {
+          "Hay": 30
+        },
+        "effect": "1x3",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Wood": 20
+        },
+        "effect": "3x3",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Carrot": 20,
+          "Wood": 30
+        },
+        "effect": "4x4",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Carrot": 50,
+          "Wood": 100
+        },
+        "effect": "6x6",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Pumpkin": 1000
+        },
+        "effect": "8x8",
+        "level": 5
+      },
+      {
+        "cost": {
+          "Pumpkin": 8000
+        },
+        "effect": "12x12",
+        "level": 6
+      },
+      {
+        "cost": {
+          "Pumpkin": 64000
+        },
+        "effect": "16x16",
+        "level": 7
+      },
+      {
+        "cost": {
+          "Pumpkin": 512000
+        },
+        "effect": "24x24",
+        "level": 8
+      },
+      {
+        "cost": {
+          "Pumpkin": 4096000
+        },
+        "effect": "32x32",
+        "level": 9
+      }
+    ],
+    "max_unlock_level": 9,
+    "multi_unlock_cost": [
+      [
+        [
+          "Wood",
+          20
+        ]
+      ],
+      [
+        [
+          "Wood",
+          30
+        ],
+        [
+          "Carrot",
+          20
+        ]
+      ],
+      [
+        [
+          "Wood",
+          100
+        ],
+        [
+          "Carrot",
+          50
+        ]
+      ],
+      [
+        [
+          "Pumpkin",
+          1000
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_expand",
+    "multi_unlock_descr_mode": 2,
+    "multi_unlock_descr_mode_name": "grid_size",
+    "multi_unlock_factor": 8.0,
+    "parent_unlock": "speed",
+    "unlock_cost": [
+      [
+        "Hay",
+        30
+      ]
+    ],
+    "unlocks": [
+      "move",
+      "North",
+      "South",
+      "East",
+      "West",
+      "2for",
+      "2range",
+      "2get_world_size"
+    ]
+  },
+  "fertilizer": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_fertilizer",
+    "levels": [
+      {
+        "cost": {
+          "Wood": 500
+        },
+        "effect": "0.1/s（每 10s 1 个）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Wood": 1500
+        },
+        "effect": "0.2/s（每 10s 2 个）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Wood": 9000
+        },
+        "effect": "0.4/s（每 10s 4 个）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Wood": 54000
+        },
+        "effect": "0.8/s（每 10s 8 个）",
+        "level": 4
+      }
+    ],
+    "max_unlock_level": 4,
+    "multi_unlock_cost": [
+      [
+        [
+          "Wood",
+          1500
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_fertilizer",
+    "multi_unlock_descr_mode": 4,
+    "multi_unlock_descr_mode_name": "per_10_seconds",
+    "multi_unlock_factor": 6.0,
+    "parent_unlock": "watering",
+    "unlock_cost": [
+      [
+        "Wood",
+        500
+      ]
+    ],
+    "unlocks": [
+      "use_item",
+      "weird_substance"
+    ]
+  },
+  "functions": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_functions",
+    "levels": [
+      {
+        "cost": {
+          "Carrot": 40
+        },
+        "effect": "解锁符号/能力：functions, def, return, global",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "variables",
+    "unlock_cost": [
+      [
+        "Carrot",
+        40
+      ]
+    ],
+    "unlocks": [
+      "functions",
+      "def",
+      "return",
+      "global"
+    ]
+  },
+  "grass": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_grass",
+    "levels": [
+      {
+        "cost": {
+          "Hay": 100
+        },
+        "effect": "100%（约 1x）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Hay": 300
+        },
+        "effect": "200%（约 2x）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Wood": 500
+        },
+        "effect": "400%（约 4x）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Wood": 2500
+        },
+        "effect": "800%（约 8x）",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Wood": 12500
+        },
+        "effect": "1600%（约 16x）",
+        "level": 5
+      },
+      {
+        "cost": {
+          "Wood": 62500
+        },
+        "effect": "3200%（约 32x）",
+        "level": 6
+      },
+      {
+        "cost": {
+          "Wood": 312500
+        },
+        "effect": "6400%（约 64x）",
+        "level": 7
+      },
+      {
+        "cost": {
+          "Wood": 1562500
+        },
+        "effect": "12800%（约 128x）",
+        "level": 8
+      },
+      {
+        "cost": {
+          "Wood": 7812500
+        },
+        "effect": "25600%（约 256x）",
+        "level": 9
+      },
+      {
+        "cost": {
+          "Wood": 39062500
+        },
+        "effect": "51200%（约 512x）",
+        "level": 10
+      }
+    ],
+    "max_unlock_level": 10,
+    "multi_unlock_cost": [
+      [
+        [
+          "Hay",
+          300
+        ]
+      ],
+      [
+        [
+          "Wood",
+          500
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "unlock_descr_grass",
+    "multi_unlock_descr_mode": 1,
+    "multi_unlock_descr_mode_name": "additive_percent",
+    "multi_unlock_factor": 5.0,
+    "parent_unlock": "loops",
+    "unlock_cost": [
+      [
+        "Hay",
+        100
+      ]
+    ],
+    "unlocks": []
+  },
+  "hats": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_hats",
+    "levels": [
+      {
+        "cost": {
+          "Hay": 50
+        },
+        "effect": "解锁符号/能力：change_hat, gray_hat, purple_hat, green_hat, brown_hat",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [
+      []
+    ],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 4.0,
+    "parent_unlock": "loops",
+    "unlock_cost": [
+      [
+        "Hay",
+        50
+      ]
+    ],
+    "unlocks": [
+      "change_hat",
+      "gray_hat",
+      "purple_hat",
+      "green_hat",
+      "brown_hat"
+    ]
+  },
+  "import": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_import",
+    "levels": [
+      {
+        "cost": {
+          "Carrot": 80
+        },
+        "effect": "解锁符号/能力：from",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "functions",
+    "unlock_cost": [
+      [
+        "Carrot",
+        80
+      ]
+    ],
+    "unlocks": [
+      "from"
+    ]
+  },
+  "leaderboard": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_leaderboard",
+    "levels": [
+      {
+        "cost": {
+          "Bone": 2000000,
+          "Gold": 1000000
+        },
+        "effect": "解锁符号/能力：leaderboard_run, Leaderboards",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "simulation",
+    "unlock_cost": [
+      [
+        "Gold",
+        1000000
+      ],
+      [
+        "Bone",
+        2000000
+      ]
+    ],
+    "unlocks": [
+      "leaderboard_run",
+      "Leaderboards"
+    ]
+  },
+  "lists": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_lists",
+    "levels": [
+      {
+        "cost": {
+          "Carrot": 500
+        },
+        "effect": "解锁符号/能力：append, remove, pop, insert, len, list",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "variables",
+    "unlock_cost": [
+      [
+        "Carrot",
+        500
+      ]
+    ],
+    "unlocks": [
+      "append",
+      "remove",
+      "pop",
+      "insert",
+      "len",
+      "list"
+    ]
+  },
+  "loops": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_loops",
+    "levels": [
+      {
+        "cost": {
+          "Hay": 5
+        },
+        "effect": "解锁符号/能力：while, True, False, break, continue",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": null,
+    "unlock_cost": [
+      [
+        "Hay",
+        5
+      ]
+    ],
+    "unlocks": [
+      "while",
+      "True",
+      "False",
+      "break",
+      "continue"
+    ]
+  },
+  "mazes": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_mazes",
+    "levels": [
+      {
+        "cost": {
+          "Weird_Substance": 1000
+        },
+        "effect": "100%（约 1x）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Cactus": 12000
+        },
+        "effect": "200%（约 2x）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Cactus": 72000
+        },
+        "effect": "400%（约 4x）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Cactus": 432000
+        },
+        "effect": "800%（约 8x）",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Cactus": 2592000
+        },
+        "effect": "1600%（约 16x）",
+        "level": 5
+      },
+      {
+        "cost": {
+          "Cactus": 15552000
+        },
+        "effect": "3200%（约 32x）",
+        "level": 6
+      }
+    ],
+    "max_unlock_level": 6,
+    "multi_unlock_cost": [
+      [
+        [
+          "Cactus",
+          12000
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_mazes",
+    "multi_unlock_descr_mode": 1,
+    "multi_unlock_descr_mode_name": "additive_percent",
+    "multi_unlock_factor": 6.0,
+    "parent_unlock": "fertilizer",
+    "unlock_cost": [
+      [
+        "Weird_Substance",
+        1000
+      ]
+    ],
+    "unlocks": [
+      "hedge",
+      "treasure",
+      "gold",
+      "measure",
+      "can_move"
+    ]
+  },
+  "megafarm": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 100.0,
+    "description_key": "unlock_descr_megafarm",
+    "levels": [
+      {
+        "cost": {
+          "Gold": 2000
+        },
+        "effect": "最多 2 架无人机",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Gold": 8000
+        },
+        "effect": "最多 4 架无人机",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Gold": 32000
+        },
+        "effect": "最多 8 架无人机",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Gold": 128000
+        },
+        "effect": "最多 16 架无人机",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Gold": 512000
+        },
+        "effect": "最多 32 架无人机",
+        "level": 5
+      }
+    ],
+    "max_unlock_level": 5,
+    "multi_unlock_cost": [
+      [
+        [
+          "Gold",
+          8000
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_megafarm",
+    "multi_unlock_descr_mode": 3,
+    "multi_unlock_descr_mode_name": "megafarm",
+    "multi_unlock_factor": 4.0,
+    "parent_unlock": "mazes",
+    "unlock_cost": [
+      [
+        "Gold",
+        2000
+      ]
+    ],
+    "unlocks": [
+      "get_drone_id",
+      "num_drones",
+      "max_drones",
+      "wait_for",
+      "spawn_drone",
+      "has_finished"
+    ]
+  },
+  "operators": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_operators",
+    "levels": [
+      {
+        "cost": {
+          "Hay": 150,
+          "Wood": 10
+        },
+        "effect": "解锁符号/能力：and, or, not",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "plant",
+    "unlock_cost": [
+      [
+        "Hay",
+        150
+      ],
+      [
+        "Wood",
+        10
+      ]
+    ],
+    "unlocks": [
+      "and",
+      "or",
+      "not"
+    ]
+  },
+  "plant": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_plant",
+    "levels": [
+      {
+        "cost": {
+          "Hay": 50
+        },
+        "effect": "解锁符号/能力：wood, bush, Entities, clear",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "speed",
+    "unlock_cost": [
+      [
+        "Hay",
+        50
+      ]
+    ],
+    "unlocks": [
+      "wood",
+      "bush",
+      "Entities",
+      "clear"
+    ]
+  },
+  "polyculture": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 900.0,
+    "description_key": "unlock_descr_polyculture",
+    "levels": [
+      {
+        "cost": {
+          "Pumpkin": 3000
+        },
+        "effect": "1000%（约 10x）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Bone": 10000
+        },
+        "effect": "2000%（约 20x）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Bone": 50000
+        },
+        "effect": "4000%（约 40x）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Bone": 250000
+        },
+        "effect": "8000%（约 80x）",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Bone": 1250000
+        },
+        "effect": "16000%（约 160x）",
+        "level": 5
+      }
+    ],
+    "max_unlock_level": 5,
+    "multi_unlock_cost": [
+      [
+        [
+          "Bone",
+          10000
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_polyculture",
+    "multi_unlock_descr_mode": 1,
+    "multi_unlock_descr_mode_name": "additive_percent",
+    "multi_unlock_factor": 5.0,
+    "parent_unlock": "pumpkins",
+    "unlock_cost": [
+      [
+        "Pumpkin",
+        3000
+      ]
+    ],
+    "unlocks": [
+      "get_companion"
+    ]
+  },
+  "pumpkins": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_pumpkin",
+    "levels": [
+      {
+        "cost": {
+          "Carrot": 200,
+          "Wood": 500
+        },
+        "effect": "100%（约 1x）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Carrot": 1000
+        },
+        "effect": "200%（约 2x）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Carrot": 4000
+        },
+        "effect": "400%（约 4x）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Carrot": 16000
+        },
+        "effect": "800%（约 8x）",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Carrot": 64000
+        },
+        "effect": "1600%（约 16x）",
+        "level": 5
+      },
+      {
+        "cost": {
+          "Carrot": 256000
+        },
+        "effect": "3200%（约 32x）",
+        "level": 6
+      },
+      {
+        "cost": {
+          "Carrot": 1024000
+        },
+        "effect": "6400%（约 64x）",
+        "level": 7
+      },
+      {
+        "cost": {
+          "Carrot": 4096000
+        },
+        "effect": "12800%（约 128x）",
+        "level": 8
+      },
+      {
+        "cost": {
+          "Carrot": 16384000
+        },
+        "effect": "25600%（约 256x）",
+        "level": 9
+      },
+      {
+        "cost": {
+          "Carrot": 65536000
+        },
+        "effect": "51200%（约 512x）",
+        "level": 10
+      }
+    ],
+    "max_unlock_level": 10,
+    "multi_unlock_cost": [
+      [
+        [
+          "Carrot",
+          1000
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_pumpkins",
+    "multi_unlock_descr_mode": 1,
+    "multi_unlock_descr_mode_name": "additive_percent",
+    "multi_unlock_factor": 4.0,
+    "parent_unlock": "trees",
+    "unlock_cost": [
+      [
+        "Wood",
+        500
+      ],
+      [
+        "Carrot",
+        200
+      ]
+    ],
+    "unlocks": [
+      "pumpkin",
+      "pumpkin_seed",
+      "dead_pumpkin"
+    ]
+  },
+  "senses": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_senses",
+    "levels": [
+      {
+        "cost": {
+          "Hay": 100
+        },
+        "effect": "解锁符号/能力：get_entity_type, get_ground_type, Grounds, get_pos_x, get_pos_y, None, num_items, Items, num_unlocked",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "operators",
+    "unlock_cost": [
+      [
+        "Hay",
+        100
+      ]
+    ],
+    "unlocks": [
+      "get_entity_type",
+      "get_ground_type",
+      "Grounds",
+      "get_pos_x",
+      "get_pos_y",
+      "None",
+      "num_items",
+      "Items",
+      "num_unlocked"
+    ]
+  },
+  "simulation": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_simulation",
+    "levels": [
+      {
+        "cost": {
+          "Gold": 5000
+        },
+        "effect": "解锁符号/能力：simulate",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "timing",
+    "unlock_cost": [
+      [
+        "Gold",
+        5000
+      ]
+    ],
+    "unlocks": [
+      "simulate"
+    ]
+  },
+  "speed": {
+    "additive_percent_factor": 1.5,
+    "additive_percent_start": 50.0,
+    "description_key": "unlock_descr_speed",
+    "levels": [
+      {
+        "cost": {
+          "Hay": 20
+        },
+        "effect": "150%（约 1.5x）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Wood": 20
+        },
+        "effect": "225%（约 2.25x）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Carrot": 50,
+          "Wood": 50
+        },
+        "effect": "337.5%（约 3.375x）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Carrot": 500
+        },
+        "effect": "506.25%（约 5.0625x）",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Carrot": 1000
+        },
+        "effect": "759.375%（约 7.59375x）",
+        "level": 5
+      }
+    ],
+    "max_unlock_level": 5,
+    "multi_unlock_cost": [
+      [
+        [
+          "Wood",
+          20
+        ]
+      ],
+      [
+        [
+          "Wood",
+          50
+        ],
+        [
+          "Carrot",
+          50
+        ]
+      ],
+      [
+        [
+          "Carrot",
+          500
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "unlock_descr_speed",
+    "multi_unlock_descr_mode": 1,
+    "multi_unlock_descr_mode_name": "additive_percent",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "loops",
+    "unlock_cost": [
+      [
+        "Hay",
+        20
+      ]
+    ],
+    "unlocks": [
+      "can_harvest",
+      "if",
+      "else",
+      "elif"
+    ]
+  },
+  "sunflowers": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_sunflowers",
+    "levels": [
+      {
+        "cost": {
+          "Carrot": 500
+        },
+        "effect": "解锁符号/能力：sunflower_seed, sunflower, power, get_active_power, measure",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 0.0,
+    "parent_unlock": "watering",
+    "unlock_cost": [
+      [
+        "Carrot",
+        500
+      ]
+    ],
+    "unlocks": [
+      "sunflower_seed",
+      "sunflower",
+      "power",
+      "get_active_power",
+      "measure"
+    ]
+  },
+  "the_farmers_remains": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_the_farmers_remains",
+    "levels": [
+      {
+        "cost": {
+          "Bone": 100000000
+        },
+        "effect": "解锁符号/能力：change_hat",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [
+      []
+    ],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 4.0,
+    "parent_unlock": "dinosaurs",
+    "unlock_cost": [
+      [
+        "Bone",
+        100000000
+      ]
+    ],
+    "unlocks": [
+      "change_hat"
+    ]
+  },
+  "timing": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_timing",
+    "levels": [
+      {
+        "cost": {
+          "Pumpkin": 1000
+        },
+        "effect": "解锁符号/能力：get_time, get_tick_count",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "debug",
+    "unlock_cost": [
+      [
+        "Pumpkin",
+        1000
+      ]
+    ],
+    "unlocks": [
+      "get_time",
+      "get_tick_count"
+    ]
+  },
+  "top_hat": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_top_hat",
+    "levels": [
+      {
+        "cost": {
+          "Cactus": 1000000000,
+          "Carrot": 1000000000,
+          "Gold": 100000000,
+          "Hay": 1000000000,
+          "Wood": 10000000000
+        },
+        "effect": "解锁符号/能力：change_hat",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [
+      []
+    ],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 4.0,
+    "parent_unlock": "mazes",
+    "unlock_cost": [
+      [
+        "Gold",
+        100000000
+      ],
+      [
+        "Cactus",
+        1000000000
+      ],
+      [
+        "Hay",
+        1000000000
+      ],
+      [
+        "Carrot",
+        1000000000
+      ],
+      [
+        "Wood",
+        10000000000
+      ]
+    ],
+    "unlocks": [
+      "change_hat"
+    ]
+  },
+  "trees": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_trees",
+    "levels": [
+      {
+        "cost": {
+          "Carrot": 70,
+          "Wood": 50
+        },
+        "effect": "100%（约 1x）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Hay": 300
+        },
+        "effect": "200%（约 2x）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Hay": 1200
+        },
+        "effect": "400%（约 4x）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Hay": 4800
+        },
+        "effect": "800%（约 8x）",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Hay": 19200
+        },
+        "effect": "1600%（约 16x）",
+        "level": 5
+      },
+      {
+        "cost": {
+          "Hay": 76800
+        },
+        "effect": "3200%（约 32x）",
+        "level": 6
+      },
+      {
+        "cost": {
+          "Hay": 307200
+        },
+        "effect": "6400%（约 64x）",
+        "level": 7
+      },
+      {
+        "cost": {
+          "Hay": 1228800
+        },
+        "effect": "12800%（约 128x）",
+        "level": 8
+      },
+      {
+        "cost": {
+          "Hay": 4915200
+        },
+        "effect": "25600%（约 256x）",
+        "level": 9
+      },
+      {
+        "cost": {
+          "Hay": 19660800
+        },
+        "effect": "51200%（约 512x）",
+        "level": 10
+      }
+    ],
+    "max_unlock_level": 10,
+    "multi_unlock_cost": [
+      [
+        [
+          "Hay",
+          300
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_trees",
+    "multi_unlock_descr_mode": 1,
+    "multi_unlock_descr_mode_name": "additive_percent",
+    "multi_unlock_factor": 4.0,
+    "parent_unlock": "carrots",
+    "unlock_cost": [
+      [
+        "Wood",
+        50
+      ],
+      [
+        "Carrot",
+        70
+      ]
+    ],
+    "unlocks": [
+      "tree"
+    ]
+  },
+  "utilities": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_utilities",
+    "levels": [
+      {
+        "cost": {
+          "Pumpkin": 1000
+        },
+        "effect": "解锁符号/能力：min, max, abs, random",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "functions",
+    "unlock_cost": [
+      [
+        "Pumpkin",
+        1000
+      ]
+    ],
+    "unlocks": [
+      "min",
+      "max",
+      "abs",
+      "random"
+    ]
+  },
+  "variables": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_variables",
+    "levels": [
+      {
+        "cost": {
+          "Carrot": 35
+        },
+        "effect": "一次性解锁",
+        "level": 1
+      }
+    ],
+    "max_unlock_level": 1,
+    "multi_unlock_cost": [],
+    "multi_unlock_descr_key": "",
+    "multi_unlock_descr_mode": 0,
+    "multi_unlock_descr_mode_name": "none",
+    "multi_unlock_factor": 2.0,
+    "parent_unlock": "operators",
+    "unlock_cost": [
+      [
+        "Carrot",
+        35
+      ]
+    ],
+    "unlocks": []
+  },
+  "watering": {
+    "additive_percent_factor": 2.0,
+    "additive_percent_start": 0.0,
+    "description_key": "unlock_descr_watering",
+    "levels": [
+      {
+        "cost": {
+          "Wood": 50
+        },
+        "effect": "0.1/s（每 10s 1 个）",
+        "level": 1
+      },
+      {
+        "cost": {
+          "Wood": 200
+        },
+        "effect": "0.2/s（每 10s 2 个）",
+        "level": 2
+      },
+      {
+        "cost": {
+          "Wood": 800
+        },
+        "effect": "0.4/s（每 10s 4 个）",
+        "level": 3
+      },
+      {
+        "cost": {
+          "Wood": 3200
+        },
+        "effect": "0.8/s（每 10s 8 个）",
+        "level": 4
+      },
+      {
+        "cost": {
+          "Wood": 12800
+        },
+        "effect": "1.6/s（每 10s 16 个）",
+        "level": 5
+      },
+      {
+        "cost": {
+          "Wood": 51200
+        },
+        "effect": "3.2/s（每 10s 32 个）",
+        "level": 6
+      },
+      {
+        "cost": {
+          "Wood": 204800
+        },
+        "effect": "6.4/s（每 10s 64 个）",
+        "level": 7
+      },
+      {
+        "cost": {
+          "Wood": 819200
+        },
+        "effect": "12.8/s（每 10s 128 个）",
+        "level": 8
+      },
+      {
+        "cost": {
+          "Wood": 3276800
+        },
+        "effect": "25.6/s（每 10s 256 个）",
+        "level": 9
+      }
+    ],
+    "max_unlock_level": 9,
+    "multi_unlock_cost": [
+      [
+        [
+          "Wood",
+          200
+        ]
+      ]
+    ],
+    "multi_unlock_descr_key": "multi_unlock_descr_watering",
+    "multi_unlock_descr_mode": 4,
+    "multi_unlock_descr_mode_name": "per_10_seconds",
+    "multi_unlock_factor": 4.0,
+    "parent_unlock": "carrots",
+    "unlock_cost": [
+      [
+        "Wood",
+        50
+      ]
+    ],
+    "unlocks": [
+      "water",
+      "use_item",
+      "get_water"
+    ]
+  }
+}

@@ -8,6 +8,9 @@
 
 - `references/leaderboard_scripts/`
   - `lb_*.py` 与同名 `lb_*.md` 的长期真源
+- `references/unlocks/`
+  - 从真实游戏资源和反编译逻辑生成的科技事实表
+  - 打榜脚本的科技顺序、前置和成本判断优先参考这里
 - `tfwr_orchestrator/`
   - Python 协调器
   - 负责路径解析、脚本部署、`lb_start.py` 生成、真实执行请求、双通道输出读取
@@ -187,6 +190,13 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --target-script lb_start
 python3 tfwr_orchestrator/tools/refresh_decompiled_sources.py --help
 python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --help
 python3 tfwr_orchestrator/tools/extract_leaderboard_snapshot.py --help
+```
+
+刷新科技事实表：
+
+```bash
+python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format json --output references/unlocks/unlock_snapshot.json
+python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format markdown --output references/unlocks/unlock_snapshot.md
 ```
 
 ## 测试
