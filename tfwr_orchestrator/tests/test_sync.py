@@ -16,6 +16,10 @@ class LeaderboardSyncTests(unittest.TestCase):
         text = leaderboard_sync.render_lb_start("lb_fastest_reset")
         self.assertIn('leaderboard_run(Leaderboards.Fastest_Reset, "lb_fastest_reset", 200)', text)
 
+    def test_render_lb_start_uses_dinosaur_iterations(self) -> None:
+        text = leaderboard_sync.render_lb_start("lb_dinosaur")
+        self.assertIn('leaderboard_run(Leaderboards.Dinosaur, "lb_dinosaur", 1000)', text)
+
     def test_render_lb_start_uses_pumpkins_iterations(self) -> None:
         text = leaderboard_sync.render_lb_start("lb_pumpkins")
         self.assertIn('leaderboard_run(Leaderboards.Pumpkins, "lb_pumpkins", 20000)', text)
