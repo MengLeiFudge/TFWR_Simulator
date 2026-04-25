@@ -171,7 +171,7 @@ def step2():
 # 无人机数目升级刷到最大（5级）
 def step3():
     # 刷奇异物质到1200，解锁迷宫
-    while num_items(Items.Weird_Substance) < 1300:
+    while num_items(Items.Weird_Substance) < 2000:
         for _ in range(get_world_size()):
             if (get_pos_x() + get_pos_y()) % 2 == 0:
                 # 种树并用一次奇异物质
@@ -230,9 +230,9 @@ def step4():
     farm_basic_for_cost(get_cost(Unlocks.Pumpkins))
     unlock(Unlocks.Pumpkins)
 
-    # 满扩张后两级要 512k/4.1M 南瓜，短窗口验证显示会吞掉 reset 节奏。
-    # 第一版先在 Expand 7 切到恐龙/金币阶段，避免为了更大棋盘过度刷南瓜。
-    while num_unlocked(Unlocks.Expand) < 7:
+    # Expand 7 需要 64k 南瓜，短窗口验证显示会吞掉 reset 节奏。
+    # 先在 Expand 6 切到恐龙/金币阶段，避免为了更大棋盘过度刷南瓜。
+    while num_unlocked(Unlocks.Expand) < 6:
         cost = get_cost(Unlocks.Expand)
         if cost == None or cost == {}:
             break
@@ -249,18 +249,13 @@ def step4():
 
 # 解锁排行榜
 def step5():
+    upgrade_mazes_for_gold()
     farm_gold_until(2000)
     unlock(Unlocks.Megafarm)
-    while num_unlocked(Unlocks.Megafarm) < 5:
-        cost = get_cost(Unlocks.Megafarm)
-        if cost == None or cost == {}:
-            break
-        farm_gold_until(cost[Items.Gold])
-        if not unlock(Unlocks.Megafarm):
-            break
-        quick_print("reset_stage", "megafarm", num_unlocked(Unlocks.Megafarm), "time=", get_time(), "gold=", num_items(Items.Gold))
+    quick_print("reset_stage", "megafarm", num_unlocked(Unlocks.Megafarm), "time=", get_time(), "gold=", num_items(Items.Gold))
 
     farm_gold_until(1000000)
+    upgrade_dinosaurs_for_bones()
     farm_bones_until(2000000)
     unlock(Unlocks.Leaderboard)
 
@@ -275,6 +270,9 @@ def cost_amount(cost, item):
 
 def farm_for_cost(cost):
     farm_basic_for_cost(cost)
+    weird_need = cost_amount(cost, Items.Weird_Substance)
+    if weird_need > 0:
+        farm_weird_substance_until(weird_need)
     pumpkin_need = cost_amount(cost, Items.Pumpkin)
     if pumpkin_need > 0:
         farm_pumpkins_until(pumpkin_need)
@@ -289,12 +287,61 @@ def farm_for_cost(cost):
         farm_bones_until(bone_need)
 
 
+def farm_scaled_cost_for_current_inventory(cost, multiplier):
+    if cost == None:
+        return
+    hay_need = cost_amount(cost, Items.Hay) * multiplier
+    if num_items(Items.Hay) < hay_need:
+        farm_hay_until(hay_need)
+    wood_need = cost_amount(cost, Items.Wood) * multiplier
+    if num_items(Items.Wood) < wood_need:
+        farm_wood_until(wood_need)
+    carrot_need = cost_amount(cost, Items.Carrot) * multiplier
+    if num_items(Items.Carrot) < carrot_need:
+        farm_carrots_until(carrot_need)
+    pumpkin_need = cost_amount(cost, Items.Pumpkin) * multiplier
+    if num_items(Items.Pumpkin) < pumpkin_need:
+        farm_pumpkins_until(pumpkin_need)
+    cactus_need = cost_amount(cost, Items.Cactus) * multiplier
+    if num_items(Items.Cactus) < cactus_need:
+        farm_cactus_until(cactus_need)
+    gold_need = cost_amount(cost, Items.Gold) * multiplier
+    if num_items(Items.Gold) < gold_need:
+        farm_gold_until(gold_need)
+
+
 def farm_basic_for_cost(cost):
     if cost == None:
         return
     farm_hay_until(cost_amount(cost, Items.Hay))
     farm_wood_until(cost_amount(cost, Items.Wood))
     farm_carrots_until(cost_amount(cost, Items.Carrot))
+
+
+def upgrade_mazes_for_gold():
+    while num_unlocked(Unlocks.Mazes) < 2:
+        cost = get_cost(Unlocks.Mazes)
+        if cost == None or cost == {}:
+            return
+        if cost_amount(cost, Items.Gold) > 0 or cost_amount(cost, Items.Bone) > 0:
+            return
+        farm_for_cost(cost)
+        if not unlock(Unlocks.Mazes):
+            return
+        quick_print("reset_stage", "mazes", num_unlocked(Unlocks.Mazes), "time=", get_time(), "weird=", num_items(Items.Weird_Substance))
+
+
+def upgrade_dinosaurs_for_bones():
+    while num_unlocked(Unlocks.Dinosaurs) < 3:
+        cost = get_cost(Unlocks.Dinosaurs)
+        if cost == None or cost == {}:
+            return
+        if cost_amount(cost, Items.Gold) > 0 or cost_amount(cost, Items.Bone) > 0:
+            return
+        farm_for_cost(cost)
+        if not unlock(Unlocks.Dinosaurs):
+            return
+        quick_print("reset_stage", "dinosaurs", num_unlocked(Unlocks.Dinosaurs), "time=", get_time(), "cactus=", num_items(Items.Cactus))
 
 
 def farm_hay_until(target):
@@ -395,6 +442,9 @@ def harvest_field():
 def farm_cactus_until(target):
     while num_items(Items.Cactus) < target:
         size = get_world_size()
+        if size >= 8 and target - num_items(Items.Cactus) > size * size * 4:
+            farm_sorted_cactus_field()
+            continue
         if num_items(Items.Pumpkin) < size * size * 2:
             farm_pumpkins_until(size * size * 2)
         for _ in range(size):
@@ -410,46 +460,182 @@ def farm_cactus_until(target):
         quick_print("reset_stage", "cactus", "time=", get_time(), "cactus=", num_items(Items.Cactus), "target=", target)
 
 
-def farm_weird_substance_until(target):
-    while num_items(Items.Weird_Substance) < target:
-        size = get_world_size()
+def farm_sorted_cactus_field():
+    size = get_world_size()
+    if num_items(Items.Pumpkin) < size * size * 2:
+        farm_pumpkins_until(size * size * 2)
+    for _ in range(size):
+        for _ in range(size):
+            if get_entity_type() != None:
+                harvest()
+            if get_ground_type() == Grounds.Grassland:
+                till()
+            plant(Entities.Cactus)
+            move(North)
+        move(East)
+    wait_cactus_field()
+    for x in range(size):
+        goto_wrap(x, 0)
+        sort_cactus_line(North, South)
+    for y in range(size):
+        goto_wrap(0, y)
+        sort_cactus_line(East, West)
+    goto_wrap(0, 0)
+    harvest()
+    quick_print("reset_stage", "cactus_sorted", "time=", get_time(), "cactus=", num_items(Items.Cactus), "size=", size)
+
+
+def wait_cactus_field():
+    size = get_world_size()
+    while True:
+        ready = 0
         for _ in range(size):
             for _ in range(size):
                 if can_harvest():
-                    harvest()
-                if get_entity_type() == None:
-                    if get_ground_type() == Grounds.Grassland:
-                        till()
-                    plant(Entities.Tree)
-                if get_entity_type() == Entities.Tree and num_items(Items.Fertilizer) > 0:
-                    use_item(Items.Fertilizer)
+                    ready = ready + 1
                 move(North)
             move(East)
-        quick_print("reset_stage", "weird", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target)
+        if ready >= size * size:
+            return
+
+
+def sort_cactus_line(forward, backward):
+    size = get_world_size()
+    bound_low = 0
+    bound_high = size - 1
+    while True:
+        swap_pos_last = -1
+        move_cactus_line_to(forward, backward, bound_low)
+        i = bound_low
+        while i < bound_high - 1:
+            move(forward)
+            i = i + 1
+            a = measure(backward)
+            b = measure()
+            c = measure(forward)
+            if a > b:
+                swap(backward)
+                swap_pos_last = max(swap_pos_last, i)
+                a, b = b, a
+            if b > c:
+                swap(forward)
+                swap_pos_last = max(swap_pos_last, i + 1)
+                b, c = c, b
+                if a > b:
+                    swap(backward)
+        if swap_pos_last == -1:
+            break
+        bound_high = swap_pos_last - 2
+        if bound_low >= bound_high:
+            break
+        swap_pos_first = size
+        move_cactus_line_to(forward, backward, bound_high)
+        i = bound_high
+        while i > bound_low + 1:
+            move(backward)
+            i = i - 1
+            a = measure(backward)
+            b = measure()
+            c = measure(forward)
+            if b > c:
+                swap(forward)
+                swap_pos_first = min(swap_pos_first, i)
+                b, c = c, b
+            if a > b:
+                swap(backward)
+                swap_pos_first = min(swap_pos_first, i - 1)
+                a, b = b, a
+                if b > c:
+                    swap(forward)
+        if swap_pos_first == size:
+            break
+        bound_low = swap_pos_first + 2
+        if bound_low >= bound_high:
+            break
+    if bound_low + 1 == bound_high:
+        move_cactus_line_to(forward, backward, bound_low)
+        if measure() > measure(forward):
+            swap(forward)
+
+
+def move_cactus_line_to(forward, backward, target):
+    size = get_world_size()
+    if forward == North:
+        current = get_pos_y()
+    else:
+        current = get_pos_x()
+    delta = (target - current) % size
+    if delta <= size // 2:
+        for _ in range(delta):
+            move(forward)
+    else:
+        for _ in range(size - delta):
+            move(backward)
+
+
+def farm_weird_substance_until(target):
+    if num_items(Items.Weird_Substance) < target:
+        size = get_world_size()
+        if num_items(Items.Wood) < size * size:
+            farm_wood_until(size * size)
+        clear()
+    while num_items(Items.Weird_Substance) < target:
+        size = get_world_size()
+        for x in range(size):
+            for y in range(size):
+                if (x + y) % 2 == 0:
+                    if can_harvest():
+                        harvest()
+                    plant(Entities.Tree)
+                    if get_entity_type() == Entities.Tree and num_items(Items.Fertilizer) > 0:
+                        use_item(Items.Fertilizer)
+                elif can_harvest():
+                    harvest()
+                move(North)
+            move(East)
+        quick_print("reset_stage", "weird", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target, "wood=", num_items(Items.Wood), "fert=", num_items(Items.Fertilizer))
 
 
 def farm_gold_until(target):
     while num_items(Items.Gold) < target:
-        if num_unlocked(Unlocks.Megafarm) > 0:
-            farm_gold_multi_until(target)
-        else:
-            farm_gold_single_cycle(target)
+        farm_gold_single_cycle(target)
         quick_print("reset_stage", "gold", "time=", get_time(), "gold=", num_items(Items.Gold), "target=", target, "weird=", num_items(Items.Weird_Substance))
 
 
 def farm_gold_single_cycle(target):
-    set_world_size(2)
-    substance = 2 * (2 ** (num_unlocked(Unlocks.Mazes) - 1))
-    farm_weird_substance_until(num_items(Items.Weird_Substance) + substance * 400)
-    clear()
-    plant(Entities.Bush)
-    use_item(Items.Weird_Substance, substance)
-    for _ in range(330):
-        if num_items(Items.Gold) >= target:
+    maze_size = get_world_size()
+    set_world_size(maze_size)
+    substance = maze_size * (2 ** (num_unlocked(Unlocks.Mazes) - 1))
+    gold_needed = target - num_items(Items.Gold)
+    total_paid_move_count = (gold_needed + maze_size * maze_size - 1) // (maze_size * maze_size)
+    if total_paid_move_count < 0:
+        total_paid_move_count = 0
+    batch_paid_move_count = total_paid_move_count
+    if batch_paid_move_count > 600:
+        batch_paid_move_count = 600
+    cycle_count = (batch_paid_move_count + 299) // 300
+    if cycle_count < 1:
+        cycle_count = 1
+    farm_weird_substance_until(substance * (batch_paid_move_count + cycle_count))
+    remaining_paid_move_count = batch_paid_move_count
+    while remaining_paid_move_count >= 0 and num_items(Items.Gold) < target:
+        paid_move_count = remaining_paid_move_count
+        if paid_move_count > 300:
+            paid_move_count = 300
+        clear()
+        plant(Entities.Bush)
+        use_item(Items.Weird_Substance, substance)
+        maze_graph = build_maze_graph(maze_size)
+        for _ in range(paid_move_count):
+            if num_items(Items.Gold) >= target:
+                return
+            if not use_treasure_once(substance, maze_graph):
+                return
+        remaining_paid_move_count = remaining_paid_move_count - paid_move_count
+        if remaining_paid_move_count <= 0:
             return
-        if not use_treasure_once(substance):
+        if paid_move_count < 300:
             return
-    harvest_treasure_once()
 
 
 def farm_gold_multi_until(target):
@@ -491,8 +677,14 @@ def gold_worker_at(x, y, target, substance):
                 harvest()
 
 
-def use_treasure_once(substance):
+def use_treasure_once(substance, maze_graph=None):
     size = get_world_size()
+    pos = measure()
+    if pos != None:
+        if maze_graph != None and goto_treasure_with_graph(pos[0], pos[1], size, maze_graph):
+            return use_item(Items.Weird_Substance, substance)
+        if maze_graph == None and goto_treasure_in_maze(pos[0], pos[1], size):
+            return use_item(Items.Weird_Substance, substance)
     for _ in range(size):
         for _ in range(size):
             if get_entity_type() == Entities.Treasure:
@@ -502,8 +694,183 @@ def use_treasure_once(substance):
     return False
 
 
-def harvest_treasure_once():
+def build_maze_graph(size):
+    directions = [North, East, South, West]
+    backs = [South, West, North, East]
+    dx = [0, 1, 0, -1]
+    dy = [1, 0, -1, 0]
+    graph = []
+    for _ in range(size * size):
+        graph.append([])
+    visited = []
+    backtrack = []
+    while True:
+        current = get_pos_x() + get_pos_y() * size
+        if current not in visited:
+            visited.append(current)
+        moved = False
+        for idx in range(4):
+            nx = get_pos_x() + dx[idx]
+            ny = get_pos_y() + dy[idx]
+            if nx < 0 or ny < 0 or nx >= size or ny >= size:
+                continue
+            neighbor = nx + ny * size
+            if can_move(directions[idx]):
+                add_maze_edge(graph, current, neighbor, directions[idx])
+                add_maze_edge(graph, neighbor, current, backs[idx])
+                if neighbor not in visited:
+                    move(directions[idx])
+                    backtrack.append(backs[idx])
+                    moved = True
+                    break
+        if moved:
+            continue
+        if len(backtrack) <= 0:
+            return graph
+        move(backtrack.pop())
+
+
+def add_maze_edge(graph, source, target, direction):
+    for edge in graph[source]:
+        if edge[0] == target:
+            return
+    graph[source].append([target, direction])
+
+
+def goto_treasure_with_graph(tx, ty, size, graph):
+    target = tx + ty * size
+    while get_pos_x() + get_pos_y() * size != target:
+        refresh_maze_edges(graph, size)
+        if move_direct_toward_treasure(tx, ty, size, graph):
+            continue
+        if not move_with_graph_path(target, size, graph):
+            return False
+    return True
+
+
+def refresh_maze_edges(graph, size):
+    directions = [North, East, South, West]
+    backs = [South, West, North, East]
+    dx = [0, 1, 0, -1]
+    dy = [1, 0, -1, 0]
+    current = get_pos_x() + get_pos_y() * size
+    for idx in range(4):
+        nx = get_pos_x() + dx[idx]
+        ny = get_pos_y() + dy[idx]
+        if nx < 0 or ny < 0 or nx >= size or ny >= size:
+            continue
+        if can_move(directions[idx]):
+            neighbor = nx + ny * size
+            add_maze_edge(graph, current, neighbor, directions[idx])
+            add_maze_edge(graph, neighbor, current, backs[idx])
+
+
+def move_direct_toward_treasure(tx, ty, size, graph):
+    current = get_pos_x() + get_pos_y() * size
+    if tx > get_pos_x() and can_move(East):
+        neighbor = get_pos_x() + 1 + get_pos_y() * size
+        add_maze_edge(graph, current, neighbor, East)
+        add_maze_edge(graph, neighbor, current, West)
+        move(East)
+        return True
+    if tx < get_pos_x() and can_move(West):
+        neighbor = get_pos_x() - 1 + get_pos_y() * size
+        add_maze_edge(graph, current, neighbor, West)
+        add_maze_edge(graph, neighbor, current, East)
+        move(West)
+        return True
+    if ty > get_pos_y() and can_move(North):
+        neighbor = get_pos_x() + (get_pos_y() + 1) * size
+        add_maze_edge(graph, current, neighbor, North)
+        add_maze_edge(graph, neighbor, current, South)
+        move(North)
+        return True
+    if ty < get_pos_y() and can_move(South):
+        neighbor = get_pos_x() + (get_pos_y() - 1) * size
+        add_maze_edge(graph, current, neighbor, South)
+        add_maze_edge(graph, neighbor, current, North)
+        move(South)
+        return True
+    return False
+
+
+def move_with_graph_path(target, size, graph):
+    start = get_pos_x() + get_pos_y() * size
+    previous = []
+    previous_direction = []
+    for _ in range(size * size):
+        previous.append(-1)
+        previous_direction.append(None)
+    queue = [start]
+    previous[start] = start
+    head = 0
+    while head < len(queue):
+        current = queue[head]
+        head = head + 1
+        for edge in graph[current]:
+            neighbor = edge[0]
+            if previous[neighbor] != -1:
+                continue
+            previous[neighbor] = current
+            previous_direction[neighbor] = edge[1]
+            if neighbor == target:
+                head = len(queue)
+                break
+            queue.append(neighbor)
+    if previous[target] == -1:
+        return False
+    path = []
+    current = target
+    while current != start:
+        path.append(previous_direction[current])
+        current = previous[current]
+    while len(path) > 0:
+        move(path.pop())
+    return True
+
+
+def goto_treasure_in_maze(tx, ty, size):
+    directions = [North, East, South, West]
+    backs = [South, West, North, East]
+    dx = [0, 1, 0, -1]
+    dy = [1, 0, -1, 0]
+    visited = []
+    backtrack = []
+    while True:
+        if get_pos_x() == tx and get_pos_y() == ty:
+            return True
+        current = get_pos_x() + get_pos_y() * size
+        if current not in visited:
+            visited.append(current)
+        moved = False
+        for idx in range(4):
+            nx = get_pos_x() + dx[idx]
+            ny = get_pos_y() + dy[idx]
+            if nx < 0 or ny < 0 or nx >= size or ny >= size:
+                continue
+            encoded = nx + ny * size
+            if encoded not in visited and can_move(directions[idx]):
+                move(directions[idx])
+                backtrack.append(backs[idx])
+                moved = True
+                break
+        if moved:
+            continue
+        if len(backtrack) <= 0:
+            return False
+        move(backtrack.pop())
+
+
+def harvest_treasure_once(maze_graph=None):
     size = get_world_size()
+    pos = measure()
+    if pos != None:
+        if maze_graph != None and goto_treasure_with_graph(pos[0], pos[1], size, maze_graph) and get_entity_type() == Entities.Treasure:
+            harvest()
+            return
+        if maze_graph == None and goto_treasure_in_maze(pos[0], pos[1], size) and get_entity_type() == Entities.Treasure:
+            harvest()
+            return
     for _ in range(size):
         for _ in range(size):
             if get_entity_type() == Entities.Treasure:
@@ -517,10 +884,19 @@ def farm_bones_until(target):
     set_world_size(get_world_size())
     while num_items(Items.Bone) < target:
         goto_wrap(0, 0)
+        farm_dinosaur_apple_cost()
         change_hat(Hats.Dinosaur_Hat)
-        run_dinosaur_loop(get_world_size(), get_world_size() * get_world_size() - 1)
+        run_dinosaur_loop(get_world_size(), get_world_size() * get_world_size() - 2)
         change_hat(Hats.Straw_Hat)
         quick_print("reset_stage", "bones", "time=", get_time(), "bone=", num_items(Items.Bone), "target=", target)
+
+
+def farm_dinosaur_apple_cost():
+    level = num_unlocked(Unlocks.Dinosaurs)
+    if level < 1:
+        level = 1
+    multiplier = 1 << (level - 1)
+    farm_scaled_cost_for_current_inventory(get_cost(Entities.Apple), multiplier)
 
 
 def goto_wrap(tx, ty):

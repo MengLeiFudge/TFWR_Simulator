@@ -56,15 +56,15 @@
   - 中期通过混种和持续解锁推进到 `1000 power`
   - 后续走“南瓜扩张 -> 仙人掌 -> 恐龙 -> 迷宫金币 -> leaderboard”的完整路线
 - 当前 `step4()` / `step5()` 已经不是空实现：
-  - `step4()` 会解锁南瓜，把扩张推进到 `Expand 7`，再解锁仙人掌和恐龙
-  - `step5()` 会先凑第一档 `Megafarm`，再补 `1M gold` / `2M bone` 并尝试解锁 `Leaderboard`
+  - `step4()` 会解锁南瓜，把扩张推进到 `Expand 6`，再解锁仙人掌和恐龙
+  - `step5()` 会先升 `Mazes 2`、凑第一档 `Megafarm`，再补 `1M gold` / `2M bone` 并尝试解锁 `Leaderboard`
 - 这不是最终成绩路线；它是第一条可继续观测的完整候选路线。
 - 真实短窗口验证显示，“满扩张”不是合适第一版：
   - `Expand 5` 后下一级需要 `8,000 pumpkin`
   - `Expand 6` 后下一级需要 `64,000 pumpkin`
   - 再继续还要 `512,000 / 4,100,000 pumpkin`
   - 60 秒窗口里，满扩张路线主要时间会被南瓜阶段吞掉
-- 因此当前默认路线先在 `Expand 7` 切走，不继续刷后两级扩张。
+- 因此当前默认路线先在 `Expand 6` 切走，不继续刷 `64,000+` 南瓜扩张。
 
 ## 2026-04-24 真实成本探针
 
@@ -101,6 +101,29 @@
   - 当前短板仍是 `step2/step3` 的种子资源警告、南瓜扩张耗时，以及首轮金币阶段效率
   - 下一轮不应回到“满扩张”，应继续压缩 `Expand 7` 之前的南瓜成本，或更早切到恐龙 / 金币阶段
 
+## 2026-04-25 真实短窗口结论
+
+- 命令：
+  - `python3 -m py_compile references/leaderboard_scripts/lb_fastest_reset.py`
+  - `python3 tfwr_orchestrator/tools/sync_leaderboard_scripts.py cur2save --script lb_fastest_reset`
+  - `timeout 100s python3 tfwr_orchestrator/tools/run_real_game_script.py --target-script lb_start --request-timeout 60 --startup-timeout 20 --total-timeout 90 --poll-interval 0.5`
+- `request_id=140`：
+  - `Mazes 2` + 金币单批 `600` 可以在短窗口推进到 `gold=1000240`。
+  - 迷宫金币阶段结束后进入恐龙升级，记录到 `dinosaurs 2 time=11060.65 cactus=15472`。
+- `request_id=141`：
+  - 金币单批改成 `300` 后，`gold=1000240` 变为 `time=11178.7`。
+  - 对比 `600` 批量更慢，因此当前保留 `600`。
+- `request_id=142`：
+  - 继续升到 `Dinosaurs 4` 需要大量仙人掌，`dinosaurs 4 time=15131.87 cactus=9136`。
+  - `Dinosaurs 4` 单轮骨头为 `161312`，但剩余仙人掌不足以持续支付苹果成本，后续出现 `Entities.Apple` 缺种子警告。
+- `request_id=143` / `request_id=144`：
+  - 把恐龙上限改为 `Dinosaurs 3`，并在每轮骨头前按 `get_cost(Entities.Apple)` 与恐龙等级补足苹果成本。
+  - 90 秒窗口和 60 秒窗口均返回 `status=done`，不再卡在迷宫金币或骨头阶段。
+- 当前结论：
+  - 快速重置当前已有可完成路线。
+  - `Expand 7`、`Megafarm 2+`、`Dinosaurs 4+` 都是已验证不适合当前默认路线的过度投资。
+  - `Mazes 2` 仍保留，因为它减少金币阶段的宝箱迁移次数；金币单批 `600` 在 `300 / 600 / 1200` 中当前证据最好。
+
 ## 失败对照
 
 - 文件里已经保留了一段被注释掉的金币循环
@@ -115,15 +138,16 @@
 
 ## 下一步优化方向
 
-- 先把 `Expand 7` 候选路线推进到能完成一轮，再讨论是否继续降低扩张等级
+- 当前路线已经能完成一轮，下一步应围绕真实成绩继续压缩阶段耗时，而不是再追求“能跑通”。
 - 必须补证据的关键点：
   - 每个解锁门槛前后的资源短板
   - 迷宫 / 金币 / 无人机阶段是否真的比继续滚基础资源更值
   - `step4()` / `step5()` 最短完成条件
 - 下一轮优先级：
   - 清理 `step2/step3` 的胡萝卜 / 肥料 / 向日葵资源警告
-  - 用更少南瓜更早切入仙人掌 / 恐龙
-  - 验证 `Megafarm` 第一档之前的单无人机 2x2 迷宫金币是否足够稳定
+  - 评估 `Mazes 2` 是否在最终成绩上优于不升迷宫等级
+  - 继续压缩 `farm_gold_single_cycle()` 的寻路与奇异物质补给节奏
+  - 评估 `Dinosaurs 2` 与 `Dinosaurs 3` 的骨头总时间差
 
 ## 候选策略方向（猜测 / 待验证）
 
@@ -133,7 +157,7 @@
   - 所有科技至少 `1` 级
   - 无人机速度、农场大小、无人机数目升满
   - 最后解锁 `leaderboard`
-- 主瓶颈：当前脚本甚至还没把完整 reset 路线跑通
+- 主瓶颈：当前路线已经能跑通，但不是满科技路线；继续升后几级科技会明显拖慢
 - 可能更强的原因：先有完整可跑通路线，后续才有可靠基线可以做科技取舍优化
 - 优先探针：
   - 这条满科技路线的真实总时间
