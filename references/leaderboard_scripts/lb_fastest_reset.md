@@ -317,7 +317,13 @@
   - 2026-04-25 读取当前文件后，将 `move_utils` / `math` / `fastest_reset_action` / `pumpkin3` 内联到既有 `lb_fastest_reset.py`，没有向存档新增依赖文件
   - 请求 `263` 能推进到阶段一完成，输出 `17 分 28.8 秒 完成了阶段一`，随后因内联 `back` 名称冲突在迷宫探图报错
   - 修正内联变量冲突后请求 `264` 仍 30 秒无完成轮，资源停在 `hay=171 wood=406 carrot=268 weird_substance=100 gold=7`
-  - 结论：当前外部复合候选不迁入；它的阶段一日志可作为节奏参考，但后半段没有形成比当前正式路线更好的证据
+  - 2026-04-26 重新确认用户所指是存档根目录 `Save0/fastest_reset.py`，不是外部 `lb_fastest_reset.py` 包装入口
+  - 请求 `280` 暴露后半段卡点：`item_snapshot` 中 `hay` 持续增长到 `682642`，`wood=429 carrot=50 pumpkin=80 cactus=0`，根因是补草/补木后地块残留草或灌木，胡萝卜没有覆盖种下
+  - 修复 `farm_hay_until()` / `farm_wood_until()` / `farm_carrots_until()` 后，请求 `281` 能脱离割草卡点并推进到 `gold=345927`，但删掉外部 phase2 尾段后节奏偏慢
+  - 恢复 `Save0/fastest_reset.py` 的 phase2 尾段，并加 `5000` 游戏秒保护；请求 `282` 在 `90s` 窗口内回到 `Expand 6 / Pumpkins 2 / 12x12` 节奏，`gold 345927 time=7578.41`
+  - 请求 `283` 完整跑到 `reset_stage save0_fastreset_done time=22484.01`，但旧轮询仍因 `numLeaderboardRuns` 被游戏清零误判为 `leaderboard finished without completed runs`
+  - 修改模组为 Harmony 捕获 `LeaderboardManager.StopLeaderboardRun(...)` 后，请求 `284` 完整结算：`[lb_fastest_reset] finished=true runs=1 average=376:11.397`，同轮 `reset_stage save0_fastreset_done time=22571.33`
+  - 当前结论：外部 `Save0/fastest_reset.py` 已作为候选迁入并跑通；它比当前正式 `13409.57` 慢，不应替代正式最优路线，但 phase2 尾段“先 Megafarm，再 12x12 + Pumpkins 2”的节奏可继续作为前期参考
 
 ## 下一步优化方向
 

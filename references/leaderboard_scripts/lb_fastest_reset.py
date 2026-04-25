@@ -6,6 +6,10 @@ WEIRD_COMPANION_ENABLED = True
 
 
 def main():
+    main_current_route()
+
+
+def main_current_route():
     quick_print("reset_stage", "start", "time=", get_time())
     step1()
     quick_print("reset_stage", "step1", "time=", get_time(), "hay=", num_items(Items.Hay), "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot))
@@ -17,6 +21,573 @@ def main():
     quick_print("reset_stage", "step4", "time=", get_time(), "size=", get_world_size(), "cactus=", num_items(Items.Cactus))
     step5()
     quick_print("reset_stage", "done", "time=", get_time(), "bone=", num_items(Items.Bone), "gold=", num_items(Items.Gold))
+
+
+def main_save0_fastreset_candidate():
+    global fr_time_start
+    global fr_phase
+    global fr_unlock_dict
+    fr_time_start = get_time()
+    fr_phase = 0
+    fr_unlock_dict = {}
+    quick_print("reset_stage", "save0_fastreset_start", "time=", get_time())
+    if fr_phase < 1:
+        fr_phase1()
+        minute, second = fr_get_minute_and_second(get_time() - fr_time_start)
+        quick_print("在", minute, "分", second, "秒 完成了阶段一")
+    if fr_phase < 2:
+        fr_phase2()
+        minute, second = fr_get_minute_and_second(get_time() - fr_time_start)
+        quick_print("在", minute, "分", second, "秒 完成了阶段二")
+    quick_print("reset_stage", "save0_fastreset_phase2", "time=", get_time(), "size=", get_world_size(), "hay=", num_items(Items.Hay), "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot), "pumpkin=", num_items(Items.Pumpkin), "gold=", num_items(Items.Gold), "weird=", num_items(Items.Weird_Substance), "unlocks=", fr_unlock_dict)
+    step4()
+    quick_print("reset_stage", "save0_fastreset_step4", "time=", get_time(), "size=", get_world_size(), "cactus=", num_items(Items.Cactus), "pumpkin=", num_items(Items.Pumpkin))
+    step5()
+    quick_print("reset_stage", "save0_fastreset_done", "time=", get_time(), "bone=", num_items(Items.Bone), "gold=", num_items(Items.Gold))
+
+
+fr_dirs = [North, East, South, West]
+fr_dir_to_pos = {North: (0, 1), East: (1, 0), South: (0, -1), West: (-1, 0)}
+fr_back = {North: South, East: West, South: North, West: East, None: None}
+fr_time_start = 0
+fr_phase = 0
+fr_unlock_dict = {}
+fr_unchecked = []
+
+
+def fr_get_minute_and_second(time):
+    minute = time // 60
+    second = time % 60
+    return minute, second
+
+
+def fr_get_pos():
+    return get_pos_x(), get_pos_y()
+
+
+def fr_pos_move(pos, direction):
+    x, y = pos
+    cx, cy = fr_dir_to_pos[direction]
+    return x + cx, y + cy
+
+
+def fr_relative_dir(pos1, pos2):
+    x1, y1 = pos1
+    x2, y2 = pos2
+    dx = x2 - x1
+    dy = y2 - y1
+    if dx == 0:
+        if dy > 0:
+            return North
+        if dy < 0:
+            return South
+    elif dy == 0:
+        if dx > 0:
+            return East
+        if dx < 0:
+            return West
+    return None
+
+
+def fr_move_to(pos):
+    x, y = pos
+    size = get_world_size()
+    dx = x - get_pos_x()
+    if abs(dx) > size // 2:
+        if dx > 0:
+            for _ in range(size - dx):
+                move(West)
+        else:
+            for _ in range(size + dx):
+                move(East)
+    else:
+        if dx < 0:
+            for _ in range(-dx):
+                move(West)
+        elif dx > 0:
+            for _ in range(dx):
+                move(East)
+    dy = y - get_pos_y()
+    if abs(dy) > size // 2:
+        if dy > 0:
+            for _ in range(size - dy):
+                move(South)
+        else:
+            for _ in range(size + dy):
+                move(North)
+    else:
+        if dy < 0:
+            for _ in range(-dy):
+                move(South)
+        elif dy > 0:
+            for _ in range(dy):
+                move(North)
+
+
+def fr_move_n(direction, count):
+    for _ in range(count):
+        move(direction)
+
+
+def fr_my_unlock(unlock_item):
+    global fr_time_start
+    print_time = get_time()
+    unlocked = unlock(unlock_item)
+    minute, second = fr_get_minute_and_second(get_time() - fr_time_start)
+    if unlocked:
+        if unlock_item not in fr_unlock_dict:
+            fr_unlock_dict[unlock_item] = 1
+            quick_print("在", minute, "分", second, "秒 解锁了", unlock_item)
+        else:
+            fr_unlock_dict[unlock_item] = fr_unlock_dict[unlock_item] + 1
+            quick_print("在", minute, "分", second, "秒 第", fr_unlock_dict[unlock_item], "次解锁了", unlock_item)
+    fr_time_start = fr_time_start + get_time() - print_time
+    return unlocked
+
+
+def fr_can_unlock(unlock_item):
+    cost = get_cost(unlock_item)
+    if cost == None or cost == {}:
+        return False
+    for item in cost:
+        if num_items(item) < cost[item]:
+            return False
+    return True
+
+
+def fr_try_unlock(unlock_item):
+    if fr_can_unlock(unlock_item):
+        return fr_my_unlock(unlock_item)
+    return False
+
+
+def fr_hay():
+    if can_harvest():
+        harvest()
+
+
+def fr_bush():
+    if can_harvest():
+        harvest()
+    plant(Entities.Bush)
+
+
+def fr_water():
+    if get_water() < num_items(Items.Water) / 100:
+        use_item(Items.Water)
+
+
+def fr_tree():
+    if can_harvest():
+        harvest()
+    plant(Entities.Tree)
+    fr_water()
+
+
+def fr_carrot():
+    if get_ground_type() != Grounds.Soil:
+        till()
+    if can_harvest():
+        harvest()
+    cost = get_cost(Entities.Carrot)
+    if num_items(Items.Hay) >= cost[Items.Hay] and num_items(Items.Wood) >= cost[Items.Wood]:
+        plant(Entities.Carrot)
+        fr_water()
+
+
+def fr_bush_plant(amount):
+    while num_items(Items.Wood) < amount:
+        fr_bush()
+        move(North)
+
+
+def fr_carrot_mix(amount):
+    while num_items(Items.Carrot) < amount:
+        fr_hay()
+        move(North)
+        fr_bush()
+        move(North)
+        fr_carrot()
+        move(North)
+        move(East)
+
+
+def fr_bush_water(amount):
+    while num_items(Items.Wood) < amount:
+        fr_bush()
+        fr_water()
+        move(East)
+
+
+def fr_tree_mix(hay_amount, wood_amount):
+    while num_items(Items.Hay) < hay_amount or num_items(Items.Wood) < wood_amount:
+        for _ in range(3):
+            for _ in range(3):
+                if (get_pos_x() + get_pos_y()) % 2 == 0:
+                    fr_tree()
+                else:
+                    fr_hay()
+                move(North)
+            move(East)
+
+
+def fr_explore_maze(grid, front):
+    pos = fr_get_pos()
+    back = fr_back[front]
+    grid[pos] = []
+    for direction in fr_dirs:
+        if can_move(direction):
+            moved = fr_pos_move(pos, direction)
+            grid[pos].append(moved)
+    for direction in fr_dirs:
+        if direction == back or not can_move(direction):
+            continue
+        move(direction)
+        fr_explore_maze(grid, direction)
+        move(fr_back[direction])
+    return grid
+
+
+def fr_find_all_path(grid):
+    pos = fr_get_pos()
+    paths = {pos: {}}
+    visited = set()
+    nodes = [pos]
+    for node in nodes:
+        paths[node][node] = []
+        for next_node in grid[node]:
+            if next_node not in visited:
+                node_to_next = fr_relative_dir(node, next_node)
+                next_to_node = fr_back[node_to_next]
+                paths[next_node] = {}
+                for other in paths:
+                    if other != next_node:
+                        paths[next_node][other] = [next_to_node]
+                        for direction in paths[node][other]:
+                            paths[next_node][other].append(direction)
+                        path_back = paths[other][node][:]
+                        path_back.append(node_to_next)
+                        paths[other][next_node] = path_back
+                nodes.append(next_node)
+                visited.add(node)
+    return paths
+
+
+def fr_path_36(func):
+    dir_list = [
+        East, East, North, West, North, East, North, West, North, East,
+        North, West, West, South, South, South, South, South,
+    ]
+    for direction in dir_list:
+        func()
+        move(direction)
+
+
+def fr_path_66(func):
+    dir_list = [
+        East, East, North, North, East, South, South, East, East, North,
+        West, North, East, North, West, North, East, North, West, West,
+        South, South, West, North, North, West, West, South, East, South,
+        West, South, East, South, West, South,
+    ]
+    for direction in dir_list:
+        func()
+        move(direction)
+
+
+def fr_plant_pumpkin():
+    while get_water() + 0.25 <= num_items(Items.Water) / 100:
+        use_item(Items.Water)
+    plant(Entities.Pumpkin)
+
+
+def fr_find_dead_pumpkin():
+    if not can_harvest():
+        fr_unchecked.append(fr_get_pos())
+    plant(Entities.Pumpkin)
+
+
+def fr_pumpkin_task_with_exit(path, height, final_check, exit_condition):
+    def _task():
+        global fr_unchecked
+        pos_o = fr_get_pos()
+        fixed_y = get_pos_y()
+        if get_ground_type() != Grounds.Soil:
+            path(till)
+        while not exit_condition():
+            path(fr_plant_pumpkin)
+            path(fr_find_dead_pumpkin)
+            while fr_unchecked:
+                to_remove = []
+                for pos in fr_unchecked:
+                    fr_move_to(pos)
+                    if can_harvest():
+                        to_remove.append(pos)
+                        continue
+                    fr_plant_pumpkin()
+                    while len(fr_unchecked) <= 5 and get_water() < 0.9 and num_items(Items.Water) > 10:
+                        use_item(Items.Water)
+                for pos in to_remove:
+                    fr_unchecked.remove(pos)
+                if len(fr_unchecked) == 1 and num_items(Items.Fertilizer) > 10:
+                    fr_move_to(fr_unchecked[0])
+                    while not can_harvest():
+                        fr_plant_pumpkin()
+                        use_item(Items.Fertilizer)
+                    break
+            if not final_check:
+                harvest()
+                fr_move_to(pos_o)
+                continue
+            pos_a = (get_pos_x(), fixed_y + 1)
+            pos_b = (get_pos_x(), fixed_y + height - 2)
+            fr_move_to(pos_a)
+            a = measure(South)
+            fr_move_to(pos_b)
+            b = measure(North)
+            c = measure()
+            while a != b and a and b and c:
+                fr_move_to(pos_a)
+                a = measure(South)
+                fr_move_to(pos_b)
+                b = measure(North)
+                c = measure()
+            if a or b:
+                harvest()
+            fr_move_to(pos_o)
+    return _task
+
+
+def fr_pumpkin_task(path, height, final_check=False, end_value=200000000):
+    def exit_condition():
+        return num_items(Items.Pumpkin) >= end_value
+    return fr_pumpkin_task_with_exit(path, height, final_check, exit_condition)
+
+
+def fr_phase1():
+    clear()
+    for _ in range(20):
+        harvest()
+    fr_my_unlock(Unlocks.Speed)
+
+    for _ in range(30):
+        while not can_harvest():
+            pass
+        harvest()
+    fr_my_unlock(Unlocks.Expand)
+
+    for _ in range(50):
+        move(North)
+        harvest()
+    fr_my_unlock(Unlocks.Plant)
+
+    while num_items(Items.Wood) < 20:
+        fr_bush()
+        while not can_harvest():
+            if get_pos_y() > 0:
+                move(North)
+            else:
+                move(South)
+    fr_my_unlock(Unlocks.Expand)
+
+    fr_bush_plant(20)
+    fr_my_unlock(Unlocks.Speed)
+
+    fr_bush_plant(50)
+    fr_my_unlock(Unlocks.Watering)
+
+    fr_bush_plant(50)
+    fr_my_unlock(Unlocks.Carrots)
+
+    for _ in range(3):
+        till()
+        move(East)
+    move(North)
+
+    fr_carrot_mix(50)
+    move(North)
+    fr_bush_water(50)
+    fr_my_unlock(Unlocks.Speed)
+
+    move(South)
+    fr_carrot_mix(90)
+    move(North)
+    fr_bush_water(50)
+    fr_my_unlock(Unlocks.Trees)
+
+    clear()
+    fr_tree_mix(300, 550)
+    fr_my_unlock(Unlocks.Grass)
+    fr_my_unlock(Unlocks.Watering)
+    fr_my_unlock(Unlocks.Carrots)
+
+    fr_tree_mix(300, 830)
+    fr_my_unlock(Unlocks.Trees)
+    fr_my_unlock(Unlocks.Watering)
+    fr_my_unlock(Unlocks.Expand)
+
+    for _ in range(2):
+        for _ in range(4):
+            till()
+            move(East)
+        move(North)
+
+    while num_items(Items.Carrot) < 50 or num_items(Items.Wood) < 100:
+        for _ in range(2):
+            if (get_pos_x() + get_pos_y()) % 2 == 0:
+                fr_tree()
+            else:
+                fr_hay()
+            move(North)
+        for _ in range(2):
+            fr_carrot()
+            move(North)
+        move(East)
+    fr_my_unlock(Unlocks.Expand)
+
+    for _ in range(3):
+        for _ in range(6):
+            till()
+            move(East)
+        move(North)
+    unlock_list = [Unlocks.Mazes, Unlocks.Pumpkins, Unlocks.Sunflowers, Unlocks.Carrots, Unlocks.Trees, Unlocks.Speed, Unlocks.Fertilizer, Unlocks.Speed, Unlocks.Grass]
+    while unlock_list or num_items(Items.Carrot) < 300 or num_items(Items.Weird_Substance) < 670:
+        fr_hay()
+        move(North)
+        for _ in range(2):
+            if (get_pos_x() + get_pos_y()) % 2 == 0:
+                fr_tree()
+                if num_items(Items.Fertilizer):
+                    use_item(Items.Fertilizer)
+                elif num_items(Items.Weird_Substance) and not (num_unlocked(Unlocks.Mazes) or num_items(Items.Weird_Substance) > 1500):
+                    use_item(Items.Weird_Substance)
+            else:
+                fr_hay()
+            move(North)
+        for _ in range(3):
+            fr_carrot()
+            move(North)
+        move(East)
+        while unlock_list and fr_try_unlock(unlock_list[-1]):
+            unlock_list.pop()
+
+
+def fr_phase2():
+    clear()
+    power = []
+    for _ in range(16):
+        power.append([])
+    for _ in range(6):
+        for _ in range(6):
+            till()
+            plant(Entities.Sunflower)
+            power[measure()].append(fr_get_pos())
+            fr_water()
+            move(East)
+        move(North)
+
+    for i in range(len(power) - 1, 6, -1):
+        for pos in power[i]:
+            fr_move_to(pos)
+            while not can_harvest():
+                fr_water()
+            harvest()
+    fr_move_to((0, 0))
+    plant(Entities.Bush)
+    use_item(Items.Weird_Substance, 3)
+    grid = fr_explore_maze({}, None)
+    paths = fr_find_all_path(grid)
+    pos = fr_get_pos()
+    treasure = measure()
+    for direction in paths[pos][treasure]:
+        move(direction)
+    pos = measure()
+    for _ in range(222):
+        use_item(Items.Weird_Substance, 3)
+        treasure = measure()
+        if treasure == None:
+            break
+        for direction in paths[pos][treasure]:
+            move(direction)
+        pos = measure()
+    harvest()
+    fr_my_unlock(Unlocks.Megafarm)
+
+    clear()
+    drone = spawn_drone(fr_pumpkin_task(fr_path_36, 6, True, 1000))
+    fr_move_n(East, 3)
+    fr_pumpkin_task(fr_path_36, 6, True, 1000)()
+    wait_for(drone)
+    fr_my_unlock(Unlocks.Expand)
+
+    unlock_list = [Unlocks.Expand, Unlocks.Trees, Unlocks.Pumpkins, Unlocks.Grass]
+
+    def unlock_task():
+        def farm_line(direction):
+            for _ in range(3):
+                fr_hay()
+                move(direction)
+                fr_carrot()
+                move(direction)
+            fr_tree()
+            move(direction)
+
+        fr_move_to((0, 0))
+        while unlock_list:
+            farm_line(North)
+            farm_line(East)
+            farm_line(South)
+            farm_line(West)
+            while unlock_list and fr_try_unlock(unlock_list[-1]):
+                unlock_list.pop()
+        return fr_unlock_dict
+
+    drone = spawn_drone(unlock_task)
+    done = False
+    tail_start = get_time()
+
+    def exit_condition():
+        if has_finished(drone):
+            return True
+        return num_items(Items.Power) < 50
+
+    while not done:
+        if has_finished(drone):
+            result = wait_for(drone)
+            for key in result:
+                fr_unlock_dict[key] = result[key]
+            done = True
+            break
+        if get_time() - tail_start > 5000:
+            quick_print("reset_stage", "save0_fastreset_phase2_tail_timeout", "time=", get_time(), "unlocks=", fr_unlock_dict, "power=", num_items(Items.Power))
+            break
+        fr_move_to((1, 1))
+        if num_items(Items.Power) < 50:
+            power = []
+            for _ in range(16):
+                power.append([])
+
+            def sunflower():
+                if get_ground_type() != Grounds.Soil:
+                    till()
+                if not num_items(Items.Carrot):
+                    return
+                plant(Entities.Sunflower)
+                power[measure()].append(fr_get_pos())
+                while get_water() < num_items(Items.Water) / 100:
+                    use_item(Items.Water)
+
+            fr_path_66(sunflower)
+            for i in range(len(power) - 1, 6, -1):
+                for pos in power[i]:
+                    fr_move_to(pos)
+                    while not can_harvest():
+                        if get_water() < num_items(Items.Water) / 100:
+                            use_item(Items.Water)
+                    harvest()
+        fr_move_to((1, 1))
+        fr_pumpkin_task_with_exit(fr_path_66, 6, False, exit_condition)()
+    quick_print("reset_stage", "save0_fastreset_phase2_tail", "time=", get_time(), "done=", done, "size=", get_world_size(), "pumpkin=", num_items(Items.Pumpkin), "power=", num_items(Items.Power), "unlocks=", fr_unlock_dict)
 
 
 # 最开始的状态，点一些前期的东西直至解锁胡萝卜
@@ -233,8 +804,9 @@ def step3():
 
 # 扩张升到最大（9级）
 def step4():
-    farm_basic_for_cost(get_cost(Unlocks.Pumpkins))
-    unlock(Unlocks.Pumpkins)
+    if num_unlocked(Unlocks.Pumpkins) < 1:
+        farm_basic_for_cost(get_cost(Unlocks.Pumpkins))
+        unlock(Unlocks.Pumpkins)
 
     # Expand 7 需要 64k 南瓜，短窗口验证显示会吞掉 reset 节奏。
     # 先在 Expand 6 切到恐龙/金币阶段，避免为了更大棋盘过度刷南瓜。
@@ -390,18 +962,32 @@ def upgrade_dinosaurs_for_bones(target_level=3):
 
 def farm_hay_until(target):
     while num_items(Items.Hay) < target:
-        if can_harvest():
+        entity = get_entity_type()
+        if entity != None and entity != Entities.Grass:
             harvest()
-        if get_entity_type() == None:
+            entity = None
+        if entity == Entities.Grass and can_harvest():
+            harvest()
+            entity = None
+        if entity == None:
+            if get_ground_type() != Grounds.Grassland:
+                till()
             plant(Entities.Grass)
         move(North)
 
 
 def farm_wood_until(target):
     while num_items(Items.Wood) < target:
-        if can_harvest():
+        entity = get_entity_type()
+        if entity != None and entity != Entities.Bush and entity != Entities.Tree:
             harvest()
-        if get_entity_type() == None:
+            entity = None
+        if entity != None and can_harvest():
+            harvest()
+            entity = None
+        if entity == None:
+            if get_ground_type() != Grounds.Grassland:
+                till()
             plant(Entities.Bush)
         move(North)
 
@@ -413,14 +999,20 @@ def farm_carrots_until(target):
         farm_wood_until(num_items(Items.Wood) + size * size)
         for _ in range(size):
             for _ in range(size):
-                if can_harvest():
+                entity = get_entity_type()
+                if entity != None and entity != Entities.Carrot:
                     harvest()
-                if get_entity_type() == None:
-                    if get_ground_type() == Grounds.Grassland:
-                        till()
-                    plant(Entities.Carrot)
+                    entity = None
+                if entity == Entities.Carrot and can_harvest():
+                    harvest()
+                    entity = None
+                if get_ground_type() == Grounds.Grassland:
+                    till()
+                if entity == None:
+                    plant_if_affordable(Entities.Carrot)
                 move(North)
             move(East)
+        quick_print("reset_stage", "carrots", "time=", get_time(), "carrot=", num_items(Items.Carrot), "target=", target, "hay=", num_items(Items.Hay), "wood=", num_items(Items.Wood), "size=", size)
 
 
 def farm_pumpkins_until(target):
