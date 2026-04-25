@@ -103,11 +103,17 @@ def scan_area(x0, y0, width, y_offset, height, mode):
                     harvest()
                 elif entity != None and entity != Entities.Dead_Pumpkin:
                     harvest()
+                can_plant_slot = True
                 if get_ground_type() != Grounds.Soil:
-                    till()
-                plant(Entities.Pumpkin)
+                    # helper 不翻地，避免双机同格扫描时把 Soil 再翻回 Grassland。
+                    if mode == 1:
+                        can_plant_slot = False
+                    else:
+                        till()
+                if can_plant_slot:
+                    plant(Entities.Pumpkin)
+                    water_pumpkin()
                 pending = pending + 1
-                water_pumpkin()
 
             if dx == end_dx:
                 break
@@ -120,7 +126,9 @@ def scan_area(x0, y0, width, y_offset, height, mode):
 
 
 def water_pumpkin():
-    if get_water() < 0.5 and num_items(Items.Water) > 5:
+    if get_water() < 0.75 and num_items(Items.Water) >= 6:
+        use_item(Items.Water, 3)
+    elif get_water() < 0.25 and num_items(Items.Water) > 5:
         use_item(Items.Water)
 
 
