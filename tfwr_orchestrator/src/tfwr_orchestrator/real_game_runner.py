@@ -27,8 +27,10 @@ ORACLE_STATE_FILE_NAME = "mlj.tfwr.oracle-runner.state.json"
 STATE_IO_MAX_ATTEMPTS = 20
 STATE_IO_RETRY_SECONDS = 0.05
 LEADERBOARD_SUCCESS_SUMMARY_RE = re.compile(
-    r"\[lb_[^\]]+\.py\]\s+finished=true\s+runs=[1-9][0-9]*\s+average="
+    r"\[lb_[^\]]+(?:\.py)?\]\s+finished=true\s+runs=[1-9][0-9]*\s+average="
 )
+LEADERBOARD_RUN_RE = re.compile(r"\[lb_[^\]]+(?:\.py)?\]\s+run=([1-9][0-9]*)\s+time=")
+CONTROLLED_STOP_PREFIXES = ("reached max leaderboard runs",)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -74,6 +76,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=float,
         default=30.0,
         help="请求运行后游戏 output.txt 连续无新增输出的最长墙钟秒数，默认 30 秒；设为 0 可关闭。",
+    )
+    parser.add_argument(
+        "--max-leaderboard-runs",
+        type=int,
+        default=2,
+        help="打榜迭代验证时，看到 output.txt 新增 run 达到该数量后主动停止；默认 2，设为 0 表示不按轮次停止。",
     )
     return parser.parse_args(argv)
 
@@ -262,11 +270,13 @@ def wait_for_status(
     poll_interval: float,
     baseline: OutputBaseline,
     output_stall_timeout: float,
+    max_leaderboard_runs: int,
 ) -> dict[str, object]:
     deadline = time.monotonic() + timeout_seconds
     last_game_output_at = time.monotonic()
     last_game_output_count = 0
     stop_requested_for_stall = False
+    controlled_stop_message: str | None = None
     while time.monotonic() < deadline:
         if not is_windows_process_running(pid):
             raise RuntimeError(f"游戏进程已退出: pid={pid}")
@@ -285,19 +295,31 @@ def wait_for_status(
                     "last_error": f"superseded by request_id={current_request_id}",
                 }
             if current_request_id == request_id and status in accepted_statuses:
+                if controlled_stop_message is not None and status == "failed":
+                    current = dict(current)
+                    current["last_error"] = controlled_stop_message
                 return current
             if (
-                output_stall_timeout > 0
+                (output_stall_timeout > 0 or max_leaderboard_runs > 0)
                 and current_request_id == request_id
                 and status == "running"
             ):
-                game_output_count = len(
-                    read_appended_lines(baseline.game_output_path, baseline.game_output_signature)
-                )
+                game_output_lines = read_appended_lines(baseline.game_output_path, baseline.game_output_signature)
+                game_output_count = len(game_output_lines)
                 if game_output_count > last_game_output_count:
                     last_game_output_count = game_output_count
                     last_game_output_at = time.monotonic()
+
+                completed_runs = count_leaderboard_runs(game_output_lines)
+                if max_leaderboard_runs > 0 and completed_runs >= max_leaderboard_runs:
+                    message = f"reached max leaderboard runs {max_leaderboard_runs}"
+                    write_state_file(state_path, build_stop_requested_state(current, message))
+                    print(f"real_game_runner max_runs request_id={request_id} {message}")
+                    controlled_stop_message = message
+                    max_leaderboard_runs = 0
                 elif (
+                    output_stall_timeout > 0
+                    and
                     not stop_requested_for_stall
                     and time.monotonic() - last_game_output_at >= output_stall_timeout
                 ):
@@ -308,7 +330,8 @@ def wait_for_status(
                     write_state_file(state_path, build_stop_requested_state(current, message))
                     stop_requested_for_stall = True
                     print(f"real_game_runner output_stall request_id={request_id} {message}")
-        time.sleep(max(0.05, poll_interval))
+        sleep_interval = 0.05 if max_leaderboard_runs > 0 else max(0.05, poll_interval)
+        time.sleep(sleep_interval)
     raise TimeoutError(f"等待状态 {sorted(accepted_statuses)} 超时: request_id={request_id} state_path={state_path}")
 
 
@@ -381,6 +404,19 @@ def has_successful_leaderboard_summary(outputs: CapturedOutputs) -> bool:
     return any(LEADERBOARD_SUCCESS_SUMMARY_RE.search(line) for line in outputs.mod_output_lines)
 
 
+def count_leaderboard_runs(lines: tuple[str, ...]) -> int:
+    count = 0
+    for line in lines:
+        if LEADERBOARD_RUN_RE.search(line):
+            count += 1
+    return count
+
+
+def is_controlled_stop(result: dict[str, object]) -> bool:
+    error = str(result.get("last_error") or "")
+    return any(error.startswith(prefix) for prefix in CONTROLLED_STOP_PREFIXES)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     exe_path = resolve_game_executable(args.game_root)
@@ -411,6 +447,7 @@ def main(argv: list[str] | None = None) -> int:
         poll_interval=args.poll_interval,
         baseline=baseline,
         output_stall_timeout=args.output_stall_timeout,
+        max_leaderboard_runs=args.max_leaderboard_runs,
     )
     outputs = capture_request_outputs(baseline)
     print(
@@ -423,6 +460,8 @@ def main(argv: list[str] | None = None) -> int:
         if target_requires_leaderboard_summary(args.target_script) and not has_successful_leaderboard_summary(outputs):
             print("real_game_runner leaderboard_summary_missing")
             return 5
+        return 0
+    if result.get("status") == "failed" and is_controlled_stop(result):
         return 0
     if result.get("status") == "superseded":
         return 4
