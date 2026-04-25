@@ -16,6 +16,10 @@ class LeaderboardSyncTests(unittest.TestCase):
         text = leaderboard_sync.render_lb_start("lb_fastest_reset")
         self.assertIn('leaderboard_run(Leaderboards.Fastest_Reset, "lb_fastest_reset", 200)', text)
 
+    def test_render_lb_start_uses_pumpkins_iterations(self) -> None:
+        text = leaderboard_sync.render_lb_start("lb_pumpkins")
+        self.assertIn('leaderboard_run(Leaderboards.Pumpkins, "lb_pumpkins", 20000)', text)
+
     def test_sync_single_cur2save_copies_only_requested_script_and_generates_lb_start(self) -> None:
         with tempfile.TemporaryDirectory() as source_text, tempfile.TemporaryDirectory() as target_text:
             source_dir = Path(source_text)

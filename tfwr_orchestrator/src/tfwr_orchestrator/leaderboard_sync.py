@@ -10,6 +10,9 @@ from .config import GAMESAVE_LINK, LEADERBOARD_REFERENCE_ROOT
 
 DEFAULT_LEADERBOARD_ITERATIONS = 10_000
 FASTEST_RESET_ITERATIONS = 200
+SCRIPT_ITERATION_OVERRIDES = {
+    "lb_pumpkins": 20_000,
+}
 
 
 UNSUPPORTED_GAME_SYNTAX = {
@@ -66,9 +69,12 @@ def leaderboard_enum_name_for_script(script_name: str) -> str:
 
 
 def default_iterations_for_script(script_name: str) -> int:
-    if Path(script_name).stem == "lb_fastest_reset":
-        # 真实 lb_start.py 当前为 fastest_reset 使用 200 次，其余榜单统一 10000 次。
+    stem = Path(script_name).stem
+    if stem == "lb_fastest_reset":
+        # 真实 lb_start.py 当前为 fastest_reset 使用 200，其余榜单默认 10000；个别榜单按实测覆盖。
         return FASTEST_RESET_ITERATIONS
+    if stem in SCRIPT_ITERATION_OVERRIDES:
+        return SCRIPT_ITERATION_OVERRIDES[stem]
     return DEFAULT_LEADERBOARD_ITERATIONS
 
 

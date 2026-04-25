@@ -1,159 +1,346 @@
 from __builtins__ import *
 
 
-PUMPKIN_GOAL = 200000000
+def get_pos():
+    return get_pos_x(), get_pos_y()
 
 
-# main3: 旧 27x27 / 16 块 6x6 并行基线，结论保留在 md。
-# main4: 16x16 混合布局，两个 8x8 + 两个 6x6，每片主机收割、助手补洞。
-def main4():
-    set_world_size(16)
-
-    spawn_block(0, 0, 8)
-    spawn_block(8, 8, 8)
-    spawn_block(10, 0, 6)
-    goto(0, 10)
-    main4_block_worker(0, 10, 6)
-
-
-def spawn_block(x0, y0, size):
-    goto(x0, y0)
-    spawn_drone(main4_helper_worker, x0, y0, size)
-    goto(x0, y0)
-    spawn_drone(main4_block_worker, x0, y0, size)
-
-
-def main4_helper_worker(x0, y0, size):
-    # 助手只补洞、补水、推进未熟格；合并后的收割仍交给主机，避免抢收。
-    while num_items(Items.Pumpkin) < PUMPKIN_GOAL:
-        scan_area(x0, y0, size, 0, size, 1)
-
-
-def main4_block_worker(x0, y0, size):
-    while num_items(Items.Pumpkin) < PUMPKIN_GOAL:
-        plant_area(x0, y0, size, 0, size)
-        wait_block_by_corners(x0, y0, size)
-        harvest_block(x0, y0)
-
-
-def wait_block_by_corners(x0, y0, size):
-    while True:
-        goto(x0, y0)
-        a = measure()
-        goto((x0 + size - 1) % get_world_size(), (y0 + size - 1) % get_world_size())
-        b = measure()
-        if a == b:
-            return
-        scan_area(x0, y0, size, 0, size, 1)
-
-def run_slice(x0, y0, width, y_offset, height):
-    while num_items(Items.Pumpkin) < PUMPKIN_GOAL:
-        plant_area(x0, y0, width, y_offset, height)
-        wait_area(x0, y0, width, y_offset, height)
-        harvest_area(x0, y0, width, y_offset, height)
-
-
-def plant_area(x0, y0, width, y_offset, height):
-    scan_area(x0, y0, width, y_offset, height, 0)
-
-
-def wait_area(x0, y0, width, y_offset, height):
-    while True:
-        pending = scan_area(x0, y0, width, y_offset, height, 1)
-        if pending == 0:
-            return
-
-
-def harvest_area(x0, y0, width, y_offset, height):
-    scan_area(x0, y0, width, y_offset, height, 2)
-
-
-def harvest_block(x0, y0):
-    # 角测确认整块合并后，任意一格收割即可结算整个 giant pumpkin。
-    goto(x0, y0)
-    if get_entity_type() == Entities.Pumpkin and can_harvest():
-        harvest()
-
-
-def scan_area(x0, y0, width, y_offset, height, mode):
-    pending = 0
-    goto(x0, y0 + y_offset)
-    for local_y in range(height):
-        if local_y % 2 == 0:
-            move_dir = East
-            end_dx = width - 1
-            step = 1
-        else:
-            move_dir = West
-            end_dx = 0
-            step = -1
-
-        dx = (get_pos_x() - x0) % get_world_size()
-        while True:
-            entity = get_entity_type()
-            if mode == 2:
-                if entity == Entities.Pumpkin and can_harvest():
-                    harvest()
-            elif entity == Entities.Pumpkin:
-                if not can_harvest():
-                    pending = pending + 1
-                    water_pumpkin()
-            else:
-                if entity == Entities.Dead_Pumpkin and get_ground_type() != Grounds.Soil:
-                    harvest()
-                elif entity != None and entity != Entities.Dead_Pumpkin:
-                    harvest()
-                can_plant_slot = True
-                if get_ground_type() != Grounds.Soil:
-                    # helper 不翻地，避免双机同格扫描时把 Soil 再翻回 Grassland。
-                    if mode == 1:
-                        can_plant_slot = False
-                    else:
-                        till()
-                if can_plant_slot:
-                    plant(Entities.Pumpkin)
-                    water_pumpkin()
-                pending = pending + 1
-
-            if dx == end_dx:
-                break
-            move(move_dir)
-            dx = dx + step
-
-        if local_y < height - 1:
-            move(North)
-    return pending
-
-
-def water_pumpkin():
-    if get_water() < 0.75 and num_items(Items.Water) >= 6:
-        use_item(Items.Water, 3)
-    elif get_water() < 0.25 and num_items(Items.Water) > 5:
-        use_item(Items.Water)
-
-
-def goto(tx, ty):
+def move_to(pos):
+    x, y = pos
     size = get_world_size()
-    half = size // 2
-    x = get_pos_x()
-    y = get_pos_y()
-
-    dx = (tx - x) % size
-    if dx <= half:
-        for _ in range(dx):
-            move(East)
+    dx = x - get_pos_x()
+    if abs(dx) > size // 2:
+        if dx > 0:
+            for _ in range(size - dx):
+                move(West)
+        else:
+            for _ in range(size + dx):
+                move(East)
     else:
-        for _ in range(size - dx):
-            move(West)
-
-    dy = (ty - y) % size
-    if dy <= half:
-        for _ in range(dy):
-            move(North)
+        if dx < 0:
+            for _ in range(-dx):
+                move(West)
+        elif dx > 0:
+            for _ in range(dx):
+                move(East)
+    dy = y - get_pos_y()
+    if abs(dy) > size // 2:
+        if dy > 0:
+            for _ in range(size - dy):
+                move(South)
+        else:
+            for _ in range(size + dy):
+                move(North)
     else:
-        for _ in range(size - dy):
-            move(South)
+        if dy < 0:
+            for _ in range(-dy):
+                move(South)
+        elif dy > 0:
+            for _ in range(dy):
+                move(North)
 
 
-if __name__ == "__main__":
-    main4()
+def move_n(direction, count):
+    for _ in range(count):
+        move(direction)
+
+
+clear()
+# 3x6 哈密顿路径
+# ↓←←
+# ↓→↑
+# ↓↑←
+# ↓→↑
+# ↓↑←
+# →→↑
+def path_36(func):
+    dir_list = [
+        East , East , North, West , North, East , North, West , North, East ,
+        North, West , West , South, South, South, South, South
+    ]
+    for dir in dir_list:
+        func()
+        move(dir)
+# 6x6 哈密顿路径
+# ↓←←↓←←
+# →↓↑↓→↑
+# ↓←↑←↑←
+# →↓→↓→↑
+# ↓←↑↓↑←
+# →→↑→→↑
+def path_66(func):
+    dir_list = [
+        East , East , North, North, East , South, South, East , East , North,
+        West , North, East , North, West , North, East , North, West , West ,
+        South, South, West , North, North, West , West , South, East , South,
+        West , South, East , South, West , South,
+    ]
+    for dir in dir_list:
+        func()
+        move(dir)
+# 5x5 哈密顿路径
+# ↓←←↓←
+# →↓↑←↑
+#  →↓→↑
+# ↑←←↑←
+# →→→→↑
+def path_55(func):
+    dir_list = [
+        East , East , East , East , North, West , North, East , North, North,
+        West , South, West , North, West , West , South, East , South, East ,
+        South, West , West , North
+    ]
+    for dir in dir_list:
+        func()
+        move(dir)
+    func()
+    move(South)
+    move(South)
+# 4x4 哈密顿路径
+# ↓←←←
+# →↓→↑
+# ↓←↑←
+# →→→↑
+def path_44(func):
+    dir_list = [
+        East , East , East , North, West , North, East , North,
+        West , West , West , South, East , South, West , South
+    ]
+    for dir in dir_list:
+        func()
+        move(dir)
+
+def plant_pumpkin():
+    while get_water() + 0.25 <= min(num_items(Items.Water) / 100, 1.0):
+        use_item(Items.Water)
+    plant(Entities.Pumpkin)
+unchecked = []
+PUMPKIN3_LAST_LOG_TIME = -9999
+PUMPKIN3_LAST_LOG_PUMPKIN = -1
+
+
+def reset_pumpkin3_state():
+    global unchecked
+    global PUMPKIN3_LAST_LOG_TIME
+    global PUMPKIN3_LAST_LOG_PUMPKIN
+    unchecked = []
+    PUMPKIN3_LAST_LOG_TIME = -9999
+    PUMPKIN3_LAST_LOG_PUMPKIN = -1
+
+
+def log_pumpkin3_progress():
+    global PUMPKIN3_LAST_LOG_TIME
+    global PUMPKIN3_LAST_LOG_PUMPKIN
+    now = get_time()
+    pumpkin = num_items(Items.Pumpkin)
+    if now - PUMPKIN3_LAST_LOG_TIME >= 20 or pumpkin - PUMPKIN3_LAST_LOG_PUMPKIN >= 25000000:
+        quick_print("pumpkin3 progress pumpkin=", pumpkin, " time=", now)
+        PUMPKIN3_LAST_LOG_TIME = now
+        PUMPKIN3_LAST_LOG_PUMPKIN = pumpkin
+
+
+def find_dead_pumpkin():
+    if not can_harvest():
+        unchecked.append(get_pos())
+    plant(Entities.Pumpkin)
+
+def task_with_exit(path, height, final_check, exit_condition, should_log):
+    def _task():
+        global unchecked
+        pos_o = get_pos()
+        fixed_y = get_pos_y()
+        if get_ground_type() != Grounds.Soil:
+            path(till)
+        while not exit_condition():
+            if should_log:
+                log_pumpkin3_progress()
+            path(plant_pumpkin)
+            path(find_dead_pumpkin)
+            if exit_condition():
+                return
+            while unchecked:
+                if exit_condition():
+                    return
+                to_remove = []
+                for pos in unchecked:
+                    if exit_condition():
+                        return
+                    move_to(pos)
+                    if can_harvest():
+                        to_remove.append(pos)
+                        continue
+                    plant_pumpkin()
+                    while len(unchecked) <= 5 and get_water() < 0.9 and num_items(Items.Water) > 10:
+                        use_item(Items.Water)
+                for pos in to_remove:
+                    unchecked.remove(pos)
+                if len(unchecked) == 1 and num_items(Items.Fertilizer) > 10:
+                    move_to(unchecked[0])
+                    while not can_harvest():
+                        plant_pumpkin()
+                        use_item(Items.Fertilizer)
+                    break
+            if exit_condition():
+                return
+            if not final_check:
+                harvest()
+                move_to(pos_o)
+                continue
+            pos_a = (get_pos_x(), fixed_y + 1)
+            pos_b = (get_pos_x(), fixed_y + height - 2)
+            move_to(pos_a)
+            a = measure(South)
+            move_to(pos_b)
+            b = measure(North)
+            c = measure()
+            while a != b and a and b and c:
+                move_to(pos_a)
+                a = measure(South)
+                move_to(pos_b)
+                b = measure(North)
+                c = measure()
+            if a or b:
+                harvest()
+            if exit_condition():
+                return
+            move_to(pos_o)
+    return _task
+
+def task(path, height, final_check = False, end_value = 200000000, should_log = False):
+    def exit_condition():
+        return num_items(Items.Pumpkin) >= end_value
+    return task_with_exit(path, height, final_check, exit_condition, should_log)
+
+def main1():
+    reset_pumpkin3_state()
+    quick_print("pumpkin3 start")
+    spawn_drone(task(path_55, 5))
+    move_n(East, 6)
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 4)
+    spawn_drone(task(path_66, 6))
+    move_n(East, 7)
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 4)
+    spawn_drone(task(path_55, 5))
+    move_to((0, 6))
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6, True))
+    move_to((7, 7))
+    spawn_drone(task(path_55, 5))
+    move_n(East, 6)
+    spawn_drone(task(path_66, 6))
+    move_n(East, 7)
+    spawn_drone(task(path_55, 5))
+    move_to((26, 6))
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6, True))
+    move_to((0, 13))
+    spawn_drone(task(path_66, 6))
+    move_n(East, 7)
+    spawn_drone(task(path_66, 6))
+    move_n(East, 12)
+    spawn_drone(task(path_66, 6))
+    move_n(East, 7)
+    spawn_drone(task(path_66, 6))
+    move_to((0, 20))
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 4)
+    spawn_drone(task(path_55, 5))
+    move_to((13, 19))
+    spawn_drone(task(path_66, 6))
+    move_to((20, 20))
+    spawn_drone(task(path_55, 5))
+    move_n(East, 6)
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6, True))
+    move_to((0, 27))
+    spawn_drone(task(path_55, 5))
+    move_to((6, 26))
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 4)
+    spawn_drone(task(path_66, 6))
+    move_n(East, 7)
+    spawn_drone(task(path_36, 6, True))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6, True))
+    move_to((27, 27))
+    task(path_55, 5, False, 200000000, True)()
+def main2():
+    set_world_size(27)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_to((0, 7))
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_to((0, 14))
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_to((0, 21))
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 4)
+    spawn_drone(task(path_36, 6))
+    move_n(East, 3)
+    task(path_36, 6)()
+if __name__ == '__main__':
+    main1()
