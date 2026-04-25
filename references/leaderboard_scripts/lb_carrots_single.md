@@ -57,6 +57,12 @@
   - 这条线直接无效
   - 原因是草地 / 耕地冲突，不是搜索空间优先级问题
 - 需要真正淘汰的不是“所有 companion 路线”，而是“高冲突但低兑现率”以及“地块上根本不可能成立”的 companion 分支
+- 外部 `Save0/lb_carrot_single.py`
+  - 原始入口指向 `carrot_single_pi`，但 `Save0` 中不存在这个目标文件
+  - 按规则尝试改用唯一可疑替代 `Save0/carrot.py`，并内联 `utils.use_water()` / `utils.harvest_if_can()` / `utils.always_not()`
+  - 真实请求 `243`：30 秒无 `output.txt` 完成轮，最终 `leaderboard finished without completed runs`
+  - 同期 `item_snapshot` 显示 `carrot` 已从 `129,573,888` 增长到 `4,023,484,416`，但 leaderboard 没有记录 `run=`
+  - 判断：这个脚本在单机榜语境下不是可直接迁入候选；问题不是产量不足，而是入口目标缺失、脚本无限运行且没有被 leaderboard 正确结算
 
 ## 下一步优化方向
 
