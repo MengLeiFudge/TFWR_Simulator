@@ -20,6 +20,10 @@ class LeaderboardSyncTests(unittest.TestCase):
         text = leaderboard_sync.render_lb_start("lb_dinosaur")
         self.assertIn('leaderboard_run(Leaderboards.Dinosaur, "lb_dinosaur", 1000)', text)
 
+    def test_render_lb_start_uses_maze_single_iterations(self) -> None:
+        text = leaderboard_sync.render_lb_start("lb_maze_single")
+        self.assertIn('leaderboard_run(Leaderboards.Maze_Single, "lb_maze_single", 1000)', text)
+
     def test_render_lb_start_uses_pumpkins_iterations(self) -> None:
         text = leaderboard_sync.render_lb_start("lb_pumpkins")
         self.assertIn('leaderboard_run(Leaderboards.Pumpkins, "lb_pumpkins", 20000)', text)

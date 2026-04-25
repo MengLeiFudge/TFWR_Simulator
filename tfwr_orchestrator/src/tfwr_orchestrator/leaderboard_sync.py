@@ -12,6 +12,7 @@ DEFAULT_LEADERBOARD_ITERATIONS = 10_000
 FASTEST_RESET_ITERATIONS = 200
 SCRIPT_ITERATION_OVERRIDES = {
     "lb_dinosaur": 1_000,
+    "lb_maze_single": 1_000,
     "lb_pumpkins": 20_000,
     "lb_sunflowers_single": 1_000,
 }
