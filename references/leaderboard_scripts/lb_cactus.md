@@ -47,7 +47,10 @@
 - gamesave 当前真实成绩：`36.258`
 - 2026-04-24 新鲜短窗口基线：41 轮均值 `0:35.903`
 - 2026-04-25 外部 `Save0/cactus2.py` 候选：通过覆盖既有 `gamesave/lb_cactus.py` 验证，没有向真实存档新增依赖文件；请求 `212` 在 `90s` 旧保护窗口内没有完成轮次，明显不如当前 `35~36s` 基线。
+- 2026-04-25 重新读取当前 `Save0/cactus2.py` 后复测：请求 `246` 在当前 `30s output_stall` 规则下无任何 `run=`，最终 `leaderboard finished without completed runs`；继续不迁入。
 - 2026-04-25 外部 `Save0/cactus3.py` 候选：请求 `213` 在中断前已超过当前 `35~36s` 基线仍没有完成轮次，按当前规则应在 `30s output stall` 时停止，暂不作为迁入候选。
+- 2026-04-25 重新读取当前 `Save0/cactus3.py` 后复测：请求 `253` 只有 `[lb_cactus] start`，30 秒无完成轮；`item_snapshot` 显示只是在持续消耗 Pumpkin，Cactus 仍为 0，不迁入。
+- 2026-04-25 外部 `Save0/cactus.py` 候选：去掉 `utils.always_not` 依赖后请求 `254/256` 均未产生有效 leaderboard 输出；保守结论是不迁入，后续除非先改造成稳定 `run=` 入口。
 - 与 `#1` 相比当前大约慢接近一倍
 - 证据来源：
   - 仓库当前脚本结构 `lb_cactus.py`

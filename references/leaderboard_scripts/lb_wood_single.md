@@ -71,6 +71,14 @@
 
 ## 失败对照
 
+- 2026-04-25 外部 `Save0/wood_single_pi.py` 候选：
+  - 入口 `Save0/ld_wood_single.py` 指向 `wood_single_pi`
+  - 请求 `250` 无任何 `run=`，最终 `leaderboard finished without completed runs`
+  - 该文件只有 tick/排行榜显示时间探针，不是产木策略，不迁入
+- 2026-04-25 外部 `Save0/wood_single.py` 候选：
+  - 覆盖既有 `lb_wood_single.py` 验证，请求 `251` 只完成 1 轮
+  - 成绩 `101:58.599`，且输出 `Items.Weird_Substance` 不足警告
+  - 远慢于当前 `main11` 基线，不迁入
 - `main9`
   - 树位降级过度，活树数下降明显
 - `main12`

@@ -84,6 +84,18 @@
 
 ## 失败对照
 
+- `Save0/maze_mzlbe.py`
+  - 2026-04-25 重新读取当前文件后复测，不沿用旧结论
+  - 临时覆盖为 `lb_maze` 并用 `leaderboard_run(Leaderboards.Maze, "lb_maze", 10000)` 验证
+  - 请求 `247` 只有 `[lb_maze] start`，30 秒 `output_stall` 内没有任何 `run=`
+  - `item_snapshot` 显示 gold 从约 `674816` 增至 `1137664`，说明脚本确实在获取金币
+  - 但 leaderboard 没有完成轮次，最终按 `leaderboard finished without completed runs` 处理
+  - 结论：当前形态不迁入；如果后续继续救，必须先补齐可结算的两轮停表证据
+- `Save0/maze_multi.py`
+  - 2026-04-25 读取当前文件后，将 `math` / `algorithm` / `move_utils` 内联到既有 `lb_maze.py`，未向存档新增依赖文件
+  - 请求 `265` 暴露内联后的 `back` 变量名冲突；修正后请求 `266` 仍只有残缺错误输出与 30 秒无完成轮
+  - `item_snapshot` 长时间停在 `gold=0`，没有形成有效寻宝收益
+  - 结论：当前文件不迁入；若后续继续救，先要把子无人机探图入口改到稳定无错误，再谈收益
 - 大图迷宫 / 墙跟随式探索
   - 已明确不是榜前方向
 - 过度不均匀的分区

@@ -89,6 +89,10 @@
 
 ## 失败对照
 
+- 2026-04-25 外部 `Save0/dinosaur.py` 候选：
+  - 覆盖既有 `lb_dinosaur.py` 验证，请求 `262` 无完成轮，最终 `leaderboard finished without completed runs`
+  - `item_snapshot` 显示 Cactus 持续缓慢下降但 Bone 始终为 0
+  - 慢于并且不如已迁入的 `Save0/dinosaur2.py` 可结算路线，不迁入
 - 早期“见苹果就追”的贪心类方案
   - 核心问题不是找不到苹果，而是活不到足够长
 - `main5`

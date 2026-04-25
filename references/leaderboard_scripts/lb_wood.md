@@ -89,6 +89,10 @@
   - `LogOutput.log` 的 `item_snapshot` 显示约 8 秒 `wood=8746807040`，约 9 秒 `wood=9856929024`
   - 游戏 `output.txt` 新增 `run=` 行数为 0，模组返回 `leaderboard finished without completed runs`
   - 结论：资源增长很快，但没有触发 leaderboard 完成轮，疑似目标判定 / 最终 harvest / 结算时机不对；不能直接迁入，后续只能作为“高产结构”拆解参考
+- 2026-04-25 重新读取当前 `Save0/wood_lb.py` 后复测
+  - 请求 `252` 仍无任何 `run=`
+  - `item_snapshot` 显示约 9 秒 `wood=9624283392`，接近目标但最终仍 `leaderboard finished without completed runs`
+  - 结论不变：结构可作为参考，当前文件不迁入
 - 2026-04-25 `main3` 水阈值变体
   - 把 `use_water()` 改成 `num_items(Items.Water) > 128` 后两轮均值 `10:35.912`
   - 改成 `num_items(Items.Water) > 0` 单次补水后两轮均值 `10:32.253`
