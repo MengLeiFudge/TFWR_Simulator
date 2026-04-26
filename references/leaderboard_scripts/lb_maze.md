@@ -90,6 +90,12 @@
   - 第二轮中途取消，`finished=false runs=2 average=1:38.199` 不作为有效完成轮成绩。
   - 根因判断：半径变大虽然减少分区数量，但每区内寻路距离和等待 Treasure 落入区域的成本上升；减少 chunks 没有带来净收益。
   - 结论：候选已从 `.py` 回退，只保留失败记录；下一步如继续测半径，应反向尝试更小半径或先补探图/首金时间探针。
+- 分区半径 `14 -> 12`
+  - 2026-04-26 请求 `344` 验证。
+  - 改法：仅把 `k_center_on_tree()` 返回值从 `14` 改为 `12`，验证增加 chunks / 缩小区域是否能提高覆盖并发。
+  - 结果：`maze_multi explore_done edges=2046` 后早期金币只涨到 `196608`。
+  - 关键诊断：BepInEx `item_snapshot` 显示从 `game_time=22.114` 到 `game_time=74.423`，`gold=196608` 恒定不变；`progress_estimate` 输出 `unavailable reason=no_positive_rate`。
+  - 结论：半径过小会让 Treasure 进入区域后路径或回收逻辑失效，形成低金币卡死；候选已停止并从 `.py` 回退。
 
 ## 下一步优化方向
 
