@@ -335,6 +335,10 @@
 - “金币迷宫 300 次后补收最终宝箱”
   - `request_id=203` 完成时间退到 `14051.74`
   - 当前结论：不补收最终宝箱，继续靠重定位金币推进
+- “按迷宫等级倍率下调金币重定位次数估算”
+  - `request_id=333` 先误把单次金币收益估成 `size * size * substance`，真实输出立刻证明早期 `6x6 / Mazes 1` 每次 Treasure 只涨 `36` 金币，而不是 `216`，该轮已手动停止。
+  - `request_id=334` 改为 `size * size * 2^(Mazes-1)` 后完整结算，`gold 1M time=7378.28`、`done time=13347.51`、`average=222:27.573`，慢于当前最佳 `216:26.969`。
+  - 当前结论：金币次数估算不能只看理论每次金币；较小 Weird 预采会增加拆批和重复清迷宫 / 探图成本，正式路线继续保留原来的 `size * size` 估算与 `600` 上限。
 - “早期小迷宫直接推到 `Megafarm 3`”
   - `request_id=332` 临时把 `try_unlock_early_megafarm()` 从目标 `Megafarm 2` 提到 `Megafarm 3`。
   - 真实输出 `early_megafarm 3 time=2980.87`，但 `step4 time=3651.98`，明显慢于 `request_id=331` 的 `step4 time=2547.29`。
