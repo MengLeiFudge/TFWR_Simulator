@@ -287,6 +287,13 @@
   - `request_id=342` 复跑完整结算，输出 `step2 time=1365.18`、`megafarm 3 time=3548.06`、`gold 1M time=6929.51`、`dinosaurs 3 time=7619.70`、`done time=13006.78`、`average=216:46.799`。
   - 两轮差距约 `2.0%`，低于 `10%` 继续采样阈值；两轮均值约 `214:36.749`，优于 `request_id=335/336` 的两轮均值约 `216:10.849`。
   - 当前保留：`WEIRD_POWER_FLOOR=1000` 是稳定正收益；`lb_start.py` 本地实测时间刷新为当前最好单轮 `3:32:26.699`。
+- `request_id=345/346`：
+  - `request_id=345` 直接把 `STEP2_POWER_TARGET` 改为 `0`，导致 `step2()` 不执行，树等关键科技未解锁，脚本立即运行时报错；这是无效探针。
+  - `request_id=346` 修正为“达到 `6x6` 和关键科技后退出 step2，不额外刷 `1000 Power`”。
+  - 结果：`step2 time=1085.20`，确实比请求 `341/342` 的 `1290.01/1365.18` 少约 `205~280s`。
+  - 但后续 `Megafarm 3 time=4839.46`，明显慢于请求 `341/342` 的 `3511.85/3548.06`。
+  - 主动停止前 `weird_parallel` 已到 `time=5896.14`，仍在补 `43,344 Weird_Substance`，说明前置电力和伴随资源不足会被后段 Weird 产线放大偿还。
+  - 结论：不采用取消前置电力；`STEP2_POWER_TARGET` 回退并继续保留 `1000`。
 - `request_id=204`：
   - 回退 `Expand 7`、`Dinosaurs 4`、最终宝箱补收后，用当前保留版本复测。
   - 真实 `output.txt` 有完整 `reset_stage done time=14018.42`；`run_real_game_script.py` 本轮没有抓到 `game_output` 正文，但文件尾部证明脚本完成且状态已回到 `idle`。
