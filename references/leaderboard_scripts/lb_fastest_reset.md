@@ -558,3 +558,10 @@
   - 真实输出 `skip_polyculture time=2323.11`、`step4 time=2453.59`、`mazes 3 time=3026.58`、`megafarm 3 time=3258.46`，前半段明显快于近邻正式路线。
   - 但无 `Polyculture` 后 Weird 产线退化：`weird_parallel_start time=3258.61 target=43344` 到 `weird_parallel time=5508.84 weird=43378`，单次大 Weird 预备耗约 `2250s`；随后 `gold time=7197.75 gold=518664 target=1000000`，已经慢于当前最好 `gold 1M time=6143.85~6477.64` 且只完成约一半金币。
   - 结论：`Polyculture 1` 不能跳过。它的 `3000` 南瓜成本能被 Weird 伴生产线收益覆盖；正式路线恢复 `farm_pumpkins_until(8000) -> unlock(Cactus) -> unlock(Polyculture)`。
+
+- `request_id=383`：
+  - 临时把 `farm_gold_single_cycle()` 的 `batch_paid_move_count` 上限从 `900` 提高到 `1800`，验证 `1M Gold` 阶段一次性预备更多 Weird、连续跑多个迷宫 cycle 是否能减少产线重建成本。
+  - 真实输出 `step2 time=1384.54`、`step3 time=1798.33`、`early_megafarm 2 time=1956.24`、`polyculture1 time=2627.51`、`step4 time=2746.88`、`mazes 3 time=3355.62`、`megafarm 3 time=3572.59`。
+  - 金币阶段输出 `weird_parallel_start target=83616 time=3572.74`、`weird_parallel time=5809.08 weird=83706`、`gold 1M time=7759.57`、`dinosaurs 3 time=8436.09`；后续手动停止时已有 `average=154:49.063`，并由模组记录 `oracle_error request_id=383 leaderboard cancelled`。
+  - 对比当前最好 `gold 1M time=6143.85~6477.64`，一次性大 Weird 预备导致金币阶段明显变慢。
+  - 结论：`batch_paid_move_count` 上限不提高到 `1800`；正式路线保持 `900`，分批 Weird 预备比一次性大批量更稳。
