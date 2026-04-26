@@ -1466,7 +1466,7 @@ def farm_gold_single_cycle(target):
         cycle_count = 1
     farm_weird_substance_until(substance * (batch_paid_move_count + cycle_count))
     remaining_paid_move_count = batch_paid_move_count
-    while remaining_paid_move_count >= 0 and num_items(Items.Gold) < target:
+    while remaining_paid_move_count > 0 and num_items(Items.Gold) < target:
         paid_move_count = remaining_paid_move_count
         if paid_move_count > 300:
             paid_move_count = 300

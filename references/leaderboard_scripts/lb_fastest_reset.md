@@ -299,6 +299,12 @@
   - `request_id=352` 复跑完整结算，输出 `early_megafarm 2 time=2071.52`、`expand 6 time=2404.12`、`step4 time=2864.79`、`mazes 3 time=3447.02`、`megafarm 3 time=3697.21`、`gold 1M time=6771.83`、`dinosaurs 3 time=7195.97`、`done time=12639.57`、`average=210:39.599`。
   - 两轮差距约 `0.42%`，低于 `10%` 继续采样阈值；两轮均值约 `211:06.349`，优于 `request_id=349/350` 的两轮均值约 `212:30.999`。
   - 当前保留：`WEIRD_POWER_FLOOR=1350` 是新的稳定最好；但当前最好单轮仍是 `request_id=349` 的 `3:29:16.799`，所以不刷新 `lb_start.py` 本地实测时间。
+- `request_id=357/358`：
+  - 修复 `farm_gold_single_cycle()` 的批次循环边界：当 `remaining_paid_move_count` 刚好降到 `0` 时，不再额外 `clear()`、开迷宫、探图但执行 `0` 次 Treasure。
+  - `request_id=357` 完整结算，输出 `step2 time=1330.70`、`early_megafarm 2 time=1916.13`、`step4 time=2720.55`、`mazes 3 time=3309.57`、`megafarm 3 time=3588.80`、`gold 1M time=6661.66`、`dinosaurs 3 time=7375.67`、`done time=12721.99`、`average=212:01.999`。
+  - `request_id=358` 完整结算，输出 `step2 time=1305.69`、`early_megafarm 2 time=1764.25`、`step4 time=2558.85`、`mazes 3 time=3199.73`、`megafarm 3 time=3483.86`、`gold 1M time=6490.07`、`dinosaurs 3 time=7182.89`、`done time=12570.11`、`average=209:30.176`。
+  - 两轮差距约 `1.19%`，低于 `10%` 继续采样阈值；两轮均值约 `210:46.087`，略优于 `request_id=351/352` 的 `211:06.349`。
+  - 当前保留：金币批次 `0` 次额外迷宫确认为真实浪费，应删除；但当前最好单轮仍是 `request_id=349` 的 `3:29:16.799`，所以不刷新 `lb_start.py` 本地实测时间。
 - `request_id=345/346`：
   - `request_id=345` 直接把 `STEP2_POWER_TARGET` 改为 `0`，导致 `step2()` 不执行，树等关键科技未解锁，脚本立即运行时报错；这是无效探针。
   - `request_id=346` 修正为“达到 `6x6` 和关键科技后退出 step2，不额外刷 `1000 Power`”。
