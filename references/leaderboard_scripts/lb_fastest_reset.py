@@ -1769,7 +1769,7 @@ def farm_bones_until(target):
         farm_dinosaur_apple_cost(target_tail * remaining_cycles)
         quick_print("reset_stage", "bone_prep", "time=", get_time(), "cycles=", remaining_cycles, "cactus=", num_items(Items.Cactus), "pumpkin=", num_items(Items.Pumpkin))
         change_hat(Hats.Dinosaur_Hat)
-        run_dinosaur_loop(size, target_tail)
+        run_dinosaur_chase_loop(size)
         change_hat(Hats.Straw_Hat)
         quick_print("reset_stage", "bones", "time=", get_time(), "bone=", num_items(Items.Bone), "target=", target)
 
@@ -1833,32 +1833,115 @@ def goto_wrap(tx, ty):
             move(South)
 
 
-def run_dinosaur_loop(size, target_tail):
-    eaten = 0
-    while eaten < target_tail:
-        eaten = eaten + dinosaur_move(East, size - 1, target_tail, eaten)
-        for y in range(1, size):
-            eaten = eaten + dinosaur_move(North, 1, target_tail, eaten)
-            if y % 2 == 1:
-                eaten = eaten + dinosaur_move(West, size - 2, target_tail, eaten)
-            else:
-                eaten = eaten + dinosaur_move(East, size - 2, target_tail, eaten)
-        eaten = eaten + dinosaur_move(West, 1, target_tail, eaten)
-        eaten = eaten + dinosaur_move(South, size - 1, target_tail, eaten)
+def build_dinosaur_path(size):
+    # 构造安全兜底路径：前期追苹果失败或尾巴变长后，沿这条路径继续吃满。
+    path = []
+    for _ in range(size):
+        path.append([])
+        for _ in range(size):
+            path[-1].append(None)
+
+    for x in range(size - 1):
+        path[x][0] = East
+    path[-1][0] = North
+
+    line = size - 1
+    for _ in range(size // 2):
+        for y in range(1, size - 1):
+            path[line][y] = North
+        path[line][-1] = West
+        line = line - 1
+        for y in range(2, size):
+            path[line][y] = South
+        path[line][1] = West
+        line = line - 1
+    path[0][1] = South
+    return path
 
 
-def dinosaur_move(direction, count, target_tail, already_eaten):
-    eaten = 0
-    for _ in range(count):
-        if already_eaten + eaten >= target_tail:
-            return eaten
-        ate_this = get_entity_type() == Entities.Apple
+def run_dinosaur_chase_loop(size):
+    # 复用恐龙榜策略：先按 measure() 追苹果，尽早触发 3% 移动降本，再切回安全路径。
+    path = build_dinosaur_path(size)
+    state = [get_pos_x(), get_pos_y(), 0, 0, 1, 0]
+    measured = measure()
+    if measured:
+        state[2] = measured[0]
+        state[3] = measured[1]
+
+    def update_and_move(direction):
+        if direction == None:
+            return False
         if not can_move(direction):
-            return eaten
+            return False
         move(direction)
-        if ate_this:
-            eaten = eaten + 1
-    return eaten
+        state[5] = state[5] + 1
+        measured_pos = measure()
+        if measured_pos:
+            state[2] = measured_pos[0]
+            state[3] = measured_pos[1]
+            state[4] = state[4] + 1
+        state[0] = get_pos_x()
+        state[1] = get_pos_y()
+        return True
+
+    while state[4] < size * size / 3:
+        state[5] = 0
+        while state[5] < state[4]:
+            if not update_and_move(path[state[0]][state[1]]):
+                return
+        while state[0] < state[2]:
+            if not update_and_move(East):
+                return
+        while state[1] == 0:
+            if state[0] % 2 == 0:
+                if not update_and_move(East):
+                    return
+            else:
+                if not update_and_move(North):
+                    return
+        while state[0] >= state[2]:
+            target_x = state[2]
+            target_y = state[3]
+            if target_y == 0:
+                break
+            while state[1] < target_y:
+                if can_move(North):
+                    if not update_and_move(North):
+                        return
+                else:
+                    if not update_and_move(West):
+                        return
+                    if state[0] == 0:
+                        break
+            if state[0] == 0:
+                break
+            while state[1] > target_y:
+                if can_move(South):
+                    if not update_and_move(South):
+                        return
+                else:
+                    if not update_and_move(West):
+                        return
+                    if state[0] == 0:
+                        break
+            if state[0] == 0:
+                break
+            while state[0] > target_x:
+                if not update_and_move(West):
+                    return
+                if state[0] == 0:
+                    break
+            if state[0] == 0:
+                break
+        while state[0] > 0:
+            if not update_and_move(West):
+                return
+        while state[1] > 0:
+            if not update_and_move(South):
+                return
+
+    while update_and_move(path[state[0]][state[1]]):
+        pass
 
 
 if __name__ == "__main__":
