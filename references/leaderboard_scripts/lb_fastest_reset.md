@@ -498,3 +498,21 @@
 - 优先探针：
   - `step1 -> step2 -> step3` 的切换时机是否已经合理
   - 满科技路线里，哪一段资源积累最可能被压缩
+
+- `request_id=371`：
+  - 临时新增金币迷宫首步查表：在 `build_maze_graph()` 后构建 `next_step[source][target]`，导航保留直线优先，失败时用首步表替代每次 BFS。
+  - 真实输出在早期 `6x6` 金币阶段只到 `reset_stage gold_table time=1774.03 cost=4.26 size=6`，随后 `LogOutput.log` 中 `real_elapsed=9.0` 到 `31.0` 期间 `gold=0`、`weird_substance=1085` 基本不变，只自动增长水和肥料。
+  - 该状态说明脚本卡在首步表导航循环内，没有形成 Treasure 使用；已写入 `stop_requested`，结果为 `oracle_error request_id=371 leaderboard cancelled: fastest_reset`。
+  - 结论：首步查表候选不采用。原因不是表构建耗时（`6x6` 只耗 `4.26s` 游戏时间），而是固定首步表替换动态 BFS 后存在卡死风险；正式路线继续使用直线优先 + 动态 BFS 兜底。
+
+- `request_id=372`：
+  - 临时新增 `WEIRD_COMPANION_MAX_DISTANCE = 6`，对 Weird 阶段树伴生只保留跨边界曼哈顿距离 `<= 6` 的补位，目标是减少远距离 `goto_wrap()` 往返。
+  - 真实输出 `step4 time=2811.81`、`mazes 3 time=3394.23`、`megafarm 3 time=3635.82`、`gold 1M time=6999.47`、`dinosaurs 3 time=7350.58`。
+  - 对比当前最好请求 `368/369` 的 `gold 1M time=6477.64 / 6143.85`，阈值 6 明显拖慢金币阶段；主动停止前骨头阶段也落后，摘要为 `finished=false runs=1 average=155:21.292`。
+  - 结论：伴生远距离补位不能简单按距离阈值裁剪。跨列伴生虽然有移动成本，但对 Weird / Power / 后续金币的综合收益仍覆盖了成本；当前回退为不限距离补 companion。
+
+- `request_id=373`：
+  - 临时禁用 Weird 阶段树施肥：新增 `WEIRD_FERTILIZER_ENABLED = False`，让 `farm_weird_substance_worker()` 不再调用 `use_item(Items.Fertilizer)`。
+  - 真实输出只推进到 `step3 time=1736.87`、`gold time=1768.39`、`early_megafarm 1 time=1768.43`、`weird_parallel_start time=1768.51 weird=685 target=1338`。
+  - 随后 `LogOutput.log` 中 `real_elapsed=9.0` 到 `29.0` 期间 `weird_substance=685`、`gold=16` 不再增长，只看到 `hay/wood/water/fertilizer` 持续增加，说明不施肥会让早期 Weird 产线卡住，连 `Megafarm 2` 都无法继续。
+  - 结论：Weird 阶段施肥不是边际优化，而是当前早期树产线成立的必要加速；不采用禁用施肥，正式路线继续施肥。
