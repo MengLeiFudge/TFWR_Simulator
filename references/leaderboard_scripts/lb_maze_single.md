@@ -94,6 +94,10 @@
 - `dfs + 直线贪心 + BFS`
   - 请求 `323` 停止摘要 `finished=false runs=9 average=3:15.393`
   - 结论：能刷新旧 A*，但不优于 BFS-only；直线贪心会绕开最短树路径，保留价值不大
+- `measure()==None` 原地等待探针
+  - 请求 `348` 临时在 `goto_treasure()` 的 `measure()==None` 分支中加入最多 `2s` 原地等待，并打印 `measure_waits` / `wait_time`。
+  - 结果：停止前 `27` 轮均输出 `measure_waits=0 wait_time=0`，说明当前 DFS+BFS 主流程里没有走到该分支。
+  - 停止摘要 `finished=false runs=27 average=3:12.886` 属于随机波动，不能归因于等待策略；候选已从 `.py` 回退，只保留本探针结论。
 
 ## 下一步优化方向
 
