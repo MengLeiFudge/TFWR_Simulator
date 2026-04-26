@@ -596,3 +596,19 @@
   - 真实输出 `step4 time=2666.57`、`mazes 3 time=3254.79`、`megafarm 3 time=3445.37`、`gold 1M time=6749.49`、`dinosaurs 3 time=7093.82`、`done time=10166.44`、`average=169:26.499`。
   - 对比已采用 `request_id=386/387` 的 `done time=9897.70 / 9811.38`、`average=164:57.699 / 163:31.378`，上限 `4` 虽然让 `step4/mazes 3/megafarm 3` 提前，但金币和骨头阶段回吐收益，完整结算慢约 `269s~355s`。
   - 结论：不采用 Fertilizer 上限 `4`；正式路线保持 `FERTILIZER_UNLOCK_CAP = 3`。
+
+- `request_id=390`：
+  - 临时新增 `WATERING_UNLOCK_CAP = 4`，只限制正式路线 `step2()` / `step3()` 中的 `unlock(Unlocks.Watering)`，验证自然升级 Watering 是否仍存在过度 Wood 投入。
+  - 真实输出 `step4 time=2722.84`、`mazes 3 time=3328.55`、`megafarm 3 time=3546.10`、`gold 1M time=6636.10`、`dinosaurs 3 time=6993.16`、`done time=9983.75`、`average=166:23.749`。
+  - 对比已采用 `request_id=386/387` 的 `done time=9897.70 / 9811.38`、`average=164:57.699 / 163:31.378`，Watering 上限 `4` 首轮完整结算已慢于两轮正式基线，也慢于最佳单轮 `request_id=387`。
+  - 结论：不采用 Watering 上限 `4`；正式路线继续自然升级 Watering，只保留 `FERTILIZER_UNLOCK_CAP = 3`。
+
+## 2026-04-26 暂停点与后续方向
+
+- 当前正式基线：保留 `FERTILIZER_UNLOCK_CAP = 3`，Watering 自然升级，`lb_start.py` 的本地最好时间保持 `2:43:31.378`。`request_id=386/387` 两轮平均约 `164:14.539`，轮次差异约 `0.88%`，可作为后续 A/B 对照。
+- 暂停原因：`Watering 3/4`、`Fertilizer 2/4`、`STEP2_POWER_TARGET=200`、`step3 Weird 1000`、`Megafarm 4`、`Polyculture/Grass` 跳过、金币大批量、恐龙批量换帽等单变量都已证伪；继续在同类科技上限小变量里试探，边际收益很低。
+- 后续优先方向 1：重写骨头阶段的苹果补给 / 仙人掌补给节奏。当前 `request_id=390` 从 `dinosaurs 3 time=6993.16` 到 `done time=9983.75` 仍约 `2990s`，且每轮都有 `apple_prep_start -> bone_prep -> bones`，应优先分析 `farm_bones_until()` 与 `farm_dinosaur_apple_cost()`，目标是减少每轮补给和切帽成本，而不是再调 `Dinosaurs` 等级。
+- 后续优先方向 2：重新拆解金币阶段 Weird 产线。当前正式路线金币阶段仍在 `gold 1M time=6501.29~6636.10` 左右；`batch_paid_move_count=1800` 和 `Megafarm 4` 已证伪，但可以尝试按 `item_snapshot` 计算每 1000 游戏秒的 Weird 产出，先确认瓶颈是树成熟、伴生兑现、移动还是 Power 归零，再决定是否改 `farm_gold_single_cycle()` 或 Weird worker 布局。
+- 后续优先方向 3：做阶段预算逆推，不再只比较完整平均值。下一轮探针应在 `step2/step3/step4/mazes3/megafarm3/gold1M/dinosaurs3/done` 全部输出后，计算每段耗时和相对基线差值；只有某段至少缩短 `>100s` 且后续不明显回吐，才值得完整跑完。
+- 后续优先方向 4：若继续做科技最小化，只测“大结构”而不是等级微调。候选是 `Expand 5` 完整路线、`Mazes 2/3` 与更低棋盘尺寸联动、或前期 `fr_phase1` 的局部片段重用；不要重复已证伪的单独 `fr_phase1 -> step4` 桥接。
+- 下一次执行规则：先写一个明确单变量探针，静态验证并同步后用 `--request-only` 投递；运行中只轮询三路输出，不前台长等。首轮若明显慢于 `164:14.539` 基线，立即回滚并只记录结论；只有首轮刷新或接近刷新，才按两轮稳定规则复跑。
