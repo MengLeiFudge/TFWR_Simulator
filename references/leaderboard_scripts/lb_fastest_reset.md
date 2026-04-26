@@ -516,3 +516,39 @@
   - 真实输出只推进到 `step3 time=1736.87`、`gold time=1768.39`、`early_megafarm 1 time=1768.43`、`weird_parallel_start time=1768.51 weird=685 target=1338`。
   - 随后 `LogOutput.log` 中 `real_elapsed=9.0` 到 `29.0` 期间 `weird_substance=685`、`gold=16` 不再增长，只看到 `hay/wood/water/fertilizer` 持续增加，说明不施肥会让早期 Weird 产线卡住，连 `Megafarm 2` 都无法继续。
   - 结论：Weird 阶段施肥不是边际优化，而是当前早期树产线成立的必要加速；不采用禁用施肥，正式路线继续施肥。
+
+- `request_id=374`：
+  - 临时把 `step3()` 的 Weird 目标从 `2000` 降到 `1000`，验证是否只刷够 `Mazes 1` 就更快进入早期金币 / Megafarm。
+  - 真实输出 `step2 time=1327.45`、`step3 time=1741.55 weird=8`、`early_megafarm 1 time=1815.54`、`early_megafarm 2 time=2076.65`、`step4 time=2880.09`、`mazes 3 time=3487.58`、`megafarm 3 time=3706.03`。
+  - 对比近邻正式路线的早期阶段（例如请求 `371` 前一轮正式输出 `step3 time=1892.87`、`early_megafarm 2 time=2025.98`，以及请求 `370` 的 `step4 time=2795.85`），降低 step3 目标虽然让 `step3` 提前，但会把 Weird 缺口转移到 `try_unlock_early_megafarm()` 和后续阶段，`Megafarm 3` 前已经落后。
+  - 结论：`step3` 的额外 Weird 不是纯浪费，它支撑早期 `Megafarm 2` 和后续节奏；不采用 `1000` 目标，回退到 `2000`。
+
+- `request_id=375`：
+  - 临时在 `step5()` 的 `Megafarm 3` 后追加 `upgrade_megafarm_for_final_push(4)`，验证中途花 `128000` 金币换 `16` 台无人机是否能加速后续 Weird 产线。
+  - 真实输出 `megafarm 3 time=3600.27`、`gold time=4139.41 gold=128136 target=128000`、`megafarm 4 time=4139.48 gold=136 max_drones=16`，随后 `weird_parallel_start time=4139.63 weird=46 target=43344 drones=12`。
+  - 结果 `gold 1M time=8362.31`、`dinosaurs 3 time=9043.48`、`done time=12228.41`，最终 `average=203:48.478`。对比当前最好请求 `368/369` 的 `gold 1M time=6477.64 / 6143.85` 和 `done time=9881.43 / 9985.42`，该路线明显退步。
+  - 结论：`Megafarm 4` 的额外金币导航成本无法被 Weird 并行收益抵消；且实际 Weird worker 只显示 `drones=12`，没有吃满 `max_drones=16`。不采用中途升级 `Megafarm 4`，正式路线保持 `Megafarm 3` 后直接冲 `1M Gold`。
+
+- `request_id=376/377`：
+  - 临时加入 `dino_hat_apple_plant` 探针，验证 S4“单次换帽批量恐龙”的关键前提：戴 `Hats.Dinosaur_Hat` 时能否主动 `plant(Entities.Apple)`。
+  - `request_id=376` 输出 `reset_probe dino_hat_apple_plant time=6722.56 can_pay=True before=Entities.Grass planted=False after=Entities.Apple cactus=16616`。该探针不充分，因为切换恐龙帽会在脚下自动生成苹果，`after=Entities.Apple` 不能证明 `plant()` 生效。
+  - 修正后的 `request_id=377` 在切帽后先记录脚下自动苹果，再 `move(East)` 到邻格，收割后尝试主动种苹果。真实输出为 `reset_probe dino_hat_apple_plant time=7109.17 can_pay=True auto=Entities.Apple before=Entities.Grass after_harvest=Entities.Grass planted=False after=Entities.Grass cactus=16608`。
+  - 结论：恐龙帽下即使材料足够，也不能主动种苹果；S4“保持恐龙帽、边跑边补苹果、减少换帽次数”的路线不成立。正式脚本回滚探针代码，骨头阶段继续使用每轮补苹果后切恐龙帽的现有路线。
+
+- `request_id=378`：
+  - 临时把 `STEP2_POWER_TARGET` 从 `1000` 降到 `200`，不改 `step2()` 的解锁逻辑，验证第三轮 S1 的“少刷 Power 是否能压缩前期”。
+  - 真实输出 `step2 time=1320.03 power=203.04`、`step3 time=1761.30 weird=1043`、`early_megafarm 2 time=2064.53`、`expand 6 time=2475.18`、`step4 time=2904.60`、`mazes 3 time=3525.72`、`megafarm 3 time=3763.51`。
+  - 对比 `request_id=377` 近邻正式路线的 `early_megafarm 2 time=1867.73`、`expand 6 time=2194.23`、`step4 time=2622.32`、`mazes 3 time=3216.66`、`megafarm 3 time=3460.74`，`200 Power` 路线在进入正式金币前已经落后约 `200~300s`。
+  - 结论：`STEP2_POWER_TARGET=200` 不采用。Power 本身虽然会在后段归零，但前期多刷到 `1000` 对早期 Weird / 南瓜 / 仙人掌节奏有实际收益；正式脚本回退到 `STEP2_POWER_TARGET=1000`。
+
+- `request_id=379/380`：
+  - 临时让 `main()` 只跑 `fr_phase1()`，验证 S2 的早期确定性路线结束状态。`request_id=379` 因没有中间输出，只能从模组 `item_snapshot` 看到大约 `game_time=798` 时仍在推进，无法定位阶段；因此 `request_id=380` 追加 `s2_phase1_checkpoint` 输出后复跑。
+  - `request_id=380` 最终输出 `reset_probe s2_phase1 time=1008.75 size=6 hay=163 wood=749 carrot=392 pumpkin=0 gold=0 weird=681 power=0 speed=5 expand=4 mazes=1 pumpkins=1 fertilizer=1 sunflowers=1 unlocks={Unlocks.Speed:5,Unlocks.Expand:4,Unlocks.Plant:1,Unlocks.Watering:3,Unlocks.Carrots:3,Unlocks.Trees:3,Unlocks.Grass:2,Unlocks.Fertilizer:1,Unlocks.Sunflowers:1,Unlocks.Pumpkins:1,Unlocks.Mazes:1}`。
+  - 对比当前正式路线近邻 `request_id=376` 的 `step2 time=1309.41`、`step3 time=1589.31 weird=1032`、`early_megafarm 2 time=1736.87`，`fr_phase1` 以更早时间拿到 `Speed 5 / Expand 4 / Mazes 1 / Pumpkins 1`，但代价是没有 Power、Weird 只有 `681`，且尚未解锁 `Megafarm`。
+  - 结论：`fr_phase1` 本身值得继续作为前期替代候选；下一步不直接替换全路线，而是验证 `fr_phase1 -> try_unlock_early_megafarm() -> step4() -> Megafarm 3` 的桥接时间是否优于正式路线的 `megafarm 3 time=3288.64~3460.74`。
+
+- `request_id=381`：
+  - 临时让 `main()` 执行 `fr_phase1() -> try_unlock_early_megafarm() -> step4() -> upgrade_mazes_for_gold() -> upgrade_megafarm_for_final_push(3)`，验证 S2 早期路线能否顺利桥接到正式金币阶段。
+  - 真实输出 `early_megafarm 1 time=1074.45`、`early_megafarm 2 time=1717.70`、`s2_bridge_step4 time=3008.23`、`mazes 3 time=3617.62`、`s2_bridge_megafarm3 time=3833.84 max_drones=8`。
+  - 对比近邻正式路线 `request_id=376/377` 的 `step4 time=2476.56 / 2622.32`、`megafarm 3 time=3288.64 / 3460.74`，桥接路线到 `Megafarm 3` 已经慢 `373~545s`；继续跑完整 `1M Gold` 没有采用价值。
+  - 结论：`fr_phase1` 单看早期解锁更快，但缺 Power 与 Weird 储备会把成本转移到后续早期金币、南瓜和仙人掌阶段；不采用 `fr_phase1` 桥接正式路线。正式脚本回滚为 `main_current_route()`。
