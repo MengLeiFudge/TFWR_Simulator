@@ -29,13 +29,30 @@ STATE_IO_RETRY_SECONDS = 0.05
 LEADERBOARD_SUCCESS_SUMMARY_RE = re.compile(
     r"\[lb_[^\]]+(?:\.py)?\]\s+finished=true\s+runs=[1-9][0-9]*\s+average="
 )
-LEADERBOARD_RUN_RE = re.compile(r"\[lb_[^\]]+(?:\.py)?\]\s+run=([1-9][0-9]*)\s+time=")
-CONTROLLED_STOP_PREFIXES = ("reached max leaderboard runs",)
+LEADERBOARD_SUMMARY_RE = re.compile(
+    r"\[lb_[^\]]+(?:\.py)?\]\s+finished=(?:true|false)\s+runs=([1-9][0-9]*)\s+average=([0-9]+:[0-9]{2}\.[0-9]{3})"
+)
+LEADERBOARD_RUN_RE = re.compile(
+    r"\[lb_[^\]]+(?:\.py)?\]\s+run=([1-9][0-9]*)\s+time=([0-9]+:[0-9]{2}\.[0-9]{3})"
+)
+CONTROLLED_STOP_PREFIXES = ("reached stable leaderboard runs",)
+LEADERBOARD_STABILITY_THRESHOLD = 0.10
 RESOURCE_TARGETS_BY_SCRIPT = {
+    "lb_hay": (("hay", 2_000_000_000.0),),
+    "lb_hay_single": (("hay", 100_000_000.0),),
+    "lb_wood": (("wood", 10_000_000_000.0),),
+    "lb_wood_single": (("wood", 500_000_000.0),),
+    "lb_carrots": (("carrot", 2_000_000_000.0),),
+    "lb_carrots_single": (("carrot", 100_000_000.0),),
+    "lb_pumpkins": (("pumpkin", 200_000_000.0),),
+    "lb_pumpkins_single": (("pumpkin", 10_000_000.0),),
     "lb_cactus": (("cactus", 33554432.0),),
     "lb_cactus_single": (("cactus", 131072.0),),
+    "lb_dinosaur": (("bone", 33_488_928.0),),
     "lb_maze": (("gold", 9863168.0),),
     "lb_maze_single": (("gold", 616448.0),),
+    "lb_sunflowers": (("power", 100_000.0),),
+    "lb_sunflowers_single": (("power", 10_000.0),),
 }
 ITEM_SNAPSHOT_RE = re.compile(r"\bitem_snapshot\b(?P<body>.*)$")
 LEADERBOARD_SCRIPT_RE = re.compile(r"\[(lb_[^\]]+?)(?:\.py)?\]")
@@ -89,7 +106,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--max-leaderboard-runs",
         type=int,
         default=2,
-        help="打榜迭代验证时，看到 output.txt 新增 run 达到该数量后主动停止；默认 2，设为 0 表示不按轮次停止。",
+        help=(
+            "打榜迭代验证时至少等待的完成轮数；默认 2。达到该轮数后，"
+            "只有最近两轮时间差异不超过 10%% 才主动停止；设为 0 表示不按轮次停止。"
+        ),
     )
     return parser.parse_args(argv)
 
@@ -286,7 +306,10 @@ def wait_for_status(
     last_mod_output_count = 0
     stop_requested_for_stall = False
     controlled_stop_message: str | None = None
-    while time.monotonic() < deadline:
+    last_live_progress_at = 0.0
+    last_live_progress_line = ""
+    loop_now = time.monotonic()
+    while loop_now < deadline:
         if not is_windows_process_running(pid):
             raise RuntimeError(f"游戏进程已退出: pid={pid}")
         current = read_state_file(state_path)
@@ -319,23 +342,45 @@ def wait_for_status(
                 mod_output_count = len(mod_output_lines)
                 if game_output_count > last_game_output_count:
                     last_game_output_count = game_output_count
-                    last_output_activity_at = time.monotonic()
+                    last_output_activity_at = loop_now
                 if mod_output_count > last_mod_output_count:
                     last_mod_output_count = mod_output_count
-                    last_output_activity_at = time.monotonic()
+                    last_output_activity_at = loop_now
 
-                completed_runs = count_leaderboard_runs(game_output_lines)
-                if max_leaderboard_runs > 0 and completed_runs >= max_leaderboard_runs:
-                    message = f"reached max leaderboard runs {max_leaderboard_runs}"
+                if loop_now - last_live_progress_at >= 5.0:
+                    live_outputs = CapturedOutputs(
+                        game_output_lines=tuple(game_output_lines),
+                        mod_output_lines=tuple(mod_output_lines),
+                    )
+                    live_lines = build_leaderboard_average_lines(live_outputs)
+                    if not live_lines:
+                        live_lines = build_progress_estimate_lines(live_outputs, None)
+                    if live_lines and live_lines[-1] != last_live_progress_line:
+                        last_live_progress_line = live_lines[-1]
+                        last_live_progress_at = loop_now
+                        print(f"real_game_runner live {last_live_progress_line}", flush=True)
+
+                run_times = parse_leaderboard_run_times((*game_output_lines, *mod_output_lines))
+                completed_runs = len(run_times)
+                if (
+                    max_leaderboard_runs > 0
+                    and completed_runs >= max_leaderboard_runs
+                    and leaderboard_runs_are_stable(run_times, LEADERBOARD_STABILITY_THRESHOLD)
+                ):
+                    average_time = sum(run_times) / completed_runs
+                    message = (
+                        f"reached stable leaderboard runs {completed_runs} "
+                        f"avg={format_leaderboard_seconds(average_time)}"
+                    )
                     write_state_file(state_path, build_stop_requested_state(current, message))
-                    print(f"real_game_runner max_runs request_id={request_id} {message}")
+                    print(f"real_game_runner stable_runs request_id={request_id} {message}")
                     controlled_stop_message = message
                     max_leaderboard_runs = 0
                 elif (
                     output_stall_timeout > 0
                     and
                     not stop_requested_for_stall
-                    and time.monotonic() - last_output_activity_at >= output_stall_timeout
+                    and loop_now - last_output_activity_at >= output_stall_timeout
                 ):
                     message = (
                         f"game output and mod log stalled for {output_stall_timeout:g}s "
@@ -346,6 +391,7 @@ def wait_for_status(
                     print(f"real_game_runner output_stall request_id={request_id} {message}")
         sleep_interval = 0.05 if max_leaderboard_runs > 0 else max(0.05, poll_interval)
         time.sleep(sleep_interval)
+        loop_now = time.monotonic()
     raise TimeoutError(f"等待状态 {sorted(accepted_statuses)} 超时: request_id={request_id} state_path={state_path}")
 
 
@@ -422,11 +468,55 @@ def has_successful_leaderboard_summary(outputs: CapturedOutputs) -> bool:
 
 
 def count_leaderboard_runs(lines: tuple[str, ...]) -> int:
-    count = 0
+    return len(parse_leaderboard_run_times(lines))
+
+
+def parse_leaderboard_run_times(lines: tuple[str, ...], include_summary: bool = False) -> tuple[float, ...]:
+    run_times: list[float] = []
     for line in lines:
-        if LEADERBOARD_RUN_RE.search(line):
-            count += 1
-    return count
+        match = LEADERBOARD_RUN_RE.search(line)
+        if match is not None:
+            seconds = parse_leaderboard_clock(match.group(2))
+            if seconds is not None:
+                run_times.append(seconds)
+            continue
+        if include_summary:
+            summary_match = LEADERBOARD_SUMMARY_RE.search(line)
+            if summary_match is None:
+                continue
+            seconds = parse_leaderboard_clock(summary_match.group(2))
+            if seconds is not None:
+                run_times = [seconds] * int(summary_match.group(1))
+    return tuple(run_times)
+
+
+def parse_leaderboard_clock(value: str) -> float | None:
+    minute_text, separator, second_text = value.partition(":")
+    if separator != ":":
+        return None
+    try:
+        return int(minute_text) * 60.0 + float(second_text)
+    except ValueError:
+        return None
+
+
+def format_leaderboard_seconds(seconds: float) -> str:
+    if seconds < 0:
+        seconds = 0.0
+    total_milliseconds = int(seconds * 1000 + 0.5)
+    total_seconds, milliseconds = divmod(total_milliseconds, 1000)
+    minutes, second = divmod(total_seconds, 60)
+    return f"{minutes}:{second:02d}.{milliseconds:03d}"
+
+
+def leaderboard_runs_are_stable(run_times: tuple[float, ...], threshold: float) -> bool:
+    if len(run_times) < 2:
+        return False
+    previous_time, latest_time = run_times[-2], run_times[-1]
+    baseline = min(previous_time, latest_time)
+    if baseline <= 0:
+        return False
+    return abs(latest_time - previous_time) / baseline <= threshold
 
 
 def parse_item_snapshot(line: str) -> dict[str, str]:
@@ -478,6 +568,8 @@ def format_seconds(seconds: float) -> str:
 
 
 def build_progress_estimate_lines(outputs: CapturedOutputs, target_script: str | None) -> tuple[str, ...]:
+    if parse_leaderboard_run_times((*outputs.game_output_lines, *outputs.mod_output_lines), include_summary=True):
+        return ()
     script = infer_progress_script(outputs, target_script)
     if script is None or script not in RESOURCE_TARGETS_BY_SCRIPT:
         return ()
@@ -496,25 +588,97 @@ def build_progress_estimate_lines(outputs: CapturedOutputs, target_script: str |
     first_time = to_float(first.get("game_time") or first.get("sim_time"))
     latest_time = to_float(latest.get("game_time") or latest.get("sim_time"))
     if first_time is None or latest_time is None or latest_time <= first_time:
-        return ()
+        for item, target in RESOURCE_TARGETS_BY_SCRIPT[script]:
+            latest_value = to_float(latest.get(item))
+            lines.append(
+                "progress_estimate "
+                f"script={script} item={item} current={latest_value or 0:.0f} target={target:.0f} "
+                "unavailable reason=invalid_game_time"
+            )
+        return tuple(lines)
+    first_real_elapsed = to_float(first.get("real_elapsed"))
+    latest_real_elapsed = to_float(latest.get("real_elapsed"))
+    real_elapsed_delta = None
+    if (
+        first_real_elapsed is not None
+        and latest_real_elapsed is not None
+        and latest_real_elapsed > first_real_elapsed
+    ):
+        real_elapsed_delta = latest_real_elapsed - first_real_elapsed
+    first_tick = to_float(first.get("game_tick"))
+    latest_tick = to_float(latest.get("game_tick"))
+    tick_delta = None
+    if first_tick is not None and latest_tick is not None and latest_tick > first_tick:
+        tick_delta = latest_tick - first_tick
 
     for item, target in RESOURCE_TARGETS_BY_SCRIPT[script]:
         first_value = to_float(first.get(item))
         latest_value = to_float(latest.get(item))
-        if first_value is None or latest_value is None or latest_value <= first_value:
+        if first_value is None or latest_value is None:
+            lines.append(
+                "progress_estimate "
+                f"script={script} item={item} current={latest_value or 0:.0f} target={target:.0f} "
+                "unavailable reason=missing_item_value"
+            )
+            continue
+        if latest_value <= first_value:
+            lines.append(
+                "progress_estimate "
+                f"script={script} item={item} current={latest_value:.0f} target={target:.0f} "
+                "unavailable reason=no_positive_rate"
+            )
             continue
         rate = (latest_value - first_value) / (latest_time - first_time)
         if rate <= 0:
+            lines.append(
+                "progress_estimate "
+                f"script={script} item={item} current={latest_value:.0f} target={target:.0f} "
+                "unavailable reason=no_positive_rate"
+            )
             continue
         remaining = max(0.0, target - latest_value)
         eta_seconds = remaining / rate
-        lines.append(
+        fields = [
             "progress_estimate "
-            f"script={script} item={item} current={latest_value:.0f} target={target:.0f} "
+            f"script={script} item={item} current={latest_value:.0f} target={target:.0f}",
             f"game_time={latest_time:.3f} rate_per_game_second={rate:.3f} "
-            f"eta_game_seconds={eta_seconds:.3f} eta_game_time={format_seconds(eta_seconds)}"
-        )
+            f"eta_game_seconds={eta_seconds:.3f} eta_game_time={format_seconds(eta_seconds)}",
+        ]
+        if real_elapsed_delta is not None:
+            game_seconds_per_real_second = (latest_time - first_time) / real_elapsed_delta
+            fields.append(f"game_seconds_per_real_second={game_seconds_per_real_second:.3f}")
+            if game_seconds_per_real_second > 0:
+                eta_real_seconds = eta_seconds / game_seconds_per_real_second
+                fields.append(
+                    f"eta_real_seconds={eta_real_seconds:.3f} eta_real_time={format_seconds(eta_real_seconds)}"
+                )
+        if tick_delta is not None:
+            tick_per_game_second = tick_delta / (latest_time - first_time)
+            fields.append(f"tick_per_game_second={tick_per_game_second:.3f}")
+            if real_elapsed_delta is not None:
+                fields.append(f"tick_per_real_second={tick_delta / real_elapsed_delta:.3f}")
+        lines.append(" ".join(fields))
     return tuple(lines)
+
+
+def build_leaderboard_average_lines(outputs: CapturedOutputs) -> tuple[str, ...]:
+    run_times = parse_leaderboard_run_times((*outputs.game_output_lines, *outputs.mod_output_lines), include_summary=True)
+    if not run_times:
+        return ()
+    average_time = sum(run_times) / len(run_times)
+    stable = leaderboard_runs_are_stable(run_times, LEADERBOARD_STABILITY_THRESHOLD)
+    fields = [
+        "leaderboard_average",
+        f"runs={len(run_times)}",
+        f"average={format_leaderboard_seconds(average_time)}",
+        f"stable={str(stable).lower()}",
+    ]
+    if len(run_times) >= 2:
+        previous_time, latest_time = run_times[-2], run_times[-1]
+        baseline = min(previous_time, latest_time)
+        if baseline > 0:
+            fields.append(f"last_two_delta_ratio={abs(latest_time - previous_time) / baseline:.3f}")
+    return (" ".join(fields),)
 
 
 def is_controlled_stop(result: dict[str, object]) -> bool:
@@ -560,6 +724,8 @@ def main(argv: list[str] | None = None) -> int:
         f"error={result.get('last_error')}"
     )
     _print_captured_outputs(outputs)
+    for line in build_leaderboard_average_lines(outputs):
+        print(line)
     for line in build_progress_estimate_lines(outputs, args.target_script):
         print(line)
     acknowledge_terminal_state(state_path)

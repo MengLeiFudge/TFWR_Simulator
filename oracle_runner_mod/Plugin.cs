@@ -279,8 +279,10 @@ public sealed class Plugin : BaseUnityPlugin
             float stopElapsed = Time.realtimeSinceStartup - stopRequestedAt;
             if (stopElapsed >= runnerConfig.RequestStopGracePeriodSeconds.Value)
             {
-                MaybeLogProgress(
-                    $"等待 StopMainExecution 生效 request_id={activeRequest.RequestId} elapsed={stopElapsed:F1}s"
+                MaybeLogItemSnapshot(
+                    mainSim,
+                    status: "stopping",
+                    detail: $"stop_elapsed={stopElapsed.ToString("0.0", CultureInfo.InvariantCulture)}"
                 );
             }
             return;
@@ -310,10 +312,11 @@ public sealed class Plugin : BaseUnityPlugin
             return;
         }
 
-        MaybeLogProgress(
-            $"脚本运行中 request_id={activeRequest.RequestId} timeout={timeoutSeconds:F1}s"
+        MaybeLogItemSnapshot(
+            mainSim,
+            status: "running",
+            detail: $"timeout={timeoutSeconds.ToString("0.0", CultureInfo.InvariantCulture)}"
         );
-        MaybeLogItemSnapshot(mainSim);
     }
 
     private void MaybeLogProgress(string message)
@@ -329,7 +332,7 @@ public sealed class Plugin : BaseUnityPlugin
         Log.LogInfo(message);
     }
 
-    private void MaybeLogItemSnapshot(MainSim mainSim)
+    private void MaybeLogItemSnapshot(MainSim mainSim, string status, string detail)
     {
         if (activeRequest == null)
         {
@@ -343,14 +346,21 @@ public sealed class Plugin : BaseUnityPlugin
         }
 
         lastItemSnapshotLogAt = now;
-        Log.LogInfo(BuildItemSnapshotLine(mainSim));
+        Log.LogInfo(BuildItemSnapshotLine(mainSim, status, detail));
     }
 
-    private string BuildItemSnapshotLine(MainSim mainSim)
+    private string BuildItemSnapshotLine(MainSim mainSim, string status, string detail)
     {
         StringBuilder builder = new StringBuilder();
         builder.Append("item_snapshot request_id=");
         builder.Append(activeRequest?.RequestId ?? 0);
+        builder.Append(" status=");
+        builder.Append(status);
+        if (!string.IsNullOrWhiteSpace(detail))
+        {
+            builder.Append(' ');
+            builder.Append(detail);
+        }
         builder.Append(" real_elapsed=");
         builder.Append((Time.realtimeSinceStartup - activeRequestStartedAt).ToString("0.0", CultureInfo.InvariantCulture));
         Simulation? sim = SimRef(mainSim);

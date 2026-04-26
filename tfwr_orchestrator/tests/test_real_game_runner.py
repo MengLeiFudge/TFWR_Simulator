@@ -357,7 +357,7 @@ class RealGameRunnerToolTests(unittest.TestCase):
         self.assertEqual(result["status"], "failed")
         self.assertEqual(written_states, [])
 
-    def test_wait_for_status_requests_stop_after_max_leaderboard_runs(self) -> None:
+    def test_wait_for_status_requests_stop_after_stable_minimum_leaderboard_runs(self) -> None:
         with tempfile.TemporaryDirectory() as temp_text:
             output_path = Path(temp_text) / "output.txt"
             output_path.write_text("old\n", encoding="utf-8")
@@ -414,9 +414,80 @@ class RealGameRunnerToolTests(unittest.TestCase):
                 )
 
         self.assertEqual(result["status"], "failed")
-        self.assertEqual(result["last_error"], "reached max leaderboard runs 2")
+        self.assertEqual(result["last_error"], "reached stable leaderboard runs 2 avg=15:39.179")
         self.assertEqual(written_states[0]["status"], "stop_requested")
-        self.assertEqual(written_states[0]["last_error"], "reached max leaderboard runs 2")
+        self.assertEqual(written_states[0]["last_error"], "reached stable leaderboard runs 2 avg=15:39.179")
+
+    def test_wait_for_status_keeps_running_when_first_two_runs_are_unstable(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_text:
+            output_path = Path(temp_text) / "output.txt"
+            output_path.write_text("old\n", encoding="utf-8")
+            baseline = OutputBaseline(output_path, file_signature(output_path), None, EMPTY_SIGNATURE)
+            output_path.write_text(
+                "old\n[lb_maze_single] run=1 time=4:30.000\n[lb_maze_single] run=2 time=5:30.000\n",
+                encoding="utf-8",
+            )
+            state_holder = {
+                "request_id": 3,
+                "status": "running",
+                "target_script": "lb_start",
+                "timeout_seconds": 90.0,
+                "started_at": "2026-04-25T00:00:00Z",
+                "finished_at": None,
+                "last_error": None,
+            }
+            read_count = 0
+            written_states: list[dict[str, object]] = []
+
+            def read_state(_: Path) -> dict[str, object]:
+                nonlocal read_count
+                read_count += 1
+                if read_count == 2:
+                    output_path.write_text(
+                        "old\n"
+                        "[lb_maze_single] run=1 time=4:30.000\n"
+                        "[lb_maze_single] run=2 time=5:30.000\n"
+                        "[lb_maze_single] run=3 time=5:00.000\n",
+                        encoding="utf-8",
+                    )
+                return state_holder
+
+            def write_state(_: Path, state: dict[str, object]) -> None:
+                written_states.append(state)
+                state_holder.update(
+                    {
+                        "request_id": 3,
+                        "status": "failed",
+                        "target_script": "lb_start",
+                        "timeout_seconds": 90.0,
+                        "started_at": "2026-04-25T00:00:00Z",
+                        "finished_at": "2026-04-25T00:00:31Z",
+                        "last_error": state["last_error"],
+                    }
+                )
+
+            with mock.patch.object(runner_module, "read_state_file", side_effect=read_state), mock.patch.object(
+                runner_module, "write_state_file", side_effect=write_state
+            ), mock.patch.object(
+                runner_module, "is_windows_process_running", return_value=True
+            ), mock.patch.object(
+                runner_module.time, "sleep"
+            ):
+                result = runner_module.wait_for_status(
+                    state_path=Path("/tmp/state.json"),
+                    pid=123,
+                    request_id=3,
+                    accepted_statuses={"done", "failed", "superseded"},
+                    timeout_seconds=60.0,
+                    poll_interval=0.01,
+                    baseline=baseline,
+                    output_stall_timeout=30.0,
+                    max_leaderboard_runs=2,
+                )
+
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(len(written_states), 1)
+        self.assertEqual(written_states[0]["last_error"], "reached stable leaderboard runs 3 avg=5:00.000")
 
     def test_build_progress_estimate_uses_item_snapshot_sim_time(self) -> None:
         outputs = runner_module.CapturedOutputs(
@@ -434,6 +505,79 @@ class RealGameRunnerToolTests(unittest.TestCase):
         self.assertIn("script=lb_maze", lines[0])
         self.assertIn("item=gold", lines[0])
         self.assertIn("rate_per_game_second=1000.000", lines[0])
+
+    def test_build_progress_estimate_covers_all_resource_leaderboards(self) -> None:
+        cases = {
+            "lb_hay": "hay",
+            "lb_hay_single": "hay",
+            "lb_wood": "wood",
+            "lb_wood_single": "wood",
+            "lb_carrots": "carrot",
+            "lb_carrots_single": "carrot",
+            "lb_pumpkins": "pumpkin",
+            "lb_pumpkins_single": "pumpkin",
+            "lb_cactus": "cactus",
+            "lb_cactus_single": "cactus",
+            "lb_dinosaur": "bone",
+            "lb_maze": "gold",
+            "lb_maze_single": "gold",
+            "lb_sunflowers": "power",
+            "lb_sunflowers_single": "power",
+        }
+
+        for script, item in cases.items():
+            with self.subTest(script=script):
+                outputs = runner_module.CapturedOutputs(
+                    game_output_lines=(),
+                    mod_output_lines=(
+                        f"[Info] item_snapshot request_id=7 real_elapsed=1.0 game_time=10 "
+                        f"game_tick=4000 leaderboard_script={script} {item}=100",
+                        f"[Info] item_snapshot request_id=7 real_elapsed=2.0 game_time=20 "
+                        f"game_tick=8000 leaderboard_script={script} {item}=1100",
+                    ),
+                )
+
+                lines = runner_module.build_progress_estimate_lines(outputs, "lb_start")
+
+                self.assertEqual(len(lines), 1)
+                self.assertIn(f"script={script}", lines[0])
+                self.assertIn(f"item={item}", lines[0])
+
+    def test_build_progress_estimate_reports_unavailable_when_target_item_does_not_grow(self) -> None:
+        outputs = runner_module.CapturedOutputs(
+            game_output_lines=(),
+            mod_output_lines=(
+                "[Info] item_snapshot request_id=7 real_elapsed=1.0 game_time=10 "
+                "game_tick=4000 leaderboard_script=lb_dinosaur bone=0",
+                "[Info] item_snapshot request_id=7 real_elapsed=2.0 game_time=20 "
+                "game_tick=8000 leaderboard_script=lb_dinosaur bone=0",
+            ),
+        )
+
+        lines = runner_module.build_progress_estimate_lines(outputs, "lb_start")
+
+        self.assertEqual(len(lines), 1)
+        self.assertIn("script=lb_dinosaur", lines[0])
+        self.assertIn("item=bone", lines[0])
+        self.assertIn("unavailable", lines[0])
+        self.assertIn("reason=no_positive_rate", lines[0])
+
+    def test_leaderboard_summary_suppresses_resource_estimate_and_reports_average(self) -> None:
+        outputs = runner_module.CapturedOutputs(
+            game_output_lines=("[lb_wood] finished=true runs=1 average=141:32.734",),
+            mod_output_lines=(
+                "[Info] item_snapshot request_id=7 real_elapsed=1.0 game_time=10 "
+                "game_tick=4000 leaderboard_script=lb_wood wood=100",
+                "[Info] item_snapshot request_id=7 real_elapsed=2.0 game_time=20 "
+                "game_tick=8000 leaderboard_script=lb_wood wood=1100",
+            ),
+        )
+
+        average_lines = runner_module.build_leaderboard_average_lines(outputs)
+        estimate_lines = runner_module.build_progress_estimate_lines(outputs, "lb_start")
+
+        self.assertEqual(average_lines, ("leaderboard_average runs=1 average=141:32.734 stable=false",))
+        self.assertEqual(estimate_lines, ())
 
     def test_wait_for_ready_state_acknowledges_stale_terminal_state(self) -> None:
         states = iter(
