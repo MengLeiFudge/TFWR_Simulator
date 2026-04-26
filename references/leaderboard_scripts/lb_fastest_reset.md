@@ -271,6 +271,11 @@
   - `request_id=335` 输出 `gold 1M time=6899.86`、`done time=12944.26`、`average=215:44.299`，刷新当前本地最好。
   - `request_id=336` 复跑输出 `gold 1M time=7013.02`、`done time=12997.38`、`average=216:37.399`；两轮差距约 `0.41%`，低于 `10%` 继续运行阈值。
   - 当前保留：在新前期结构下，`900` 批次虽然不稳定压低 `gold 1M`，但两轮均值约 `216:10.849`，仍优于旧 `216:26.969`；正式路线改为 `900`。
+- `request_id=337/338`：
+  - 临时把 `WEIRD_POWER_FLOOR` 从 `500` 提到 `1500`，目标是在 Weird 阶段顺手保留更多 `Power`，不单独清场补电。
+  - `request_id=337` 完整结算，输出 `gold 1M time=6797.53`、`done time=12876.89`、`average=214:36.899`，单轮优于 `request_id=335`。
+  - `request_id=338` 复跑在 `120s` 墙钟超时前仍未完成，输出 `gold 1M time=10083.89`，停止摘要 `[lb_fastest_reset] finished=false runs=1 average=241:14.740`。
+  - 结论：`1500` 地板单轮有正向波动，但复跑超过 `10%` 退步且未完整结算，不满足两轮稳定采用规则；当前回退到 `WEIRD_POWER_FLOOR=500`，只保留证据，不刷新 `lb_start.py` 本地最好时间。
 - `request_id=204`：
   - 回退 `Expand 7`、`Dinosaurs 4`、最终宝箱补收后，用当前保留版本复测。
   - 真实 `output.txt` 有完整 `reset_stage done time=14018.42`；`run_real_game_script.py` 本轮没有抓到 `game_output` 正文，但文件尾部证明脚本完成且状态已回到 `idle`。
