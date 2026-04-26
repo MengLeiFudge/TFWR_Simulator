@@ -571,3 +571,9 @@
   - 真实输出 `step3 time=1785.53`、`early_megafarm 2 time=1970.47`、`expand 6 time=2408.56`、`polyculture 1 time=2875.06`、`step4 time=2996.53`、`mazes 3 time=3592.67`。
   - 对比近邻正式路线 `request_id=383` 的 `step4 time=2746.88`、`mazes 3 time=3355.62`，以及 `request_id=377` 的 `step4 time=2622.32`、`mazes 3 time=3216.66`，跳过 `Grass` 在进入金币前已慢 `~237s` 以上。
   - 结论：`Grass` 不能跳过。虽然其直接成本不高，但后续南瓜 / 胡萝卜补料阶段出现额外 `carrots` 补给，Hay 产量下降会拖慢中段节奏；正式路线恢复 `unlock(Unlocks.Grass)`。
+
+- `request_id=385`：
+  - 临时新增 `WATERING_UNLOCK_CAP_PROBE = 3`，只限制正式路线 `step2()` / `step3()` 中的 `unlock(Unlocks.Watering)`，验证少升 Watering 是否能节省前期 Wood 投入。
+  - 真实输出 `early_megafarm 2 time=1951.83`、`step4 time=2739.88`、`mazes 3 time=3323.21`、`megafarm 3 time=3568.90`、`gold 1M time=6233.89`、`dinosaurs 3 time=6804.14`、`done time=10031.76`、`average=167:11.799`。
+  - 对比当前正式最好请求 `368/369` 的 `done time=9881.43 / 9985.42` 与 `average=164:41.493 / 166:25.484`，Watering 上限 `3` 虽然让金币阶段单轮接近最好，但总完成时间退步。
+  - 结论：不限制 Watering 到 `3`。当前路线继续允许 `step2()` / `step3()` 自然升级 Watering；该投入对后续完整路线仍有净收益。
