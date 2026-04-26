@@ -17,6 +17,7 @@ def main_current_route():
     quick_print("reset_stage", "step2", "time=", get_time(), "power=", num_items(Items.Power), "size=", get_world_size())
     step3()
     quick_print("reset_stage", "step3", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "gold=", num_items(Items.Gold))
+    try_unlock_early_megafarm()
     step4()
     quick_print("reset_stage", "step4", "time=", get_time(), "size=", get_world_size(), "cactus=", num_items(Items.Cactus))
     step5()
@@ -802,6 +803,16 @@ def step3():
     # unlock(Unlocks.Megafarm)
 
 
+def try_unlock_early_megafarm():
+    if num_unlocked(Unlocks.Megafarm) >= 1:
+        return
+    if num_unlocked(Unlocks.Mazes) < 1:
+        return
+    farm_gold_until(2000)
+    unlock(Unlocks.Megafarm)
+    quick_print("reset_stage", "early_megafarm", num_unlocked(Unlocks.Megafarm), "time=", get_time(), "gold=", num_items(Items.Gold), "max_drones=", max_drones())
+
+
 # 扩张升到最大（9级）
 def step4():
     if num_unlocked(Unlocks.Pumpkins) < 1:
@@ -1017,10 +1028,107 @@ def farm_carrots_until(target):
 
 def farm_pumpkins_until(target):
     while num_items(Items.Pumpkin) < target:
-        plant_pumpkin_field()
-        wait_pumpkin_field()
-        harvest_field()
+        if should_parallel_farm_pumpkins(target):
+            plant_pumpkin_field_parallel()
+            wait_pumpkin_field_parallel()
+            harvest_field_parallel()
+        else:
+            plant_pumpkin_field()
+            wait_pumpkin_field()
+            harvest_field()
         quick_print("reset_stage", "pumpkins", "time=", get_time(), "pumpkin=", num_items(Items.Pumpkin), "target=", target, "size=", get_world_size())
+
+
+def should_parallel_farm_pumpkins(target):
+    size = get_world_size()
+    return max_drones() > 1 and size >= 6 and target - num_items(Items.Pumpkin) > size * size
+
+
+def parallel_pumpkin_worker(start_x, step_x, mode):
+    size = get_world_size()
+    if mode == 0:
+        x = start_x
+        while x < size:
+            goto_wrap(x, 0)
+            for _ in range(size):
+                entity = get_entity_type()
+                if entity != Entities.Pumpkin:
+                    if entity != None:
+                        harvest()
+                    if get_ground_type() == Grounds.Grassland:
+                        till()
+                    plant(Entities.Pumpkin)
+                move(North)
+            x = x + step_x
+        return
+    if mode == 1:
+        while True:
+            ready = 0
+            total = 0
+            x = start_x
+            while x < size:
+                goto_wrap(x, 0)
+                for _ in range(size):
+                    total = total + 1
+                    entity = get_entity_type()
+                    if entity == Entities.Dead_Pumpkin:
+                        harvest()
+                        if get_ground_type() == Grounds.Grassland:
+                            till()
+                        if num_items(Items.Carrot) > 0:
+                            plant(Entities.Pumpkin)
+                    elif entity == None:
+                        if get_ground_type() == Grounds.Grassland:
+                            till()
+                        if num_items(Items.Carrot) > 0:
+                            plant(Entities.Pumpkin)
+                    elif can_harvest():
+                        ready = ready + 1
+                    move(North)
+                x = x + step_x
+            if ready >= total:
+                return
+    x = start_x
+    while x < size:
+        goto_wrap(x, 0)
+        for _ in range(size):
+            if can_harvest():
+                harvest()
+            move(North)
+        x = x + step_x
+
+
+def run_parallel_pumpkin_mode(mode):
+    size = get_world_size()
+    worker_count = max_drones()
+    if worker_count > size:
+        worker_count = size
+    handles = []
+    worker_index = 1
+    while worker_index < worker_count:
+        handle = spawn_drone(parallel_pumpkin_worker, worker_index, worker_count, mode)
+        if handle != None:
+            handles.append(handle)
+        else:
+            parallel_pumpkin_worker(worker_index, worker_count, mode)
+        worker_index = worker_index + 1
+    parallel_pumpkin_worker(0, worker_count, mode)
+    for handle in handles:
+        wait_for(handle)
+
+
+def plant_pumpkin_field_parallel():
+    size = get_world_size()
+    farm_carrots_until(size * size * 3)
+    run_parallel_pumpkin_mode(0)
+
+
+def wait_pumpkin_field_parallel():
+    run_parallel_pumpkin_mode(1)
+
+
+def harvest_field_parallel():
+    run_parallel_pumpkin_mode(2)
 
 
 def plant_pumpkin_field():

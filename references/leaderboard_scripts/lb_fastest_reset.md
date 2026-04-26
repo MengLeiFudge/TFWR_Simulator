@@ -27,11 +27,13 @@
 ## 当前基线
 
 - 当前默认入口：`main()`
-- 当前实现只完整写到了：
+- 当前实现已经完整覆盖：
   - `step1()`：从开局推进到解锁胡萝卜
   - `step2()`：混种并升级速度，直到积累 `1000 power`
-  - `step3()`：刷奇异物质、解锁迷宫，并推进更多无人机相关资源
-- `step4()` 和 `step5()` 目前还是空实现，因此当前脚本并不是完整可交付基线
+  - `step3()`：刷奇异物质并解锁迷宫
+  - `try_unlock_early_megafarm()`：用 `6x6` 小迷宫金币提前解锁 `Megafarm 1`
+  - `step4()`：借助多无人机南瓜推进 `Expand 6`、仙人掌、恐龙和伴生
+  - `step5()`：推进 `Megafarm 3`、`1M gold`、`2M bone` 并解锁排行榜
 - 证据来源：`lb_fastest_reset.py` 当前代码结构
 
 ## 通用注意事项下的榜单特化
@@ -250,6 +252,13 @@
   - 真实输出 `step2 time=1211.21 power=112.36 size=6`，比正式基线 `step2 time=1312.43 power=1001.82` 早约 `101s`。
   - 但后续 `Megafarm 3 time=4628.30`，明显慢于正式基线 `Megafarm 3 time=3777.95`；该候选已回退。
   - 结论：不能简单取消 `1000 Power` 前置；前期少刷的 `Power` 会让 `step3/step4` 的南瓜、仙人掌和早期金币整体降速，省下的 `101s` 覆盖不了后续损失。
+- `request_id=330`：
+  - 在 `step3()` 后插入 `try_unlock_early_megafarm()`，用 `6x6` 小迷宫金币先刷到 `2000 gold`，提前解锁 `Megafarm 1`。
+  - `farm_pumpkins_until()` 在 `max_drones() > 1`、地图 `>=6x6` 且缺口超过一整图时，改用多无人机按列并行种植、修补死南瓜和收割。
+  - 真实输出 `early_megafarm 1 time=1646.66 gold=16 max_drones=2`，随后并行南瓜把 `expand 6 time=1994.53`，明显优于 `request_id=329` 的 `2557.62`。
+  - 中段输出 `megafarm 3 time=3523.49`，优于正式基线 `3777.95`；`gold 1M time=7289.27`，略优于正式基线 `7349.45`。
+  - 最终输出 `[lb_fastest_reset] finished=true runs=1 average=221:46.199`，同轮 `reset_stage done time=13306.14`，优于 `request_id=200` 的 `13409.57`。
+  - 当前保留：早期 `Megafarm 1` + 多无人机南瓜是正收益；它主要压缩 `step4` 和 `Megafarm 3` 之前的节奏，不改变后段金币 / 骨头主结构。
 - `request_id=204`：
   - 回退 `Expand 7`、`Dinosaurs 4`、最终宝箱补收后，用当前保留版本复测。
   - 真实 `output.txt` 有完整 `reset_stage done time=14018.42`；`run_real_game_script.py` 本轮没有抓到 `game_output` 正文，但文件尾部证明脚本完成且状态已回到 `idle`。
