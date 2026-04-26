@@ -37,6 +37,12 @@
   - 同轮输出 `maze_multi explore_done edges=2046`。
   - 同轮输出 `maze_multi chunks=31 nodes=1024`。
   - 第二轮因 `--request-timeout 90` 取消，不计有效均值。
+- 2026-04-26 阶段耗时探针：
+  - 请求 `353` 第一轮 `1:50.579`，比请求 `300` 略快，但未刷新 `lb_start.py` 的长期基线。
+  - 第一轮输出 `maze_multi solve_done gold=9863168 time=109.61 solve_time=92`。
+  - 第二轮输出 `maze_multi explore_done edges=2046 time=8.37`、`maze_multi chunks=31 nodes=1024`。
+  - 结论：探图约 `8s`，首金约 `21s`，主要瓶颈在区域 solver 的寻宝 / 回中心 / 重复竞争阶段，而不是全图探图阶段。
+  - 第二轮在 `--request-timeout 90` 到期时取消，`finished=false runs=2 average=1:20.231` 不是有效均值。
 
 ## 当前版本结论
 
@@ -111,6 +117,7 @@
   - 优先让无人机先到区域锚点，再开始全图探图。
   - 记录探图完成时的 `edges`、`nodes`、游戏 tick，用于判断探图是否是主瓶颈。
 - 优化区域 solver：
+  - 请求 `353` 证明当前优先级应转向解题阶段；单纯压探图最多只有个位数秒收益。
   - 半径 `12 / 15 / 16` 均已证伪，后续不再继续盲调 `k_center_on_tree()` 的固定半径。
   - 若继续做分区，必须把“Treasure 负责区域”和“允许寻路经过的图”分离；互斥片区不能直接剪断可通行路径。
   - 让每个无人机先到固定片区锚点，再探图 / 解题，避免所有无人机重复执行单机式全局流程。

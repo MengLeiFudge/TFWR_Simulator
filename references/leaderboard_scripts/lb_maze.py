@@ -209,7 +209,7 @@ def main9():
             if get_time() - last_progress_time > 1000:
                 quick_print("maze_multi explore_stall edges=", edge_count, "active=", len(sub_drones))
                 break
-        quick_print("maze_multi explore_done edges=", edge_count)
+        quick_print("maze_multi explore_done edges=", edge_count, "time=", get_time())
 
     def k_center_on_tree(root, k=32):
         return 14
@@ -345,6 +345,7 @@ def main9():
             chunk_count += 1
 
         quick_print("maze_multi chunks=", chunk_count, "nodes=", len(nodes))
+        solve_start_time = get_time()
         last_gold = num_items(Items.Gold)
         last_progress_time = get_time()
         while solver_drones and num_items(Items.Gold) < target_gold_count:
@@ -363,6 +364,7 @@ def main9():
             if get_time() - last_progress_time > 1000:
                 quick_print("maze_multi solve_stall gold=", current_gold, "active=", len(solver_drones))
                 break
+        quick_print("maze_multi solve_done gold=", num_items(Items.Gold), "time=", get_time(), "solve_time=", get_time() - solve_start_time)
 
     center = (size_half, size_half)
     explore_maze(center, [
