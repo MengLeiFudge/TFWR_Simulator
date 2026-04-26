@@ -577,3 +577,10 @@
   - 真实输出 `early_megafarm 2 time=1951.83`、`step4 time=2739.88`、`mazes 3 time=3323.21`、`megafarm 3 time=3568.90`、`gold 1M time=6233.89`、`dinosaurs 3 time=6804.14`、`done time=10031.76`、`average=167:11.799`。
   - 对比当前正式最好请求 `368/369` 的 `done time=9881.43 / 9985.42` 与 `average=164:41.493 / 166:25.484`，Watering 上限 `3` 虽然让金币阶段单轮接近最好，但总完成时间退步。
   - 结论：不限制 Watering 到 `3`。当前路线继续允许 `step2()` / `step3()` 自然升级 Watering；该投入对后续完整路线仍有净收益。
+
+- `request_id=386/387`：
+  - 临时新增 `FERTILIZER_UNLOCK_CAP_PROBE = 3`，只限制正式路线 `step2()` / `step3()` 中的 `unlock(Unlocks.Fertilizer)`，保留所有 `use_item(Items.Fertilizer)` 行为，避免重复 W4“禁用施肥”探针。
+  - `request_id=386` 完整结算，输出 `step4 time=2774.12`、`mazes 3 time=3363.93`、`megafarm 3 time=3585.26`、`done time=9897.70`、`average=164:57.699`。
+  - `request_id=387` 完整结算，输出 `step4 time=2704.41`、`mazes 3 time=3303.46`、`megafarm 3 time=3545.05`、`gold 1M time=6501.29`、`dinosaurs 3 time=6848.27`、`done time=9811.38`、`average=163:31.378`。
+  - 两轮平均约 `164:14.539`，轮次差异约 `0.88%`，低于 `10%` 稳定阈值；对比当前正式最好 `request_id=368/369` 两轮平均约 `165:33.489`，该路线稳定刷新。
+  - 结论：采用 Fertilizer 解锁上限 `3`。正式脚本使用 `FERTILIZER_UNLOCK_CAP = 3`，同时更新 `lb_start.py` 的 Fastest Reset 本地最好时间为 `2:43:31.378`。

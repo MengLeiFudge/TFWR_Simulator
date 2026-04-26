@@ -3,6 +3,8 @@ from __builtins__ import *
 STEP2_POWER_TARGET = 1000
 WEIRD_POWER_FLOOR = 1350
 WEIRD_COMPANION_ENABLED = True
+# 肥料 3 级已足够支撑当前路线，继续升级会拖慢完整 fastest reset。
+FERTILIZER_UNLOCK_CAP = 3
 
 
 def main():
@@ -738,7 +740,7 @@ def step2():
             can_plant_tree = True
         if unlock(Unlocks.Watering):
             can_use_water = True
-        if unlock(Unlocks.Fertilizer):
+        if num_unlocked(Unlocks.Fertilizer) < FERTILIZER_UNLOCK_CAP and unlock(Unlocks.Fertilizer):
             can_use_fertilizer = True
         if unlock(Unlocks.Sunflowers):
             can_plant_sunflower = True
@@ -782,7 +784,8 @@ def step3():
         unlock(Unlocks.Trees)
         unlock(Unlocks.Carrots)
         unlock(Unlocks.Watering)
-        unlock(Unlocks.Fertilizer)
+        if num_unlocked(Unlocks.Fertilizer) < FERTILIZER_UNLOCK_CAP:
+            unlock(Unlocks.Fertilizer)
     unlock(Unlocks.Mazes)
     # 刷奇异物质-刷金币-解锁更多无人机（能量不够要刷能量）
     # 下面这个不对，会因为没有奇异物质而死循环
