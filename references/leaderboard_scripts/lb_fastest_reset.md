@@ -584,3 +584,9 @@
   - `request_id=387` 完整结算，输出 `step4 time=2704.41`、`mazes 3 time=3303.46`、`megafarm 3 time=3545.05`、`gold 1M time=6501.29`、`dinosaurs 3 time=6848.27`、`done time=9811.38`、`average=163:31.378`。
   - 两轮平均约 `164:14.539`，轮次差异约 `0.88%`，低于 `10%` 稳定阈值；对比当前正式最好 `request_id=368/369` 两轮平均约 `165:33.489`，该路线稳定刷新。
   - 结论：采用 Fertilizer 解锁上限 `3`。正式脚本使用 `FERTILIZER_UNLOCK_CAP = 3`，同时更新 `lb_start.py` 的 Fastest Reset 本地最好时间为 `2:43:31.378`。
+
+- `request_id=388`：
+  - 临时把已采用的 `FERTILIZER_UNLOCK_CAP = 3` 降到 `2`，验证是否还能继续减少前期 Wood 投入。
+  - 真实输出 `step3 time=1836.91`、`early_megafarm 2 time=2067.64`、`polyculture 1 time=2739.94`、`step4 time=2866.61`、`mazes 3 time=3450.48`、`megafarm 3 time=3686.53`。
+  - 对比 `request_id=386/387` 的 `step4 time=2774.12 / 2704.41`、`mazes 3 time=3363.93 / 3303.46`、`megafarm 3 time=3585.26 / 3545.05`，上限 `2` 在进入正式金币前已稳定慢 `~100s` 以上。
+  - 结论：不采用 Fertilizer 上限 `2`；正式路线回到 `FERTILIZER_UNLOCK_CAP = 3`。

@@ -3,7 +3,7 @@ from __builtins__ import *
 STEP2_POWER_TARGET = 1000
 WEIRD_POWER_FLOOR = 1350
 WEIRD_COMPANION_ENABLED = True
-# 肥料 3 级已足够支撑当前路线，继续升级会拖慢完整 fastest reset。
+# 肥料 3 级已足够支撑当前路线，继续升级或降到 2 级都会拖慢完整 fastest reset。
 FERTILIZER_UNLOCK_CAP = 3
 
 
