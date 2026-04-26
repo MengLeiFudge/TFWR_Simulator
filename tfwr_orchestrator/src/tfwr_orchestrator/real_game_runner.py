@@ -569,7 +569,8 @@ def infer_progress_script(outputs: CapturedOutputs, target_script: str | None) -
     normalized = normalize_target_script_name(target_script)
     if normalized and normalized != "lb_start":
         return normalized
-    for line in (*outputs.game_output_lines, *outputs.mod_output_lines):
+    combined_lines = (*outputs.game_output_lines, *outputs.mod_output_lines)
+    for line in reversed(combined_lines):
         snapshot = parse_item_snapshot(line)
         script = snapshot.get("leaderboard_script")
         if script:

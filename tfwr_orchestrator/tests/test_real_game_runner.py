@@ -509,6 +509,28 @@ class RealGameRunnerToolTests(unittest.TestCase):
         self.assertIn("item=gold", lines[0])
         self.assertIn("rate_per_game_second=1000.000", lines[0])
 
+    def test_build_progress_estimate_uses_latest_leaderboard_script(self) -> None:
+        outputs = runner_module.CapturedOutputs(
+            game_output_lines=(
+                "[lb_maze_single] finished=false runs=31 average=3:04.233",
+                "maze_multi gold= 32768 time= 19.72",
+            ),
+            mod_output_lines=(
+                "[Info] item_snapshot request_id=1 real_elapsed=1.0 game_time=10 "
+                "game_tick=4000 leaderboard_script=lb_maze_single gold=100",
+                "[Info] item_snapshot request_id=2 real_elapsed=1.0 game_time=20 "
+                "game_tick=8000 leaderboard_script=lb_maze gold=1000",
+                "[Info] item_snapshot request_id=2 real_elapsed=2.0 game_time=30 "
+                "game_tick=12000 leaderboard_script=lb_maze gold=11000",
+            ),
+        )
+
+        lines = runner_module.build_progress_estimate_lines(outputs, "lb_start")
+
+        self.assertEqual(len(lines), 1)
+        self.assertIn("script=lb_maze", lines[0])
+        self.assertIn("target=9863168", lines[0])
+
     def test_build_progress_estimate_covers_all_resource_leaderboards(self) -> None:
         cases = {
             "lb_hay": "hay",
