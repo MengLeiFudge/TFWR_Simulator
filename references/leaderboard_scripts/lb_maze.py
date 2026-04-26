@@ -241,10 +241,9 @@ def main9():
                     return
                 treasure = measure()
 
-            new_paths = set()
+            new_paths = []
             for direction in path[treasure]:
                 move(direction)
-                check_new_path(new_paths)
 
             use_item(Items.Weird_Substance, maze_substance)
             if treasure == measure():
@@ -253,7 +252,6 @@ def main9():
 
             for direction in reverse_path[treasure]:
                 move(direction)
-                check_new_path(new_paths)
 
             if measure() in area:
                 continue
