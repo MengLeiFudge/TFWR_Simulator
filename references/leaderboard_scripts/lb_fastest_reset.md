@@ -565,3 +565,9 @@
   - 金币阶段输出 `weird_parallel_start target=83616 time=3572.74`、`weird_parallel time=5809.08 weird=83706`、`gold 1M time=7759.57`、`dinosaurs 3 time=8436.09`；后续手动停止时已有 `average=154:49.063`，并由模组记录 `oracle_error request_id=383 leaderboard cancelled`。
   - 对比当前最好 `gold 1M time=6143.85~6477.64`，一次性大 Weird 预备导致金币阶段明显变慢。
   - 结论：`batch_paid_move_count` 上限不提高到 `1800`；正式路线保持 `900`，分批 Weird 预备比一次性大批量更稳。
+
+- `request_id=384`：
+  - 临时新增 `SKIP_GRASS_UNLOCK_PROBE = True`，只跳过正式路线 `step2()` / `step3()` 中的 `unlock(Unlocks.Grass)`，验证省掉 `Grass` 解锁成本是否能覆盖后续 Hay 产量损失。
+  - 真实输出 `step3 time=1785.53`、`early_megafarm 2 time=1970.47`、`expand 6 time=2408.56`、`polyculture 1 time=2875.06`、`step4 time=2996.53`、`mazes 3 time=3592.67`。
+  - 对比近邻正式路线 `request_id=383` 的 `step4 time=2746.88`、`mazes 3 time=3355.62`，以及 `request_id=377` 的 `step4 time=2622.32`、`mazes 3 time=3216.66`，跳过 `Grass` 在进入金币前已慢 `~237s` 以上。
+  - 结论：`Grass` 不能跳过。虽然其直接成本不高，但后续南瓜 / 胡萝卜补料阶段出现额外 `carrots` 补给，Hay 产量下降会拖慢中段节奏；正式路线恢复 `unlock(Unlocks.Grass)`。
