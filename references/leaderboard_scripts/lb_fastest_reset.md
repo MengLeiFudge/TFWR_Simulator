@@ -552,3 +552,9 @@
   - 真实输出 `early_megafarm 1 time=1074.45`、`early_megafarm 2 time=1717.70`、`s2_bridge_step4 time=3008.23`、`mazes 3 time=3617.62`、`s2_bridge_megafarm3 time=3833.84 max_drones=8`。
   - 对比近邻正式路线 `request_id=376/377` 的 `step4 time=2476.56 / 2622.32`、`megafarm 3 time=3288.64 / 3460.74`，桥接路线到 `Megafarm 3` 已经慢 `373~545s`；继续跑完整 `1M Gold` 没有采用价值。
   - 结论：`fr_phase1` 单看早期解锁更快，但缺 Power 与 Weird 储备会把成本转移到后续早期金币、南瓜和仙人掌阶段；不采用 `fr_phase1` 桥接正式路线。正式脚本回滚为 `main_current_route()`。
+
+- `request_id=382`：
+  - 临时跳过 `Polyculture 1`，把 `step4()` 中的南瓜目标从 `8000` 降到 `5000`，只解锁 `Cactus` 后进入 `Mazes 3 / Megafarm 3 / Gold`，验证科技最小化是否能抵消 Weird 伴生损失。
+  - 真实输出 `skip_polyculture time=2323.11`、`step4 time=2453.59`、`mazes 3 time=3026.58`、`megafarm 3 time=3258.46`，前半段明显快于近邻正式路线。
+  - 但无 `Polyculture` 后 Weird 产线退化：`weird_parallel_start time=3258.61 target=43344` 到 `weird_parallel time=5508.84 weird=43378`，单次大 Weird 预备耗约 `2250s`；随后 `gold time=7197.75 gold=518664 target=1000000`，已经慢于当前最好 `gold 1M time=6143.85~6477.64` 且只完成约一半金币。
+  - 结论：`Polyculture 1` 不能跳过。它的 `3000` 南瓜成本能被 Weird 伴生产线收益覆盖；正式路线恢复 `farm_pumpkins_until(8000) -> unlock(Cactus) -> unlock(Polyculture)`。
