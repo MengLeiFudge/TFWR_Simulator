@@ -281,6 +281,12 @@
   - 真实输出 `gold 1M time=7687.93`，慢于 `request_id=335/336` 的 `6899.86` / `7013.02`。
   - 主动停止前摘要 `[lb_fastest_reset] finished=false runs=1 average=223:06.250`，骨头阶段仍未完成。
   - 结论：`1200` 批次会在 Megafarm 3 后过量预采 Weird，把金币阶段拖慢；当前回退并继续保留 `900`。
+- `request_id=341/342`：
+  - 临时把 `WEIRD_POWER_FLOOR` 从 `500` 提到 `1000`，目标是在 Weird 阶段顺手保留更多 `Power`，但不采用 `1500` 那种会显著拉长补给的地板。
+  - `request_id=341` 完整结算，输出 `step2 time=1290.01`、`megafarm 3 time=3511.85`、`gold 1M time=6662.25`、`dinosaurs 3 time=7339.98`、`done time=12746.67`、`average=212:26.699`。
+  - `request_id=342` 复跑完整结算，输出 `step2 time=1365.18`、`megafarm 3 time=3548.06`、`gold 1M time=6929.51`、`dinosaurs 3 time=7619.70`、`done time=13006.78`、`average=216:46.799`。
+  - 两轮差距约 `2.0%`，低于 `10%` 继续采样阈值；两轮均值约 `214:36.749`，优于 `request_id=335/336` 的两轮均值约 `216:10.849`。
+  - 当前保留：`WEIRD_POWER_FLOOR=1000` 是稳定正收益；`lb_start.py` 本地实测时间刷新为当前最好单轮 `3:32:26.699`。
 - `request_id=204`：
   - 回退 `Expand 7`、`Dinosaurs 4`、最终宝箱补收后，用当前保留版本复测。
   - 真实 `output.txt` 有完整 `reset_stage done time=14018.42`；`run_real_game_script.py` 本轮没有抓到 `game_output` 正文，但文件尾部证明脚本完成且状态已回到 `idle`。
