@@ -276,6 +276,11 @@
   - `request_id=337` 完整结算，输出 `gold 1M time=6797.53`、`done time=12876.89`、`average=214:36.899`，单轮优于 `request_id=335`。
   - `request_id=338` 复跑在 `120s` 墙钟超时前仍未完成，输出 `gold 1M time=10083.89`，停止摘要 `[lb_fastest_reset] finished=false runs=1 average=241:14.740`。
   - 结论：`1500` 地板单轮有正向波动，但复跑超过 `10%` 退步且未完整结算，不满足两轮稳定采用规则；当前回退到 `WEIRD_POWER_FLOOR=500`，只保留证据，不刷新 `lb_start.py` 本地最好时间。
+- `request_id=340`：
+  - 临时把 `farm_gold_single_cycle()` 批次上限从 `900` 提到 `1200`，目标是减少金币阶段 Weird 补给批次数。
+  - 真实输出 `gold 1M time=7687.93`，慢于 `request_id=335/336` 的 `6899.86` / `7013.02`。
+  - 主动停止前摘要 `[lb_fastest_reset] finished=false runs=1 average=223:06.250`，骨头阶段仍未完成。
+  - 结论：`1200` 批次会在 Megafarm 3 后过量预采 Weird，把金币阶段拖慢；当前回退并继续保留 `900`。
 - `request_id=204`：
   - 回退 `Expand 7`、`Dinosaurs 4`、最终宝箱补收后，用当前保留版本复测。
   - 真实 `output.txt` 有完整 `reset_stage done time=14018.42`；`run_real_game_script.py` 本轮没有抓到 `game_output` 正文，但文件尾部证明脚本完成且状态已回到 `idle`。
