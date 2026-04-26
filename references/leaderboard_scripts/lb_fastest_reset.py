@@ -1459,8 +1459,8 @@ def farm_gold_single_cycle(target):
     if total_paid_move_count < 0:
         total_paid_move_count = 0
     batch_paid_move_count = total_paid_move_count
-    if batch_paid_move_count > 600:
-        batch_paid_move_count = 600
+    if batch_paid_move_count > 900:
+        batch_paid_move_count = 900
     cycle_count = (batch_paid_move_count + 299) // 300
     if cycle_count < 1:
         cycle_count = 1
