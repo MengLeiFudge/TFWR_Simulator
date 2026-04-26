@@ -1,161 +1,189 @@
 from __builtins__ import *
 
 
-# 单无人机A*寻路迷宫算法 by blac
-# 未适配多无人机，并且有些地方效率不高
+# 单无人机迷宫候选：一次 DFS 全探图 + 每次单源 BFS 寻宝。
+# 目标是替代旧 A* 的 open_set 扫描、path 深拷贝和渐进置信探图成本。
 
 clear()
-# set_world_size(8)
 size = get_world_size()
-for i in range(size // 2):
+for _ in range(size // 2):
     move(North)
     move(East)
+
 plant(Entities.Bush)
-amount = size * 2**(num_unlocked(Unlocks.Mazes) - 1)
-use_item(Items.Weird_Substance, amount)
-run = 0
+substance = size * (2 ** (num_unlocked(Unlocks.Mazes) - 1))
+use_item(Items.Weird_Substance, substance)
 
-all_dir = [North, East, South, West]
-dir_pos = {North: (0, 1), East: (1, 0), South: (0, -1), West: (-1, 0)}
-opp_dir = {North: South, East: West, South: North, West: East}
+directions = [North, East, South, West]
+backs = {North: South, East: West, South: North, West: East, None: None}
+dx = {North: 0, East: 1, South: 0, West: -1}
+dy = {North: 1, East: 0, South: -1, West: 0}
+explore_steps = 0
+bfs_count = 0
+bfs_nodes = 0
 
-maze = []
-for i in range(size):
-    maze.append([])
-    for j in range(size):
-        maze[i].append({North: 0, East: 0, South: 0, West: 0, "visited": False})
 
-def pos_valid(pos):
-    x, y = pos
-    return 0 <= x < size and 0 <= y < size
+def maze_index(x, y):
+    return x + y * size
 
-def distance(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-def heuristic(pos, goal):
-    return distance(pos, goal)
+def in_maze(x, y):
+    return x >= 0 and y >= 0 and x < size and y < size
 
-confidence_threshold = 0
-size1 = size - 1
-def get_neighbors(pos):
-    global confidence_threshold
-    x, y = pos
-    neighbors = []
-    if not (maze[x][y][West ] > confidence_threshold or x == 0):
-        neighbors.append((x - 1, y))
-    if not (maze[x][y][East ] > confidence_threshold or x == size1):
-        neighbors.append((x + 1, y))
-    if not (maze[x][y][South] > confidence_threshold or y == 0):
-        neighbors.append((x, y - 1))
-    if not (maze[x][y][North] > confidence_threshold or y == size1):
-        neighbors.append((x, y + 1))
-    return neighbors
 
-def get_relative_dir(pos, neighbor):
-    x, y = pos
-    x2, y2 = neighbor
-    if x2 == x - 1:
-        return West
-    elif x2 == x + 1:
-        return East
-    elif y2 == y - 1:
-        return South
-    elif y2 == y + 1:
-        return North
-    return None
-avg_insert_pos = 0
-insert_count = 0
-# 插入排序维护open_set的有序性
-# 优化为二分插入排序，查找插入位置的时间复杂度从O(n)降低到O(log n)
-def binary_insert_sort(l, value):
-    # 计算value的f值
-    f_value = value["f_value"]
-    
-    # 二分查找找到正确的插入位置
-    left, right = 0, len(l)
-    while left < right:
-        mid = (left + right) // 2
-        if l[mid]["f_value"] < f_value:
-            left = mid + 1
-        else:
-            right = mid
-    global insert_count
-    global avg_insert_pos
-    insert_count += 1
-    avg_insert_pos += left / (len(l) + 1)
-    
-    # 在找到的位置插入元素
-    l.insert(left, value)
+def add_edge(graph, source, target, direction):
+    for edge in graph[source]:
+        if edge[0] == target:
+            return
+    graph[source].append([target, direction])
 
-# 替换为二分插入排序的A*算法
-def astar(start, goal):
-    for i in range(size):
-        for j in range(size):
-            maze[i][j]["visited"] = False
 
-    open_set = [{"pos": start, "path": [], "g_value": 0, "h_value": heuristic(start, goal), "f_value": heuristic(start, goal)}]
-
-    while open_set:
-        current = open_set.pop(0)
-        x, y = current["pos"]
-        maze[x][y]["visited"] = True
-        
-        if current["pos"] == goal:
-            current["path"].append(current["pos"])
-            return current["path"][:]
-        
-        for neighbor in get_neighbors(current["pos"]):
-            x2, y2 = neighbor
-            if maze[x2][y2]["visited"]:
-                continue
-
-            in_open_set = False
-            for node in open_set:
-                if node["pos"] == neighbor:
-                    in_open_set = True
-                    if current["g_value"] + 1 < node["g_value"]:
-                        new_node = {"pos": neighbor, "path": current["path"][:], "g_value": current["g_value"] + 1, "h_value": heuristic(neighbor, goal), "f_value": current["g_value"] + 1 + heuristic(neighbor, goal)}
-                        new_node["path"].append(current["pos"])
-                        open_set.remove(node)
-                        binary_insert_sort(open_set, new_node)
-                        break
-
-            if not in_open_set:
-                new_node = {"pos": neighbor, "path": current["path"][:], "g_value": current["g_value"] + 1, "h_value": heuristic(neighbor, goal), "f_value": current["g_value"] + 1 + heuristic(neighbor, goal)}
-                new_node["path"].append(current["pos"])
-                binary_insert_sort(open_set, new_node)
-    return None
-
-def get_wall(pos):
-    x, y = pos
-    for dir in all_dir:
-        if can_move(dir):
-            has_wall = 0
-        else:
-            has_wall = run
-        maze[x][y][dir] = has_wall
-
-        neighbors = (x + dir_pos[dir][0], y + dir_pos[dir][1])
-        if pos_valid(neighbors):
-            maze[neighbors[0]][neighbors[1]][opp_dir[dir]] = has_wall
-
-while True:
-    run += 1
+def refresh_current_edges(graph):
     x = get_pos_x()
     y = get_pos_y()
-    get_wall((x, y))
-    while (get_pos_x(), get_pos_y()) != measure():
-        path = astar((get_pos_x(), get_pos_y()), measure())[1:]
-        for i in path:
-            x, y = i
-            dir = get_relative_dir((get_pos_x(), get_pos_y()), (x, y))
-            if not can_move(dir):
+    source = maze_index(x, y)
+    for direction in directions:
+        nx = x + dx[direction]
+        ny = y + dy[direction]
+        if not in_maze(nx, ny):
+            continue
+        if can_move(direction):
+            target = maze_index(nx, ny)
+            add_edge(graph, source, target, direction)
+            add_edge(graph, target, source, backs[direction])
+
+
+def explore_maze(graph, visited, entered_from):
+    global explore_steps
+    x = get_pos_x()
+    y = get_pos_y()
+    current = maze_index(x, y)
+    if visited[current]:
+        return
+
+    visited[current] = True
+    open_dirs = []
+    for direction in directions:
+        nx = x + dx[direction]
+        ny = y + dy[direction]
+        if not in_maze(nx, ny):
+            continue
+        if can_move(direction):
+            target = maze_index(nx, ny)
+            add_edge(graph, current, target, direction)
+            add_edge(graph, target, current, backs[direction])
+            open_dirs.append(direction)
+
+    back = backs[entered_from]
+    for direction in open_dirs:
+        if direction == back:
+            continue
+        nx = get_pos_x() + dx[direction]
+        ny = get_pos_y() + dy[direction]
+        if not in_maze(nx, ny):
+            continue
+        target = maze_index(nx, ny)
+        if visited[target]:
+            continue
+        move(direction)
+        explore_steps = explore_steps + 1
+        explore_maze(graph, visited, direction)
+        move(backs[direction])
+        explore_steps = explore_steps + 1
+
+
+def move_with_bfs(tx, ty, graph):
+    global bfs_count
+    global bfs_nodes
+    start = maze_index(get_pos_x(), get_pos_y())
+    target = maze_index(tx, ty)
+    if start == target:
+        return True
+
+    previous = []
+    previous_direction = []
+    for _ in range(size * size):
+        previous.append(-1)
+        previous_direction.append(None)
+
+    queue = [start]
+    previous[start] = start
+    head = 0
+    bfs_count = bfs_count + 1
+    while head < len(queue):
+        current = queue[head]
+        head = head + 1
+        bfs_nodes = bfs_nodes + 1
+        for edge in graph[current]:
+            neighbor = edge[0]
+            if previous[neighbor] != -1:
+                continue
+            previous[neighbor] = current
+            previous_direction[neighbor] = edge[1]
+            if neighbor == target:
+                head = len(queue)
                 break
-            move(dir)
-            get_wall((x, y))
-    use_item(Items.Weird_Substance, amount)
-    confidence_threshold = run / 30
-    if get_entity_type() == Entities.Treasure:
-        harvest()
-        break
-quick_print("插入排序平均插入位置: ", avg_insert_pos / insert_count)
+            queue.append(neighbor)
+
+    if previous[target] == -1:
+        return False
+
+    path = []
+    current = target
+    while current != start:
+        path.append(previous_direction[current])
+        current = previous[current]
+
+    while len(path) > 0:
+        direction = path.pop()
+        if not can_move(direction):
+            refresh_current_edges(graph)
+            return False
+        move(direction)
+        refresh_current_edges(graph)
+    return True
+
+
+def goto_treasure(graph):
+    target = measure()
+    if target == None:
+        return False
+    tx = target[0]
+    ty = target[1]
+    while get_pos_x() != tx or get_pos_y() != ty:
+        if not move_with_bfs(tx, ty, graph):
+            return False
+    return True
+
+
+graph = []
+visited = []
+for _ in range(size * size):
+    graph.append([])
+    visited.append(False)
+
+start_time = get_time()
+explore_maze(graph, visited, None)
+explore_done_time = get_time()
+quick_print("maze_single_dfs", "explore_time=", explore_done_time - start_time, "steps=", explore_steps)
+
+while True:
+    if goto_treasure(graph):
+        use_item(Items.Weird_Substance, substance)
+        if get_entity_type() == Entities.Treasure:
+            harvest()
+            break
+    else:
+        refresh_current_edges(graph)
+        for _ in range(size):
+            if get_entity_type() == Entities.Treasure:
+                harvest()
+                break
+            move(North)
+            refresh_current_edges(graph)
+        if get_entity_type() == Entities.Treasure:
+            break
+        move(East)
+        refresh_current_edges(graph)
+
+quick_print("maze_single_dfs", "total_time=", get_time() - start_time, "bfs=", bfs_count, "nodes=", bfs_nodes)
