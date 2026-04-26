@@ -1453,9 +1453,11 @@ def should_farm_gold_multi(target):
 def farm_gold_single_cycle(target):
     maze_size = get_world_size()
     set_world_size(maze_size)
-    substance = maze_size * (2 ** (num_unlocked(Unlocks.Mazes) - 1))
+    maze_multiplier = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
+    substance = maze_size * maze_multiplier
     gold_needed = target - num_items(Items.Gold)
-    total_paid_move_count = (gold_needed + maze_size * maze_size - 1) // (maze_size * maze_size)
+    gold_per_paid_move = maze_size * maze_size * maze_multiplier
+    total_paid_move_count = (gold_needed + gold_per_paid_move - 1) // gold_per_paid_move
     if total_paid_move_count < 0:
         total_paid_move_count = 0
     batch_paid_move_count = total_paid_move_count

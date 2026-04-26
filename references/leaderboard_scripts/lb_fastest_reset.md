@@ -305,6 +305,13 @@
   - `request_id=358` 完整结算，输出 `step2 time=1305.69`、`early_megafarm 2 time=1764.25`、`step4 time=2558.85`、`mazes 3 time=3199.73`、`megafarm 3 time=3483.86`、`gold 1M time=6490.07`、`dinosaurs 3 time=7182.89`、`done time=12570.11`、`average=209:30.176`。
   - 两轮差距约 `1.19%`，低于 `10%` 继续采样阈值；两轮均值约 `210:46.087`，略优于 `request_id=351/352` 的 `211:06.349`。
   - 当前保留：金币批次 `0` 次额外迷宫确认为真实浪费，应删除；但当前最好单轮仍是 `request_id=349` 的 `3:29:16.799`，所以不刷新 `lb_start.py` 本地实测时间。
+- `request_id=359/360`：
+  - 修正 `farm_gold_single_cycle()` 的单次 Treasure 金币估算：每次付费重定位收益应为 `maze_size * maze_size * maze_multiplier`，不是只按 `maze_size * maze_size` 计算。
+  - 直接效果是 12x12、`Mazes 3` 后的 Weird 目标从约 `10752/每 100 万金币批次` 降为实际需要的 `2736/早期 Megafarm 3`、`43344 + 40272/1M 金币两批`，避免按未乘迷宫倍率的错误值过量预采。
+  - `request_id=359` 完整结算，输出 `step2 time=1346.18`、`early_megafarm 2 time=1834.58`、`step4 time=2621.97`、`mazes 3 time=3201.40`、`megafarm 3 time=3414.02`、`gold 1M time=6628.71`、`dinosaurs 3 time=6981.48`、`done time=12209.01`、`average=203:29.064`。
+  - `request_id=360` 完整结算，输出 `step2 time=1403.93`、`early_megafarm 2 time=1957.28`、`step4 time=2736.60`、`mazes 3 time=3323.75`、`megafarm 3 time=3550.96`、`gold 1M time=6701.45`、`dinosaurs 3 time=7038.43`、`done time=12414.86`、`average=206:54.899`。
+  - 两轮差距约 `1.67%`，低于 `10%` 继续采样阈值；两轮均值约 `205:11.982`，明显优于 `request_id=357/358` 的 `210:46.087`。
+  - 当前保留：金币收益估算必须包含 `Mazes` 倍率；`lb_start.py` 本地实测时间刷新为当前最好单轮 `3:23:29.064`。
 - `request_id=345/346`：
   - `request_id=345` 直接把 `STEP2_POWER_TARGET` 改为 `0`，导致 `step2()` 不执行，树等关键科技未解锁，脚本立即运行时报错；这是无效探针。
   - `request_id=346` 修正为“达到 `6x6` 和关键科技后退出 step2，不额外刷 `1000 Power`”。
