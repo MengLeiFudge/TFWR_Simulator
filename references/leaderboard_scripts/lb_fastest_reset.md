@@ -245,6 +245,11 @@
   - 真实输出 `gold 1M time=7849.40`，慢于当前正式基线 `request_id=200` 的 `gold 1M time=7349.45`。
   - 中途停止前骨头阶段推进到 `bone=1613120`，停止摘要 `finished=false runs=1 average=215:12.520`；该候选已回退。
   - 结论：单迷宫中直线贪心不占优，但快速重置金币阶段的 `12x12` 迷宫和墙消失收益不同，当前正式路线继续保留直线优先 + BFS 兜底。
+- `request_id=329`：
+  - 临时把 `STEP2_POWER_TARGET` 降为 `0`，同时新增 `step2_core_unlocks_ready()`，确保 `Speed 5 / Expand 4 / Trees / Watering / Fertilizer / Sunflowers` 仍解锁后才退出 `step2()`。
+  - 真实输出 `step2 time=1211.21 power=112.36 size=6`，比正式基线 `step2 time=1312.43 power=1001.82` 早约 `101s`。
+  - 但后续 `Megafarm 3 time=4628.30`，明显慢于正式基线 `Megafarm 3 time=3777.95`；该候选已回退。
+  - 结论：不能简单取消 `1000 Power` 前置；前期少刷的 `Power` 会让 `step3/step4` 的南瓜、仙人掌和早期金币整体降速，省下的 `101s` 覆盖不了后续损失。
 - `request_id=204`：
   - 回退 `Expand 7`、`Dinosaurs 4`、最终宝箱补收后，用当前保留版本复测。
   - 真实 `output.txt` 有完整 `reset_stage done time=14018.42`；`run_real_game_script.py` 本轮没有抓到 `game_output` 正文，但文件尾部证明脚本完成且状态已回到 `idle`。
