@@ -293,6 +293,12 @@
   - `request_id=350` 复跑完整结算，输出 `step2 time=1378.47`、`megafarm 3 time=3635.77`、`gold 1M time=6908.67`、`dinosaurs 3 time=7634.63`、`done time=12945.17`、`average=215:45.199`。
   - 两轮差距约 `3.1%`，低于 `10%` 继续采样阈值；两轮均值约 `212:30.999`，优于 `request_id=341/342` 的两轮均值约 `214:36.749`。
   - 当前保留：`WEIRD_POWER_FLOOR=1250` 是新的稳定最好；`lb_start.py` 本地实测时间刷新为当前最好单轮 `3:29:16.799`。
+- `request_id=351/352`：
+  - 在 `WEIRD_POWER_FLOOR=1250` 的稳定路线基础上，把 Weird 阶段顺手补电地板继续提高到 `1350`，仍然不做单独清场补电。
+  - `request_id=351` 完整结算，输出 `early_megafarm 2 time=1791.76`、`expand 6 time=2123.77`、`step4 time=2575.03`、`mazes 3 time=3169.92`、`megafarm 3 time=3421.91`、`gold 1M time=6652.18`、`dinosaurs 3 time=7334.75`、`done time=12693.07`、`average=211:33.099`。
+  - `request_id=352` 复跑完整结算，输出 `early_megafarm 2 time=2071.52`、`expand 6 time=2404.12`、`step4 time=2864.79`、`mazes 3 time=3447.02`、`megafarm 3 time=3697.21`、`gold 1M time=6771.83`、`dinosaurs 3 time=7195.97`、`done time=12639.57`、`average=210:39.599`。
+  - 两轮差距约 `0.42%`，低于 `10%` 继续采样阈值；两轮均值约 `211:06.349`，优于 `request_id=349/350` 的两轮均值约 `212:30.999`。
+  - 当前保留：`WEIRD_POWER_FLOOR=1350` 是新的稳定最好；但当前最好单轮仍是 `request_id=349` 的 `3:29:16.799`，所以不刷新 `lb_start.py` 本地实测时间。
 - `request_id=345/346`：
   - `request_id=345` 直接把 `STEP2_POWER_TARGET` 改为 `0`，导致 `step2()` 不执行，树等关键科技未解锁，脚本立即运行时报错；这是无效探针。
   - `request_id=346` 修正为“达到 `6x6` 和关键科技后退出 step2，不额外刷 `1000 Power`”。
@@ -307,7 +313,7 @@
   - `6x6` 小迷宫早期金币推进 `Megafarm 1`：请求 `330` 证明正收益。
   - `6x6` 小迷宫早期金币推进 `Megafarm 2`：请求 `331` 继续证明正收益。
   - `900` 金币批次：请求 `335/336` 两轮差异约 `0.41%`，优于旧批次。
-  - `WEIRD_POWER_FLOOR=1250`：请求 `349/350` 两轮差异约 `3.1%`，刷新当前稳定最好。
+  - `WEIRD_POWER_FLOOR=1350`：请求 `351/352` 两轮差异约 `0.42%`，刷新当前稳定最好。
 - 已证伪，不应重复：
   - 取消前置 `1000 Power`：请求 `346` 证明后段 Weird / Megafarm 节奏明显变慢。
   - 早期小迷宫直接推到 `Megafarm 3`：请求 `332` 证明前置金币成本覆盖不了收益。
