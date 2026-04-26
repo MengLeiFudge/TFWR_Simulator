@@ -590,3 +590,9 @@
   - 真实输出 `step3 time=1836.91`、`early_megafarm 2 time=2067.64`、`polyculture 1 time=2739.94`、`step4 time=2866.61`、`mazes 3 time=3450.48`、`megafarm 3 time=3686.53`。
   - 对比 `request_id=386/387` 的 `step4 time=2774.12 / 2704.41`、`mazes 3 time=3363.93 / 3303.46`、`megafarm 3 time=3585.26 / 3545.05`，上限 `2` 在进入正式金币前已稳定慢 `~100s` 以上。
   - 结论：不采用 Fertilizer 上限 `2`；正式路线回到 `FERTILIZER_UNLOCK_CAP = 3`。
+
+- `request_id=389`：
+  - 临时把已采用的 `FERTILIZER_UNLOCK_CAP = 3` 提到 `4`，验证更多肥料等级是否能用前期加速覆盖额外 Wood 投入。
+  - 真实输出 `step4 time=2666.57`、`mazes 3 time=3254.79`、`megafarm 3 time=3445.37`、`gold 1M time=6749.49`、`dinosaurs 3 time=7093.82`、`done time=10166.44`、`average=169:26.499`。
+  - 对比已采用 `request_id=386/387` 的 `done time=9897.70 / 9811.38`、`average=164:57.699 / 163:31.378`，上限 `4` 虽然让 `step4/mazes 3/megafarm 3` 提前，但金币和骨头阶段回吐收益，完整结算慢约 `269s~355s`。
+  - 结论：不采用 Fertilizer 上限 `4`；正式路线保持 `FERTILIZER_UNLOCK_CAP = 3`。
