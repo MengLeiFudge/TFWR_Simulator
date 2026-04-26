@@ -30,7 +30,7 @@ LEADERBOARD_SUCCESS_SUMMARY_RE = re.compile(
     r"\[lb_[^\]]+(?:\.py)?\]\s+finished=true\s+runs=[1-9][0-9]*\s+average="
 )
 LEADERBOARD_SUMMARY_RE = re.compile(
-    r"\[lb_[^\]]+(?:\.py)?\]\s+finished=(?:true|false)\s+runs=([1-9][0-9]*)\s+average=([0-9]+:[0-9]{2}\.[0-9]{3})"
+    r"\[lb_[^\]]+(?:\.py)?\]\s+finished=(true|false)\s+runs=([1-9][0-9]*)\s+average=([0-9]+:[0-9]{2}\.[0-9]{3})"
 )
 LEADERBOARD_RUN_RE = re.compile(
     r"\[lb_[^\]]+(?:\.py)?\]\s+run=([1-9][0-9]*)\s+time=([0-9]+:[0-9]{2}\.[0-9]{3})"
@@ -110,6 +110,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "打榜迭代验证时至少等待的完成轮数；默认 2。达到该轮数后，"
             "只有最近两轮时间差异不超过 10%% 才主动停止；设为 0 表示不按轮次停止。"
         ),
+    )
+    parser.add_argument(
+        "--request-only",
+        action="store_true",
+        help="只写入运行请求并立即退出；不等待完成、不轮询日志，适合长流程后台打榜。",
     )
     return parser.parse_args(argv)
 
@@ -484,9 +489,11 @@ def parse_leaderboard_run_times(lines: tuple[str, ...], include_summary: bool = 
             summary_match = LEADERBOARD_SUMMARY_RE.search(line)
             if summary_match is None:
                 continue
-            seconds = parse_leaderboard_clock(summary_match.group(2))
+            if summary_match.group(1) != "true":
+                continue
+            seconds = parse_leaderboard_clock(summary_match.group(3))
             if seconds is not None:
-                run_times = [seconds] * int(summary_match.group(1))
+                run_times = [seconds] * int(summary_match.group(2))
     return tuple(run_times)
 
 
@@ -694,6 +701,19 @@ def main(argv: list[str] | None = None) -> int:
     pid, launched_by_helper = ensure_game_running(exe_path)
     print(f"real_game_runner start pid={pid} exe={exe_path} launched={launched_by_helper}")
     print(f"real_game_runner state={state_path}")
+
+    if args.request_only:
+        request_id = request_script_run(
+            state_path=state_path,
+            target_script=args.target_script,
+            timeout_seconds=args.request_timeout,
+        )
+        print(
+            f"real_game_runner requested request_id={request_id} "
+            f"target_script={normalize_target_script_name(args.target_script)} "
+            f"timeout={args.request_timeout:g} mode=request_only"
+        )
+        return 0
 
     wait_for_ready_state(
         state_path=state_path,

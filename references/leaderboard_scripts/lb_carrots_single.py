@@ -149,5 +149,33 @@ def main2(count=100000000):
     )
 
 
+def main3_worker(exit_condition):
+    for _ in range(get_world_size()):
+        if get_ground_type() != Grounds.Soil:
+            till()
+        move(North)
+
+    while not exit_condition():
+        while get_water() < min(num_items(Items.Water) / 100, 0.75):
+            use_item(Items.Water)
+        if can_harvest():
+            harvest()
+        if get_ground_type() != Grounds.Soil:
+            till()
+        plant(Entities.Carrot)
+        move(North)
+
+
+def main3(count=100000000):
+    set_world_size(5)
+    quick_print("main3", " init carrots=", num_items(Items.Carrot), " time=", get_time())
+
+    def exit_condition():
+        return num_items(Items.Carrot) >= count
+
+    main3_worker(exit_condition)
+    quick_print("main3", " done carrots=", num_items(Items.Carrot), " time=", get_time())
+
+
 if __name__ == "__main__":
-    main2()
+    main3()

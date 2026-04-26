@@ -84,6 +84,7 @@ class RealGameRunnerToolTests(unittest.TestCase):
     def test_parse_args_defaults_to_two_leaderboard_runs(self) -> None:
         args = runner_module.parse_args([])
         self.assertEqual(args.max_leaderboard_runs, 2)
+        self.assertFalse(args.request_only)
 
     def test_resolve_game_executable_prefers_non_crash_handler(self) -> None:
         with tempfile.TemporaryDirectory() as game_root_text:
@@ -579,6 +580,24 @@ class RealGameRunnerToolTests(unittest.TestCase):
         self.assertEqual(average_lines, ("leaderboard_average runs=1 average=141:32.734 stable=false",))
         self.assertEqual(estimate_lines, ())
 
+    def test_finished_false_summary_does_not_count_as_completed_run(self) -> None:
+        outputs = runner_module.CapturedOutputs(
+            game_output_lines=("[lb_carrots] finished=false runs=1 average=12:42.618",),
+            mod_output_lines=(
+                "[Info] item_snapshot request_id=7 real_elapsed=1.0 game_time=10 "
+                "game_tick=4000 leaderboard_script=lb_carrots carrot=100",
+                "[Info] item_snapshot request_id=7 real_elapsed=2.0 game_time=20 "
+                "game_tick=8000 leaderboard_script=lb_carrots carrot=1100",
+            ),
+        )
+
+        average_lines = runner_module.build_leaderboard_average_lines(outputs)
+        estimate_lines = runner_module.build_progress_estimate_lines(outputs, "lb_start")
+
+        self.assertEqual(average_lines, ())
+        self.assertEqual(len(estimate_lines), 1)
+        self.assertIn("progress_estimate script=lb_carrots", estimate_lines[0])
+
     def test_wait_for_ready_state_acknowledges_stale_terminal_state(self) -> None:
         states = iter(
             [
@@ -681,6 +700,40 @@ class RealGameRunnerToolTests(unittest.TestCase):
         self.assertIn("game_output game-a", text)
         self.assertIn("mod_output_lines=2", text)
         self.assertIn("mod_output mod-a", text)
+
+    def test_main_request_only_writes_request_without_waiting_for_status(self) -> None:
+        stream = io.StringIO()
+        with mock.patch.object(
+            runner_module, "resolve_game_executable", return_value=Path("/tmp/TheFarmerWasReplaced.exe")
+        ), mock.patch.object(
+            runner_module, "resolve_oracle_state_path", return_value=Path("/tmp/state.json")
+        ), mock.patch.object(
+            runner_module, "ensure_game_running", return_value=(456, False)
+        ), mock.patch.object(
+            runner_module, "wait_for_ready_state"
+        ) as wait_for_ready, mock.patch.object(
+            runner_module, "capture_output_baseline"
+        ) as capture_baseline, mock.patch.object(
+            runner_module, "request_script_run", return_value=8
+        ) as request_run, mock.patch.object(
+            runner_module, "wait_for_status"
+        ) as wait_for_status, contextlib.redirect_stdout(stream):
+            result = runner_module.main(
+                [
+                    "--target-script",
+                    "lb_start",
+                    "--request-timeout",
+                    "90",
+                    "--request-only",
+                ]
+            )
+
+        self.assertEqual(result, 0)
+        wait_for_ready.assert_not_called()
+        capture_baseline.assert_not_called()
+        request_run.assert_called_once()
+        wait_for_status.assert_not_called()
+        self.assertIn("mode=request_only", stream.getvalue())
 
     def test_main_rejects_lb_start_done_without_leaderboard_summary(self) -> None:
         done_state = {

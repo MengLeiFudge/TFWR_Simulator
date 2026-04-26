@@ -93,6 +93,12 @@
   - 请求 `252` 仍无任何 `run=`
   - `item_snapshot` 显示约 9 秒 `wood=9624283392`，接近目标但最终仍 `leaderboard finished without completed runs`
   - 结论不变：结构可作为参考，当前文件不迁入
+- 2026-04-26 修正 `Save0/wood_lb.py` 真实结算目标后复测
+  - 临时迁入为 `main4`，把退出条件修成 `num_items(Items.Wood) >= 10_000_000_000`，并补最后 leaderboard 结算
+  - 请求 `285` 完成 1 轮，`[lb_wood] finished=true runs=1 average=141:32.734`
+  - 脚本输出 `main4 done wood=10000180992 time=8492.71`
+  - 结论：修目标后可以结算，但游戏内时间远慢于当前 `main3` 的约 `10:15~10:23`；之前现实约 9 秒接近 10B Wood 只是高模拟速度下的现实时间现象，不能当 leaderboard 游戏时间
+  - 处理：不迁入默认入口，只保留“外部脚本必须先修真实目标再评估”的反例证据
 - 2026-04-25 `main3` 水阈值变体
   - 把 `use_water()` 改成 `num_items(Items.Water) > 128` 后两轮均值 `10:35.912`
   - 改成 `num_items(Items.Water) > 0` 单次补水后两轮均值 `10:32.253`
@@ -105,8 +111,7 @@
 
 ## 下一步优化方向
 
-- 补真实成绩
-- 重点确认：
+- 当前 `main3` 已有真实短窗成绩；下一步重点确认：
   - Bush companion 的真实占比
   - 当前 Tree/Bush 主结构里，灌木贡献了多少木头
   - 除灌木外的其他 companion 分支到底值不值
