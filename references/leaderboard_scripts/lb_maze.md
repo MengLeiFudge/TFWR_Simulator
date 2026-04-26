@@ -115,6 +115,12 @@
   - 结果：`maze_multi explore_done edges=2046 time=9.77` 后，到 `game_time≈108.125` 仍为 `gold=0`，被主动停止。
   - 根因判断：每个 solver 预构建全图路径的脚本执行成本过高，导致解题阶段开始后长时间没有任何 Treasure 兑现；它比原重叠区域抢宝更差。
   - 结论：候选已从 `.py` 回退；后续不能用“每个 solver 全图 path 表”实现负责权分离，必须限制路径缓存规模或改为少量共享 dispatcher。
+- 同区连续 Treasure 不回中心
+  - 2026-04-26 请求 `355` 验证。
+  - 改法：保留当前重叠分区，删除 `reverse_path`，用 `route_between(current_node, treasure)` 通过 center 路径公共前缀拼接同区内两点路线；如果下一个 Treasure 仍在本区则不回中心。
+  - 结果：主动停止时 `gold=2,260,992`、`game_time=46.842`，模组估算 `eta_game_seconds=92.212`，总计约 `139s`，慢于请求 `353` 第一轮 `1:50.579`。
+  - 根因判断：同区连续追宝虽然减少部分回中心路程，但 solver 停在非中心点后更容易与其他重叠 solver 冲突，且 `route_between()` 的脚本执行成本抵消了移动收益。
+  - 结论：候选已从 `.py` 回退；后续不要再做“单 solver 漂移式不回中心”，除非同时解决重叠区抢宝冲突。
 
 ## 下一步优化方向
 
