@@ -85,6 +85,8 @@ class RealGameRunnerToolTests(unittest.TestCase):
         args = runner_module.parse_args([])
         self.assertEqual(args.max_leaderboard_runs, 2)
         self.assertFalse(args.request_only)
+        self.assertFalse(args.status_only)
+        self.assertEqual(args.status_lines, 80)
 
     def test_resolve_game_executable_prefers_non_crash_handler(self) -> None:
         with tempfile.TemporaryDirectory() as game_root_text:
@@ -563,6 +565,24 @@ class RealGameRunnerToolTests(unittest.TestCase):
         self.assertIn("unavailable", lines[0])
         self.assertIn("reason=no_positive_rate", lines[0])
 
+    def test_build_progress_estimate_reports_target_reached_when_item_is_at_goal(self) -> None:
+        outputs = runner_module.CapturedOutputs(
+            game_output_lines=(),
+            mod_output_lines=(
+                "[Info] item_snapshot request_id=7 real_elapsed=1.0 game_time=10 "
+                "game_tick=4000 leaderboard_script=lb_pumpkins pumpkin=200028160",
+                "[Info] item_snapshot request_id=7 real_elapsed=2.0 game_time=20 "
+                "game_tick=8000 leaderboard_script=lb_pumpkins pumpkin=200028160",
+            ),
+        )
+
+        lines = runner_module.build_progress_estimate_lines(outputs, "lb_start")
+
+        self.assertEqual(len(lines), 1)
+        self.assertIn("script=lb_pumpkins", lines[0])
+        self.assertIn("current=200028160", lines[0])
+        self.assertIn("target_reached=true", lines[0])
+
     def test_leaderboard_summary_suppresses_resource_estimate_and_reports_average(self) -> None:
         outputs = runner_module.CapturedOutputs(
             game_output_lines=("[lb_wood] finished=true runs=1 average=141:32.734",),
@@ -734,6 +754,58 @@ class RealGameRunnerToolTests(unittest.TestCase):
         request_run.assert_called_once()
         wait_for_status.assert_not_called()
         self.assertIn("mode=request_only", stream.getvalue())
+
+    def test_main_status_only_reads_three_files_without_starting_game(self) -> None:
+        stream = io.StringIO()
+        state = {
+            "request_id": 9,
+            "status": "running",
+            "target_script": "lb_start",
+            "timeout_seconds": 90.0,
+            "started_at": "2026-04-26T00:00:00Z",
+            "finished_at": None,
+            "last_error": None,
+        }
+        with tempfile.TemporaryDirectory() as temp_text:
+            root = Path(temp_text)
+            save_root = root / "Saves" / "Save0"
+            save_root.mkdir(parents=True)
+            output_path = root / "output.txt"
+            output_path.write_text("[lb_pumpkins] run=1 time=6:40.664\n", encoding="utf-8")
+            game_root = root / "Game"
+            log_path = game_root / "BepInEx" / "LogOutput.log"
+            log_path.parent.mkdir(parents=True)
+            log_path.write_text(
+                "[Info] item_snapshot request_id=9 real_elapsed=1.0 game_time=10 "
+                "game_tick=4000 leaderboard_script=lb_pumpkins pumpkin=100\n"
+                "[Info] item_snapshot request_id=9 real_elapsed=2.0 game_time=20 "
+                "game_tick=8000 leaderboard_script=lb_pumpkins pumpkin=1100\n",
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(
+                runner_module, "resolve_oracle_state_path", return_value=Path("/tmp/state.json")
+            ), mock.patch.object(
+                runner_module, "read_state_file", return_value=state
+            ), mock.patch.object(
+                runner_module, "resolve_output_path", return_value=output_path
+            ), mock.patch.object(
+                runner_module, "resolve_bepinex_log_path", return_value=log_path
+            ), mock.patch.object(
+                runner_module, "resolve_game_executable"
+            ) as resolve_exe, mock.patch.object(
+                runner_module, "ensure_game_running"
+            ) as ensure_game, contextlib.redirect_stdout(stream):
+                result = runner_module.main(["--status-only", "--target-script", "lb_start", "--status-lines", "20"])
+
+        self.assertEqual(result, 0)
+        resolve_exe.assert_not_called()
+        ensure_game.assert_not_called()
+        text = stream.getvalue()
+        self.assertIn("state request_id=9 status=running target_script=lb_start", text)
+        self.assertIn("game_output [lb_pumpkins] run=1 time=6:40.664", text)
+        self.assertIn("mod_output [Info] item_snapshot request_id=9", text)
+        self.assertIn("leaderboard_average runs=1 average=6:40.664", text)
 
     def test_main_rejects_lb_start_done_without_leaderboard_summary(self) -> None:
         done_state = {

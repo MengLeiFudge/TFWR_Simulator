@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import time
 
-from .config import load_local_env, resolve_game_root, to_windows_path
+from .config import load_local_env, resolve_bepinex_log_path, resolve_game_root, resolve_output_path, to_windows_path
 from .output_capture import (
     CapturedOutputs,
     OutputBaseline,
@@ -116,6 +116,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="只写入运行请求并立即退出；不等待完成、不轮询日志，适合长流程后台打榜。",
     )
+    parser.add_argument(
+        "--status-only",
+        action="store_true",
+        help="只读取 state.json、游戏 output.txt 与 BepInEx 日志尾部；不启动游戏、不写入请求。",
+    )
+    parser.add_argument(
+        "--status-lines",
+        type=int,
+        default=80,
+        help="--status-only 输出每个日志文件的尾部行数，默认 80。",
+    )
     return parser.parse_args(argv)
 
 
@@ -174,6 +185,12 @@ def build_stop_requested_state(current_state: dict[str, object], message: str) -
         "finished_at": None,
         "last_error": message,
     }
+
+
+def read_tail_lines(path: Path | None, max_lines: int) -> tuple[str, ...]:
+    if path is None or max_lines <= 0 or not path.exists():
+        return ()
+    return tuple(path.read_text(encoding="utf-8", errors="ignore").splitlines()[-max_lines:])
 
 
 def next_request_id(current_state: dict[str, object] | None) -> int:
@@ -628,6 +645,16 @@ def build_progress_estimate_lines(outputs: CapturedOutputs, target_script: str |
                 "unavailable reason=missing_item_value"
             )
             continue
+        if latest_value >= target:
+            latest_time_text = ""
+            if latest_time is not None:
+                latest_time_text = f" game_time={latest_time:.3f}"
+            lines.append(
+                "progress_estimate "
+                f"script={script} item={item} current={latest_value:.0f} target={target:.0f}"
+                f"{latest_time_text} target_reached=true"
+            )
+            continue
         if latest_value <= first_value:
             lines.append(
                 "progress_estimate "
@@ -693,10 +720,47 @@ def is_controlled_stop(result: dict[str, object]) -> bool:
     return any(error.startswith(prefix) for prefix in CONTROLLED_STOP_PREFIXES)
 
 
+def print_status_only(args: argparse.Namespace) -> int:
+    state_path = resolve_oracle_state_path(args.game_root)
+    state = read_state_file(state_path)
+    game_output_path = resolve_output_path(args.save_root, required=False)
+    mod_output_path = resolve_bepinex_log_path(args.game_root, required=False)
+    max_lines = max(0, int(args.status_lines))
+    outputs = CapturedOutputs(
+        game_output_lines=read_tail_lines(game_output_path, max_lines),
+        mod_output_lines=read_tail_lines(mod_output_path, max_lines),
+    )
+
+    print(f"real_game_runner status state={state_path}")
+    print(f"real_game_runner status game_output={game_output_path}")
+    print(f"real_game_runner status mod_output={mod_output_path}")
+    if state is None:
+        print("state missing")
+    else:
+        print(
+            "state "
+            f"request_id={state.get('request_id')} "
+            f"status={state.get('status')} "
+            f"target_script={state.get('target_script')} "
+            f"timeout={state.get('timeout_seconds')} "
+            f"last_error={state.get('last_error')}"
+        )
+    for line in build_leaderboard_average_lines(outputs):
+        print(line)
+    for line in build_progress_estimate_lines(outputs, args.target_script):
+        print(line)
+    _print_captured_outputs(outputs)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    exe_path = resolve_game_executable(args.game_root)
     state_path = resolve_oracle_state_path(args.game_root)
+
+    if args.status_only:
+        return print_status_only(args)
+
+    exe_path = resolve_game_executable(args.game_root)
 
     pid, launched_by_helper = ensure_game_running(exe_path)
     print(f"real_game_runner start pid={pid} exe={exe_path} launched={launched_by_helper}")
