@@ -105,10 +105,16 @@ def move_with_bfs(tx, ty, graph):
     bfs_queue[0] = start
     bfs_seen[start] = bfs_stamp
     bfs_previous[start] = start
+    bfs_target_queue[0] = target
+    bfs_target_seen[target] = bfs_stamp
+    bfs_target_previous[target] = target
     head = 0
     tail = 1
+    target_head = 0
+    target_tail = 1
+    meet = -1
     bfs_count = bfs_count + 1
-    while head < tail:
+    while head < tail and target_head < target_tail and meet == -1:
         current = bfs_queue[head]
         head = head + 1
         bfs_nodes = bfs_nodes + 1
@@ -119,17 +125,36 @@ def move_with_bfs(tx, ty, graph):
             bfs_seen[neighbor] = bfs_stamp
             bfs_previous[neighbor] = current
             bfs_previous_direction[neighbor] = edge[1]
-            if neighbor == target:
-                head = tail
+            if bfs_target_seen[neighbor] == bfs_stamp:
+                meet = neighbor
                 break
             bfs_queue[tail] = neighbor
             tail = tail + 1
 
-    if bfs_seen[target] != bfs_stamp:
+        if meet != -1:
+            break
+
+        current = bfs_target_queue[target_head]
+        target_head = target_head + 1
+        bfs_nodes = bfs_nodes + 1
+        for edge in graph[current]:
+            neighbor = edge[0]
+            if bfs_target_seen[neighbor] == bfs_stamp:
+                continue
+            bfs_target_seen[neighbor] = bfs_stamp
+            bfs_target_previous[neighbor] = current
+            bfs_target_direction[neighbor] = backs[edge[1]]
+            if bfs_seen[neighbor] == bfs_stamp:
+                meet = neighbor
+                break
+            bfs_target_queue[target_tail] = neighbor
+            target_tail = target_tail + 1
+
+    if meet == -1:
         return False
 
     path_length = 0
-    current = target
+    current = meet
     while current != start:
         bfs_path[path_length] = bfs_previous_direction[current]
         path_length = path_length + 1
@@ -143,6 +168,16 @@ def move_with_bfs(tx, ty, graph):
             return False
         move(direction)
         refresh_current_edges(graph)
+
+    current = meet
+    while current != target:
+        direction = bfs_target_direction[current]
+        if not can_move(direction):
+            refresh_current_edges(graph)
+            return False
+        move(direction)
+        refresh_current_edges(graph)
+        current = bfs_target_previous[current]
     return True
 
 
@@ -170,12 +205,20 @@ bfs_previous = []
 bfs_previous_direction = []
 bfs_queue = []
 bfs_path = []
+bfs_target_seen = []
+bfs_target_previous = []
+bfs_target_direction = []
+bfs_target_queue = []
 for _ in range(size * size):
     bfs_seen.append(0)
     bfs_previous.append(-1)
     bfs_previous_direction.append(None)
     bfs_queue.append(0)
     bfs_path.append(None)
+    bfs_target_seen.append(0)
+    bfs_target_previous.append(-1)
+    bfs_target_direction.append(None)
+    bfs_target_queue.append(0)
 
 start_time = get_time()
 explore_maze(graph, visited, None)
