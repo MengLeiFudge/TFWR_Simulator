@@ -312,6 +312,13 @@
   - `request_id=360` 完整结算，输出 `step2 time=1403.93`、`early_megafarm 2 time=1957.28`、`step4 time=2736.60`、`mazes 3 time=3323.75`、`megafarm 3 time=3550.96`、`gold 1M time=6701.45`、`dinosaurs 3 time=7038.43`、`done time=12414.86`、`average=206:54.899`。
   - 两轮差距约 `1.67%`，低于 `10%` 继续采样阈值；两轮均值约 `205:11.982`，明显优于 `request_id=357/358` 的 `210:46.087`。
   - 当前保留：金币收益估算必须包含 `Mazes` 倍率；`lb_start.py` 本地实测时间刷新为当前最好单轮 `3:23:29.064`。
+- `request_id=366/367`：
+  - 在 `goto_treasure_with_graph()` 中取消每轮开头的整图 `refresh_maze_edges(graph, size)`，只保留直线试探时的局部边更新，以及图路径兜底。
+  - 依据：迷宫墙只会消失，不会新增；旧图路径不会因为少刷边而失效，整图刷新会在每次 Treasure 寻路前重复做大量 `can_move()`。
+  - `request_id=366` 完整结算，输出 `gold 1M time=6532.89`、`dinosaurs 3 time=6956.69`、`done time=12408.28`、`average=206:48.299`。
+  - `request_id=367` 完整结算，输出 `step2 time=1424.01`、`early_megafarm 2 time=2017.73`、`step4 time=2773.68`、`mazes 3 time=3383.00`、`megafarm 3 time=3625.45`、`gold 1M time=6562.11`、`dinosaurs 3 time=6918.32`、`done time=12113.40`、`average=201:53.465`。
+  - 两轮差距约 `2.41%`，低于 `10%` 继续采样阈值；两轮均值约 `204:20.882`，优于 `request_id=359/360` 的 `205:11.982`。
+  - 当前保留：快速重置金币阶段同样不应每轮刷新整图墙；`lb_start.py` 本地实测时间刷新为当前最好单轮 `3:21:53.465`。
 - `request_id=345/346`：
   - `request_id=345` 直接把 `STEP2_POWER_TARGET` 改为 `0`，导致 `step2()` 不执行，树等关键科技未解锁，脚本立即运行时报错；这是无效探针。
   - `request_id=346` 修正为“达到 `6x6` 和关键科技后退出 step2，不额外刷 `1000 Power`”。

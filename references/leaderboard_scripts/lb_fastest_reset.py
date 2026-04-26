@@ -1619,7 +1619,6 @@ def add_maze_edge(graph, source, target, direction):
 def goto_treasure_with_graph(tx, ty, size, graph):
     target = tx + ty * size
     while get_pos_x() + get_pos_y() * size != target:
-        refresh_maze_edges(graph, size)
         if move_direct_toward_treasure(tx, ty, size, graph):
             continue
         if not move_with_graph_path(target, size, graph):
