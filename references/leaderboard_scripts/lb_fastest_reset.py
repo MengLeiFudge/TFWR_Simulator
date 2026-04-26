@@ -804,13 +804,16 @@ def step3():
 
 
 def try_unlock_early_megafarm():
-    if num_unlocked(Unlocks.Megafarm) >= 1:
-        return
     if num_unlocked(Unlocks.Mazes) < 1:
         return
-    farm_gold_until(2000)
-    unlock(Unlocks.Megafarm)
-    quick_print("reset_stage", "early_megafarm", num_unlocked(Unlocks.Megafarm), "time=", get_time(), "gold=", num_items(Items.Gold), "max_drones=", max_drones())
+    while num_unlocked(Unlocks.Megafarm) < 2:
+        cost = get_cost(Unlocks.Megafarm)
+        if cost == None or cost == {} or cost_amount(cost, Items.Bone) > 0:
+            return
+        farm_for_cost(cost)
+        if not unlock(Unlocks.Megafarm):
+            return
+        quick_print("reset_stage", "early_megafarm", num_unlocked(Unlocks.Megafarm), "time=", get_time(), "gold=", num_items(Items.Gold), "max_drones=", max_drones())
 
 
 # 扩张升到最大（9级）

@@ -259,6 +259,12 @@
   - 中段输出 `megafarm 3 time=3523.49`，优于正式基线 `3777.95`；`gold 1M time=7289.27`，略优于正式基线 `7349.45`。
   - 最终输出 `[lb_fastest_reset] finished=true runs=1 average=221:46.199`，同轮 `reset_stage done time=13306.14`，优于 `request_id=200` 的 `13409.57`。
   - 当前保留：早期 `Megafarm 1` + 多无人机南瓜是正收益；它主要压缩 `step4` 和 `Megafarm 3` 之前的节奏，不改变后段金币 / 骨头主结构。
+- `request_id=331`：
+  - 把 `try_unlock_early_megafarm()` 从只解锁 `Megafarm 1` 扩展到 `Megafarm 2`，继续用 `6x6` 小迷宫刷到第二级所需金币。
+  - 真实输出 `early_megafarm 2 time=1765.06 gold=8 max_drones=4`；虽然额外金币投入约 `125s`，但后续 `step4 time=2547.29`，快于 `request_id=330` 的 `2605.77`。
+  - 更关键的是 `Megafarm 3 time=3353.48`、`gold 1M time=6769.67`，分别优于 `request_id=330` 的 `3523.49` / `7289.27`。
+  - 最终输出 `[lb_fastest_reset] finished=true runs=1 average=216:26.969`，同轮 `reset_stage done time=12986.9`，继续优于 `request_id=330` 的 `13306.14`。
+  - 当前保留：早期推到 `Megafarm 2` 是明确正收益；它证明“先用小迷宫买更多无人机，再滚南瓜 / Weird / 金币”这条结构路线成立。
 - `request_id=204`：
   - 回退 `Expand 7`、`Dinosaurs 4`、最终宝箱补收后，用当前保留版本复测。
   - 真实 `output.txt` 有完整 `reset_stage done time=14018.42`；`run_real_game_script.py` 本轮没有抓到 `game_output` 正文，但文件尾部证明脚本完成且状态已回到 `idle`。
