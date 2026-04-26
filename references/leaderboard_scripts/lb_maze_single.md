@@ -98,6 +98,11 @@
   - 请求 `348` 临时在 `goto_treasure()` 的 `measure()==None` 分支中加入最多 `2s` 原地等待，并打印 `measure_waits` / `wait_time`。
   - 结果：停止前 `27` 轮均输出 `measure_waits=0 wait_time=0`，说明当前 DFS+BFS 主流程里没有走到该分支。
   - 停止摘要 `finished=false runs=27 average=3:12.886` 属于随机波动，不能归因于等待策略；候选已从 `.py` 回退，只保留本探针结论。
+- `DFS 树父指针路径缓存`
+  - 请求 `356` 在一次 DFS 全探图后缓存 DFS 树父指针，并用树路径替代每次单源 BFS。
+  - 真实完成多轮：`run=1 5:09.609`、`run=2 4:50.039`、`run=3 4:22.929`、`run=4 4:18.671`、`run=5 5:04.062`、`run=10 4:09.296`。
+  - 停止摘要 `finished=false runs=10 average=4:37.846 stable=true`，明显慢于当前 `dfs_bfs` 基线 `3:15.310`。
+  - 失败原因：DFS 树路径不等于迷宫图最短路，省掉 BFS 计算后增加的移动步数远大于脚本计算收益；候选已从 `.py` 回退。
 
 ## 下一步优化方向
 
