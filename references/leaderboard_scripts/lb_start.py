@@ -54,7 +54,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Maze_Single, "lb_maze_single", 10000)
 # 成功条件：num_items(Items.Gold) >= 616_448
-# 用时（#1/游戏实测）：1:09.636 / 3:15.310
+# 用时（#1/游戏实测）：1:09.636 / 3:05.876
 
 # leaderboard_run(Leaderboards.Sunflowers, "lb_sunflowers", 10000)
 # 成功条件：num_items(Items.Power) >= 100_000

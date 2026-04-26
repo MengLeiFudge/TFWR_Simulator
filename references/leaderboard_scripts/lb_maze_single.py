@@ -95,47 +95,49 @@ def explore_maze(graph, visited, entered_from):
 def move_with_bfs(tx, ty, graph):
     global bfs_count
     global bfs_nodes
+    global bfs_stamp
     start = maze_index(get_pos_x(), get_pos_y())
     target = maze_index(tx, ty)
     if start == target:
         return True
 
-    previous = []
-    previous_direction = []
-    for _ in range(size * size):
-        previous.append(-1)
-        previous_direction.append(None)
-
-    queue = [start]
-    previous[start] = start
+    bfs_stamp = bfs_stamp + 1
+    bfs_queue[0] = start
+    bfs_seen[start] = bfs_stamp
+    bfs_previous[start] = start
     head = 0
+    tail = 1
     bfs_count = bfs_count + 1
-    while head < len(queue):
-        current = queue[head]
+    while head < tail:
+        current = bfs_queue[head]
         head = head + 1
         bfs_nodes = bfs_nodes + 1
         for edge in graph[current]:
             neighbor = edge[0]
-            if previous[neighbor] != -1:
+            if bfs_seen[neighbor] == bfs_stamp:
                 continue
-            previous[neighbor] = current
-            previous_direction[neighbor] = edge[1]
+            bfs_seen[neighbor] = bfs_stamp
+            bfs_previous[neighbor] = current
+            bfs_previous_direction[neighbor] = edge[1]
             if neighbor == target:
-                head = len(queue)
+                head = tail
                 break
-            queue.append(neighbor)
+            bfs_queue[tail] = neighbor
+            tail = tail + 1
 
-    if previous[target] == -1:
+    if bfs_seen[target] != bfs_stamp:
         return False
 
-    path = []
+    path_length = 0
     current = target
     while current != start:
-        path.append(previous_direction[current])
-        current = previous[current]
+        bfs_path[path_length] = bfs_previous_direction[current]
+        path_length = path_length + 1
+        current = bfs_previous[current]
 
-    while len(path) > 0:
-        direction = path.pop()
+    while path_length > 0:
+        path_length = path_length - 1
+        direction = bfs_path[path_length]
         if not can_move(direction):
             refresh_current_edges(graph)
             return False
@@ -161,6 +163,19 @@ visited = []
 for _ in range(size * size):
     graph.append([])
     visited.append(False)
+
+bfs_stamp = 0
+bfs_seen = []
+bfs_previous = []
+bfs_previous_direction = []
+bfs_queue = []
+bfs_path = []
+for _ in range(size * size):
+    bfs_seen.append(0)
+    bfs_previous.append(-1)
+    bfs_previous_direction.append(None)
+    bfs_queue.append(0)
+    bfs_path.append(None)
 
 start_time = get_time()
 explore_maze(graph, visited, None)

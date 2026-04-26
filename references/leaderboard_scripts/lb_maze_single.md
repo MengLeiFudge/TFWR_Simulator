@@ -34,6 +34,7 @@
 - 结论：当前 `maze_astar` 版本能稳定完成并明显优于旧 `main1()`，迁入为当前默认；它的文件头作者注释提到“有些地方效率不高”，但这是后续优化方向，不是拒绝迁入的理由。
 - 2026-04-26 DFS + 直线贪心 + BFS 候选：请求 `323`，`run=1 time=3:16.699`、`run=2 time=3:03.899`、`run=3 time=3:20.117`、`run=4 time=3:12.148`，停止摘要 `finished=false runs=9 average=3:15.393`。
 - 2026-04-26 DFS + BFS-only 候选：请求 `324`，停止摘要 `finished=false runs=14 average=3:15.310`，刷新当前本地最好成绩。探针显示 `explore_time≈5.47s`、`steps=126`、每轮 `bfs=301`，说明一次全探图成本很低，主要剩余成本在 301 次重定位延迟与实际移动。
+- 2026-04-26 BFS 缓冲复用候选：请求 `361`，把每次 BFS 的 `previous` / `queue` / `path` 临时列表改为固定缓冲区 + `stamp` 标记，避免 301 次寻宝重复分配列表；主动停止摘要 `finished=false runs=25 average=3:05.876 stable=true`，优于 `3:15.310`。
 - 2026-04-26 DFS + next-hop 全对查表候选：请求 `325`，停止摘要 `finished=false runs=12 average=4:22.971`，明显慢于 BFS-only；探针显示每轮 `table_time=14.14`、`table_nodes=4096`，说明当前脚本环境下全对预计算的列表构建成本不能抵消单源 BFS 成本。
 - 同步工具对 `lb_maze_single` 生成 `lb_start.py` 时使用外部入口验证过的 `1000` 模拟速度。
 
@@ -76,6 +77,11 @@
   - 一次 DFS 全探图后，每次 Treasure 重定位只做单源 BFS，不再维护 A* 的 open_set、f_value 和路径深拷贝
   - 请求 `324` 停止摘要 `finished=false runs=14 average=3:15.310`
   - 相比 `maze_astar` 的 `4:47.363`，约提升 `32%`
+- `dfs_bfs_reuse_buffers`
+  - 当前默认路线
+  - 保留 DFS+BFS 的寻路结构，只把单源 BFS 的 `previous`、`queue`、`path` 改成固定缓冲区复用
+  - 请求 `361` 主动停止摘要 `finished=false runs=25 average=3:05.876 stable=true`
+  - 相比 `dfs_bfs` 的 `3:15.310`，约提升 `4.8%`；这说明单机迷宫的脚本分配开销仍然值得压缩
 
 ## 失败对照
 
@@ -101,7 +107,7 @@
 - `DFS 树父指针路径缓存`
   - 请求 `356` 在一次 DFS 全探图后缓存 DFS 树父指针，并用树路径替代每次单源 BFS。
   - 真实完成多轮：`run=1 5:09.609`、`run=2 4:50.039`、`run=3 4:22.929`、`run=4 4:18.671`、`run=5 5:04.062`、`run=10 4:09.296`。
-  - 停止摘要 `finished=false runs=10 average=4:37.846 stable=true`，明显慢于当前 `dfs_bfs` 基线 `3:15.310`。
+  - 停止摘要 `finished=false runs=10 average=4:37.846 stable=true`，明显慢于当前 `dfs_bfs_reuse_buffers` 基线 `3:05.876`。
   - 失败原因：DFS 树路径不等于迷宫图最短路，省掉 BFS 计算后增加的移动步数远大于脚本计算收益；候选已从 `.py` 回退。
 
 ## 下一步优化方向
