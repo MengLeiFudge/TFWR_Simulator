@@ -96,6 +96,13 @@
   - 结果：`maze_multi explore_done edges=2046` 后早期金币只涨到 `196608`。
   - 关键诊断：BepInEx `item_snapshot` 显示从 `game_time=22.114` 到 `game_time=74.423`，`gold=196608` 恒定不变；`progress_estimate` 输出 `unavailable reason=no_positive_rate`。
   - 结论：半径过小会让 Treasure 进入区域后路径或回收逻辑失效，形成低金币卡死；候选已停止并从 `.py` 回退。
+- 分区半径 `14 -> 15`
+  - 2026-04-26 请求 `347` 验证。
+  - 改法：仅把 `k_center_on_tree()` 返回值从 `14` 改为 `15`，作为 `16` 与基线之间的中间半径对照。
+  - 结果：第一轮输出 `maze_multi chunks=27 nodes=1024`，完成时间 `2:03.743`，慢于请求 `300` 基线 `1:53.548`。
+  - 第二轮主动停止前 `gold=5,767,168`、`game_time=81.031`，模组估算还需 `eta_game_seconds=37.208`，总计约 `118.2s`，仍慢于基线。
+  - 注意：停止摘要里 `finished=false runs=2 average=1:42.578` 不是有效完成轮均值，不能作为刷新成绩。
+  - 结论：半径 `12 / 15 / 16` 均已证伪，半径微调方向基本收敛；候选已从 `.py` 回退，只保留本记录。
 
 ## 下一步优化方向
 
