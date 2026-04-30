@@ -103,6 +103,11 @@
   - 把 `use_water()` 改成 `num_items(Items.Water) > 128` 后两轮均值 `10:35.912`
   - 改成 `num_items(Items.Water) > 0` 单次补水后两轮均值 `10:32.253`
   - 两者都慢于原始 `while get_water() < min(num_items(Water) / 100, 0.75)` 的 `10:15.633`；虽然原始写法有并发缺水警告，但净收益仍更高，暂时保留原始补水节奏
+- 2026-04-30 `main3` 多无人机探针
+  - 请求 `399` 只加 `wood_multi_probe` 日志，不改变产木策略。
+  - 真实完成轮：`run=1 time=10:25.487`、第二轮后 runner 停表 `reached stable leaderboard runs 2 avg=10:20.343`。
+  - 探针持续输出 `wood_multi_probe drones=32 start=(0,0)`，并且 `(0,0)` worker 的位置沿同一列变化，证明当前 `main3` 实际使用 32 个 worker 并行生产，不是单无人机路线。
+  - 结论：用户指出“多机榜像只用了 1 个无人机”的怀疑在当前 `main3` 代码上不成立；探针已从 `.py` 回退，只保留本记录。后续优化重点不是“启用多机”，而是重写更高产的 32 机协作结构。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解

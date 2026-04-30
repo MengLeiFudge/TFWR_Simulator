@@ -88,6 +88,12 @@
 - `main14`
   - 固定 buffer tree slot 能吃到部分 tree-slot claim，单轮能碰到 `5:40.090`
   - 但完整 leaderboard 均值劣化到 `6:20.046`，说明尾部波动和维护成本吞掉了收益
+- `main11` 删除 support 预翻地
+  - 2026-04-30 请求 `398` 验证。
+  - 改法：`init_main11_support_soil()` 不再预翻 support 位；support 只有被 companion claim 时才按目标作物尝试种植，Carrot 按需补 `till()`。
+  - 结果：runner 停表为 `reached stable leaderboard runs 8 avg=5:44.374`，慢于当前可靠基线 `5:40.868`。
+  - 典型完成轮：`run=5 time=5:40.781`、`run=7 time=5:43.359`、`run=12 time=5:41.132`，但稳定均值仍未刷新。
+  - 结论：省掉开局翻地成本后，后续 support 按需补地和改写抖动没有形成净收益；实现已从 `.py` 回退。
 - 文件还明确把以下现象视为失败信号：
   - `tree_reroll` 与 `harvest` 同量级增长
   - `support_replant` 与 `harvest` 同量级增长

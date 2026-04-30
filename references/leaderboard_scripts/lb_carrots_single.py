@@ -204,7 +204,7 @@ def main3(count=100000000):
 
 def main4(count=100000000):
     set_world_size(SINGLE_FIELD_SIZE)
-    init_main4_anchors()
+    known_entity = init_main4_anchors()
 
     cycle_count = [0]
     harvest_count = [0]
@@ -215,10 +215,10 @@ def main4(count=100000000):
     quick_print("main4", " init carrots=", num_items(Items.Carrot), " time=", get_time())
 
     while num_items(Items.Carrot) < count:
-        process_main4_anchor(1, 1, harvest_count, reroll_count)
-        process_main4_anchor(3, 1, harvest_count, reroll_count)
-        process_main4_anchor(1, 3, harvest_count, reroll_count)
-        process_main4_anchor(3, 3, harvest_count, reroll_count)
+        process_main4_anchor(1, 1, harvest_count, reroll_count, known_entity)
+        process_main4_anchor(3, 1, harvest_count, reroll_count, known_entity)
+        process_main4_anchor(1, 3, harvest_count, reroll_count, known_entity)
+        process_main4_anchor(3, 3, harvest_count, reroll_count, known_entity)
 
         cycle_count[0] = cycle_count[0] + 1
         maybe_log_main4(last_log_carrots, last_log_time, cycle_count, harvest_count, reroll_count)
@@ -233,6 +233,7 @@ def main4(count=100000000):
 
 
 def init_main4_anchors():
+    known_entity = make_main4_known_entities()
     for y in range(SINGLE_FIELD_SIZE):
         for x in range(SINGLE_FIELD_SIZE):
             goto(x, y)
@@ -244,22 +245,46 @@ def init_main4_anchors():
                         harvest()
                     plant(Entities.Carrot)
                     roll_seed_reroll = [0]
-                    roll_main4_bush_companion(roll_seed_reroll)
+                    set_main4_known_entity(known_entity, x, y, Entities.Carrot)
+                    roll_main4_bush_companion(roll_seed_reroll, known_entity)
+                else:
+                    set_main4_known_entity(known_entity, x, y, Entities.Carrot)
             else:
                 if get_entity_type() != Entities.Bush:
                     if get_entity_type() != None:
                         harvest()
                     plant(Entities.Bush)
+                set_main4_known_entity(known_entity, x, y, Entities.Bush)
+    return known_entity
 
 
-def process_main4_anchor(x, y, harvest_count, reroll_count):
+def make_main4_known_entities():
+    known_entity = []
+    for _ in range(SINGLE_FIELD_SIZE):
+        row = []
+        for _ in range(SINGLE_FIELD_SIZE):
+            row.append(None)
+        known_entity.append(row)
+    return known_entity
+
+
+def set_main4_known_entity(known_entity, x, y, entity):
+    known_entity[y][x] = entity
+
+
+def get_main4_known_entity(known_entity, x, y):
+    return known_entity[y][x]
+
+
+def process_main4_anchor(x, y, harvest_count, reroll_count, known_entity):
     goto(x, y)
     if get_entity_type() == Entities.Carrot:
         if can_harvest():
             harvest()
             harvest_count[0] = harvest_count[0] + 1
             plant(Entities.Carrot)
-            roll_main4_bush_companion(reroll_count)
+            set_main4_known_entity(known_entity, x, y, Entities.Carrot)
+            roll_main4_bush_companion(reroll_count, known_entity)
             water_main4_anchor()
         else:
             water_main4_anchor()
@@ -269,20 +294,33 @@ def process_main4_anchor(x, y, harvest_count, reroll_count):
         if get_entity_type() != None:
             harvest()
         plant(Entities.Carrot)
-        roll_main4_bush_companion(reroll_count)
+        set_main4_known_entity(known_entity, x, y, Entities.Carrot)
+        roll_main4_bush_companion(reroll_count, known_entity)
         water_main4_anchor()
 
 
-def roll_main4_bush_companion(reroll_count):
+def roll_main4_bush_companion(reroll_count, known_entity):
     while num_items(Items.Carrot) < SINGLE_GOAL_CARROTS:
         companion = get_companion()
         if companion != None:
             companion_entity = companion[0]
             companion_pos = companion[1]
             if companion_entity == Entities.Bush and not is_main4_anchor(companion_pos[0], companion_pos[1]):
+                if get_main4_known_entity(known_entity, companion_pos[0], companion_pos[1]) == Entities.Bush:
+                    return
+                origin_x = get_pos_x()
+                origin_y = get_pos_y()
+                goto(companion_pos[0], companion_pos[1])
+                if get_entity_type() != Entities.Bush:
+                    if get_entity_type() != None:
+                        harvest()
+                    plant(Entities.Bush)
+                set_main4_known_entity(known_entity, companion_pos[0], companion_pos[1], Entities.Bush)
+                goto(origin_x, origin_y)
                 return
         harvest()
         plant(Entities.Carrot)
+        set_main4_known_entity(known_entity, get_pos_x(), get_pos_y(), Entities.Carrot)
         reroll_count[0] = reroll_count[0] + 1
 
 

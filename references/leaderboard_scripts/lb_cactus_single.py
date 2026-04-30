@@ -88,8 +88,37 @@ def plant_and_sort_rows():
                 till()
             if get_entity_type() != Entities.Cactus:
                 plant(Entities.Cactus)
+            local_sort_after_plant()
             move(East)
         sort_one_way("x")
+
+
+def local_sort_after_plant():
+    size = get_world_size()
+    x = get_pos_x()
+    y = get_pos_y()
+    current = measure()
+    if current == None:
+        return
+    if x > 0:
+        neighbor = measure(West)
+        if neighbor != None and neighbor > current:
+            swap(West)
+            current = measure()
+    if x < size - 1:
+        neighbor = measure(East)
+        if neighbor != None and current > neighbor:
+            swap(East)
+            current = measure()
+    if y > 0:
+        neighbor = measure(South)
+        if neighbor != None and neighbor > current:
+            swap(South)
+            current = measure()
+    if y < size - 1:
+        neighbor = measure(North)
+        if neighbor != None and current > neighbor:
+            swap(North)
 
 
 def sort_columns():

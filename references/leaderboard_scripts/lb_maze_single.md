@@ -115,6 +115,12 @@
   - 真实完成多轮：`run=1 5:09.609`、`run=2 4:50.039`、`run=3 4:22.929`、`run=4 4:18.671`、`run=5 5:04.062`、`run=10 4:09.296`。
   - 停止摘要 `finished=false runs=10 average=4:37.846 stable=true`，明显慢于当前 `dfs_bidirectional_bfs` 基线 `3:04.233`。
   - 失败原因：DFS 树路径不等于迷宫图最短路，省掉 BFS 计算后增加的移动步数远大于脚本计算收益；候选已从 `.py` 回退。
+- 去中心开局 + 探图遇宝即 use + 换位后首段路径探针
+  - 2026-04-30 请求 `394` 验证。
+  - 改法：删除开局移动到中心；DFS 探图到达 Treasure 时立即 `use_item(Items.Weird_Substance, substance)`；每 50 次重定位记录下一次 BFS 的 `nodes` / `steps`。
+  - 结果：runner 停表为 `reached stable leaderboard runs 12 avg=3:09.430`，慢于当前基线 `3:04.233`，不保留。
+  - 典型完成轮：`run=6 time=3:01.992`、`run=8 time=2:59.335`、`run=10 time=2:57.656` 有较快单轮，但 `run=4 time=3:27.968`、`run=9 time=3:32.499` 拉高均值。
+  - 探针结论：换位后的下一次 BFS 路径成本波动很大，例如第 4 轮 `count=300 nodes=48 steps=13`、第 8 轮 `count=300 nodes=22 steps=8`，说明用户指出的“换位后首次寻路”确实是长尾来源；但单纯去中心和探图遇宝即 use 没形成稳定收益。
 
 ## 下一步优化方向
 
