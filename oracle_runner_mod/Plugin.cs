@@ -52,6 +52,7 @@ public sealed class Plugin : BaseUnityPlugin
     private float lastItemSnapshotLogAt;
     private float activeRequestStartedAt;
     private float stopRequestedAt;
+    private readonly LeaderboardResultAutoCloseGate leaderboardResultAutoCloseGate = new LeaderboardResultAutoCloseGate();
     private bool playInvoked;
     private StopReason stopReason = StopReason.None;
     private OracleRunnerStateFile? activeRequest;
@@ -199,7 +200,7 @@ public sealed class Plugin : BaseUnityPlugin
 
     private void TryStartRequest(MainSim mainSim, OracleRunnerStateFile requestedState)
     {
-        CloseLeaderboardResultScreen(mainSim);
+        CloseLeaderboardResultScreen(mainSim, "request_start");
         if (mainSim.workspace == null || !mainSim.workspace.gameObject.activeInHierarchy)
         {
             MaybeLogProgress("等待工作区激活");
@@ -268,7 +269,7 @@ public sealed class Plugin : BaseUnityPlugin
 
         if (stopReason != StopReason.None)
         {
-            CloseLeaderboardResultScreen(mainSim);
+            CloseLeaderboardResultScreen(mainSim, "request_stop");
 
             if (!mainSim.IsExecuting())
             {
@@ -408,13 +409,18 @@ public sealed class Plugin : BaseUnityPlugin
 
         if (isRunning)
         {
+            if (activeRequest != null)
+            {
+                leaderboardResultAutoCloseGate.MarkExternalLeaderboardObserved();
+            }
+
             if (!wasLeaderboardRunning)
             {
                 wasLeaderboardRunning = true;
                 observedLeaderboardRuns = 0;
                 observedLeaderboardTotalTime = TimeSpan.Zero;
                 observedLeaderboardScriptName = ResolveLeaderboardScriptName(mainSim, sim);
-                global::Logger.Log(LeaderboardLogFormatter.FormatStartLine(observedLeaderboardScriptName));
+                LogLeaderboardLine(LeaderboardLogFormatter.FormatStartLine(observedLeaderboardScriptName));
             }
 
             if (mainSim.numLeaderboardRuns > observedLeaderboardRuns)
@@ -426,7 +432,7 @@ public sealed class Plugin : BaseUnityPlugin
                     mainSim.numLeaderboardRuns,
                     runTime
                 );
-                global::Logger.Log(runLine);
+                LogLeaderboardLine(runLine);
 
                 observedLeaderboardRuns = mainSim.numLeaderboardRuns;
                 observedLeaderboardTotalTime = currentTotalTime;
@@ -437,7 +443,7 @@ public sealed class Plugin : BaseUnityPlugin
 
         if (!wasLeaderboardRunning)
         {
-            CloseLeaderboardResultScreen(mainSim);
+            TryCloseExternalLeaderboardResultScreen(mainSim, "external_result_idle");
             return;
         }
 
@@ -451,10 +457,11 @@ public sealed class Plugin : BaseUnityPlugin
                 observedLeaderboardRuns,
                 averageTime
             );
-            global::Logger.Log(summaryLine);
+            LogLeaderboardLine(summaryLine);
 
             if (activeRequest != null)
             {
+                leaderboardResultAutoCloseGate.MarkExternalLeaderboardObserved();
                 if (finished)
                 {
                     RunnerStateProtocol.MarkDone(activeRequest, DateTimeOffset.UtcNow);
@@ -467,7 +474,7 @@ public sealed class Plugin : BaseUnityPlugin
                 activeRequest = null;
             }
 
-            CloseLeaderboardResultScreen(mainSim);
+            TryCloseExternalLeaderboardResultScreen(mainSim, "external_result_complete");
         }
         else if (mainSim.leaderboardManager.IsLeaderBoardScreenOpen)
         {
@@ -484,27 +491,29 @@ public sealed class Plugin : BaseUnityPlugin
                     runCount: 1,
                     averageTime
                 );
-                global::Logger.Log(summaryLine);
+                LogLeaderboardLine(summaryLine);
 
                 if (activeRequest != null)
                 {
+                    leaderboardResultAutoCloseGate.MarkExternalLeaderboardObserved();
                     RunnerStateProtocol.MarkDone(activeRequest, DateTimeOffset.UtcNow);
                     stateStore.Write(activeRequest);
                     activeRequest = null;
                 }
 
-                CloseLeaderboardResultScreen(mainSim);
+                TryCloseExternalLeaderboardResultScreen(mainSim, "external_result_complete");
             }
             else
             {
                 if (activeRequest != null)
                 {
+                    leaderboardResultAutoCloseGate.MarkExternalLeaderboardObserved();
                     MarkFailedWithOutput(activeRequest, "leaderboard finished without completed runs", DateTimeOffset.UtcNow);
                     stateStore.Write(activeRequest);
                     activeRequest = null;
                 }
 
-                CloseLeaderboardResultScreen(mainSim);
+                TryCloseExternalLeaderboardResultScreen(mainSim, "external_result_cancelled");
             }
         }
 
@@ -514,15 +523,27 @@ public sealed class Plugin : BaseUnityPlugin
         observedLeaderboardScriptName = string.Empty;
     }
 
-    private void CloseLeaderboardResultScreen(MainSim mainSim)
+    private void TryCloseExternalLeaderboardResultScreen(MainSim mainSim, string reason)
     {
-        if (mainSim.leaderboardManager == null || !mainSim.leaderboardManager.IsLeaderBoardScreenOpen)
+        if (!leaderboardResultAutoCloseGate.ExternalResultPendingClose)
         {
             return;
         }
 
+        CloseLeaderboardResultScreen(mainSim, reason);
+    }
+
+    private bool CloseLeaderboardResultScreen(MainSim mainSim, string reason)
+    {
+        if (mainSim.leaderboardManager == null || !mainSim.leaderboardManager.IsLeaderBoardScreenOpen)
+        {
+            return false;
+        }
+
         mainSim.leaderboardManager.OkPressed();
-        Log.LogInfo("已自动确认 leaderboard 结果页面");
+        leaderboardResultAutoCloseGate.Clear();
+        Log.LogInfo($"已自动确认 leaderboard 结果页面 reason={reason}");
+        return true;
     }
 
     private static TimeSpan ParseLeaderboardFinishTime(LeaderboardManager leaderboardManager)
@@ -552,6 +573,7 @@ public sealed class Plugin : BaseUnityPlugin
             return;
         }
 
+        leaderboardResultAutoCloseGate.MarkExternalLeaderboardObserved();
         string scriptName = string.IsNullOrWhiteSpace(observedLeaderboardScriptName)
             ? ResolveLeaderboardScriptName(mainSim, SimRef(mainSim))
             : observedLeaderboardScriptName;
@@ -562,7 +584,7 @@ public sealed class Plugin : BaseUnityPlugin
             normalizedRunCount,
             averageTime
         );
-        global::Logger.Log(summaryLine);
+        LogLeaderboardLine(summaryLine);
 
         if (finished)
         {
@@ -682,6 +704,12 @@ public sealed class Plugin : BaseUnityPlugin
             .Replace('\r', ' ')
             .Replace('\n', ' ');
         global::Logger.Log($"oracle_error request_id={requestId} {normalizedMessage}");
+    }
+
+    private void LogLeaderboardLine(string line)
+    {
+        Log.LogInfo(line);
+        global::Logger.Log(line);
     }
 
     private CodeWindow? FindTargetWindow(Workspace workspace, string targetScriptName)
