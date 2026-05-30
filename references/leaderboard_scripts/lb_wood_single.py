@@ -1,84 +1,10 @@
 from __builtins__ import *
 
-
-# 详细版本结论、失败对照与候选策略见同名 md。
-# 当前默认入口：main11；可靠基线 `5:40.868`，5-seed≈`5:37.9`，2h≈`5:39.0`。
-
-
-# 旧版本，保留做对照
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-MAIN11_TREE_OFF = {
-    (0, 0),
-    (1, 3),
-    (2, 6),
-    (3, 1),
-    (4, 4),
-    (5, 7),
-    (6, 2),
-    (7, 5),
-}
-
-MAIN12_TREE_OFF = {
-    (0, 0),
-    (0, 2),
-    (0, 4),
-    (0, 6),
-    (1, 3),
-    (2, 6),
-    (3, 1),
-    (5, 7),
-}
-
-MAIN13_TREES = {
-    (0, 0),
-    (0, 2),
-    (0, 4),
-    (0, 6),
-    (1, 1),
-    (1, 5),
-    (1, 7),
-    (2, 2),
-    (3, 5),
-    (3, 7),
-    (4, 0),
-    (4, 4),
-    (4, 6),
-    (5, 1),
-    (5, 7),
-    (6, 0),
-    (6, 2),
-    (6, 6),
-    (7, 3),
-    (7, 5),
-}
-
-def main11(count=500000000):
+# 5:36.679
+def lb_wood_single():
+    count = 500000000
     set_world_size(8)
-    init_main11_support_soil()
+    init_support_soil()
 
     support_entity = create_entity_grid(8)
     support_count = create_number_grid(8)
@@ -101,7 +27,7 @@ def main11(count=500000000):
     sample_keep = [0]
     sample_orphan = [0]
 
-    quick_print("main11", " init_time=", get_time(), " wood=", num_items(Items.Wood))
+    quick_print("lb_wood_single", " init_time=", get_time(), " wood=", num_items(Items.Wood))
 
     while num_items(Items.Wood) < count:
         for y in range(8):
@@ -118,7 +44,7 @@ def main11(count=500000000):
 
             x = start_x
             while True:
-                if is_main11_tree_slot(x, y):
+                if is_tree_slot(x, y):
                     entity = get_entity_type()
                     if entity == Entities.Tree:
                         if not can_harvest():
@@ -128,7 +54,7 @@ def main11(count=500000000):
                             move(move_dir)
                             x = x + step
                             continue
-                        release_main10_tree_claim(
+                        release_tree_claim(
                             x,
                             y,
                             support_entity,
@@ -149,7 +75,7 @@ def main11(count=500000000):
                         use_item(Items.Water, 2)
                         needs_water[x][y] = 0
 
-                    ct, cx, cy = roll_main11_tree_companion(
+                    ct, cx, cy = roll_tree_companion(
                         support_entity,
                         support_count,
                         tree_reroll_count,
@@ -160,7 +86,7 @@ def main11(count=500000000):
                     support_entity[cx][cy] = ct
                     support_count[cx][cy] = support_count[cx][cy] + 1
                 else:
-                    process_main11_support_slot(
+                    process_support_slot(
                         x,
                         y,
                         support_entity,
@@ -178,7 +104,7 @@ def main11(count=500000000):
             move(North)
 
         sweep_count[0] = sweep_count[0] + 1
-        maybe_log_main11_probe(
+        maybe_log_probe(
             last_log_wood,
             last_log_time,
             sweep_count,
@@ -195,10 +121,19 @@ def main11(count=500000000):
         )
         first_cycle = False
 
-    quick_print("main11", " done wood=", num_items(Items.Wood), " time=", get_time())
+    quick_print("lb_wood_single", " done wood=", num_items(Items.Wood), " time=", get_time())
 
 
-
+TREE_OFF = {
+    (0, 0),
+    (1, 3),
+    (2, 6),
+    (3, 1),
+    (4, 4),
+    (5, 7),
+    (6, 2),
+    (7, 5),
+}
 
 
 def create_entity_grid(size):
@@ -222,8 +157,8 @@ def create_number_grid(size):
 
 
 
-def is_main11_tree_slot(x, y):
-    if (x, y) in MAIN11_TREE_OFF:
+def is_tree_slot(x, y):
+    if (x, y) in TREE_OFF:
         return False
     return (x + y) % 2 == 0
 
@@ -231,7 +166,7 @@ def is_main11_tree_slot(x, y):
 
 
 
-def init_main11_support_soil():
+def init_support_soil():
     for y in range(8):
         if y % 2 == 0:
             end_x = 7
@@ -244,7 +179,7 @@ def init_main11_support_soil():
 
         x = get_pos_x()
         while True:
-            if not is_main11_tree_slot(x, y) and get_ground_type() != Grounds.Soil:
+            if not is_tree_slot(x, y) and get_ground_type() != Grounds.Soil:
                 till()
 
             if x == end_x:
@@ -258,7 +193,7 @@ def init_main11_support_soil():
 
 
 
-def release_main10_tree_claim(
+def release_tree_claim(
         x,
         y,
         support_entity,
@@ -283,10 +218,10 @@ def release_main10_tree_claim(
 
 
 
-def roll_main11_tree_companion(support_entity, support_count, tree_reroll_count):
+def roll_tree_companion(support_entity, support_count, tree_reroll_count):
     while True:
         ct, (cx, cy) = get_companion()
-        if is_main11_tree_slot(cx, cy):
+        if is_tree_slot(cx, cy):
             tree_reroll_count[0] = tree_reroll_count[0] + 1
             harvest()
             plant(Entities.Tree)
@@ -299,7 +234,7 @@ def roll_main11_tree_companion(support_entity, support_count, tree_reroll_count)
         return ct, cx, cy
 
 
-def process_main11_support_slot(
+def process_support_slot(
         x,
         y,
         support_entity,
@@ -325,7 +260,7 @@ def process_main11_support_slot(
     plant(ct)
 
 
-def maybe_log_main11_probe(
+def maybe_log_probe(
         last_log_wood,
         last_log_time,
         sweep_count,
@@ -345,7 +280,7 @@ def maybe_log_main11_probe(
 
     curr_time = get_time()
     quick_print(
-        "main11", " probe wood=", curr_wood,
+        "lb_wood_single", " probe wood=", curr_wood,
         " time=", curr_time,
         " sweeps=", sweep_count[0],
         " harvest=", harvest_count[0],
@@ -409,4 +344,4 @@ def maybe_log_main11_probe(
 
 
 if __name__ == "__main__":
-    main11()
+    lb_wood_single()

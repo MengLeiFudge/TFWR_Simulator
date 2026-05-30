@@ -1,22 +1,7 @@
 from __builtins__ import *
 
-
-# 详细版本结论、失败对照与候选策略见同名 md。
-# 当前默认入口：main2，8x8 随机种植后行列排序统一 harvest；main1 保留作对照。
-
-
-def main1():
-    set_world_size(8)
-    goal = 131072
-    while num_items(Items.Cactus) < goal:
-        goto(0, 0)
-        plant_row_wave()
-        goto(0, 0)
-        harvest()
-    quick_print("main1 done cactus=", num_items(Items.Cactus), " time=", get_time())
-
-
-def main2():
+# 0:21.199
+def lb_cactus_single():
     set_world_size(8)
     goal = 131072
     while num_items(Items.Cactus) < goal:
@@ -24,7 +9,7 @@ def main2():
         sort_columns()
         goto(0, 0)
         harvest()
-    quick_print("main2 done cactus=", num_items(Items.Cactus), " time=", get_time())
+    quick_print("lb_cactus_single done cactus=", num_items(Items.Cactus), " time=", get_time())
 
 
 def goto(tx, ty):
@@ -48,55 +33,22 @@ def goto(tx, ty):
             move(South)
 
 
-# 蛇形扫图种 cactus，每格 reroll 到 variant=9；扫完全图后统一 harvest 一次。
-def plant_row_wave():
-    size = get_world_size()
-    for y in range(size):
-        if y % 2 == 0:
-            end_x = size - 1
-            step = 1
-            move_dir = East
-        else:
-            end_x = 0
-            step = -1
-            move_dir = West
-
-        x = get_pos_x()
-        while True:
-            if get_ground_type() == Grounds.Grassland:
-                till()
-            plant(Entities.Cactus)
-            while measure() != 9:
-                harvest()
-                plant(Entities.Cactus)
-
-            if x == end_x:
-                break
-            move(move_dir)
-            x = x + step
-
-        if y < size - 1:
-            move(North)
-
-
 def plant_and_sort_rows():
     size = get_world_size()
     for y in range(size):
         goto(0, y)
-        for _ in range(size):
+        for x in range(size):
             if get_ground_type() == Grounds.Grassland:
                 till()
             if get_entity_type() != Entities.Cactus:
                 plant(Entities.Cactus)
-            local_sort_after_plant()
+            local_sort_after_plant(x, y)
             move(East)
         sort_one_way("x")
 
 
-def local_sort_after_plant():
+def local_sort_after_plant(x, y):
     size = get_world_size()
-    x = get_pos_x()
-    y = get_pos_y()
     current = measure()
     if current == None:
         return
@@ -104,21 +56,11 @@ def local_sort_after_plant():
         neighbor = measure(West)
         if neighbor != None and neighbor > current:
             swap(West)
-            current = measure()
-    if x < size - 1:
-        neighbor = measure(East)
-        if neighbor != None and current > neighbor:
-            swap(East)
-            current = measure()
+            current = neighbor
     if y > 0:
         neighbor = measure(South)
         if neighbor != None and neighbor > current:
             swap(South)
-            current = measure()
-    if y < size - 1:
-        neighbor = measure(North)
-        if neighbor != None and current > neighbor:
-            swap(North)
 
 
 def sort_columns():
@@ -220,4 +162,4 @@ def sort_one_way(dir="y"):
 
 
 if __name__ == "__main__":
-    main2()
+    lb_cactus_single()

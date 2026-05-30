@@ -1,9 +1,7 @@
 from __builtins__ import *
 
-target_gold_count = 9863168
-
-
-def main9():
+# 1:49.837
+def lb_maze():
     clear()
     set_world_size(32)
     size = get_world_size()
@@ -374,4 +372,8 @@ def main9():
     maze_chunking(center, radius)
 
 
-main9()
+target_gold_count = 9863168
+
+
+if __name__ == "__main__":
+    lb_maze()

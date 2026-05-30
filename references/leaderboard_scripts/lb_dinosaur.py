@@ -1,37 +1,50 @@
 from __builtins__ import *
 
+# 15:26.484
+def lb_dinosaur():
+    global size
+    global path
+    global x
+    global y
+    global mx
+    global my
+    global length
+    global step
 
-clear()
-size = get_world_size()
+    clear()
+    size = get_world_size()
 
-path = []
-for _ in range(size):
-    path.append([])
+    path = []
     for _ in range(size):
-        path[-1].append(None)
+        path.append([])
+        for _ in range(size):
+            path[-1].append(None)
 
-for i in range(size - 1):
-    path[i][0] = East
-path[-1][0] = North
+    for i in range(size - 1):
+        path[i][0] = East
+    path[-1][0] = North
 
-line = size - 1
-for _ in range(size // 2):
-    for i in range(1, size - 1):
-        path[line][i] = North
-    path[line][-1] = West
-    line -= 1
-    for i in range(2, size):
-        path[line][i] = South
-    path[line][1] = West
-    line -= 1
-path[0][1] = South
+    line = size - 1
+    for _ in range(size // 2):
+        for i in range(1, size - 1):
+            path[line][i] = North
+        path[line][-1] = West
+        line -= 1
+        for i in range(2, size):
+            path[line][i] = South
+        path[line][1] = West
+        line -= 1
+    path[0][1] = South
 
-change_hat(Hats.Dinosaur_Hat)
+    change_hat(Hats.Dinosaur_Hat)
 
-x, y = (0, 0)
-mx, my = measure()
-length = 1
-step = 0
+    x, y = (0, 0)
+    mx, my = measure()
+    length = 1
+    step = 0
+    run_dinosaur_path()
+
+
 def update_and_move(dir):
     global length
     global step
@@ -57,6 +70,7 @@ def update_and_move(dir):
 
     return x == 0
 
+
 def simple_update_and_move(dir):
     global x
     global y
@@ -71,7 +85,8 @@ def simple_update_and_move(dir):
 
     return True
 
-def main():
+
+def run_dinosaur_path():
     global step
 
     while length < size * size / 3:
@@ -118,4 +133,7 @@ def main():
     while simple_update_and_move(path[x][y]):
         pass
     clear()
-main()
+
+
+if __name__ == "__main__":
+    lb_dinosaur()

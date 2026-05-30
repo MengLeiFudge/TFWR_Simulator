@@ -1,11 +1,7 @@
 from __builtins__ import *
 
-size = get_world_size()
-max_drone_num = min(max_drones(), size)
-
-
-# 36.258
-def main1():
+# 0:37.265
+def lb_cactus():
     goto(0, size - 1)
     while num_items(Items.Cactus) < 33554432:
         idx = max_drone_num - 1
@@ -31,6 +27,10 @@ def main1():
             pass
 
         harvest()
+
+
+size = get_world_size()
+max_drone_num = min(max_drones(), size)
 
 
 def goto(tx, ty):
@@ -164,4 +164,4 @@ def sort_one_way(dir="y"):
 
 
 if __name__ == "__main__":
-    main1()
+    lb_cactus()

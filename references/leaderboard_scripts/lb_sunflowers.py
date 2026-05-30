@@ -1,23 +1,19 @@
 from __builtins__ import *
 
-
-# 详细版本结论、失败对照与候选策略见同名 md。
-# 当前默认入口：main4，32x32 每行一机，高吞吐收割；有水才补水。
+# 3:57.101
+def lb_sunflowers():
+    set_world_size(FIELD_SIZE)
+    for _ in range(FIELD_SIZE - 1):
+        spawn_drone(row_worker)
+        move(North)
+    row_worker()
 
 
 POWER_GOAL = 100000
 FIELD_SIZE = 32
 
 
-def main4():
-    set_world_size(FIELD_SIZE)
-    for _ in range(FIELD_SIZE - 1):
-        spawn_drone(main4_row_worker)
-        move(North)
-    main4_row_worker()
-
-
-def main4_row_worker():
+def row_worker():
     for _ in range(FIELD_SIZE):
         if get_ground_type() != Grounds.Soil:
             till()
@@ -41,4 +37,4 @@ def water_if_available():
 
 
 if __name__ == "__main__":
-    main4()
+    lb_sunflowers()

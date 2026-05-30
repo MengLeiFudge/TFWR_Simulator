@@ -1,17 +1,7 @@
 from __builtins__ import *
 
-STEP2_POWER_TARGET = 1000
-WEIRD_POWER_FLOOR = 1350
-WEIRD_COMPANION_ENABLED = True
-# 肥料 3 级已足够支撑当前路线，继续升级或降到 2 级都会拖慢完整 fastest reset。
-FERTILIZER_UNLOCK_CAP = 3
-
-
-def main():
-    main_current_route()
-
-
-def main_current_route():
+# 168:48.299
+def lb_fastest_reset():
     quick_print("reset_stage", "start", "time=", get_time())
     step1()
     quick_print("reset_stage", "step1", "time=", get_time(), "hay=", num_items(Items.Hay), "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot))
@@ -26,27 +16,10 @@ def main_current_route():
     quick_print("reset_stage", "done", "time=", get_time(), "bone=", num_items(Items.Bone), "gold=", num_items(Items.Gold))
 
 
-def main_save0_fastreset_candidate():
-    global fr_time_start
-    global fr_phase
-    global fr_unlock_dict
-    fr_time_start = get_time()
-    fr_phase = 0
-    fr_unlock_dict = {}
-    quick_print("reset_stage", "save0_fastreset_start", "time=", get_time())
-    if fr_phase < 1:
-        fr_phase1()
-        minute, second = fr_get_minute_and_second(get_time() - fr_time_start)
-        quick_print("在", minute, "分", second, "秒 完成了阶段一")
-    if fr_phase < 2:
-        fr_phase2()
-        minute, second = fr_get_minute_and_second(get_time() - fr_time_start)
-        quick_print("在", minute, "分", second, "秒 完成了阶段二")
-    quick_print("reset_stage", "save0_fastreset_phase2", "time=", get_time(), "size=", get_world_size(), "hay=", num_items(Items.Hay), "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot), "pumpkin=", num_items(Items.Pumpkin), "gold=", num_items(Items.Gold), "weird=", num_items(Items.Weird_Substance), "unlocks=", fr_unlock_dict)
-    step4()
-    quick_print("reset_stage", "save0_fastreset_step4", "time=", get_time(), "size=", get_world_size(), "cactus=", num_items(Items.Cactus), "pumpkin=", num_items(Items.Pumpkin))
-    step5()
-    quick_print("reset_stage", "save0_fastreset_done", "time=", get_time(), "bone=", num_items(Items.Bone), "gold=", num_items(Items.Gold))
+STEP2_POWER_TARGET = 1000
+WEIRD_POWER_FLOOR = 1350
+WEIRD_COMPANION_ENABLED = True
+FERTILIZER_UNLOCK_CAP = 3
 
 
 fr_dirs = [North, East, South, West]
@@ -1948,4 +1921,4 @@ def run_dinosaur_chase_loop(size):
 
 
 if __name__ == "__main__":
-    main()
+    lb_fastest_reset()

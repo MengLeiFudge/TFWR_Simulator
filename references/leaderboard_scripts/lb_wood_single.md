@@ -27,7 +27,8 @@
 ## 当前基线
 
 - 当前默认入口：`main11()`
-- 当前可靠基线记录：
+- 当前基线记录：
+  - 2026-05-30 当前版本复跑：请求 `613` 有效两轮 `5:36.679` / `5:40.624`，稳定均值 `5:38.652`；后续 `finished=false` 取消摘要不作为成绩
   - `main11` 游戏内实测：`5:40.868`
   - `main11` 已对齐模拟器口径下 5-seed 均值：约 `5:37.9`
   - `main11` 已对齐模拟器口径下 2h 均值：约 `5:39.0`
@@ -56,7 +57,8 @@
 - `main10`
   - 回到固定 tree/support 主路径，加入“便宜补水”
 - `main11`
-  - 当前可靠基线；24 树 sparse checkerboard
+  - 当前主线；24 树 sparse checkerboard
+  - 2026-05-30 当前版本复跑请求 `613` 稳定均值 `5:38.652`
   - 当前可以理解成：在“树不相邻”的约束下，努力让 support 系统尽量稳定
 - `main12`
   - 条带型空洞布局，已明确慢于 `main11`
@@ -91,9 +93,41 @@
 - `main11` 删除 support 预翻地
   - 2026-04-30 请求 `398` 验证。
   - 改法：`init_main11_support_soil()` 不再预翻 support 位；support 只有被 companion claim 时才按目标作物尝试种植，Carrot 按需补 `till()`。
-  - 结果：runner 停表为 `reached stable leaderboard runs 8 avg=5:44.374`，慢于当前可靠基线 `5:40.868`。
+  - 结果：runner 停表为 `reached stable leaderboard runs 8 avg=5:44.374`，慢于当时可靠基线 `5:40.868`。
   - 典型完成轮：`run=5 time=5:40.781`、`run=7 time=5:43.359`、`run=12 time=5:41.132`，但稳定均值仍未刷新。
   - 结论：省掉开局翻地成本后，后续 support 按需补地和改写抖动没有形成净收益；实现已从 `.py` 回退。
+- `main11` 关闭周期 probe 输出
+  - 2026-05-02 请求 `452` 验证。
+  - 改法：跳过每轮 sweep 结束处的 `maybe_log_main11_probe(...)` 调用，保留布局、companion 接受策略、计数器更新、起止 `quick_print` 和默认入口不变。
+  - 结果：runner 停表为 `reached stable leaderboard runs 7 avg=5:42.347`，慢于当时可靠基线 `5:40.868`。
+  - 有效轮包括 `run=4 time=5:34.492`、`run=5 time=5:42.109`、`run=6 time=5:43.827`、`run=7 time=5:39.599`、`run=8 time=5:47.343`、`run=9 time=5:47.968`、`run=10 time=5:41.093`。
+  - 取消摘要 `finished=false runs=11 average=5:16.555` 不作为刷新成绩。
+  - 结论：没有刷新；周期 probe 输出不是当前主瓶颈，代码已恢复调用。
+- `main11` 只接受 Bush companion
+  - 2026-05-02 请求 `470`：runner 输出 `reached stable leaderboard runs 8 avg=7:51.324`。
+  - 改法：`roll_main11_tree_companion()` 中除树位 target / support 冲突外，额外拒绝 `ct != Entities.Bush` 的 companion。
+  - 有效轮包括 `8:01.367`、`8:18.359`、`7:37.099`、`7:50.099`、`7:43.124`、`7:43.163`、`7:39.648`、`7:57.730`。
+  - probe 显示 `tree_reroll` 明显被放大，例如首轮收尾 `harvest=1201`、`tree_reroll=3714`，远高于可接受范围。
+  - 取消摘要 `finished=false runs=9 average=7:41.550` 不作为刷新成绩。
+  - 结论：没有刷新；Bush-only 过于严格，灌木稳定收益被 reroll 成本吞掉，代码已恢复原 companion 接受策略。
+- `main11` 每棵树一次有限 Bush 优先 reroll
+  - 2026-05-02 请求 `482`：完整结束 `finished=true runs=17 average=7:12.266`。
+  - 改法：`roll_main11_tree_companion()` 中树位 target 和 support 冲突仍按原逻辑无限拒绝；第一次遇到合法但 `ct != Entities.Bush` 的 companion 时，额外 `harvest()` + `plant(Entities.Tree)` 重刷一次；第二次遇到合法 companion 时直接接受。
+  - 可见有效轮包括 `7:24.179`、`7:15.699`、`7:31.599`、`7:14.726`、`7:09.648`、`7:06.523`、`7:10.820`、`7:11.445`、`7:05.099`、`7:22.539`、`6:59.531`、`7:03.945`、`7:12.099`、`7:06.992`。
+  - probe 显示终局 `tree_reroll` 常见约 `2400~2700`，例如 run 15 为 `2503`、run 16 为 `2438`、最后未完成展示段为 `2479`。
+  - 结论：没有刷新；即使每棵树只额外重刷一次 Bush，reroll 成本仍然压垮收益，代码已恢复原 companion 接受策略。
+- `main11` 收割成熟 orphan Bush support
+  - 2026-05-02 请求 `501`：完整结束 `finished=true runs=21 average=5:47.044`。
+  - 改法：`process_main11_support_slot()` 中 `support_count[x][y] <= 0` 且 `entity == Entities.Bush and can_harvest()` 时额外 `harvest()`，其他 orphan 实体仍只计数。
+  - 有效轮中有单轮 `5:40.820`，但完整均值明显慢于当前可靠 `5:40.868`；尾部还出现 `5:47~5:52` 多轮。
+  - probe 尾部仍有大量 `orphan_support`，例如 run 20 收尾 `orphan_support=812`，说明额外收割没有降低结构抖动，反而增加动作成本。
+  - 结论：没有刷新；orphan support 默认继续只计数不收割，代码已恢复。
+- `main11` 释放 Bush support 后冻结：
+  - 2026-05-02 请求 `512`：runner 输出 `reached stable leaderboard runs 8 avg=7:39.980`。
+  - 改法：`release_main10_tree_claim()` 在 `support_count` 降到 0 时保留 `Entities.Bush` 标记；`roll_main11_tree_companion()` 拒绝把空闲但 Bush-frozen 的 support 改成非 Bush。
+  - 可见有效轮包括 `7:44.999`、`7:33.632`、`7:40.199`、`8:01.289`、`7:22.382`、`7:40.039`、`7:43.860`。
+  - probe 显示 `tree_reroll` 被放大到每轮约 `3.2k+`，例如 run 1 收尾 `tree_reroll=3253`，run 2 收尾 `tree_reroll=3257`，run 3 收尾 `tree_reroll=3335`。
+  - 结论：没有刷新；冻结确实限制了 support 改写，但代价接近 Bush-only 过滤，重刷成本压垮收益，代码已恢复原释放逻辑。
 - 文件还明确把以下现象视为失败信号：
   - `tree_reroll` 与 `harvest` 同量级增长
   - `support_replant` 与 `harvest` 同量级增长
@@ -111,6 +145,11 @@
 - 这也可以翻译成一句更直接的话：
   - 现在不是继续发明新主题的时候
   - 而是继续围绕“树位稳定、灌木 support 稳定”把细节抠干净
+- 已验证关闭 `main11` 周期 probe 输出没有刷新，默认保留 probe 以便继续观察 reroll / replant 抖动。
+- 已验证只接受 Bush companion 明显退化，默认继续接受非冲突 companion，不把灌木优先写成硬过滤。
+- 已验证有限 Bush 优先 reroll 仍明显退化；后续不要继续用“主动增加 tree reroll”追灌木比例，除非先找到能同时压低 reroll 的支持位冻结机制。
+- 已验证收割成熟 orphan Bush support 没有刷新，默认 orphan support 只计数不收割。
+- 已验证释放后冻结 Bush support 明显退化；不要用“空闲 Bush 位拒绝非 Bush”这种方式做冻结，因为它会把 `tree_reroll` 推到不可接受范围。
 
 ## 候选策略方向（猜测 / 待验证）
 

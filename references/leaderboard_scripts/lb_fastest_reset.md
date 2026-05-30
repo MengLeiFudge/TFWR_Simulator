@@ -34,6 +34,7 @@
   - `try_unlock_early_megafarm()`：用 `6x6` 小迷宫金币提前解锁 `Megafarm 1`
   - `step4()`：借助多无人机南瓜推进 `Expand 6`、仙人掌、恐龙和伴生
   - `step5()`：推进 `Megafarm 3`、`1M gold`、`2M bone` 并解锁排行榜
+- 2026-05-30 当前版本复跑：请求 `620` 完整结算 `finished=true runs=1 average=168:48.299`。
 - 证据来源：`lb_fastest_reset.py` 当前代码结构
 
 ## 通用注意事项下的榜单特化
@@ -61,6 +62,7 @@
   - `step4()` 会解锁南瓜，把扩张推进到 `Expand 6`，再解锁仙人掌和恐龙
   - `step5()` 会先升 `Mazes 2`、凑第一档 `Megafarm`，再补 `1M gold` / `2M bone` 并尝试解锁 `Leaderboard`
 - 这不是最终成绩路线；它是第一条可继续观测的完整候选路线。
+- 2026-05-30 当前版本复跑已完整结算，当前记录为 `168:48.299`。
 - 真实短窗口验证显示，“满扩张”不是合适第一版：
   - `Expand 5` 后下一级需要 `8,000 pumpkin`
   - `Expand 6` 后下一级需要 `64,000 pumpkin`
