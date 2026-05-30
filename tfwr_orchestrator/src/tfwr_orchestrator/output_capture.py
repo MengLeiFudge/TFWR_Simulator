@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import time
 
 from .config import resolve_bepinex_log_path, resolve_output_path
 
@@ -28,6 +29,8 @@ class CapturedOutputs:
 
 
 EMPTY_SIGNATURE = FileSignature(False, 0, 0)
+FILE_READ_MAX_ATTEMPTS = 20
+FILE_READ_RETRY_SECONDS = 0.05
 
 
 def file_signature(path: Path | None) -> FileSignature:
@@ -41,12 +44,25 @@ def _read_appended_bytes(path: Path | None, start_signature: FileSignature) -> b
     if path is None or not path.exists():
         return b""
 
-    payload = path.read_bytes()
+    payload = read_bytes_with_retries(path)
     if not start_signature.exists:
         return payload
     if len(payload) < start_signature.size:
         return payload
     return payload[start_signature.size :]
+
+
+def read_bytes_with_retries(path: Path) -> bytes:
+    last_error: BaseException | None = None
+    for attempt in range(FILE_READ_MAX_ATTEMPTS):
+        try:
+            return path.read_bytes()
+        except (OSError, PermissionError) as exc:
+            last_error = exc
+            if attempt + 1 >= FILE_READ_MAX_ATTEMPTS:
+                break
+            time.sleep(FILE_READ_RETRY_SECONDS)
+    raise RuntimeError(f"读取文件失败: {path}") from last_error
 
 
 def read_appended_lines(path: Path | None, start_signature: FileSignature) -> tuple[str, ...]:

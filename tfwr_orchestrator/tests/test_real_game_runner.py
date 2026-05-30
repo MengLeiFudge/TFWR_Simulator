@@ -15,6 +15,7 @@ from tfwr_orchestrator.output_capture import (
     capture_output_baseline,
     capture_request_outputs,
     file_signature,
+    read_appended_lines,
 )
 
 
@@ -51,6 +52,29 @@ class OutputCaptureTests(unittest.TestCase):
 
         self.assertEqual(outputs.game_output_lines, ("new-game-1", "new-game-2"))
         self.assertEqual(outputs.mod_output_lines, ("new-mod-1", "new-mod-2"))
+
+    def test_read_appended_lines_retries_when_file_is_temporarily_locked(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_text:
+            target = Path(temp_text) / "output.txt"
+            target.write_text("old\n", encoding="utf-8")
+            signature = file_signature(target)
+            target.write_text("old\nnew\n", encoding="utf-8")
+            original_read_bytes = Path.read_bytes
+            attempts = {"count": 0}
+
+            def flaky_read_bytes(path: Path) -> bytes:
+                attempts["count"] += 1
+                if attempts["count"] == 1:
+                    raise PermissionError("sharing violation")
+                return original_read_bytes(path)
+
+            with mock.patch.object(Path, "read_bytes", flaky_read_bytes), mock.patch(
+                "tfwr_orchestrator.output_capture.time.sleep"
+            ):
+                lines = read_appended_lines(target, signature)
+
+        self.assertEqual(attempts["count"], 2)
+        self.assertEqual(lines, ("new",))
 
 
 class RealGameRunnerToolTests(unittest.TestCase):
@@ -294,7 +318,7 @@ class RealGameRunnerToolTests(unittest.TestCase):
 
         self.assertEqual(result["status"], "failed")
         self.assertEqual(written_states[0]["status"], "stop_requested")
-        self.assertIn("game output and mod log stalled for 30s", str(written_states[0]["last_error"]))
+        self.assertIn("mod log stalled for 30s", str(written_states[0]["last_error"]))
 
     def test_wait_for_status_keeps_running_when_mod_log_advances(self) -> None:
         with tempfile.TemporaryDirectory() as temp_text:
@@ -360,12 +384,94 @@ class RealGameRunnerToolTests(unittest.TestCase):
         self.assertEqual(result["status"], "failed")
         self.assertEqual(written_states, [])
 
+    def test_wait_for_status_does_not_poll_game_output_while_request_is_running(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_text:
+            root = Path(temp_text)
+            output_path = root / "output.txt"
+            mod_log_path = root / "LogOutput.log"
+            output_path.write_text("old\n", encoding="utf-8")
+            mod_log_path.write_text("old\n", encoding="utf-8")
+            baseline = OutputBaseline(
+                output_path,
+                file_signature(output_path),
+                mod_log_path,
+                file_signature(mod_log_path),
+            )
+            state_holder = {
+                "request_id": 3,
+                "status": "running",
+                "target_script": "lb_start",
+                "timeout_seconds": 90.0,
+                "started_at": "2026-05-30T00:00:00Z",
+                "finished_at": None,
+                "last_error": None,
+            }
+            read_count = 0
+
+            def read_state(_: Path) -> dict[str, object]:
+                nonlocal read_count
+                read_count += 1
+                if read_count == 1:
+                    mod_log_path.write_text(
+                        "old\n[lb_hay] run=1 time=2:00.000\n[lb_hay] run=2 time=2:05.000\n",
+                        encoding="utf-8",
+                    )
+                return state_holder
+
+            def fail_on_game_output_read(path: Path, start_signature: object) -> tuple[str, ...]:
+                if path == output_path:
+                    raise AssertionError("running poll must not read game output")
+                return ("[lb_hay] run=1 time=2:00.000", "[lb_hay] run=2 time=2:05.000")
+
+            written_states: list[dict[str, object]] = []
+
+            def write_state(_: Path, state: dict[str, object]) -> None:
+                written_states.append(state)
+                state_holder.update(
+                    {
+                        "status": "failed",
+                        "finished_at": "2026-05-30T00:00:31Z",
+                        "last_error": state["last_error"],
+                    }
+                )
+
+            with mock.patch.object(runner_module, "read_state_file", side_effect=read_state), mock.patch.object(
+                runner_module, "write_state_file", side_effect=write_state
+            ), mock.patch.object(
+                runner_module, "is_windows_process_running", return_value=True
+            ), mock.patch.object(
+                runner_module, "read_appended_lines", side_effect=fail_on_game_output_read
+            ), mock.patch.object(
+                runner_module.time, "sleep"
+            ):
+                result = runner_module.wait_for_status(
+                    state_path=Path("/tmp/state.json"),
+                    pid=123,
+                    request_id=3,
+                    accepted_statuses={"done", "failed", "superseded"},
+                    timeout_seconds=60.0,
+                    poll_interval=0.01,
+                    baseline=baseline,
+                    output_stall_timeout=30.0,
+                    max_leaderboard_runs=2,
+                )
+
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(written_states[0]["last_error"], "reached stable leaderboard runs 2 avg=2:02.500")
+
     def test_wait_for_status_requests_stop_after_stable_minimum_leaderboard_runs(self) -> None:
         with tempfile.TemporaryDirectory() as temp_text:
             output_path = Path(temp_text) / "output.txt"
+            mod_log_path = Path(temp_text) / "LogOutput.log"
             output_path.write_text("old\n", encoding="utf-8")
-            baseline = OutputBaseline(output_path, file_signature(output_path), None, EMPTY_SIGNATURE)
-            output_path.write_text(
+            mod_log_path.write_text("old\n", encoding="utf-8")
+            baseline = OutputBaseline(
+                output_path,
+                file_signature(output_path),
+                mod_log_path,
+                file_signature(mod_log_path),
+            )
+            mod_log_path.write_text(
                 "old\n[lb_dinosaur] run=1 time=15:35.976\n[lb_dinosaur] run=2 time=15:42.382\n",
                 encoding="utf-8",
             )
@@ -424,9 +530,16 @@ class RealGameRunnerToolTests(unittest.TestCase):
     def test_wait_for_status_keeps_running_when_first_two_runs_are_unstable(self) -> None:
         with tempfile.TemporaryDirectory() as temp_text:
             output_path = Path(temp_text) / "output.txt"
+            mod_log_path = Path(temp_text) / "LogOutput.log"
             output_path.write_text("old\n", encoding="utf-8")
-            baseline = OutputBaseline(output_path, file_signature(output_path), None, EMPTY_SIGNATURE)
-            output_path.write_text(
+            mod_log_path.write_text("old\n", encoding="utf-8")
+            baseline = OutputBaseline(
+                output_path,
+                file_signature(output_path),
+                mod_log_path,
+                file_signature(mod_log_path),
+            )
+            mod_log_path.write_text(
                 "old\n[lb_maze_single] run=1 time=4:30.000\n[lb_maze_single] run=2 time=5:30.000\n",
                 encoding="utf-8",
             )
@@ -446,7 +559,7 @@ class RealGameRunnerToolTests(unittest.TestCase):
                 nonlocal read_count
                 read_count += 1
                 if read_count == 2:
-                    output_path.write_text(
+                    mod_log_path.write_text(
                         "old\n"
                         "[lb_maze_single] run=1 time=4:30.000\n"
                         "[lb_maze_single] run=2 time=5:30.000\n"

@@ -92,8 +92,9 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --target-script lb_start
 1. 启动或复用游戏进程
 2. 等待模组状态机进入可请求状态
 3. 写入 `requested`
-4. 等待 `done / failed / superseded`
-5. 回读本次请求新增的 `output.txt` 与 `LogOutput.log`
+4. 运行中轮询 `LogOutput.log` 与状态机，避免高频读取游戏 `output.txt`
+5. 等待 `done / failed / superseded`
+6. 请求结束后回读本次新增的 `output.txt` 与 `LogOutput.log`
 
 ### 资源快照与反编译工具
 
@@ -117,9 +118,11 @@ python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format markdown --o
 - 游戏 `output.txt`
   - 承接脚本 `print(...)`
   - 承接 probe / 游戏原生文本
+  - 请求运行中不要高频轮询，避免和游戏原生 Logger 写入冲突
 - `BepInEx/LogOutput.log`
   - 承接模组生命周期日志
   - 承接 leaderboard `start / run / summary`
+  - 承接运行中 `item_snapshot` 与停表判断
   - 承接超时、取消、失败诊断
 
 ## 最小联调顺序

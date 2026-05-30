@@ -100,7 +100,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--output-stall-timeout",
         type=float,
         default=30.0,
-        help="请求运行后游戏 output.txt 与 BepInEx 日志都连续无新增输出的最长墙钟秒数，默认 30 秒；设为 0 可关闭。",
+        help="请求运行后 BepInEx 日志连续无新增输出的最长墙钟秒数，默认 30 秒；设为 0 可关闭。",
     )
     parser.add_argument(
         "--max-leaderboard-runs",
@@ -190,7 +190,20 @@ def build_stop_requested_state(current_state: dict[str, object], message: str) -
 def read_tail_lines(path: Path | None, max_lines: int) -> tuple[str, ...]:
     if path is None or max_lines <= 0 or not path.exists():
         return ()
-    return tuple(path.read_text(encoding="utf-8", errors="ignore").splitlines()[-max_lines:])
+    return tuple(read_text_with_retries(path).splitlines()[-max_lines:])
+
+
+def read_text_with_retries(path: Path) -> str:
+    last_error: BaseException | None = None
+    for attempt in range(STATE_IO_MAX_ATTEMPTS):
+        try:
+            return path.read_text(encoding="utf-8", errors="ignore")
+        except (OSError, PermissionError) as exc:
+            last_error = exc
+            if attempt + 1 >= STATE_IO_MAX_ATTEMPTS:
+                break
+            time.sleep(STATE_IO_RETRY_SECONDS)
+    raise RuntimeError(f"读取文件失败: {path}") from last_error
 
 
 def next_request_id(current_state: dict[str, object] | None) -> int:
@@ -324,7 +337,6 @@ def wait_for_status(
 ) -> dict[str, object]:
     deadline = time.monotonic() + timeout_seconds
     last_output_activity_at = time.monotonic()
-    last_game_output_count = 0
     last_mod_output_count = 0
     stop_requested_for_stall = False
     controlled_stop_message: str | None = None
@@ -358,20 +370,15 @@ def wait_for_status(
                 and current_request_id == request_id
                 and status == "running"
             ):
-                game_output_lines = read_appended_lines(baseline.game_output_path, baseline.game_output_signature)
                 mod_output_lines = read_appended_lines(baseline.mod_output_path, baseline.mod_output_signature)
-                game_output_count = len(game_output_lines)
                 mod_output_count = len(mod_output_lines)
-                if game_output_count > last_game_output_count:
-                    last_game_output_count = game_output_count
-                    last_output_activity_at = loop_now
                 if mod_output_count > last_mod_output_count:
                     last_mod_output_count = mod_output_count
                     last_output_activity_at = loop_now
 
                 if loop_now - last_live_progress_at >= 5.0:
                     live_outputs = CapturedOutputs(
-                        game_output_lines=tuple(game_output_lines),
+                        game_output_lines=(),
                         mod_output_lines=tuple(mod_output_lines),
                     )
                     live_lines = build_leaderboard_average_lines(live_outputs)
@@ -382,7 +389,7 @@ def wait_for_status(
                         last_live_progress_at = loop_now
                         print(f"real_game_runner live {last_live_progress_line}", flush=True)
 
-                run_times = parse_leaderboard_run_times((*game_output_lines, *mod_output_lines))
+                run_times = parse_leaderboard_run_times(tuple(mod_output_lines))
                 completed_runs = len(run_times)
                 if (
                     max_leaderboard_runs > 0
@@ -405,8 +412,8 @@ def wait_for_status(
                     and loop_now - last_output_activity_at >= output_stall_timeout
                 ):
                     message = (
-                        f"game output and mod log stalled for {output_stall_timeout:g}s "
-                        f"after game_lines={last_game_output_count} mod_lines={last_mod_output_count}"
+                        f"mod log stalled for {output_stall_timeout:g}s "
+                        f"after mod_lines={last_mod_output_count}"
                     )
                     write_state_file(state_path, build_stop_requested_state(current, message))
                     stop_requested_for_stall = True
