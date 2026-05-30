@@ -26,7 +26,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Carrots_Single, "lb_carrots_single", 10000)
 # 成功条件：num_items(Items.Carrot) >= 100_000_000
-# 用时（#1/当前版本复跑）：3:46.963 / 9:44.621
+# 用时（#1/当前版本复跑）：3:46.963 / 8:44.832
 
 # leaderboard_run(Leaderboards.Pumpkins, "lb_pumpkins", 10000)
 # 成功条件：num_items(Items.Pumpkin) >= 200_000_000

@@ -1,6 +1,6 @@
 from __builtins__ import *
 
-# 9:46.899
+# 8:32.070
 def lb_carrots_single():
     count = 100000000
     set_world_size(SINGLE_FIELD_SIZE)
@@ -15,10 +15,10 @@ def lb_carrots_single():
     quick_print("lb_carrots_single", " init carrots=", num_items(Items.Carrot), " time=", get_time())
 
     while num_items(Items.Carrot) < count:
-        process_anchor(1, 1, harvest_count, reroll_count)
+        process_anchor(2, 1, harvest_count, reroll_count)
         process_anchor(3, 1, harvest_count, reroll_count)
-        process_anchor(1, 3, harvest_count, reroll_count)
-        process_anchor(3, 3, harvest_count, reroll_count)
+        process_anchor(3, 2, harvest_count, reroll_count)
+        process_anchor(2, 2, harvest_count, reroll_count)
 
         cycle_count[0] = cycle_count[0] + 1
         maybe_log_progress(last_log_carrots, last_log_time, cycle_count, harvest_count, reroll_count)
@@ -139,13 +139,13 @@ def maybe_log_progress(last_log_carrots, last_log_time, cycle_count, harvest_cou
 
 
 def is_anchor(x, y):
-    if x == 1 and y == 1:
+    if x == 2 and y == 1:
         return True
     if x == 3 and y == 1:
         return True
-    if x == 1 and y == 3:
+    if x == 3 and y == 2:
         return True
-    if x == 3 and y == 3:
+    if x == 2 and y == 2:
         return True
     return False
 
