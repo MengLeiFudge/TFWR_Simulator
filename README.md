@@ -43,8 +43,9 @@
 4. 真实结果优先级高于仓库推断；如果仓库逻辑和游戏实际输出冲突，应以真实结果为准。
 5. leaderboard 策略先看 `references/leaderboard_scripts/README.md`，再看对应 `lb_xxx.md`。
 6. 对依赖 companion 的资源榜，默认先做理论筛选：用 #1 时间、目标资源量、满级收益和动作成本反推每次有效伴生收获的目标周期；理论明显慢的候选不要直接进真实游戏验证。
-7. 探索阶段脚本应保留详细阶段日志，先定位最大时间来源；真实游戏用于验证已经过理论筛选的候选，不用于枚举试错。
-8. 具体 `lb_xxx.py` 只保留当前确认最快的可执行策略；版本经验、失败路线、接近候选和每个版本的大致时间写入同名 `lb_xxx.md`。候选时间接近时必须跑完整统计或足够多轮对比后再替换 py 真源。
+7. 理论筛选也要限输入、限时和有进度；不要用匿名 `python3 -` 跑长时间全组合枚举。需要重型探针时，放到 `.codex/tests/*.py` 或正式测试脚本里，并写清早停条件。
+8. 探索阶段脚本应保留详细阶段日志，先定位最大时间来源；真实游戏用于验证已经过理论筛选的候选，不用于枚举试错。
+9. 具体 `lb_xxx.py` 只保留当前确认最快的可执行策略；版本经验、失败路线、接近候选和每个版本的大致时间写入同名 `lb_xxx.md`。候选时间接近时必须跑完整统计或足够多轮对比后再替换 py 真源。
 
 ## 第一次使用时的前期布置
 
@@ -167,6 +168,14 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --target-script lb_start
 
 协调器会启动或复用游戏进程、通过状态机写入请求，并在结束后回读本次新增输出。  
 如果你要看参数说明、状态机细节和 CLI 分工，直接看 `tfwr_orchestrator/README.md`。
+
+运行中或收口前可以只查状态，不投递新请求：
+
+```bash
+python3 tfwr_orchestrator/tools/run_real_game_script.py --status-only --target-script lb_start --status-lines 80
+```
+
+该命令会同时输出 `process_guard`。如果出现 `suspicious_python > 0`，说明当前仓库或旧仓库路径下有可疑的 `python3 -` 进程，应先用 `ps -p <pid> -o pid,ppid,stat,etime,time,%cpu,cmd` 确认，再决定是否停止。
 
 ### 3. 区分两路输出
 

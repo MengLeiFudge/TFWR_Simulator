@@ -942,6 +942,48 @@ class RealGameRunnerToolTests(unittest.TestCase):
         self.assertIn("mod_output [Info] item_snapshot request_id=9", text)
         self.assertIn("leaderboard_average runs=1 average=6:40.664", text)
 
+    def test_build_suspicious_python_process_lines_reports_orphan_inline_python(self) -> None:
+        repo_root = Path("/work/TFWR_Simulator")
+        snapshots = (
+            runner_module.ProcessSnapshot(
+                pid=80925,
+                ppid=1,
+                cpu_seconds=36120.0,
+                cwd=repo_root / "references" / "leaderboard_scripts",
+                cmdline="python3 -",
+            ),
+            runner_module.ProcessSnapshot(
+                pid=100,
+                ppid=99,
+                cpu_seconds=1.0,
+                cwd=repo_root,
+                cmdline="python3 tfwr_orchestrator/tools/run_real_game_script.py --status-only",
+            ),
+        )
+
+        lines = runner_module.build_suspicious_python_process_lines(snapshots, roots=(repo_root,))
+
+        self.assertEqual(lines[0], "process_guard suspicious_python=1")
+        self.assertIn("pid=80925", lines[1])
+        self.assertIn("ppid=1", lines[1])
+        self.assertIn("cmd=python3 -", lines[1])
+
+    def test_build_suspicious_python_process_lines_ignores_short_lived_inline_python_with_parent(self) -> None:
+        repo_root = Path("/work/TFWR_Simulator")
+        snapshots = (
+            runner_module.ProcessSnapshot(
+                pid=123,
+                ppid=456,
+                cpu_seconds=2.0,
+                cwd=repo_root,
+                cmdline="python3 -",
+            ),
+        )
+
+        lines = runner_module.build_suspicious_python_process_lines(snapshots, roots=(repo_root,))
+
+        self.assertEqual(lines, ("process_guard suspicious_python=0",))
+
     def test_main_rejects_lb_start_done_without_leaderboard_summary(self) -> None:
         done_state = {
             "request_id": 8,

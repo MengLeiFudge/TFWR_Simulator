@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
@@ -56,6 +57,9 @@ RESOURCE_TARGETS_BY_SCRIPT = {
 }
 ITEM_SNAPSHOT_RE = re.compile(r"\bitem_snapshot\b(?P<body>.*)$")
 LEADERBOARD_SCRIPT_RE = re.compile(r"\[(lb_[^\]]+?)(?:\.py)?\]")
+REPO_ROOT = Path(__file__).resolve().parents[3]
+LEGACY_REPO_ROOT = REPO_ROOT.with_name("tfwr_simulator")
+SUSPICIOUS_PYTHON_CPU_SECONDS = 300.0
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -757,8 +761,113 @@ def print_status_only(args: argparse.Namespace) -> int:
         print(line)
     for line in build_progress_estimate_lines(outputs, args.target_script):
         print(line)
+    for line in build_suspicious_python_process_lines():
+        print(line)
     _print_captured_outputs(outputs)
     return 0
+
+
+@dataclass(frozen=True)
+class ProcessSnapshot:
+    pid: int
+    ppid: int
+    cpu_seconds: float
+    cwd: Path | None
+    cmdline: str
+
+
+def read_process_snapshots(proc_root: Path = Path("/proc")) -> tuple[ProcessSnapshot, ...]:
+    if not proc_root.exists():
+        return ()
+    snapshots: list[ProcessSnapshot] = []
+    for process_dir in proc_root.iterdir():
+        if not process_dir.name.isdigit():
+            continue
+        snapshot = read_process_snapshot(process_dir)
+        if snapshot is not None:
+            snapshots.append(snapshot)
+    return tuple(snapshots)
+
+
+def read_process_snapshot(process_dir: Path) -> ProcessSnapshot | None:
+    try:
+        status_text = (process_dir / "status").read_text(encoding="utf-8", errors="ignore")
+        stat_fields = (process_dir / "stat").read_text(encoding="utf-8", errors="ignore").split()
+        raw_cmdline = (process_dir / "cmdline").read_bytes()
+    except (FileNotFoundError, ProcessLookupError, PermissionError, OSError):
+        return None
+
+    ppid = parse_status_int(status_text, "PPid")
+    if ppid is None or len(stat_fields) <= 15:
+        return None
+    try:
+        pid = int(process_dir.name)
+        user_seconds = os.sysconf(os.sysconf_names["SC_CLK_TCK"])
+        cpu_seconds = (int(stat_fields[13]) + int(stat_fields[14])) / user_seconds
+    except (KeyError, ValueError, OSError):
+        return None
+
+    try:
+        cwd = (process_dir / "cwd").resolve()
+    except (FileNotFoundError, ProcessLookupError, PermissionError, OSError):
+        cwd = None
+    cmdline = raw_cmdline.replace(b"\0", b" ").decode("utf-8", errors="replace").strip()
+    return ProcessSnapshot(pid=pid, ppid=ppid, cpu_seconds=cpu_seconds, cwd=cwd, cmdline=cmdline)
+
+
+def parse_status_int(status_text: str, key: str) -> int | None:
+    prefix = f"{key}:"
+    for line in status_text.splitlines():
+        if not line.startswith(prefix):
+            continue
+        value = line[len(prefix) :].strip().split(maxsplit=1)[0]
+        try:
+            return int(value)
+        except ValueError:
+            return None
+    return None
+
+
+def is_path_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def is_suspicious_python_process(snapshot: ProcessSnapshot, roots: tuple[Path, ...]) -> bool:
+    if snapshot.cwd is None:
+        return False
+    if not snapshot.cmdline.startswith("python3 -"):
+        return False
+    if snapshot.ppid != 1 and snapshot.cpu_seconds < SUSPICIOUS_PYTHON_CPU_SECONDS:
+        return False
+    return any(is_path_relative_to(snapshot.cwd, root) for root in roots)
+
+
+def build_suspicious_python_process_lines(
+    snapshots: tuple[ProcessSnapshot, ...] | None = None,
+    roots: tuple[Path, ...] = (REPO_ROOT, LEGACY_REPO_ROOT),
+) -> tuple[str, ...]:
+    if snapshots is None:
+        snapshots = read_process_snapshots()
+    suspicious = [
+        snapshot
+        for snapshot in snapshots
+        if is_suspicious_python_process(snapshot, tuple(root.resolve() for root in roots))
+    ]
+    if not suspicious:
+        return ("process_guard suspicious_python=0",)
+    lines = [f"process_guard suspicious_python={len(suspicious)}"]
+    for snapshot in suspicious:
+        cwd = str(snapshot.cwd) if snapshot.cwd is not None else ""
+        lines.append(
+            "process_guard suspicious_python "
+            f"pid={snapshot.pid} ppid={snapshot.ppid} "
+            f"cpu_seconds={snapshot.cpu_seconds:.1f} cwd={cwd} cmd={snapshot.cmdline}"
+        )
+    return tuple(lines)
 
 
 def main(argv: list[str] | None = None) -> int:
