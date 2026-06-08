@@ -155,6 +155,10 @@
   - 临时实机 request `679` 两条有效 run 为 `5:43.281` / `5:45.735`，稳定均值 `5:44.508`，慢于当前 `5:38.652`。
   - 统计显示 delayed 机制确实触发，第二轮尾部附近 `delayed_accept=156`、`delayed_activate=155`、`delayed_drop=0`；但同时 `tree_reroll=922`、`support_replant=700`，收益没有转成成绩。
   - 结论：delayed pending claim 不保留；单机木头不要继续按“等旧 claim 释放后承接”的单 owner 状态机微调，除非新模型能同时压低 `support_replant` 并在实机短窗优于 `5:38.652`。
+- `main11` orphan support 实体记忆过滤：
+  - 2026-06-09 `.codex/tests/wood_single_orphan_memory_policy_screen.py` 筛选：当 `support_count==0` 且本地记得孤儿 support 实体类型时，只在孤儿实体与新 companion 类型匹配时接受，否则 reroll，目标是减少后续 `support_replant`。
+  - 模型结果：baseline `reroll/accept=0.922`、`replant/accept=0.502`；`strict-orphan-match` 把 `replant/accept` 降到 `0`，但 `reroll/accept` 暴涨到 `2.862`，估算退化约 `342s`；`bush-or-orphan-match` 类似退化约 `340s`。
+  - 结论：不实机、不改 `.py`。orphan 记忆过滤只是把 support replant 换成更多 tree reroll，明显重复“更严格接受顺序 / Bush 优先”类失败模式。
 - `main11` Carrot companion 材料 guard
   - 2026-06-08 请求 `665` 的探针输出里，开局出现 `Warning: 没有种植 Entities.Carrot 所需的物品。`，说明部分 Carrot support claim 接受后暂时落不了地。
   - 候选改法：`roll_tree_companion()` 遇到 `ct == Entities.Carrot` 且当前不能支付 `plant(Entities.Carrot)` 成本时，直接 reroll，不占用 support claim。
@@ -197,6 +201,7 @@
 - 已验证开放少量 active tree slot 变慢；不要用“少 2 到 4 棵树换更低 tree-slot reroll”的方式继续微调。
 - 已通过 no-movement claim policy 筛选确认，单纯更严格地挑 support 坐标或优先 Bush 会把总 reroll 放大到 baseline 约 `3x` 或直接 stall；不要按“只改接受顺序但不移动 / 不加状态”的方向实机。
 - 已验证 delayed claim 单 owner 承接变慢；pending 能降低一部分 reroll，但会提高 support replant / 运行节奏成本，不要继续按单 owner pending 状态机微调。
+- 已通过 orphan support 实体记忆过滤筛选确认，严格匹配孤儿实体虽然能压掉 support replant，但会把 reroll 放大到 baseline 约 `3x`；不要按“记住孤儿实体后拒绝不匹配类型”的方向实机。
 
 ## 候选策略方向（猜测 / 待验证）
 
