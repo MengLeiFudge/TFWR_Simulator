@@ -139,6 +139,10 @@
   - 当前布局分数为 `invalid=128`、`overlap=4672`、`max_degree=12`、`shared_cells=40`；这与既有 `tree-slot invalid = 128 / 576` 结论一致。
   - 约 `488399` 个 swap / 随机候选检查后没有找到低于当前分数的布局。
   - 结论：短期不要只换 `TREE_OFF` 或做 8 个 off 位的局部平替；当前布局在 tree-slot invalid 与 support overlap 这两个指标上都已是强局部最优。
+- `main11` 有限开放树位 buffer
+  - 2026-06-08 `.codex/tests/wood_single_open_tree_budget.py` 枚举从当前 24 个 active tree slot 中开放 `1..4` 个作为 buffer support；乐观模型下开放 `(4,0)/(7,1)/(0,4)/(3,5)` 可把几何 invalid 从 `128` 降到 `80`。
+  - 真实验证 request `671`：三条有效 run 为 `5:44.999` / `5:38.499` / `5:44.840`，稳定均值 `5:42.779`，慢于当前 `5:38.652`；后续 `finished=false runs=4 average=5:02.465` 是取消摘要，不作为成绩。
+  - 结论：少量开放 active tree slot 虽能降低 tree-slot reroll，但活树数损失、support 改写和 sweep 扰动吃掉收益；不要继续做“开放 2 到 4 个树位”的实机微调。
 - `main11` Carrot companion 材料 guard
   - 2026-06-08 请求 `665` 的探针输出里，开局出现 `Warning: 没有种植 Entities.Carrot 所需的物品。`，说明部分 Carrot support claim 接受后暂时落不了地。
   - 候选改法：`roll_tree_companion()` 遇到 `ct == Entities.Carrot` 且当前不能支付 `plant(Entities.Carrot)` 成本时，直接 reroll，不占用 support claim。
@@ -177,6 +181,7 @@
 - 已通过 claim/support 抖动探针确认，当前 `tree_reroll` 里 claim conflict 不低于 tree-slot invalid；但 support 期望类型和旧实体都近似三等分，不能用单类型优先规则直接解决。
 - 已通过 TREE_OFF overlap 筛选确认，当前 8 个 off 位没有容易替换的局部布局；不要只做 tree slot 空洞微调。
 - 已验证 Carrot companion 材料 guard 变慢；不要因为开局缺材料 warning 就提前拒绝 Carrot companion。
+- 已验证开放少量 active tree slot 变慢；不要用“少 2 到 4 棵树换更低 tree-slot reroll”的方式继续微调。
 
 ## 候选策略方向（猜测 / 待验证）
 
