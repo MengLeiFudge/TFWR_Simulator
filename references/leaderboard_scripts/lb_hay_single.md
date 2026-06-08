@@ -153,6 +153,11 @@
   - 单机榜没有可用并行 helper 槽位；即便按诊断模型给出最乐观的 16 helper 口径，最小 mailbox `signal=1 dist=1` 也从当前约 `2:52.141` 退到 `3:51.400`。
   - 盲扫 support 不等待时退到 `5:44.282`；等待半周期退到 `13:34.116`。
   - 结论：不按物理 mailbox / world-state relay 推进单草；没有通信或零等待完成信号时，实体格信号不可能抵消当前 Bush-only 的低 reroll 成本。
+- `main4` 废伴生快速拒绝 / 严格等待预算：
+  - 反编译 `Growable.GetCompanion()` 只返回已存的 `companionType` / `companionPos`；`ChooseCompanion()` 在 `Growable.OnRestart()` 中调用。因此重复调用 `get_companion()` 不会重新抽伴生，必须通过 `harvest()` / 重启生长来换下一次 companion。
+  - 2026-06-09 `.codex/tests/hay_single_reject_wait_budget.py`：当前 Bush-only 成功率 `31.9%`、期望失败 `2.13` 次，当前 `harvest()` reroll 约 `428.2t`。
+  - 反复 `get_companion()` 或只等待不收割会卡在同一个无效 companion；如果等待半个成长窗后再收割，乐观估算退到 `3:36.421`；等待完整成长窗或先浇水再收割退到 `4:20.701`。
+  - 结论：不实机“空转等 companion 变化”“重复 get_companion 快速拒绝”或“废伴生先浇水再确认”；这些都不能改变当前 companion，只会推迟必要的 harvest-reroll。
 - `main4` 循环未成熟时双桶补水：
   - 2026-05-02 请求 `476` 完整结束 `finished=true runs=42 average=2:52.410`。
   - 改法：保留开局两次单桶补水，只把循环内南北两个 `if not can_harvest(): use_item(Items.Water)` 改成 `use_item(Items.Water, 2)`。
@@ -179,6 +184,7 @@
 - 已通过 2026-06-09 非通信定时 Bush/Tree support 预算确认，盲轮换 support 类型无法和随机 companion 请求同步，等待正确类型比当前 reroll 贵一个数量级；不要按预轮换 Tree/Bush 继续实机。
 - 已通过 2026-06-09 adaptive no-restore support 筛选确认，当前收割者自己往返改写 Bush/Tree support 仍慢于静态 Bush-only；不要按 support 类型记忆继续实机。
 - 已通过 2026-06-09 物理 mailbox / world-state relay 预算确认，实体格信号和固定等待成本远高于当前 Bush-only reroll；单草没有可用并行 helper 槽位，不按这条线继续实机。
+- 已通过 2026-06-09 废伴生快速拒绝 / 严格等待预算确认，`get_companion()` 不会重抽 companion；等待或浇水不能改变无效 companion，只会延迟必要的 `harvest()` reroll。
 - 重点关注：
   - companion 接受策略是否还能再压 refresh
   - `5x5` 结构是否仍然是 companion 半径 `3` 下最合适的目标草布局
@@ -186,7 +192,7 @@
 
 ## 候选策略方向（猜测 / 待验证）
 
-### 方向 1：保留 5x5 骨架，但继续压“废伴生接受”
+### 方向 1：保留 5x5 骨架，但继续压“废伴生接受”（已收窄）
 
 - 核心思路：不动 5x5 主结构，专门优化“哪些伴生应更快识别为废伴生并立即放弃”
 - 主瓶颈：当前 refresh 里可能仍有一部分来自废伴生识别不够快
@@ -195,8 +201,9 @@
   - `Carrot` 废伴生占比
   - “落在另一目标草格”的废伴生占比
   - 更快拒绝后 `refresh43/44` 是否下降
+- 当前状态：request `550/551` 已确认废伴生主要是 Carrot / Tree 类型；`get_companion()` 不重抽，所谓“更快拒绝”不能靠重复读取或等待实现，只能是更低成本的 restart / reroll 机制。
 
-### 方向 2：保留 5x5，但改成更严格的“原地赌到有效伴生才移动”
+### 方向 2：保留 5x5，但改成更严格的“原地赌到有效伴生才移动”（暂缓）
 
 - 核心思路：进一步压缩“无效移动”，把移动几乎完全留给已经确认有效的伴生
 - 主瓶颈：草虽然长得快，但每次移动和收割都是硬 `200t`
@@ -204,6 +211,7 @@
 - 优先探针：
   - 每次有效伴生命中前发生了多少次无效移动
   - 更严格原地等待后总时间是否继续下降
+- 当前状态：当前主线已经是 Bush-only 命中后才移动；无效 companion 若不 `harvest()` 重启就不会变化。更严格原地等待会卡住或增加等待成本，不作为实机候选。
 
 ### 方向 3：围绕 5x5 继续做“目标草格防重叠”微调
 
