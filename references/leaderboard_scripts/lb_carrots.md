@@ -100,6 +100,7 @@
   - 安全的本 tile 内同无人机动态改写 distance<=3 估算 `5:32.201`，distance<=1 / <=2 更慢，均弱于当前折线 8 锚点 `4:34.314`。
   - helper relay 预算筛选：`.codex/tests/carrot_helper_relay_budget.py` 估算 16 个 anchor + 16 个 helper 的 current-shape relay 约 `2:44.975`，但跨 tile support 请求约 `46.7%`，忽略了真实成熟等待、请求顺序扰动和互相覆盖。
   - 2026-06-08 request `653/654` 临时实现 helper relay 后启动即失败；`output.txt` 报 `Error: get_drone_id 从未被定义。在使用变量之前必须先给它赋值。`，而当前真实 `Save0/__builtins__.py` 没有 `get_drone_id` / `send` / `receive` 定义。
+  - 2026-06-09 API 复核：反编译 `Core.decompiled.cs` 中有 `Send()` / `Receive()` / `GetDroneId()` 方法体和 reset unlock 名称，但 `BuiltinFunctions.functionList` 只注册到 `spawn_drone` / `num_drones` / `max_drones` / `wait_for` / `has_finished`，没有把 `get_drone_id` / `send` / `receive` 放进当前脚本函数表；因此不能把隐藏方法体当作当前 Save0 可用 API。
   - 2026-06-08 非消息接力复核：反编译 `SpawnDrone` 会 `DeepCopy` 被启动函数和 `parentScope`，再给新 drone 建独立 `Scope`；因此脚本全局 `list` / `dict` 也不能作为 anchor/helper 间运行时共享队列。
   - 结论：当前游戏脚本可用 API 下，不能依赖无人机间消息通信或全局共享队列实现 helper relay；该失败候选已从 `.py` 回退并重新同步正式折线 8 锚点版本到 `gamesave/`。后续只有确认当前 Save0 暴露数字 drone id 与消息 API，或找到完全不需要运行时通信的同步接力结构，才重新评估动态 helper / 接力。
 - spawn-on-demand helper 对照：

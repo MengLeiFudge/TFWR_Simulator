@@ -30,6 +30,8 @@
 2. 伴生、高倍率机制、版图布局、路径和回访节奏通常优先于局部实现细节。
    对依赖 companion 的资源榜，没吃到 companion 往往就接近没有有效收益；满级 companion 可带来约 `160x` 收获，额外兑现成本通常远低于这个倍率，所以除明确例外外，主线目标应按接近 `100%` 伴生收割设计。明确例外包括目标机制本身不吃 companion 的榜单，例如 `dinosaur`、`sunflowers`、`cactus`，以及需要单独测试升级 companion 科技是否划算的 `fastest_reset`。对不靠 companion 的榜单，应优先围绕真正的结算机制做设计。
 
+   当前 Save0 的多无人机脚本 API 只把 `spawn_drone()`、`wait_for()`、`has_finished()`、`max_drones()`、`num_drones()` 暴露给脚本；没有可用的 `get_drone_id()` / `send()` / `receive()`。反编译 `Core.decompiled.cs` 中虽然残留 `Send()` / `Receive()` / `GetDroneId()` 方法体和 reset unlock 名称，但 `BuiltinFunctions.functionList` 没有注册这些函数，真实 `gamesave/__builtins__.py` 也没有定义它们。后续 companion helper / 接力设计不能按消息通信或全局共享队列成立；只有当前 Save0 明确暴露通信 API，或找到不需要运行时通信的物理同步结构，才重新打开这类候选。
+
 3. 依赖 companion 的简单策略必须先过理论周期门槛。
    对 `hay`、`carrots`、`wood` 这类资源榜，先用 #1 时间反推“假设每次有效收获都带 companion 时，单次有效收获必须多快”。满级收益按 `Growable.YieldFactor` 计算：作物收益升级为 `2 ** (level - 1)`，companion 满级为 `5 << polyculture_level`；当前常见满级是 `512 * 160 = 81920` 倍基础掉落。候选策略先估算期望动作数，再决定是否写代码。显然慢的分支不进入真实游戏验证。
    例：固定外围 support 时，原地 reroll 的期望只取决于 companion 坐标和类型命中率；而“命中后走出去补种 support 再回来”至少包含往返移动和种植，平均常常超过 5 次 `200t` 操作。若原地 reroll 平均只需要约 2 次失败重刷，这类移动补种路线可直接判为弱候选。
