@@ -123,6 +123,11 @@
   - 有效轮中有单轮 `5:40.820`，但完整均值明显慢于当前可靠 `5:40.868`；尾部还出现 `5:47~5:52` 多轮。
   - probe 尾部仍有大量 `orphan_support`，例如 run 20 收尾 `orphan_support=812`，说明额外收割没有降低结构抖动，反而增加动作成本。
   - 结论：没有刷新；orphan support 默认继续只计数不收割，代码已恢复。
+- `main11` 收割成熟 claimed Bush support
+  - 2026-06-08 请求 `651`：两轮 `5:51.036` / `5:50.742`，稳定均值 `5:50.889`，慢于当前 `5:38.652`。
+  - 改法：`process_support_slot()` 中 `support_count[x][y] > 0` 且 `entity == ct == Entities.Bush and can_harvest()` 时额外 `harvest()` 并立刻 `plant(Entities.Bush)`；不改树位布局、claim、tree reroll、冻结、补水和日志。
+  - 反编译 `Growable.HasCompanion()` 只检查 companion 坐标有实体且类型匹配，不检查成熟度；因此该候选没有从类型上破坏 companion，但每次成熟 Bush support 会多出 `harvest + plant` 两个动作。
+  - 结论：Bush support 自身产木吃不回额外动作成本；claimed support 默认仍只 keep，不额外收割。
 - `main11` 释放 Bush support 后冻结：
   - 2026-05-02 请求 `512`：runner 输出 `reached stable leaderboard runs 8 avg=7:39.980`。
   - 改法：`release_main10_tree_claim()` 在 `support_count` 降到 0 时保留 `Entities.Bush` 标记；`roll_main11_tree_companion()` 拒绝把空闲但 Bush-frozen 的 support 改成非 Bush。
@@ -151,6 +156,7 @@
 - 已验证只接受 Bush companion 明显退化，默认继续接受非冲突 companion，不把灌木优先写成硬过滤。
 - 已验证有限 Bush 优先 reroll 仍明显退化；后续不要继续用“主动增加 tree reroll”追灌木比例，除非先找到能同时压低 reroll 的支持位冻结机制。
 - 已验证收割成熟 orphan Bush support 没有刷新，默认 orphan support 只计数不收割。
+- 已验证收割成熟 claimed Bush support 没有刷新，默认 claimed support 只 keep，不额外收割重种。
 - 已验证释放后冻结 Bush support 明显退化；不要用“空闲 Bush 位拒绝非 Bush”这种方式做冻结，因为它会把 `tree_reroll` 推到不可接受范围。
 
 ## 候选策略方向（猜测 / 待验证）
