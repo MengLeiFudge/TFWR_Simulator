@@ -119,6 +119,10 @@
   - 请求 `682` 完整统计：`finished=true runs=14 average=8:37.719`；可见有效轮包括 `8:38.707`、`8:37.899`、`8:38.242`、`8:36.367`、`8:35.273`、`8:38.945`、`8:31.992`、`8:36.874`、`8:37.297`、`8:38.899`、`8:38.353`、`8:38.906`、`8:41.445`。
   - 统计规模：单轮约 `700~760` 次 `memory_rewrite`、`325~397` 次 `memory_hit`、`207~263` 次 `static_hit`，证明收益来自非 Bush support 记忆和近距离改写；但实机收益只有约 `7.1s`，远低于离线 `38s` 上界，说明改写 churn、地块状态和成熟等待仍吃掉大部分纸面收益。
   - 结论：保留为当前默认入口；后续不要把 `d<=3` 直接打开，模型已经显示改写过多会回吐收益。下一步若继续单机胡萝卜，应先压低 `memory_far_reject` 或减少 `memory_rewrite` 往返成本，而不是恢复 Bush 或只换静态 support 类型。
+- 2026-06-09 adaptive support memory `d<=1` 收窄对照：
+  - 改法：只把 `roll_adaptive_companion()` 的 mismatch support 改写阈值从 `companion_distance <= 2` 收窄到 `<= 1`，其他锚点、补水、support memory 和计数器不变。
+  - 请求 `683` 短窗两轮 `8:45.898` / `8:47.148`，稳定均值 `8:46.523`，明显慢于当前 `d<=2` 完整统计 `8:37.719`。
+  - 结论：过度收窄改写半径会丢掉太多可兑现 companion；失败实现已从 `.py` 回退并重新同步 `gamesave/`。当前默认继续保留 `d<=2`，后续不要按 `d<=1` 降 churn 方向实机。
 - 2026-04-30 已知支撑记录复测
   - 在 `main4` 初始化时记录 5x5 每格实体；后续 `get_companion()` 命中已知 `Bush` 支撑格时直接接受
   - 请求 `400` 完成 `13` 轮，均值 `9:45.406`
@@ -222,7 +226,7 @@
 - 已通过 same-drone 动态 support 预算确认，当前收割者自己写相邻 / 近距离 support 不值得进实机；后续动态承接必须避免当前 drone 往返改写成本。
 - 已通过 mature-wait-aware 锚点筛选确认，当前相邻 `2x2` 四锚点是静态 Bush-only 锚点形状上界；不要继续只换锚点数量或形状。
 - 已通过低成本动态 claim 筛选确认，当前 drone 附近临时改 `Grass / Tree` 再恢复 `Bush` 不值得进实机；但 no-restore support memory 经 request `682` 完整统计确认能小幅刷新，当前默认保留 adaptive support memory。
-- 当前单机胡萝卜下一步不再是静态平替或恢复 Bush，而是围绕 adaptive support memory 继续压低 `memory_far_reject` / `memory_rewrite` 成本；任何新增分支都必须先过 mature-wait-aware / support-memory 模型。
+- 当前单机胡萝卜下一步不再是静态平替或恢复 Bush，而是围绕 adaptive support memory 继续压低 `memory_far_reject` / `memory_rewrite` 成本；`d<=1` 已实机变慢，`d<=3` 已在模型中显示改写过多，任何新增分支都必须先过 mature-wait-aware / support-memory 模型。
 
 ## 候选策略方向（猜测 / 待验证）
 
