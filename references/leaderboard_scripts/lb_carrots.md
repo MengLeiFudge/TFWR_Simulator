@@ -144,6 +144,13 @@
   - 进度输出：`100024320 time=61.48 harvest=40 reroll=82`、`200048640 time=114.48 harvest=78 reroll=157`、`300072960 time=167.28 harvest=116 reroll=236`。
   - 取消摘要 `[lb_carrots] finished=false runs=1 average=3:23.433` 不作为有效完成轮。
   - 结论：少一半目标锚点省下的移动远小于吞吐损失；这类简单分支后续应先按理论收割周期估算，不应直接进实机短窗。失败实现已从 `.py` 删除。
+- 当前 Bush-only 双锚点结构上的 companion 统计探针：
+  - 2026-06-08 请求 `623`：临时在 `roll_static_bush_companion()` 和 `harvest_pair_carrot()` 附近增加低频统计，不改变 Bush-only 成功条件；验证后已从 `.py` 回退，真源仍保留当前最快策略。
+  - 有效完成两轮：`run=1 time=9:40.429`、`run=2 time=9:40.131`，稳定均值 `9:40.280`，慢于当前记录 `9:35.395`；取消摘要 `[lb_carrots] finished=false runs=3 average=6:31.408` 不作为有效成绩。
+  - 第一轮结束探针：`samples=10965 grass=743 bush=9457 tree=765 bush_blocked=27 bush_ok=9430 non_bush_d1=264 non_bush_d2=766 non_bush_d3=1508 wait=8660 reroll=1535`。
+  - 第二轮结束探针：`samples=10867 grass=788 bush=9243 tree=836 bush_blocked=34 bush_ok=9209 non_bush_d1=277 non_bush_d2=815 non_bush_d3=1624 wait=8444 reroll=1658`。
+  - 结论：当前 32 个双锚点 Bush support 结构里，非 Bush 请求即使全部在半径 `3` 内，也只有约 `14%~15%` 探针样本；距离 `<=1` 的顺路机会约 `2.4%~2.5%`，距离 `<=2` 也只有约 `7%~7.5%`。在当前路线里继续做“顺路接一点 Grass / Tree”不可能解释 `3x` 差距，且单纯加统计已带来约 `5s` 退化。
+  - 下一步不要在 `main3()` 上继续加轻量筛选或顺路补种；若要提高 companion 利用率，必须换成能结构性接近全类型承接的布局 / 接力机制，或者转去 `lb_wood` 做 Tree/Bush 收益拆分。
 
 ## 下一步优化方向
 
@@ -156,6 +163,10 @@
   - 不优先做三锚点 / 四锚点静态 Bush 单元；容量和动作期望都不支持它们形成数量级提升
   - 不优先做“命中后当前无人机走到 companion 格补种再回来”的近距离动态分支；距离阈值模型显示收益太小
   - 优先找能让 support 类型低成本随 companion 类型切换、或让别的无人机就地承接 support 改写的结构；目标是把单类型约 `1/3` 的类型命中率推向接近 `100%`
+- 2026-06-08 探针后的收敛：
+  - 当前双锚点 `main3()` 的顺路非 Bush 承接空间太小，不能再作为下一轮主线。
+  - 下一轮若继续多机胡萝卜，应先离线设计新的单元布局 / 接力结构，再按动作预算筛选；不要在现有 `2` carrot + `30` Bush support 单元上继续堆局部条件。
+  - 若短期目标是推进“伴生利用率”而非只盯胡萝卜，建议转 `lb_wood`，先拆 Tree / Bush 真实贡献和 companion 命中率。
 - 简单策略先做数学门槛，不直接实机：
   - 先按榜一时间反推“如果每次收割都带 companion，需要多短的单次有效收割周期”
   - 再按动作成本估算原地 reroll、走到 companion 格补种、回原格等路径的期望时间
