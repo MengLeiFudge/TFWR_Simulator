@@ -246,6 +246,11 @@
   - 31 个常驻 worker + 1 helper 位时，按 request `678` 的 `45%` ready target 率，全 offset Grass 上界估算 `6:50.109`，慢于当前；`35%` 为 `6:52.622`，`60%` 仍为 `6:46.444`。
   - 只有 `ready=100%` 的不现实 oracle 上界能到 `6:37.251`；这再次依赖当前 API 不具备的远程 ready 判断。
   - 结论：不进入实机。预留 spawn helper 的吞吐损失比省掉当前 worker 回程更大；后续不要按“减少常驻 worker 给 Tree-slot helper 留空位”推进。
+- 2026-06-09 Tree-slot 零移动 owner relay 上界：
+  - `.codex/tests/wood_tree_slot_zero_move_owner_budget.py` 评估目标 Tree-slot 所属列的 worker 正好站在请求格时，由该 owner 原地把当前 Tree 改成请求 support 的上界。
+  - Tree-slot bad offset 共有 `8` 个，只有 `(-2,0)/(2,0)` 两个 same-row offset 可能在列 worker 大致同步时零移动覆盖；覆盖率上限先天只有 `25%`，再乘 request `678` 的 ready 率约 `35%~45%`，现实窗口约为 bad-slot 的 `8.8%~11.2%`。
+  - 零 Tree 损耗的纯上界估算：ready `35%` 为 `6:34.060`，ready `45%` 为 `6:32.319`；但这要求当前 Save0 不具备的请求通信 / 同步能力。若 owner 因此损失 `5%` Tree 吞吐，ready `45%` 估算退到 `6:43.163`，已经慢于当前。
+  - 结论：不进入实机。零移动 owner relay 只有在未来有通信 API、远程请求可见性，且不牺牲目标 owner 自身 Tree 收割时才值得重开；当前版本不要按“owner 正好在请求格”手写同步。
 - 2026-06-08 周期 Tree 掩码强破坏对照：
   - `.codex/tests/wood_periodic_tree_mask_screen.py` 枚举小周期非相邻 Tree/Bush 掩码；首次包含 `8x8` 的全枚举触发 `60s` timeout 且无有效输出，随后收窄到 `2x2..8x4`。
   - 乐观上界最佳为 `4x4` 对角掩码 `T.../.T../..T./...T`：Tree 密度从 `50%` 降到 `25%`，Tree companion support success 从当前 `66.7%` 提到 `91.7%`，估算 `6:14.474`。
@@ -301,6 +306,7 @@
   - Tree-slot 目标 worker 恢复路线已被 phase-aware 预算筛掉；临时 support 成熟会让目标 worker 等多圈，最好估算仍慢于当前
   - Tree-slot wait-only phase 修正后，Grass 临时 support 只有在近似远程知道目标 Tree 必定 ready 时才有收益；当前 API 需要移动检查，35%~45% ready 率下不过线
   - 预留 spawn helper 虽能省当前 worker 回程，但会损失常驻 worker 吞吐；31 worker + 1 helper 位的真实 ready 率估算仍慢于当前
+  - Tree-slot 零移动 owner relay 在无 Tree 损耗、且有请求通信的上界里有约 `6:32` 纸面空间，但 same-row 覆盖先天小，当前 Save0 没有通信 API，且少量 Tree 吞吐损失就会吞掉收益
   - 周期 Tree 掩码 / 低 Tree 密度布局 request `673` 已证伪；不能靠牺牲大量 Tree 位换 support 命中率
   - 固定少量 Tree 位为 Bush reserve 的乐观收益不足 `1s`，低于两轮波动；不作为实机候选
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
