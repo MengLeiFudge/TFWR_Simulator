@@ -35,8 +35,9 @@
   - `main3` 真源同步后验证：请求 `224` 两轮均值 `10:22.886`，单轮 `10:21.919` / `10:23.854`
   - `main3` 2026-05-30 当前版本复跑：请求 `614` 两轮 `10:22.851` / `10:16.770`，稳定均值 `10:19.811`；仍有大量 `Items.Water` 不足 warning，后续 `finished=false` 取消摘要不作为成绩
   - `main3` 2026-06-08 收益拆分探针：请求 `624` 两轮 `10:42.356` / `10:43.340`，稳定均值 `10:42.848`；慢于当前基线，探针不保留在 `.py`
-- 当前仍慢于 #1 `3:44.313`，但相对 `main2` 已有明确进步
-- 证据来源：真实游戏 `run_real_game_script.py` 请求 `56`、`57`、`223`、`224`
+  - Grass-only 动态 support：请求 `638` 完成 13 轮，最快 `7:36.580`，均值 `7:38.905`；相对 `10:19.811` 明显刷新，后续手动停止产生的 `finished=false runs=14 average=7:08.576` 不作为成绩
+- 当前仍慢于 #1 `3:44.313`，但相对 `main3` 已有明确进步
+- 证据来源：真实游戏 `run_real_game_script.py` 请求 `56`、`57`、`223`、`224`、`614`、`624`、`638`
 
 ## 通用注意事项下的榜单特化
 
@@ -70,7 +71,14 @@
   - 来源：外部 `Save0/wood.py`，但原始 `exit_condition()` 是 `Wood > Hay`，会提前结束，不能直接用于木头榜
   - 迁入修正：改为 `num_items(Items.Wood) >= 10000000000`，并内联 `utils.py` 中的 `use_water()` / `harvest_if_can()`，避免向真实存档新增依赖文件
   - 2026-05-30 当前版本复跑均值 `10:19.811`
-  - 结论：明显优于 `main2`，因此作为当前默认入口；后续优化重点是减少并发水警告，同时保住当前低成本 Tree/Bush 扫描吞吐
+  - 结论：已被 Grass-only 动态 support 刷新；保留为旧低成本 Tree/Bush 扫描基线
+- Grass-only 动态 support
+  - 改法：仍保留 32 无人机 Tree/Bush 奇偶扫描；Tree 位成熟时读取 `get_companion()`，若伴生是 Bush 且坐标落在 Bush 奇偶格则直接收 Tree，若伴生是 Grass 且落在 Bush 奇偶格，则同一无人机移动过去把 support 改成 Grass，再回 Tree 位收割
+  - Bush 位仍按旧逻辑正常收割并重种 Bush，避免把 Bush 完全冻结为纯 support
+  - 请求 `638` 完成轮：`7:36.580`、`7:37.489`、`7:37.508`、`7:40.528`、`7:39.840`、`7:39.990`、`7:38.651`、`7:40.546`、`7:37.908`、`7:37.454`、`7:39.134`、`7:42.153`、`7:37.990`
+  - 13 轮均值 `7:38.905`，最后两轮差异约 `0.9%`；`output.txt` 记录的 `finished=false runs=14 average=7:08.576` 是手动停止后的取消摘要，不作为有效成绩
+  - 每轮统计显示 Grass rewrite 大约 `336~379` 次、static Bush 大约 `340~406` 次，证明 Grass companion 动态兑现是本次刷新来源
+  - 结论：作为当前默认入口；后续如果继续 Wood，优先评估 Grass+Carrot 动态 support，但必须先控制 till / 地块 churn 风险
 
 ## 失败对照
 
@@ -130,6 +138,12 @@
   - 从 `22.2%` 提到静态上限 `33.3%`，Tree 侧理论收益约 `1.49x`，若 Bush 完全不损失，总收益也只有约 `1.26x`；不足以解释当前对 #1 的 `2.76x` 差距。
   - 若冻结 `25%` Bush harvest，Tree 侧至少要提升 `1.22x` 才能不退化；冻结 `50%` 时要 `1.45x`。要接近 #1，在不损失 Bush 的理想情况下 Tree 侧也要约 `4.33x`。
   - 结论：不要直接实机尝试“静态混合 support”“冻结一批 Bush”或“减少一批 worker 当 support”这类粗改；它们要么上限太低，要么需要 Tree 吞吐提升幅度不现实。下一步只有两类值得继续：能近似动态兑现 companion 且几乎不牺牲 Bush 的局部接力结构，或转向其他更可能推进的榜单。
+- 2026-06-08 Grass-only 动态 support 接力
+  - 离线预算 `.codex/tests/wood_dynamic_relay_budget.py` 估算 same-drone Grass-only distance<=3 为 `6:46.308`；实机请求 `638` 证明模型方向成立但偏乐观。
+  - 真实完成 13 轮，均值 `7:38.905`，最快 `7:36.580`，稳定刷新旧基线 `10:19.811`。
+  - 统计样例：第一轮 `static_bush=342`、`grass_request=357`、`grass_rewrite=357`、`reroll=950`；第十轮 `static_bush=347`、`grass_request=379`、`grass_rewrite=379`、`reroll=902`。
+  - 结论：动态兑现 Grass companion 的收益足以覆盖同无人机移动和改写成本；保留在 `.py`，同步 `lb_start.py` 当前复跑时间为 `7:38.905`。
+  - 继续方向：Grass+Carrot 纸面估算更高，但 Carrot support 需要 `till()` / 地块转换，可能破坏 Bush 产木和奇偶格节奏；必须先设计低 churn 版本再实机。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -138,14 +152,14 @@
 
 ## 下一步优化方向
 
-- 当前 `main3` 已有真实短窗成绩；下一步重点确认：
-  - Bush companion 的真实占比
-  - 当前 Tree/Bush 主结构里，灌木贡献了多少木头
-  - 除灌木外的其他 companion 分支到底值不值
-- 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；下一步不要继续在同一框架上微调筛选条件，应改成能真正提高 companion 兑现率的局部 claim / 支撑结构。
+- 当前 Grass-only 动态 support 已有真实成绩；下一步重点确认：
+  - Grass+Carrot support 的纸面上限能否在不破坏地块节奏的情况下兑现
+  - 当前 Grass rewrite 对 Bush 产木的真实净损耗
+  - 是否存在比同无人机往返更低成本的动态接力结构
+- 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
 - 已验证“冻结 Bush 当纯 support”的方向风险很高：Bush 本身贡献大量 Wood，必须先设计能保住 Bush 产木、同时提高 Tree companion 命中率的结构。
 - 下一步不应直接实机大改；先离线计算 Tree/Bush 产量损失与 Tree companion 增益的平衡，再决定是否做小规模布局对照。
-- 离线平衡已经排除静态混合 support、粗粒度 Bush freeze 和简单 support worker 分流；若继续 Wood，必须先提出“几乎不损失 Bush harvest 的动态接力”结构，否则应转 `lb_maze` 做 solver 分项探针。
+- 离线平衡已经排除静态混合 support、粗粒度 Bush freeze 和简单 support worker 分流；当前 Grass-only 动态接力已验证成立，下一步只考虑低 churn Grass+Carrot 或能进一步降低 reroll 的动态结构。
 
 ## 候选策略方向（猜测 / 待验证）
 
