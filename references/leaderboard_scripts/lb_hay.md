@@ -144,6 +144,12 @@
   - 2026-06-08 `.codex/tests/hay_tree_companion_budget.py` 估算：只在每个双草单元的私有 support 格做 Tree/Bush 动态切换，distance<=2 理论约 `2:28.093`；该模型避免改写重叠 support 影响邻居单元。
   - 请求 `637` 实机验证私有近距离 Tree support：两轮 `2:59.687` / `3:00.156`，稳定均值 `2:59.922`，慢于当前 `2:47.861`。
   - 结论：预算低估了动态切换带来的成熟等待、support 改写和路径扰动；即使限制在私有近距离格，仍不如 Bush-only。代码已回退并重新同步正式版到 `gamesave/`。
+- 2026-06-08 静态混合 support 暂缓复核
+  - 机制证据：`Growable.ChooseCompanion()` 会从 `Grass / Bush / Carrot / Tree` 中随机选类型，并排除当前作物；因此草的 companion 类型近似三等分为 `Bush / Carrot / Tree`。
+  - 静态混合 `Bush / Tree` support 不会把成功率提升到 `2/3`：同一 support 坐标只能放一种实体，Bush-only、Tree-only 或 Bush/Tree 混合都只是把同一批坐标分配给不同类型，不能同时承接两个类型。
+  - Tree-only 已有请求 `508` 十轮均值 `2:47.692`，未刷新可靠基线 `2:47.405`；私有近距离 Tree 动态切换请求 `637` 均值 `2:59.922`，明显退化。
+  - Carrot support 虽然会被 `ChooseCompanion()` 选中，但动态兑现非阻塞 companion 已验证会引入大量往返、耕地切换和缺种子警告；在草榜中继续追 Carrot 不进实机。
+  - 结论：当前不再实机测试静态混合 support、Tree-only、Carrot support 或由收割 drone 自己追 Tree / Carrot。下一次只有出现“更近 drone 接力改写 support”或“同一局部低成本多类型承接”的新结构，才重新进入实机。
 
 ## 下一步优化方向
 
@@ -157,6 +163,7 @@
 - 已验证 31 个活跃双草单元明显慢于 32 个，默认保留 32 个单元。
 - 已验证 Tree-only support 慢于 Bush-only，默认保留 Bush-only support。
 - 已验证当前双草单元里“命中 Tree 后自己远距离补 Tree”明显慢于 Bush-only 默认路线；后续 Tree 方向必须控制在近距离支撑或交给更近 drone 接力，不能让收割 drone 自己追远点。
+- 已验证静态混合 support 只是重新分配单类型坐标，不能突破类型上限；后续不做无新结构的 Bush/Tree 混合实机。
 
 ## 候选策略方向（猜测 / 待验证）
 
