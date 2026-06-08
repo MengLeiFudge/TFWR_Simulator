@@ -233,6 +233,12 @@
   - request `675` 两条有效 run 为 `7:22.179` / `7:23.839`，稳定均值 `7:23.009`，明显慢于当前 `6:40.410`。
   - 统计显示跳过 Grass 改写会直接放大 reroll：第一轮 `grass_request=286`、`grass_rewrite=177`、`grass_skip=109`、`reroll=567`；第二轮 `296 / 172 / 124 / 599`。当前默认版 request `660` 的 reroll 约 `439 / 371`。
   - 结论：保护未成熟 support 的收益远低于丢掉 Grass companion 兑现的代价；当前 Grass rewrite 必须继续允许摧毁未成熟旧实体。后续不要再按“低 churn Grass、未成熟就跳过”的方向实机。
+- 2026-06-08 Bush 位提前清理动态 support 对照：
+  - 机制前提：`Growable.HasCompanion()` 只检查 companion 坐标上实体的 `objectName` 是否匹配，不检查成熟度；因此未成熟的 Grass / Carrot 动态 support 也能满足后续 Tree companion。
+  - 改法：`handle_bush_slot()` 遇到未成熟 `Grass / Carrot` 时，不再等到其成熟，而是立即 `harvest()` 清除并恢复 Bush；目标是提高 Bush 自身产木和减少 support 占位。
+  - request `677` 两条有效 run 为 `6:42.811` / `6:42.596`，稳定均值 `6:42.703`，慢于当前 `6:40.410`。
+  - 统计显示该分支触发很多但没有收益：`force_dynamic_support=103/104`、`reroll=409/414`，`static_bush=289/283`；说明提前清理动态 support 损失了后续可复用的伴生承接或扰乱了 Bush/Tree 节奏。
+  - 结论：Bush 位上的未成熟 Grass / Carrot 动态 support 不应提前清掉；当前默认等待其成熟再恢复 Bush 更快。
 - 2026-06-08 周期 Tree 密度 mask 上界筛选：
   - `.codex/tests/wood_tree_mask_density_screen.py` 精确枚举 `4x4..6x6` 周期无相邻 Tree mask，并用固定种子采样 `7x7/8x8`；模型乐观假设所有非 Tree 格都能无额外路径 / churn 地承担 Bush/support 产木。
   - 首次全枚举版触发 `timeout 60s`，退出码 `124`；有界采样版 `py_compile` 通过，`timeout 60s` 下退出码 `0`。
@@ -256,6 +262,7 @@
   - Tree-slot 同列同 worker 延迟承接覆盖面太窄且 phase 成本过高，不进入实机
   - 周期 Tree 掩码 / 低 Tree 密度布局 request `673` 已证伪；不能靠牺牲大量 Tree 位换 support 命中率
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
+  - Bush 位未成熟 Grass / Carrot 动态 support 提前清理 request `677` 已证伪；未成熟 support 仍有后续伴生承接价值，不能只按 Bush 产木直觉清掉
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
 - 已验证“冻结 Bush 当纯 support”的方向风险很高：Bush 本身贡献大量 Wood，必须先设计能保住 Bush 产木、同时提高 Tree companion 命中率的结构。
