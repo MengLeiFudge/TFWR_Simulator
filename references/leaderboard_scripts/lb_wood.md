@@ -180,6 +180,12 @@
   - 请求 `646` 同时补 Grass / Carrot support，两轮 `7:10.030` / `7:07.109`，均值 `7:08.569`，慢于当前 `7:08.255`；统计为 `support_water=146/149`、`carrot_skip=74/89`。
   - 请求 `647` 收窄为只补 Grass support，两轮 `7:11.024` / `7:06.699`，均值 `7:08.862`，仍慢于当前 `7:08.255`；统计为 `support_water=123/119`、`carrot_skip=111/86`。
   - 结论：前置补水能在部分轮次降低 `carrot_skip`，但额外 `use_item(Items.Water)` 动作和水资源竞争抵消了收益；不保留。单轮 `7:06.699` 只是短窗波动，四轮合并均值仍慢于当前默认版。
+- 2026-06-08 Soil 上未成熟 Grass 强制改 Carrot：
+  - 机制前提：`plant()` 不能覆盖已有实体；`harvest()` 会摧毁未成熟实体并在移除实体时消耗 `200t`。因此不能无差别强制覆盖未成熟 support。
+  - 改法：只在 `rewrite_carrot_support()` 遇到 `entity == Entities.Grass`、`not can_harvest()` 且地块已经是 `Grounds.Soil` 时，摧毁 Grass 并种 Carrot；不覆盖未成熟 Bush，不新增补水，不处理 Grassland 上的未成熟 Grass。
+  - 请求 `652` 两轮 `7:06.993` / `7:10.696`，均值 `7:08.845`，慢于当前 `7:08.255`。
+  - 第一轮统计 `carrot_soil_grass_force=0`，说明这个窄分支在实际路径里没有覆盖到有效机会；候选已从 `.py` 回退并重新同步正式版到 `gamesave/`。
+  - 结论：不继续做“摧毁未成熟 Grass 来换 Carrot support”的分支；它既没有覆盖面，也没有刷新成绩。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -191,6 +197,7 @@
 - 当前 Grass+Carrot 动态 support 已有真实成绩；下一步重点确认：
   - 如何减少 `carrot_skip` / `reroll`，而不是单纯消除 Carrot 地块 warning
   - support 位未成熟是 `carrot_skip` 主因；当前无人机一次补水救援已失败，后续要改 support 更新节奏或结构
+  - Soil 上未成熟 Grass 强制改 Carrot 没有覆盖到实际机会，不再作为下一轮分支
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
