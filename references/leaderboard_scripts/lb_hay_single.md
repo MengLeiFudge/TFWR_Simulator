@@ -137,6 +137,11 @@
   - 三锚点最好估算 `3:09.121`；四锚点最好 `2x2` 估算 `3:08.548`，都慢于当前双草。
   - 单锚点实机 request `676`：90 秒超时，无有效完成轮；`item_snapshot` 显示 `hay=90624` 从 `real_elapsed=1.0` 到 `89.1` 始终不变，`game_time` 推进到 `162098.134`；最终 `finished=false runs=1 average=2730:38.809` 是取消摘要，不作为成绩。
   - 结论：单锚点纸面收益完全来自模型漏掉成熟等待，真实路线几乎不产 Hay；三 / 四锚点预算也慢于当前双锚点。后续不要按单锚点、三锚点或四锚点 Bush-only 轮转继续实机。
+- `main4` 非通信定时 Bush/Tree support 预算：
+  - 2026-06-09 `.codex/tests/hay_noncomm_schedule_budget.py` 检查在没有请求感知的情况下，盲目把 5x5 support 格周期轮换为 `Bush / Tree` 是否能提高伴生兑现。
+  - 当前 5x5 双草结构有 `21` 个 support 格；nearest-neighbor support 循环移动 `23` 步；改写一轮 support 下界约 `13000t`，Bush/Tree 两类型周期约 `26000t`。
+  - 如果 anchor 不等待，support 类型和 companion 请求独立，`Carrot` 仍是废伴生，成功率不会突破静态单类型数量级；如果等待目标类型，平均等待约 `13000t`，是当前 Bush-only 期望 reroll 成本 `854.3t` 的 `15.2x`。
+  - 结论：不实机盲定时 support 轮换；单草后续只能考虑请求感知的低成本接力或新机制，不能靠预轮换 Tree/Bush 提高利用率。
 - `main4` 循环未成熟时双桶补水：
   - 2026-05-02 请求 `476` 完整结束 `finished=true runs=42 average=2:52.410`。
   - 改法：保留开局两次单桶补水，只把循环内南北两个 `if not can_harvest(): use_item(Items.Water)` 改成 `use_item(Items.Water, 2)`。
@@ -160,6 +165,7 @@
 - 已通过 2026-05-31 坐标推导确认当前 21 个 Bush support 没有无用铺设；开局支撑路径也已经达到当前支撑集合的移动下界，短期不要继续从删支撑格或改手写路径入手。
 - 已通过 2026-06-08 目标草格枚举确认当前相邻目标对属于最优类；不要再做 5x5 目标草位平替或拉开目标间距。
 - 已通过 2026-06-08 多锚点筛选和 request `676` 确认单锚点会被成熟等待打穿，三锚点 / 四锚点预算也慢于当前双锚点；不要再做 Bush-only 锚点数量平替。
+- 已通过 2026-06-09 非通信定时 Bush/Tree support 预算确认，盲轮换 support 类型无法和随机 companion 请求同步，等待正确类型比当前 reroll 贵一个数量级；不要按预轮换 Tree/Bush 继续实机。
 - 重点关注：
   - companion 接受策略是否还能再压 refresh
   - `5x5` 结构是否仍然是 companion 半径 `3` 下最合适的目标草布局
