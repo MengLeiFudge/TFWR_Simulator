@@ -149,6 +149,12 @@
   - `degree<=4..7` 的 unclaimed support 限流全部 stall，说明当前非树 support 格几乎都是高共享度格，不能靠低度 support 子集承接。
   - `free-bush-only` 和 `free-bush-or-degree<=4..6` 的总 reroll 约为 baseline `3.06x~3.16x`，即使同类型共享率提升到约 `0.43`，额外 policy reroll 和 tree-slot reroll 也会先压垮收益。
   - 结论：不要继续做“只改 companion 接受顺序 / 更严格保灌木 / 不加移动”的实机微调；它本质上重复 Bush-only / Bush 优先 reroll 的失败模式。
+- `main11` delayed claim 单 owner 承接：
+  - 2026-06-09 `.codex/tests/wood_single_delayed_claim_screen.py` 先筛 pending claim：当 support 当前只被单个旧 claim 占用，且旧 claim 会在当前 tree 下次收割前释放、support 格也会在那之前被扫到，就先挂 pending claim，等 support 格访问时激活。
+  - 离线 count1 版本只处理 `support_count==1` 且 owner 已知、single pending reservation；10000 sweeps 显示 `reroll/accept` 从 baseline `0.922` 降到 `0.701`，`pending_loss=0`、`match_loss=0`，但 `replant/accept` 从 `0.502` 升到 `0.586`。
+  - 临时实机 request `679` 两条有效 run 为 `5:43.281` / `5:45.735`，稳定均值 `5:44.508`，慢于当前 `5:38.652`。
+  - 统计显示 delayed 机制确实触发，第二轮尾部附近 `delayed_accept=156`、`delayed_activate=155`、`delayed_drop=0`；但同时 `tree_reroll=922`、`support_replant=700`，收益没有转成成绩。
+  - 结论：delayed pending claim 不保留；单机木头不要继续按“等旧 claim 释放后承接”的单 owner 状态机微调，除非新模型能同时压低 `support_replant` 并在实机短窗优于 `5:38.652`。
 - `main11` Carrot companion 材料 guard
   - 2026-06-08 请求 `665` 的探针输出里，开局出现 `Warning: 没有种植 Entities.Carrot 所需的物品。`，说明部分 Carrot support claim 接受后暂时落不了地。
   - 候选改法：`roll_tree_companion()` 遇到 `ct == Entities.Carrot` 且当前不能支付 `plant(Entities.Carrot)` 成本时，直接 reroll，不占用 support claim。
@@ -189,12 +195,13 @@
 - 已验证 Carrot companion 材料 guard 变慢；不要因为开局缺材料 warning 就提前拒绝 Carrot companion。
 - 已验证开放少量 active tree slot 变慢；不要用“少 2 到 4 棵树换更低 tree-slot reroll”的方式继续微调。
 - 已通过 no-movement claim policy 筛选确认，单纯更严格地挑 support 坐标或优先 Bush 会把总 reroll 放大到 baseline 约 `3x` 或直接 stall；不要按“只改接受顺序但不移动 / 不加状态”的方向实机。
+- 已验证 delayed claim 单 owner 承接变慢；pending 能降低一部分 reroll，但会提高 support replant / 运行节奏成本，不要继续按单 owner pending 状态机微调。
 
 ## 候选策略方向（猜测 / 待验证）
 
 ### 方向 1：`main11` 上继续强化“灌木优先”的 support 冻结
 
-- 当前结论：普通冻结、Bush-only、有限 Bush 优先 reroll 和 no-movement claim policy 都已失败；除非能引入新的低成本状态信息或局部移动承接，否则不要继续把“灌木优先”写成更严格的接受规则。
+- 当前结论：普通冻结、Bush-only、有限 Bush 优先 reroll、no-movement claim policy 和 delayed claim 单 owner 承接都已失败；除非能同时降低 reroll 与 support replant，否则不要继续把“灌木优先”写成更复杂的接受 / pending 状态规则。
 
 ### 方向 2：`main11` 上做更激进的“树位有限开放”，但只为保住树 / 灌木主结构服务
 
