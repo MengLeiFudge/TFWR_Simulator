@@ -194,7 +194,7 @@
 
 ## 下一步优化方向
 
-- 当前静态 Bush 支撑主线已补真实成绩；下一步应围绕 companion 兑现率做探针，而不是继续证明它能结算
+- 当前静态 Bush 支撑主线已补真实成绩；后续只在出现“不由当前收割者往返改写 support”的新结构时重开 companion 兑现率探针，不再重复静态平替或 same-drone 动态承接
 - 重点看：
   - `Grass / Bush / Tree` 各自的真实兑现率和补支撑成本
   - 5x5 小图是否真的适合做 companion 链
@@ -212,10 +212,11 @@
 - 已通过 same-drone 动态 support 预算确认，当前收割者自己写相邻 / 近距离 support 不值得进实机；后续动态承接必须避免当前 drone 往返改写成本。
 - 已通过 mature-wait-aware 锚点筛选确认，当前相邻 `2x2` 四锚点是静态 Bush-only 锚点形状上界；不要继续只换锚点数量或形状。
 - 已通过低成本动态 claim 筛选确认，当前 drone 附近临时改 `Grass / Tree` 再恢复 `Bush` 也不值得进实机；后续必须避免破坏静态 Bush support 或找到无需当前 drone 往返恢复的新承接机制。
+- 当前单机胡萝卜 companion 主线进入暂缓：静态锚点、静态类型、same-drone 动态、低成本动态 claim 都已筛掉；下一轮只能先做更强的 claim / 成熟等待离线模型，不能直接实机微调。
 
 ## 候选策略方向（猜测 / 待验证）
 
-### 方向 1：保留小图，但重做 companion claim 规则
+### 方向 1：保留小图，但重做 companion claim 规则（暂缓）
 
 - 核心思路：不是放弃 claim，而是把 claim 规则重写成“只接受当前能低成本兑现的 companion”
 - 主瓶颈：当前 `main1` 的问题更可能是冲突和错误接受，而不是“claim 这件事本身不该做”
@@ -223,7 +224,7 @@
 - 优先探针：
   - 不同 companion 类型的兑现率
   - 拒绝 `Grass` 后总冲突数是否明显下降
-- 当前落地版本：静态 Bush-only 四锚点 claim 已验证明显超过 `main3()` 纯滚动基线；13 锚点高密度版本已失败，下一步更适合评估是否放开 `Tree` companion，而不是继续盲目增加锚点。
+- 当前状态：静态 Bush-only 四锚点 claim 已验证明显超过 `main3()` 纯滚动基线；13 锚点高密度、相邻双锚点、静态单类型 / 多类型和低成本动态 claim 都已失败。后续不能只重写接受顺序，必须先证明新 claim 模型能同时降低 reroll、成熟等待和 support 恢复成本。
 
 ### 方向 2：围绕 `Bush / Tree` 做单机短链（当前暂缓）
 
@@ -233,7 +234,7 @@
 - 优先探针：
   - `Tree` companion 出现频率
   - 接受 `Tree` 后的 reroll 降幅是否超过补树动作成本
-- 当前状态：动态补 Tree 已实机失败；same-drone 近距离动态 support 预算也慢于静态 Bush-only。除非出现“不由当前收割者往返改写”的新结构，否则不进实机。
+- 当前状态：动态补 Tree 已实机失败；same-drone 近距离动态 support 和低成本动态 claim 预算也慢于静态 Bush-only。除非出现“不由当前收割者往返改写”的新结构，否则不进实机。
 
 ### 方向 3：小图保留，但 support 服务于低成本可兑现伴生
 
@@ -243,3 +244,4 @@
 - 优先探针：
   - 去掉 `Grass` 兼容后，support 冲突是否下降
   - 固定 support 与动态 support 哪种更适合单机胡萝卜
+- 当前状态：静态 Grass-only、Tree-only、Bush/Tree 混合和静态多类型 support 都已失败；固定 support 当前仍以 Bush-only 为默认，动态 support 必须先证明无需当前 drone 往返。

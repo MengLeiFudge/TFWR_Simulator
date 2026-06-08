@@ -176,14 +176,15 @@
 
 - 继续以 `main11` 为主线
 - 优先做：
-  - companion 接受 / 分配策略微调
-  - support 改写抖动控制
-  - 少量 layout 变体验证，而不是大范围推翻主结构
-- 当前默认判断是：sparse layout 本身已经接近局部最优，主矛盾更多在 companion 侧
+  - 只在新模型能同时降低 reroll 与 support replant 时，才继续 companion 接受 / 分配策略
+  - 只在能证明不增加 support 改写抖动时，才调整 support 状态机
+  - 少量 layout 变体验证已被开放树位和 overlap 筛选压窄，不能再直接实机微调
+- 当前默认判断是：sparse layout 本身已经接近局部最优，主矛盾更多在 companion 侧；但普通接受顺序、Bush 冻结、no-movement claim、delayed claim 和开放少量树位都已失败，后续需要新的状态信息或低成本承接结构
 - 2026-05-31 布局筛选进一步支持这个判断：当前布局的 tree-slot invalid 一跳邻域没有更优解，后续应优先看 claim 冲突、support 改写、成熟等待和补水，而不是只换树位空洞。
 - 这也可以翻译成一句更直接的话：
   - 现在不是继续发明新主题的时候
-  - 而是继续围绕“树位稳定、灌木 support 稳定”把细节抠干净
+  - 但也不能继续重复“树位稳定、灌木 support 稳定”的普通微调
+  - 下一次必须先拿离线模型证明 reroll 降幅不会被 support replant 或成熟等待吃掉
 - 已验证关闭 `main11` 周期 probe 输出没有刷新，默认保留 probe 以便继续观察 reroll / replant 抖动。
 - 已验证只接受 Bush companion 明显退化，默认继续接受非冲突 companion，不把灌木优先写成硬过滤。
 - 已验证有限 Bush 优先 reroll 仍明显退化；后续不要继续用“主动增加 tree reroll”追灌木比例，除非先找到能同时压低 reroll 的支持位冻结机制。
@@ -203,7 +204,7 @@
 
 - 当前结论：普通冻结、Bush-only、有限 Bush 优先 reroll、no-movement claim policy 和 delayed claim 单 owner 承接都已失败；除非能同时降低 reroll 与 support replant，否则不要继续把“灌木优先”写成更复杂的接受 / pending 状态规则。
 
-### 方向 2：`main11` 上做更激进的“树位有限开放”，但只为保住树 / 灌木主结构服务
+### 方向 2：`main11` 上做更激进的“树位有限开放”（已降级）
 
 - 核心思路：不像 `main9` 那样开放整片树位，而是只对极少数后段树位开放 companion 占用
 - 主瓶颈：当前仍有不少 target 落在树位上的无谓 reroll
@@ -211,6 +212,7 @@
 - 优先探针：
   - 哪些树位最常成为无效 target
   - 开放 2 到 4 个树位后的活树数变化
+- 当前结论：2026-06-08 有限开放树位预算和 request `671` 已证明开放 2 到 4 个 active tree slot 会变慢；后续不要继续做树位开放微调，除非新模型能同时保住活树数、support 恢复和 sweep 节奏。
 
 ### 方向 3：维持 `main11` 布局，但把“灌木最理想”写进更严格的 companion 接受顺序
 
