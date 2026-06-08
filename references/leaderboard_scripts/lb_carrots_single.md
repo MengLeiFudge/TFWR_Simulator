@@ -128,6 +128,10 @@
   - 全量 `d<=2` 模型为 `success=65.28%`、`rewrite=36.11%`、`ticks=1644.1`；删掉任意一个低权重 support cell 的最好估算也只到 `8:37.868`，比当前慢约 `0.149s`。
   - selective `d=3` 最好是不额外开放；开放任意一个 `d=3` cell 至少退到 `8:38.899`，比当前慢约 `1.180s`。
   - 结论：不做实机；当前收益来自尽量多兑现 `d<=2` 内的非 Bush companion，选择性减少 support cell 只会损失成功率，额外打开 `d=3` 的 rewrite 成本又会吞掉新增命中。
+- 2026-06-09 directional adaptive support 筛选：
+  - `.codex/tests/carrot_single_directional_adaptive_support_screen.py` 继续沿用当前 `8:37.719` 校准，但把筛选粒度从 support 坐标改成锚点到 support 的相对 offset，枚举 `d<=2` 内 12 个相对方向是否允许 mismatch rewrite。
+  - 全量 `d<=2` 仍是最优：`success=65.28%`、`rewrite=36.11%`、`rewrite_cost=629.8`、`ticks=1644.1`。删掉任意一个低权重方向后最好估算为 `8:38.177`，比当前慢约 `0.458s`。
+  - 结论：不进实机；按方向过滤 rewrite 只是降低少量 churn，同时损失更多可兑现 companion。当前默认继续保留全量 `d<=2`。
 - 2026-04-30 已知支撑记录复测
   - 在 `main4` 初始化时记录 5x5 每格实体；后续 `get_companion()` 命中已知 `Bush` 支撑格时直接接受
   - 请求 `400` 完成 `13` 轮，均值 `9:45.406`
@@ -231,7 +235,7 @@
 - 已通过 same-drone 动态 support 预算确认，当前收割者自己写相邻 / 近距离 support 不值得进实机；后续动态承接必须避免当前 drone 往返改写成本。
 - 已通过 mature-wait-aware 锚点筛选确认，当前相邻 `2x2` 四锚点是静态 Bush-only 锚点形状上界；不要继续只换锚点数量或形状。
 - 已通过低成本动态 claim 筛选确认，当前 drone 附近临时改 `Grass / Tree` 再恢复 `Bush` 不值得进实机；但 no-restore support memory 经 request `682` 完整统计确认能小幅刷新，当前默认保留 adaptive support memory。
-- 当前单机胡萝卜下一步不再是静态平替或恢复 Bush，而是围绕 adaptive support memory 继续压低 `memory_far_reject` / `memory_rewrite` 成本；`d<=1` 已实机变慢，selective support cell / selective `d=3` 已模型判定无实机余量，`d<=3` 全开已在模型中显示改写过多，任何新增分支都必须先过 mature-wait-aware / support-memory 模型。
+- 当前单机胡萝卜下一步不再是静态平替或恢复 Bush，而是围绕 adaptive support memory 继续压低 `memory_far_reject` / `memory_rewrite` 成本；`d<=1` 已实机变慢，selective support cell、directional rewrite filter 和 selective `d=3` 已模型判定无实机余量，`d<=3` 全开已在模型中显示改写过多，任何新增分支都必须先过 mature-wait-aware / support-memory 模型。
 
 ## 候选策略方向（猜测 / 待验证）
 
