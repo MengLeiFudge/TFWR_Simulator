@@ -251,6 +251,13 @@
   - request `677` 两条有效 run 为 `6:42.811` / `6:42.596`，稳定均值 `6:42.703`，慢于当前 `6:40.410`。
   - 统计显示该分支触发很多但没有收益：`force_dynamic_support=103/104`、`reroll=409/414`，`static_bush=289/283`；说明提前清理动态 support 损失了后续可复用的伴生承接或扰乱了 Bush/Tree 节奏。
   - 结论：Bush 位上的未成熟 Grass / Carrot 动态 support 不应提前清掉；当前默认等待其成熟再恢复 Bush 更快。
+- 2026-06-09 Bush-slot 自身 companion 动态改写：
+  - 切入点：当前 `handle_bush_slot()` 成熟就收 Bush，不显式检查 Bush 自己的 companion；反编译 `Growable.YieldFactor` 说明 Bush 自身也会吃 companion 倍率。
+  - 离线预算 `.codex/tests/wood_bush_companion_gate_budget.py` 显示：Bush 的 Tree companion 落在 Tree-slot 时当前已自然满足，静态成功率 `22.2%`；若额外处理 Grass/Carrot 落在 Bush-slot，可把 Bush 自身 companion 成功率纸面提升到 `44.4%`。
+  - 临时实现：Bush 成熟时读取 `get_companion()`；若请求 Grass/Carrot 且坐标是 Bush-slot，则当前 worker 往返改写该 Bush-slot，回到当前 Bush 后收割并重种 Bush。
+  - request `680` 两条有效 run 为 `7:05.832` / `7:06.352`，稳定均值 `7:06.092`，明显慢于当前 `6:40.410`。
+  - 运行统计证明候选有触发：第一轮 `bush_static_tree=145`、`bush_grass_request=83`、`bush_grass_rewrite=83`、`bush_carrot_request=70`、`bush_carrot_rewrite=68`；第二轮分别为 `118 / 78 / 78 / 79 / 74`。
+  - 结论：不保留。纸面收益被 Bush-slot churn、额外 Carrot warning、Tree support 扰动和主循环节奏损失吞掉；后续不再按“成熟 Bush 自己追 Grass/Carrot companion”推进。
 - 2026-06-08 周期 Tree 密度 mask 上界筛选：
   - `.codex/tests/wood_tree_mask_density_screen.py` 精确枚举 `4x4..6x6` 周期无相邻 Tree mask，并用固定种子采样 `7x7/8x8`；模型乐观假设所有非 Tree 格都能无额外路径 / churn 地承担 Bush/support 产木。
   - 首次全枚举版触发 `timeout 60s`，退出码 `124`；有界采样版 `py_compile` 通过，`timeout 60s` 下退出码 `0`。
@@ -280,6 +287,7 @@
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
 - 已验证“冻结 Bush 当纯 support”的方向风险很高：Bush 本身贡献大量 Wood，必须先设计能保住 Bush 产木、同时提高 Tree companion 命中率的结构。
+- 已验证 Bush-slot 自身追 Grass/Carrot companion 会显著变慢；成熟 Bush 仍应直接按当前默认逻辑收割并恢复 Bush，不要让 Bush worker 往返改写邻居 Bush-slot。
 - 下一步不应直接实机大改；先离线计算 Tree/Bush 产量损失与 Tree companion 增益的平衡，再决定是否做小规模布局对照。
 - 离线平衡已经排除静态混合 support、粗粒度 Bush freeze 和简单 support worker 分流；当前 Grass-only 动态接力已验证成立，下一步只考虑低 churn Grass+Carrot 或能进一步降低 reroll 的动态结构。
 
