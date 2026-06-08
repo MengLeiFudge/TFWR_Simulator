@@ -34,6 +34,7 @@
   - `main3` 迁入前验证：请求 `223` 两轮均值 `10:15.633`，单轮 `10:14.297` / `10:16.968`
   - `main3` 真源同步后验证：请求 `224` 两轮均值 `10:22.886`，单轮 `10:21.919` / `10:23.854`
   - `main3` 2026-05-30 当前版本复跑：请求 `614` 两轮 `10:22.851` / `10:16.770`，稳定均值 `10:19.811`；仍有大量 `Items.Water` 不足 warning，后续 `finished=false` 取消摘要不作为成绩
+  - `main3` 2026-06-08 收益拆分探针：请求 `624` 两轮 `10:42.356` / `10:43.340`，稳定均值 `10:42.848`；慢于当前基线，探针不保留在 `.py`
 - 当前仍慢于 #1 `3:44.313`，但相对 `main2` 已有明确进步
 - 证据来源：真实游戏 `run_real_game_script.py` 请求 `56`、`57`、`223`、`224`
 
@@ -115,6 +116,13 @@
   - 请求 `601` 使用 `45s` timeout，真实新增完成轮 `run=1 time=10:18.888`，脚本输出 `main4 done wood=10000461312 time=618.77`。
   - 请求 `601` 的取消摘要 `finished=false runs=2 average=9:45.728` 不是有效刷新；`output.txt` 没有对应的第二条 `[lb_wood] run=2`。
   - 结论：该低移动显式 Bush 筛选没有刷新 `main3` 的历史 `10:15.633`，也没有稳定优于真源同步后的 `10:22.886`；只读 `get_companion()` 加筛选不足以让木头榜接近 100% 伴生收益，失败实现已从 `.py` 回退。
+- 2026-06-08 `main3` Tree/Bush 收益拆分探针
+  - 改法：不改变默认 Tree/Bush 扫描结构，只统计 Tree/Bush 收割次数、收割前后 Wood delta、Tree 位 companion 类型分布、水和肥料调用次数。
+  - 请求 `624` 使用 `--max-leaderboard-runs 2`，真实完成轮为 `10:42.356` / `10:43.340`，稳定均值 `10:42.848`；慢于当前 `10:19.811`，不作为成绩刷新。
+  - 第一轮：`tree_harvest=2757`、`bush_harvest=2915`、`tree_delta=2071226880`、`bush_delta=1776668928`、`companion_bush=995`、`companion_tree=7`、`companion_grass=1042`、`water_calls=524`、`fertilizer_calls=16`。
+  - 第二轮：`tree_harvest=2759`、`bush_harvest=2934`、`tree_delta=1987860992`、`bush_delta=1834168064`、`companion_bush=1003`、`companion_tree=4`、`companion_grass=1007`、`water_calls=516`、`fertilizer_calls=13`。
+  - 结论：Bush 自身贡献了约 `1.78B~1.83B` Wood，不是纯 support；冻结 Bush support 会直接损失大块产量，必须先算净收益。
+  - Tree 位 companion 采样里 Bush 和 Grass 接近同量级，Tree 极少；当前结构不是稳定 Bush companion 路线。单纯加入统计和 `get_companion()` 开销也会显著拖慢，所以探针已从 `.py` 回退并重新同步 `gamesave/`。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -128,6 +136,8 @@
   - 当前 Tree/Bush 主结构里，灌木贡献了多少木头
   - 除灌木外的其他 companion 分支到底值不值
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；下一步不要继续在同一框架上微调筛选条件，应改成能真正提高 companion 兑现率的局部 claim / 支撑结构。
+- 已验证“冻结 Bush 当纯 support”的方向风险很高：Bush 本身贡献大量 Wood，必须先设计能保住 Bush 产木、同时提高 Tree companion 命中率的结构。
+- 下一步不应直接实机大改；先离线计算 Tree/Bush 产量损失与 Tree companion 增益的平衡，再决定是否做小规模布局对照。
 
 ## 候选策略方向（猜测 / 待验证）
 
