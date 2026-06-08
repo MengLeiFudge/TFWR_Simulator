@@ -164,6 +164,13 @@
   - 两轮共 `60` 条 solver summary：平均 `hits=12.07`、平均 `approach=144.9`、平均 `route+back=185.4`、平均 `wait_time=73.8`；最大 `approach=341`，最大 `route+back=378`。
   - 两轮总 `hits=724`，约每轮 `362` 次 `use_item`，而理论结算只需要 `301` 次 Treasure 推进；说明当前重叠区域存在约 `20%` 级别的重复竞争 / 无效兑现空间。
   - 结论：下一步不要继续做半径微调、日志降频或单 solver 不回中心；优先看“减少所有 solver 从同一起点长距离走到 center”的调度结构，以及“减少重叠区域重复 use_item”的轻量负责权机制，但不能回到每个 solver 全图 path 表。
+- 轻量负责区 / 通行区分离
+  - 2026-06-08 请求 `626` 验证。
+  - 改法：保留原 `node_set` 作为可通行 / path 区域，新增 `owned_set` 作为唯一 Treasure 负责区域；`solve_maze_in_area()` 只等待 `treasure in owned_set`，避免不同 solver 对同一个 Treasure 重复 `use_item`。
+  - 结果：有效完成轮只有 `run=1 time=1:53.743`，慢于当前 `1:48.180`；第二轮在 timeout 时取消，`finished=false runs=2 average=1:46.787` 不是有效成绩。
+  - 同轮输出 `maze_multi chunks=30 nodes=1024`、`maze_multi solve_done gold=9863168 time=113.72 solve_time=94.97`；早期 `game_time=60.283` 时 `gold=4,390,912`，低于请求 `625` 类似区间的 `gold≈4,915,200`。
+  - 根因判断：唯一负责权减少了重叠竞争，但也让部分 solver 在 Treasure 不属于自己时空等；失去的并发抢宝收益大于减少重复 `use_item` 的收益。
+  - 结论：该候选已从 `.py` 回退，并重新同步正常版到 `gamesave/`；后续如果继续做负责权，不能只按初始 chunk 唯一分配，需要 dispatcher 或动态最近可达分配，并且要证明不会让 solver 长时间空等。
 
 ## 下一步优化方向
 
@@ -178,7 +185,8 @@
   - 让每个无人机先到固定片区锚点，再探图 / 解题，避免所有无人机重复执行单机式全局流程。
   - 当墙消失或发现更短边时，直接走直线或局部更新路径，不继续套旧路径。
   - 请求 `625` 显示 solver 到 center 的平均 `approach` 约 `145` 步，最大 `341` 步；若要改调度，优先减少这段开局迁移，而不是继续压探图阶段本身。
-  - 请求 `625` 显示每轮约 `362` 次 Treasure 处理才达到 `301` 次理论需求；若做负责权分离，必须限制为轻量判定或共享 dispatcher，不再为每个 solver 预建全图 path 表。
+  - 请求 `625` 显示每轮约 `362` 次 Treasure 处理才达到 `301` 次理论需求；但请求 `626` 的初始唯一负责区已经退化，说明减少重复 `use_item` 不能以牺牲并发抢宝为代价。
+  - 若继续做负责权分离，必须限制为轻量判定或共享 dispatcher，不再为每个 solver 预建全图 path 表；负责权不能固定死在初始 chunk 上，应优先考虑动态最近可达或短等待后 fallback。
 - 改进进度判断：
   - 首轮未完成时看 `gold` 增速和 `progress_estimate`。
   - 第一轮完成后只用真实完成轮时间判断。
