@@ -287,6 +287,10 @@
   - 只转换 Bush 类型 bad-slot 请求时，`1/16` reserve 估算 `6:39.817`，`1/8` 为 `6:39.498`，`3/16` 为 `6:39.450`；最佳乐观收益不足 `1s`。
   - impossible typed reserve ceiling 显示只有能按请求类型完美预留时才有更大纸面空间：`1/8` 估算 `6:32.040`，`1/4` 估算 `6:27.046`；但这需要通信或类型偏置，当前 Save0 API 不支持。
   - 结论：不进入实机。固定 Bush reserve 的现实收益低于两轮波动，且模型已经忽略了路径扰动、Tree phase 变化和动态 support churn；后续不要按“固定预留少量 Tree 位给 Bush reserve”推进。
+- 2026-06-09 动态 support 边际价值汇总：
+  - `.codex/tests/wood_dynamic_support_marginal_value.py` 只汇总已验证请求，不预测新策略：旧 Tree/Bush `10:19.811` -> Grass dynamic `7:38.905` 节省约 `160.906s`，约 `1.351x`；Grass -> Grass+Carrot `7:08.255` 再省约 `30.650s`；未成熟 Bush 强制改 Carrot `6:40.410` 再省约 `27.845s`。
+  - 反向对照显示泛化降 churn 不成立：low-churn Grass request `675` 退到 `7:23.009`，比当前慢约 `42.599s`；Bush 位提前清理动态 support request `677` 退到 `6:42.703`，比当前慢约 `2.293s`。
+  - 结论：动态 support rewrite 是已验证提速来源，不能为了保护 Bush 或降低 churn 泛化减少 rewrite。后续只有在不降低当前 rewrite 覆盖率的前提下，才继续研究更低动作成本的 support 结构。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -309,7 +313,7 @@
   - Tree-slot 零移动 owner relay 在无 Tree 损耗、且有请求通信的上界里有约 `6:32` 纸面空间，但 same-row 覆盖先天小，当前 Save0 没有通信 API，且少量 Tree 吞吐损失就会吞掉收益
   - 周期 Tree 掩码 / 低 Tree 密度布局 request `673` 已证伪；不能靠牺牲大量 Tree 位换 support 命中率
   - 固定少量 Tree 位为 Bush reserve 的乐观收益不足 `1s`，低于两轮波动；不作为实机候选
-  - 当前 Grass rewrite 对 Bush 产木的真实净损耗
+  - Grass / Carrot 动态 support 的边际价值已用 request `638/641/660/675/677` 收口；泛化保护 Bush / 降 churn 会损失 rewrite 覆盖，不作为独立候选
   - Bush 位未成熟 Grass / Carrot 动态 support 提前清理 request `677` 已证伪；未成熟 support 仍有后续伴生承接价值，不能只按 Bush 产木直觉清掉
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
