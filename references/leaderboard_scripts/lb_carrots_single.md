@@ -104,6 +104,11 @@
   - `.codex/tests/carrot_single_mature_wait_screen.py` 用 request `622` 当前四锚点 `8:44.832` 和 request `650` 双锚点 `15:02.934` 校准成熟等待惩罚；双锚点动作模型原本只比当前慢 `0.933x`，但实机慢到 `1.720x`，折算成熟等待倍数 `1.845x`。
   - 精确枚举 `2..6` 锚点、固定种子采样 `7..8` 锚点后，top candidates 全部是当前等价的相邻 `2x2` 四锚点：估算 `8:44.832`、`success=29.2%`、`path=4`，没有超过当前路线。
   - 结论：不再实机测试静态锚点数量或静态锚点形状变化；少锚点会重复 request `650` 的成熟等待失败，多锚点没有几何收益。下一条候选必须改变 claim / 动态承接机制，而不是只换锚点。
+- 2026-06-09 低成本动态 claim 筛选：
+  - `.codex/tests/carrot_single_low_cost_claim_screen.py` 保留当前静态 Bush 成功命中，再估算附近 `Grass / Tree` 废命中的动态承接；baseline 事件 `288`、静态命中 `84`、成功率 `29.17%`、估算 `1774.9t = 8:44.832`。
+  - 最好 no-restore 下界 `hybrid d<=2 Grass+Tree` 估算 `8:06.162`，但它不恢复 Bush support，会污染后续静态 Bush 命中，不能直接实机。
+  - 路径感知恢复后，`hybrid d<=1 Grass` / `Tree` 估算 `8:50.621`，比当前慢 `5.789s`；`anchor-sacrifice d<=1 Grass+Tree` 估算 `8:55.081`，比当前慢 `10.249s`。
+  - 结论：当前四锚点下，“当前收割者临时改附近 Grass / Tree，再恢复 Bush”的低成本 claim 不进实机；恢复支撑和路径绕行成本已经吃掉 reroll 收益。
 - 2026-04-30 已知支撑记录复测
   - 在 `main4` 初始化时记录 5x5 每格实体；后续 `get_companion()` 命中已知 `Bush` 支撑格时直接接受
   - 请求 `400` 完成 `13` 轮，均值 `9:45.406`
@@ -206,6 +211,7 @@
 - 已通过静态多类型 support 筛选确认，当前四锚点几何下混合 `Grass/Bush/Tree` 不提高类型命中率；跳过 `(0,4)` 这个 unreachable support 也变慢，默认继续初始化全部非锚点 Bush。
 - 已通过 same-drone 动态 support 预算确认，当前收割者自己写相邻 / 近距离 support 不值得进实机；后续动态承接必须避免当前 drone 往返改写成本。
 - 已通过 mature-wait-aware 锚点筛选确认，当前相邻 `2x2` 四锚点是静态 Bush-only 锚点形状上界；不要继续只换锚点数量或形状。
+- 已通过低成本动态 claim 筛选确认，当前 drone 附近临时改 `Grass / Tree` 再恢复 `Bush` 也不值得进实机；后续必须避免破坏静态 Bush support 或找到无需当前 drone 往返恢复的新承接机制。
 
 ## 候选策略方向（猜测 / 待验证）
 
