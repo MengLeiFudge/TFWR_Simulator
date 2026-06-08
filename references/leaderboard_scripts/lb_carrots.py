@@ -1,6 +1,6 @@
 from __builtins__ import *
 
-# 4:41.545
+# 4:34.363
 def lb_carrots():
     set_world_size(FIELD_SIZE)
     tile_count = 0
@@ -25,8 +25,8 @@ TILE_BASE_XS = (0, 4, 8, 12, 16, 20, 24, 28)
 TILE_BASE_YS = (0, 8, 16, 24)
 TILE_ANCHOR_OFFSETS = (
     (0, 0), (0, 1), (0, 2),
-    (0, 3), (0, 4), (0, 5),
-    (0, 6), (0, 7),
+    (0, 3), (0, 4), (1, 4),
+    (1, 5), (1, 6),
 )
 
 
@@ -120,10 +120,12 @@ def init_tile_anchors(base_x, base_y):
 
 
 def is_carrot_anchor(x, y):
-    if x % TILE_WIDTH != 0:
-        return False
+    local_x = x % TILE_WIDTH
     local_y = y % TILE_HEIGHT
-    return local_y < 8
+    for anchor_x, anchor_y in TILE_ANCHOR_OFFSETS:
+        if local_x == anchor_x and local_y == anchor_y:
+            return True
+    return False
 
 
 def prepare_static_carrot_slot():

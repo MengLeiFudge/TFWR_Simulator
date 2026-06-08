@@ -22,7 +22,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Carrots, "lb_carrots", 10000)
 # 成功条件：num_items(Items.Carrot) >= 2_000_000_000
-# 用时（#1/当前版本复跑）：3:10.664 / 4:41.588
+# 用时（#1/当前版本复跑）：3:10.664 / 4:34.408
 
 # leaderboard_run(Leaderboards.Carrots_Single, "lb_carrots_single", 10000)
 # 成功条件：num_items(Items.Carrot) >= 100_000_000
