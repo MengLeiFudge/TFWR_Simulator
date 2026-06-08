@@ -228,6 +228,11 @@
   - 临时实机只把 Tree 判定改成 `x % 4 == y % 4`，保留动态 support、补水、施肥、统计和入口不变。
   - request `673` 两条有效 run 均为 `8:10.429`，明显慢于当前 `6:40.410`；取消摘要 `finished=false runs=3 average=5:33.212` 不作为成绩。
   - 结论：大幅降低 Tree 密度虽然能减少 Tree-slot reroll，但 Tree 产量损失、Bush/support 扫描节奏和额外 churn 远超纸面收益；不继续做周期掩码 / 低 Tree 密度布局实机微调。
+- 2026-06-08 low-churn Grass support 对照：
+  - 改法：`rewrite_grass_support()` 遇到旧实体未成熟时不再强制 `harvest()` 改写 Grass，而是跳过本次 Grass companion；只在空位、已是 Grass 或旧实体可收割时改写。
+  - request `675` 两条有效 run 为 `7:22.179` / `7:23.839`，稳定均值 `7:23.009`，明显慢于当前 `6:40.410`。
+  - 统计显示跳过 Grass 改写会直接放大 reroll：第一轮 `grass_request=286`、`grass_rewrite=177`、`grass_skip=109`、`reroll=567`；第二轮 `296 / 172 / 124 / 599`。当前默认版 request `660` 的 reroll 约 `439 / 371`。
+  - 结论：保护未成熟 support 的收益远低于丢掉 Grass companion 兑现的代价；当前 Grass rewrite 必须继续允许摧毁未成熟旧实体。后续不要再按“低 churn Grass、未成熟就跳过”的方向实机。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
