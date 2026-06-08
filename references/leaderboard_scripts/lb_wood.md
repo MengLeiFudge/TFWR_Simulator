@@ -210,6 +210,11 @@
   - 如果把目标 Tree 位长期留作 support，纸面估算约 `6:32~6:35`，但结构上不安全：目标 worker 后续会在非 Tree 实体上运行 `handle_tree_slot()`，可能卡在未成熟 support、错误 companion 或延迟恢复 Tree。
   - 如果每次都恢复目标 Tree 位，估算慢于当前：转换 `25%` bad slot 约 `6:54.137`，`50%` 约 `7:10.705`，`100%` 约 `7:50.596`；Carrot 还需要额外 `till()`，更慢。
   - 结论：不实机实现 Tree-slot 即时改写。后续只有能不破坏目标 worker 主循环、或几乎零移动地由目标 worker 自己承接的结构，才重新评估 Tree-slot companion。
+- 2026-06-09 Tree-slot 目标成熟度限量探针：
+  - 改法：临时在 bad-slot companion 路径上只采样前 `96` 个目标格，移动过去读取实体和 `can_harvest()` 后回原位；不改变收割接受规则。该探针有明显移动开销，不作为成绩刷新。
+  - request `678` 两条有效 run 为 `6:52.036` / `6:52.630`，稳定均值 `6:52.333`，探针开销导致慢于当前。
+  - 第一轮采样 `bad_slot_probe=96`、`bad_slot_tree_ready=34`、`bad_slot_tree_unready=60`、`bad_slot_other=2`；第二轮为 `96 / 43 / 50 / 3`。
+  - 结论：Tree-slot bad target 中 ready Tree 只有约 `35%~45%`，多数仍未成熟；这落在 `wood_tree_slot_budget.py` 里 25%~50% 转换区间，而该区间即使乐观恢复 Tree 也估算 `6:54.137` 到 `7:10.705`，慢于当前 `6:40.410`。不继续做“只处理 ready Tree-slot target”的实机候选。
 - 2026-06-08 Tree-slot 临时 Bush swap：
   - 离线预算 `.codex/tests/wood_tree_slot_swap_budget.py` 显示：跳过同 row 冲突、只处理 Bush 类型 Tree-slot 请求时，理想估算约 `6:34.989`；这是一个不依赖通信、理论上低破坏的候选。
   - 临时实现：当 Tree companion 为 `Bush` 且目标落在 Tree 奇偶位时，当前 worker 移到目标旁边 Bush 位，尝试 `swap()` 把 Bush 临时换到目标 Tree 位，收割当前 Tree 后再换回。
@@ -258,6 +263,7 @@
   - support 位未成熟是 `carrot_skip` 主因；当前无人机一次补水救援已失败，后续要改 support 更新节奏或结构
   - Soil 上未成熟 Grass 强制改 Carrot 没有覆盖到实际机会，不再作为下一轮分支
   - 剩余 reroll 主要来自 companion 坐标落在 Tree 位；已用离线预算判定“当前无人机改写并恢复 Tree 位”慢于当前，不直接实机
+  - Tree-slot 目标成熟度 request `678` 显示 ready target 只占约 `35%~45%`，不足以支撑 ready-only 接力
   - Tree-slot 临时 Bush swap 已被 request `663` 证伪；`Entities.Bush` 不可交换，不能再按 swap 方向设计 Tree-slot 接力
   - Tree-slot 同列同 worker 延迟承接覆盖面太窄且 phase 成本过高，不进入实机
   - 周期 Tree 掩码 / 低 Tree 密度布局 request `673` 已证伪；不能靠牺牲大量 Tree 位换 support 命中率
