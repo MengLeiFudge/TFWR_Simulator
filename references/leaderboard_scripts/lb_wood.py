@@ -1,6 +1,6 @@
 from __builtins__ import *
 
-# 7:06.871
+# 6:40.073
 def lb_wood():
     while True:
         if not spawn_drone(wood_worker):
@@ -15,6 +15,7 @@ def lb_wood():
         " carrot_request=", WOOD_CARROT_REQUEST,
         " carrot_rewrite=", WOOD_CARROT_REWRITE,
         " carrot_skip=", WOOD_CARROT_SKIP,
+        " force_unready_bush=", WOOD_CARROT_FORCE_UNREADY_BUSH,
         " bush_ground_fix=", WOOD_BUSH_GROUND_FIX,
         " reroll=", WOOD_REROLL,
     )
@@ -27,6 +28,7 @@ WOOD_GRASS_REWRITE = 0
 WOOD_CARROT_REQUEST = 0
 WOOD_CARROT_REWRITE = 0
 WOOD_CARROT_SKIP = 0
+WOOD_CARROT_FORCE_UNREADY_BUSH = 0
 WOOD_BUSH_GROUND_FIX = 0
 WOOD_REROLL = 0
 
@@ -102,6 +104,7 @@ def rewrite_grass_support(pos):
 
 
 def rewrite_carrot_support(pos):
+    global WOOD_CARROT_FORCE_UNREADY_BUSH
     tx = pos[0]
     ty = pos[1]
     ox = get_pos_x()
@@ -110,10 +113,17 @@ def rewrite_carrot_support(pos):
     entity = get_entity_type()
     if entity != Entities.Carrot:
         if entity != None:
+            already_harvested = False
             if not can_harvest():
-                move_to(ox, oy)
-                return False
-            harvest()
+                if entity == Entities.Bush:
+                    WOOD_CARROT_FORCE_UNREADY_BUSH += 1
+                    harvest()
+                    already_harvested = True
+                else:
+                    move_to(ox, oy)
+                    return False
+            if not already_harvested:
+                harvest()
         if get_ground_type() != Grounds.Soil:
             till()
         if get_ground_type() != Grounds.Soil:

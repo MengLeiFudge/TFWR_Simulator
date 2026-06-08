@@ -184,6 +184,12 @@
   - 第一版在 Grass / Carrot support 新写入后尝试 `num_items(Items.Fertilizer) > 100` 再施肥，但主循环 Tree 位施肥会先消耗库存；request `655` 两轮 `7:12.199` / `7:10.366`，均值 `7:11.283`，且 `support_fertilizer=0`，等于没有真正触发 support 施肥。
   - 第二版改成有肥就优先给动态 support 施肥，并取消主循环 Tree 位施肥；request `657` 两轮 `7:08.233` / `7:08.713`，均值 `7:08.473`，慢于当前 `7:08.255`。统计为 `support_fertilizer=9/17`、`carrot_skip=98/85`、`reroll=549/553`。
   - 结论：support 施肥触发次数太少，且会引入 `Items.Fertilizer` 不足 warning；即便部分降低 `carrot_skip`，也吃不回额外动作和 Tree 位施肥机会成本。候选已从 `.py` 回退。
+- 2026-06-08 未成熟 Bush 强制改 Carrot：
+  - 前置探针 request `658` 显示 Carrot skip 的未成熟实体几乎全是 Grassland 上的 Bush：两轮分别为 `unready_bush=95/93`、`unready_grass=5/3`、`unready_soil=0`、`unready_grassland=100/96`。
+  - 改法：只在 `rewrite_carrot_support()` 遇到 `entity == Entities.Bush` 且 `not can_harvest()` 时，摧毁未成熟 Bush，随后按原路径 `till()` 到 Soil 并 `plant(Entities.Carrot)`；未成熟 Grass / Tree 仍跳过，不新增补水、施肥或 support lock。
+  - request `659` 两轮 `6:39.925` / `6:41.434`，稳定均值 `6:40.679`，刷新当前 `7:08.255`。统计为 `force_unready_bush=78/68`、`carrot_skip=7/6`、`reroll=404/417`。
+  - 精简正式版移除探针用 unready 类型 / 地块统计，只保留 `force_unready_bush` 计数；request `660` 两轮 `6:40.746` / `6:40.073`，稳定均值 `6:40.410`。统计为 `force_unready_bush=60/91`、`carrot_skip=8/10`、`reroll=439/371`。
+  - 结论：未成熟 Bush 是当前 Carrot support 兑现的主要低 churn 入口；强制改写的额外 `harvest + till + plant` 成本能被大幅降低的 `carrot_skip` / `reroll` 吃回，保留精简版为当前默认策略。
 - 2026-06-08 Soil 上未成熟 Grass 强制改 Carrot：
   - 机制前提：`plant()` 不能覆盖已有实体；`harvest()` 会摧毁未成熟实体并在移除实体时消耗 `200t`。因此不能无差别强制覆盖未成熟 support。
   - 改法：只在 `rewrite_carrot_support()` 遇到 `entity == Entities.Grass`、`not can_harvest()` 且地块已经是 `Grounds.Soil` 时，摧毁 Grass 并种 Carrot；不覆盖未成熟 Bush，不新增补水，不处理 Grassland 上的未成熟 Grass。
