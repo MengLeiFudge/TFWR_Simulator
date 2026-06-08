@@ -234,6 +234,12 @@
   - 计入 `Grass=0.5s`、`Bush=4.0s`、`Carrot=6.0s` 成熟时间和 32 列 worker 的 `6400t` column cycle 后，目标 worker 恢复延迟为：`Grass≈5200~6000t`、`Bush≈24400~25200t`、`Carrot≈37000~37800t`。
   - 最好 phase-aware 行为 `backward Grass ready=35% phase-delay`，只转换约 `5.7` 次 bad slot，估算 `6:44.846`，慢于当前 `6:40.410`。
   - 结论：目标 worker 自己恢复 Tree-slot support 不能绕开 phase 成本；只要 support 成熟时间纳入，收益被目标 worker 空转吃掉，不进入实机。
+- 2026-06-09 Tree-slot wait-only phase 复核：
+  - `.codex/tests/wood_tree_slot_wait_only_phase_screen.py` 修正上一条模型的过悲观点：如果当前 worker 提前收掉目标 Tree 并种临时 support，且目标 worker 下次正常到达时 support 已成熟，则这段到达时间不应全算作额外等待。
+  - Grass 临时 support 的成熟时间只有 `0.5s`，所有 Tree-slot offset 在目标 worker 下次到达前都能成熟；Bush / Carrot 仍要额外等约 `19200t` / `32000t`。
+  - 但实机实现必须先移动到目标 Tree-slot 才知道目标 Tree 是否 ready；按 request `678` 的 `35%~45%` ready target 率，检查未成熟目标的失败移动成本吃掉收益。
+  - 计入 failed-check cost 后，最好期望行是 `forward Grass ready=45%`，只转换约 `7.3` 次 bad slot、失败检查约 `8.9` 次，估算 `6:41.063`，慢于当前 `6:40.410`；`ready=35%` 为 `6:41.389`，`ready=60%` 仍只有 `6:40.575`。
+  - 结论：修正 phase 模型后，Tree-slot Grass 临时 support 仍需要接近 `100%` ready oracle 才有纸面收益；当前 API 无远程 ready 判断，不进入实机。
 - 2026-06-08 周期 Tree 掩码强破坏对照：
   - `.codex/tests/wood_periodic_tree_mask_screen.py` 枚举小周期非相邻 Tree/Bush 掩码；首次包含 `8x8` 的全枚举触发 `60s` timeout 且无有效输出，随后收窄到 `2x2..8x4`。
   - 乐观上界最佳为 `4x4` 对角掩码 `T.../.T../..T./...T`：Tree 密度从 `50%` 降到 `25%`，Tree companion support success 从当前 `66.7%` 提到 `91.7%`，估算 `6:14.474`。
@@ -281,6 +287,7 @@
   - Tree-slot 临时 Bush swap 已被 request `663` 证伪；`Entities.Bush` 不可交换，不能再按 swap 方向设计 Tree-slot 接力
   - Tree-slot 同列同 worker 延迟承接覆盖面太窄且 phase 成本过高，不进入实机
   - Tree-slot 目标 worker 恢复路线已被 phase-aware 预算筛掉；临时 support 成熟会让目标 worker 等多圈，最好估算仍慢于当前
+  - Tree-slot wait-only phase 修正后，Grass 临时 support 只有在近似远程知道目标 Tree 必定 ready 时才有收益；当前 API 需要移动检查，35%~45% ready 率下不过线
   - 周期 Tree 掩码 / 低 Tree 密度布局 request `673` 已证伪；不能靠牺牲大量 Tree 位换 support 命中率
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - Bush 位未成熟 Grass / Carrot 动态 support 提前清理 request `677` 已证伪；未成熟 support 仍有后续伴生承接价值，不能只按 Bush 产木直觉清掉
