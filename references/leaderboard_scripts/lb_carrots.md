@@ -108,6 +108,11 @@
   - 实机 request `670` 临时实现 16 tile / 10 anchor / spawn helper：两轮 `11:03.359` / `11:05.676`，稳定均值 `11:04.518`，明显慢于当前。
   - 运行统计显示 helper 机制本身可用但等待成本极高：第二轮 `helper_request=1951`、`helper_success=1951`、`helper_fail=0`、`helper_no_slot=0`。
   - 结论：按请求临时 spawn 并 `wait_for()` helper 会打穿并行吞吐；不再作为实机候选。后续 helper 必须是无需 anchor 阻塞等待、且无需不可用通信 API 的结构，否则继续暂缓。
+- 非通信定时 helper 预算：
+  - 2026-06-09 `.codex/tests/carrot_noncomm_schedule_budget.py` 检查“helper 不知道 anchor 当前 companion 请求，只周期性把 support 格轮换成 `Grass / Bush / Tree`”的剩余接力方向。
+  - 在当前 `4x8` tile / 8 锚点 / 24 support 格下，nearest-neighbor support 循环需要 `26` 步移动；每轮改写全部 support 的下界约 `14800t`，三类型轮换周期约 `44400t`。
+  - 如果 anchor 不等待，support 类型和随机 companion 请求独立，命中率仍接近静态单类型的 `1/3`；如果 anchor 等到目标类型，平均等待约 `22200t`，是当前 Bush-only 期望 reroll 成本 `800t` 的 `27.8x`。
+  - 结论：不实机非通信定时 helper；真正候选仍必须有通信 / 共享状态，或 support writer 正好在请求格时能零等待承接。
 - periodic same-drone dynamic support probe
   - 2026-06-08 临时在当前折线 8 锚点版本上实现同无人机动态承接：companion 坐标不是 carrot anchor 时，当前无人机移动到 companion 坐标，把 support 改成请求的 `Grass / Bush / Tree`，再回锚点收割；不使用通信 API，不使用 spawn helper，不改锚点和补水阈值。
   - request `674` 两轮 `5:51.064` / `5:50.618`，稳定均值 `5:50.841`，明显慢于当前 `4:34.314`。
@@ -219,6 +224,7 @@
   - 当前双锚点 `main3()` 的顺路非 Bush 承接空间太小，不能再作为下一轮主线。
   - `4x8` / 8 锚点周期 tile 已验证能继续提高总 companion 兑现次数，折线布局还能降低 blocked 锚点概率，但它仍是 Bush-only 静态支撑。
   - 4x8 静态锚点路径筛选已经排除继续加密锚点；后续不要再只换 8 锚点等价形状或 9/10 锚点静态布局。
+  - 非通信定时 helper 已被预算筛掉；没有通信 / 共享状态时，support 类型轮换无法和随机 companion 请求同步，只会保持 `1/3` 命中或引入远高于 reroll 的等待。
   - 下一轮若继续多机胡萝卜，应优先在当前折线 8 锚点 tile 上量化瓶颈：每 tile 成熟等待、reroll 次数、移动环路成本、水 / 肥消耗，以及是否存在低成本动态 helper 承接 `Grass / Tree`。
 - 简单策略先做数学门槛，不直接实机：
   - 先按榜一时间反推“如果每次收割都带 companion，需要多短的单次有效收割周期”
