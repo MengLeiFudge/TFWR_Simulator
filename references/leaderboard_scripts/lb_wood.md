@@ -210,6 +210,12 @@
   - 如果把目标 Tree 位长期留作 support，纸面估算约 `6:32~6:35`，但结构上不安全：目标 worker 后续会在非 Tree 实体上运行 `handle_tree_slot()`，可能卡在未成熟 support、错误 companion 或延迟恢复 Tree。
   - 如果每次都恢复目标 Tree 位，估算慢于当前：转换 `25%` bad slot 约 `6:54.137`，`50%` 约 `7:10.705`，`100%` 约 `7:50.596`；Carrot 还需要额外 `till()`，更慢。
   - 结论：不实机实现 Tree-slot 即时改写。后续只有能不破坏目标 worker 主循环、或几乎零移动地由目标 worker 自己承接的结构，才重新评估 Tree-slot companion。
+- 2026-06-08 Tree-slot 临时 Bush swap：
+  - 离线预算 `.codex/tests/wood_tree_slot_swap_budget.py` 显示：跳过同 row 冲突、只处理 Bush 类型 Tree-slot 请求时，理想估算约 `6:34.989`；这是一个不依赖通信、理论上低破坏的候选。
+  - 临时实现：当 Tree companion 为 `Bush` 且目标落在 Tree 奇偶位时，当前 worker 移到目标旁边 Bush 位，尝试 `swap()` 把 Bush 临时换到目标 Tree 位，收割当前 Tree 后再换回。
+  - request `663` 两轮 `6:46.913` / `6:48.217`，稳定均值 `6:47.565`，慢于当前 `6:40.410`。
+  - 关键统计：第一轮 `tree_slot_bush_request=126`、`tree_slot_bush_swap=0`、`tree_slot_same_row_skip=31`、`tree_slot_no_bush_skip=16`、`tree_slot_swap_fail=79`；`output.txt` 明确报 `Warning: 尝试交换 Entities.Bush，但这是不可交换的。`
+  - 结论：Bush 不能通过 `swap()` 临时塞进 Tree-slot support；该路线不成立，候选已从 `.py` 回退并重新同步正式版到 `gamesave/`。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -223,6 +229,7 @@
   - support 位未成熟是 `carrot_skip` 主因；当前无人机一次补水救援已失败，后续要改 support 更新节奏或结构
   - Soil 上未成熟 Grass 强制改 Carrot 没有覆盖到实际机会，不再作为下一轮分支
   - 剩余 reroll 主要来自 companion 坐标落在 Tree 位；已用离线预算判定“当前无人机改写并恢复 Tree 位”慢于当前，不直接实机
+  - Tree-slot 临时 Bush swap 已被 request `663` 证伪；`Entities.Bush` 不可交换，不能再按 swap 方向设计 Tree-slot 接力
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
