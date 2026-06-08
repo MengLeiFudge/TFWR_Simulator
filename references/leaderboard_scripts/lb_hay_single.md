@@ -142,6 +142,12 @@
   - 当前 5x5 双草结构有 `21` 个 support 格；nearest-neighbor support 循环移动 `23` 步；改写一轮 support 下界约 `13000t`，Bush/Tree 两类型周期约 `26000t`。
   - 如果 anchor 不等待，support 类型和 companion 请求独立，`Carrot` 仍是废伴生，成功率不会突破静态单类型数量级；如果等待目标类型，平均等待约 `13000t`，是当前 Bush-only 期望 reroll 成本 `854.3t` 的 `15.2x`。
   - 结论：不实机盲定时 support 轮换；单草后续只能考虑请求感知的低成本接力或新机制，不能靠预轮换 Tree/Bush 提高利用率。
+- `main4` adaptive no-restore Bush/Tree support 筛选：
+  - 2026-06-09 `.codex/tests/hay_adaptive_support_memory_screen.py` 检查 support 格保留最近一次 `Bush / Tree` 类型、不恢复，只有当前请求类型不匹配时由当前收割者往返改写。
+  - 当前双草结构几何为 `support_events=46`、`total_positions=48`、平均距离 `2.39`；静态 Bush 成功率 `31.9%`，期望 `1054.3t`。
+  - adaptive Bush/Tree 把类型成功率纸面提高到 `63.9%`，但约一半 useful accept 要改写 support，`rewrite_ticks=678.3`，总期望 `1104.9t`。
+  - 估算从当前约 `2:52.141` 退到 `3:00.404`；不进入实机。
+  - 结论：只靠 support 类型记忆 / 不恢复不能提高单草成绩；没有请求格就地 writer 时，不要让当前收割者往返改写 Bush/Tree support。
 - `main4` 循环未成熟时双桶补水：
   - 2026-05-02 请求 `476` 完整结束 `finished=true runs=42 average=2:52.410`。
   - 改法：保留开局两次单桶补水，只把循环内南北两个 `if not can_harvest(): use_item(Items.Water)` 改成 `use_item(Items.Water, 2)`。
@@ -166,6 +172,7 @@
 - 已通过 2026-06-08 目标草格枚举确认当前相邻目标对属于最优类；不要再做 5x5 目标草位平替或拉开目标间距。
 - 已通过 2026-06-08 多锚点筛选和 request `676` 确认单锚点会被成熟等待打穿，三锚点 / 四锚点预算也慢于当前双锚点；不要再做 Bush-only 锚点数量平替。
 - 已通过 2026-06-09 非通信定时 Bush/Tree support 预算确认，盲轮换 support 类型无法和随机 companion 请求同步，等待正确类型比当前 reroll 贵一个数量级；不要按预轮换 Tree/Bush 继续实机。
+- 已通过 2026-06-09 adaptive no-restore support 筛选确认，当前收割者自己往返改写 Bush/Tree support 仍慢于静态 Bush-only；不要按 support 类型记忆继续实机。
 - 重点关注：
   - companion 接受策略是否还能再压 refresh
   - `5x5` 结构是否仍然是 companion 半径 `3` 下最合适的目标草布局

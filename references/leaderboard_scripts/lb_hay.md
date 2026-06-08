@@ -166,6 +166,12 @@
   - 如果 anchor 不等待，请求类型和 support 类型独立；在 `Carrot` 废伴生仍占约 `1/3` 的前提下，总成功率不会突破当前 Bush-only 的数量级。
   - 如果 anchor 等待目标类型，平均等待约 `14400t`，是当前 Bush-only 期望 reroll 成本 `854.3t` 的 `16.9x`。
   - 结论：不实机盲定时 support 轮换；hay 的 Tree 方向仍必须是请求感知的近场接力，而不是无通信周期改写。
+- 2026-06-09 adaptive no-restore Bush/Tree support 筛选
+  - `.codex/tests/hay_adaptive_support_memory_screen.py` 检查 support 格保留最近一次 `Bush / Tree` 类型、不恢复，只有当前请求类型不匹配时由收割 drone 往返改写。
+  - 当前双草结构几何为 `support_events=46`、`total_positions=48`、平均距离 `2.39`；静态 Bush 成功率 `31.9%`，期望 `1054.3t`。
+  - adaptive Bush/Tree 把类型成功率纸面提高到 `63.9%`，但约一半 useful accept 要改写 support，`rewrite_ticks=678.3`，总期望 `1104.9t`。
+  - 估算从当前 `2:47.861` 退到 `2:55.919`；方向也和既有动态 Tree 实机退化一致。
+  - 结论：不实机 adaptive no-restore support；没有 support writer 正好在请求格时，不要让当前收割 drone 往返改写 Bush/Tree support。
 - 2026-06-08 多锚点 Bush-only 轮转筛选
   - `.codex/tests/hay_multi_anchor_layout_budget.py` 用当前 `2:47.861` 校准，枚举单锚点、双锚点、三锚点、四锚点的 Bush-only 非通信结构，估算 Bush-only success、support 数量和最短闭环移动距离。
   - 单锚点纸面 `2:14.096`、success `33.3%`，但模型忽略成熟等待；历史多机单草原地 companion 已无完成轮，因此不按纸面结果进实机。
@@ -189,6 +195,7 @@
 - 已验证静态双草布局筛选里，当前竖向相邻双草是低移动上界；后续不要只换双草目标位置或拉开目标间距。
 - 已验证 spawn-on-demand helper 预算不过线；后续不要用“减少活跃单元腾 helper 位 + anchor wait_for”来追 Tree companion。
 - 已验证非通信定时 Bush/Tree support 轮换预算不过线；没有请求感知时类型仍不同步，等待正确类型比当前 reroll 贵一个数量级。
+- 已验证 adaptive no-restore Bush/Tree support 预算不过线；当前收割 drone 往返改写 support 的成本高于省掉的 reroll。
 - 已验证多锚点 Bush-only 轮转筛选里，单草纸面收益不可信，三草 / 四草估算慢于当前双草相邻轮转；后续不要只按单锚点、三锚点或四锚点 Bush-only 轮转继续实机。
 
 ## 候选策略方向（猜测 / 待验证）
