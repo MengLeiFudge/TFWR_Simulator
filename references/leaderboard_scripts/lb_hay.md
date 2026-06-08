@@ -172,6 +172,11 @@
   - adaptive Bush/Tree 把类型成功率纸面提高到 `63.9%`，但约一半 useful accept 要改写 support，`rewrite_ticks=678.3`，总期望 `1104.9t`。
   - 估算从当前 `2:47.861` 退到 `2:55.919`；方向也和既有动态 Tree 实机退化一致。
   - 结论：不实机 adaptive no-restore support；没有 support writer 正好在请求格时，不要让当前收割 drone 往返改写 Bush/Tree support。
+- 2026-06-09 物理接力 / mailbox helper 预算
+  - `.codex/tests/hay_physical_relay_budget.py` 检查不使用 `send / receive`，改用世界实体格编码请求、helper 解码后写 support、anchor 固定等待的低带宽接力。
+  - 多机 hay 如果从 32 个双草单元降为 16 个 anchor + 16 个 helper，零开销且 Bush/Tree 全承接的上界只是 `2:47.861`，等于当前；说明并行吞吐减半已经吃掉类型成功率翻倍。
+  - 最小实体 mailbox `signal=1 dist=1` 也会退到 `12:40.454`；盲扫 support 不等待时因类型仍不同步退到 `5:35.722`，等待半周期退到 `114:43.910`。
+  - 结论：不实机物理 mailbox / world-state relay；没有“无需 anchor 等待的完成信号”时，实体格编码和固定等待成本远高于当前 Bush-only reroll。
 - 2026-06-08 多锚点 Bush-only 轮转筛选
   - `.codex/tests/hay_multi_anchor_layout_budget.py` 用当前 `2:47.861` 校准，枚举单锚点、双锚点、三锚点、四锚点的 Bush-only 非通信结构，估算 Bush-only success、support 数量和最短闭环移动距离。
   - 单锚点纸面 `2:14.096`、success `33.3%`，但模型忽略成熟等待；历史多机单草原地 companion 已无完成轮，因此不按纸面结果进实机。
@@ -196,6 +201,7 @@
 - 已验证 spawn-on-demand helper 预算不过线；后续不要用“减少活跃单元腾 helper 位 + anchor wait_for”来追 Tree companion。
 - 已验证非通信定时 Bush/Tree support 轮换预算不过线；没有请求感知时类型仍不同步，等待正确类型比当前 reroll 贵一个数量级。
 - 已验证 adaptive no-restore Bush/Tree support 预算不过线；当前收割 drone 往返改写 support 的成本高于省掉的 reroll。
+- 已验证物理 mailbox / world-state relay 预算不过线；即使 helper 全承接 Bush/Tree，16 helper 结构也只追平当前，任何实体格编码和固定等待都会明显变慢。
 - 已验证多锚点 Bush-only 轮转筛选里，单草纸面收益不可信，三草 / 四草估算慢于当前双草相邻轮转；后续不要只按单锚点、三锚点或四锚点 Bush-only 轮转继续实机。
 
 ## 候选策略方向（猜测 / 待验证）

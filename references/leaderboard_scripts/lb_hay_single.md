@@ -148,6 +148,11 @@
   - adaptive Bush/Tree 把类型成功率纸面提高到 `63.9%`，但约一半 useful accept 要改写 support，`rewrite_ticks=678.3`，总期望 `1104.9t`。
   - 估算从当前约 `2:52.141` 退到 `3:00.404`；不进入实机。
   - 结论：只靠 support 类型记忆 / 不恢复不能提高单草成绩；没有请求格就地 writer 时，不要让当前收割者往返改写 Bush/Tree support。
+- `main4` 物理接力 / mailbox helper 预算：
+  - 2026-06-09 `.codex/tests/hay_physical_relay_budget.py` 用和多机 hay 相同的实体格编码 / helper 固定等待模型做诊断筛选。
+  - 单机榜没有可用并行 helper 槽位；即便按诊断模型给出最乐观的 16 helper 口径，最小 mailbox `signal=1 dist=1` 也从当前约 `2:52.141` 退到 `3:51.400`。
+  - 盲扫 support 不等待时退到 `5:44.282`；等待半周期退到 `13:34.116`。
+  - 结论：不按物理 mailbox / world-state relay 推进单草；没有通信或零等待完成信号时，实体格信号不可能抵消当前 Bush-only 的低 reroll 成本。
 - `main4` 循环未成熟时双桶补水：
   - 2026-05-02 请求 `476` 完整结束 `finished=true runs=42 average=2:52.410`。
   - 改法：保留开局两次单桶补水，只把循环内南北两个 `if not can_harvest(): use_item(Items.Water)` 改成 `use_item(Items.Water, 2)`。
@@ -173,6 +178,7 @@
 - 已通过 2026-06-08 多锚点筛选和 request `676` 确认单锚点会被成熟等待打穿，三锚点 / 四锚点预算也慢于当前双锚点；不要再做 Bush-only 锚点数量平替。
 - 已通过 2026-06-09 非通信定时 Bush/Tree support 预算确认，盲轮换 support 类型无法和随机 companion 请求同步，等待正确类型比当前 reroll 贵一个数量级；不要按预轮换 Tree/Bush 继续实机。
 - 已通过 2026-06-09 adaptive no-restore support 筛选确认，当前收割者自己往返改写 Bush/Tree support 仍慢于静态 Bush-only；不要按 support 类型记忆继续实机。
+- 已通过 2026-06-09 物理 mailbox / world-state relay 预算确认，实体格信号和固定等待成本远高于当前 Bush-only reroll；单草没有可用并行 helper 槽位，不按这条线继续实机。
 - 重点关注：
   - companion 接受策略是否还能再压 refresh
   - `5x5` 结构是否仍然是 companion 半径 `3` 下最合适的目标草布局
