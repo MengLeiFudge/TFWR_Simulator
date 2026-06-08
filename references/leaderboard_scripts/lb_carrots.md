@@ -102,6 +102,12 @@
   - 2026-06-08 request `653/654` 临时实现 helper relay 后启动即失败；`output.txt` 报 `Error: get_drone_id 从未被定义。在使用变量之前必须先给它赋值。`，而当前真实 `Save0/__builtins__.py` 没有 `get_drone_id` / `send` / `receive` 定义。
   - 2026-06-08 非消息接力复核：反编译 `SpawnDrone` 会 `DeepCopy` 被启动函数和 `parentScope`，再给新 drone 建独立 `Scope`；因此脚本全局 `list` / `dict` 也不能作为 anchor/helper 间运行时共享队列。
   - 结论：当前游戏脚本可用 API 下，不能依赖无人机间消息通信或全局共享队列实现 helper relay；该失败候选已从 `.py` 回退并重新同步正式折线 8 锚点版本到 `gamesave/`。后续只有确认当前 Save0 暴露数字 drone id 与消息 API，或找到完全不需要运行时通信的同步接力结构，才重新评估动态 helper / 接力。
+- spawn-on-demand helper 对照：
+  - 机制依据：当前 `Save0/__builtins__.py` 虽然没有 `send / receive`，但有 `spawn_drone(task, *args)` 和 `wait_for(handle)`；因此可测试 16 个 anchor tile 留 16 个空 drone 位，每次 companion 请求临时 spawn helper 写 support，anchor 等待后收割。
+  - 离线预算 `.codex/tests/carrot_spawn_helper_budget.py` 在计入 `SpawnDrone` `200t` 成本后，10-anchor `4x8` 纸面估算 `2:30.101`，看似明显快于当前 `4:34.314`。
+  - 实机 request `670` 临时实现 16 tile / 10 anchor / spawn helper：两轮 `11:03.359` / `11:05.676`，稳定均值 `11:04.518`，明显慢于当前。
+  - 运行统计显示 helper 机制本身可用但等待成本极高：第二轮 `helper_request=1951`、`helper_success=1951`、`helper_fail=0`、`helper_no_slot=0`。
+  - 结论：按请求临时 spawn 并 `wait_for()` helper 会打穿并行吞吐；不再作为实机候选。后续 helper 必须是无需 anchor 阻塞等待、且无需不可用通信 API 的结构，否则继续暂缓。
 - 2026-05-31 多机胡萝卜理论复核：
   - 当前 `main3` 不是“没有伴生”的路线；按资源增量看，完成 `2,000,000,000` 胡萝卜约需要 `24414` 次满伴生收割，request `612` 的资源增长符合满伴生收割主导。
   - 当前 `32` 个双锚点单元的静态 Bush support，把 companion 类型成功率限制在约 `1/3`；双锚点 blocked 坐标后，理论失败重刷约 `2.13` 次 / 成功。
