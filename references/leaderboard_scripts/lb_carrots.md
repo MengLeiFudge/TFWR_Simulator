@@ -119,6 +119,12 @@
   - request `674` 两轮 `5:51.064` / `5:50.618`，稳定均值 `5:50.841`，明显慢于当前 `4:34.314`。
   - probe 输出显示每轮 dynamic rewrite 约 `827 / 835` 次，dynamic fail 为 `1 / 0`；机制可运行，但大量跨 support 往返和改写动作把纸面收益吃掉。
   - 结论：当前 4x8 周期结构下，不再做“本机 periodic 动态改写 support”实机；后续若重开动态承接，必须先有无需长距离往返、无需阻塞等待、且能处理跨 tile support 归属的结构。
+- adaptive no-restore support 筛选
+  - 2026-06-09 `.codex/tests/carrot_adaptive_support_markov_screen.py` 检查“support 格保留最近一次被写入的 `Grass / Bush / Tree` 类型，不恢复 Bush”的剩余方向。
+  - 只记忆不改写时，下一次 companion 请求类型仍独立随机；per-cell 类型命中率不会超过 `1/3`，不能提高当前静态单类型上限。
+  - `wrap-tile rewrite mismatch` 估算 `4:16.111`，但该上界依赖当前无人机跨 tile 改写邻居 support，会破坏一 tile 一 owner 的约束，不进实机。
+  - `own-tile rewrite mismatch` 是写入安全版本，估算 `5:32.087`，慢于当前 `4:34.314`；这也与 request `674` 同无人机动态改写实机 `5:50.841` 的方向一致。
+  - 结论：不实机 adaptive no-restore support；后续不要再按“support 记忆最近类型 / 不恢复 Bush”推进，除非出现能安全跨 tile 写入且不破坏 owner 的同步结构。
 - 2026-05-31 多机胡萝卜理论复核：
   - 当前 `main3` 不是“没有伴生”的路线；按资源增量看，完成 `2,000,000,000` 胡萝卜约需要 `24414` 次满伴生收割，request `612` 的资源增长符合满伴生收割主导。
   - 当前 `32` 个双锚点单元的静态 Bush support，把 companion 类型成功率限制在约 `1/3`；双锚点 blocked 坐标后，理论失败重刷约 `2.13` 次 / 成功。
