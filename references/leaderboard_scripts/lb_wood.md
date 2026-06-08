@@ -158,6 +158,23 @@
   - 请求 `641` 的 guard 版补入库存检查、Soil 复核和 Bush 位地块恢复，完成 8 轮，最快 `7:06.871`，均值约 `7:08.255`。
   - 请求 `642` 尝试 support lock 后三轮 `7:15.859` / `7:12.259` / `7:13.233`，均值 `7:13.784`；`support_lock_skip=0` 且仍有 Carrot Grassland warning，说明锁没有解决该 warning，失败实现不保留。
   - 结论：保留无锁 guard 版为默认入口；Carrot warning 属于已知噪声，后续如果处理，必须同时证明不损失当前约 `7:08` 的速度。
+- 2026-06-08 Carrot 写入失败探针
+  - 改法：临时只在 `rewrite_carrot_support()` 的失败路径增加统计，记录 `plant(Entities.Carrot)` 返回失败前后的 ground / entity；成功路径不改。
+  - 请求 `643` 有效两轮 `7:11.941` / `7:06.210`，稳定均值 `7:09.076`，没有刷新当前 `7:08.255`。
+  - 第一轮统计：`carrot_request=281`、`carrot_rewrite=178`、`carrot_skip=103`、`carrot_ground_fail=1`、`carrot_plant_fail=0`。
+  - 第二轮统计：`carrot_request=289`、`carrot_rewrite=170`、`carrot_skip=119`、`carrot_ground_fail=0`、`carrot_plant_fail=2`、失败后状态为 `grassland=1 / soil=1`，实体为 `grass=1 / carrot=1`。
+  - 运行中仍出现多条 `不能在 Grounds.Grassland 上种植 Entities.Carrot` warning，但实际 `plant()` 返回失败只有 0 / 2 次；warning 数量不等同于 companion 兑现失败数。
+  - 结论：单纯消除 Carrot Grassland warning 不是主要优化源头；下一步应转向减少 `carrot_skip` / `reroll` 或寻找更低成本的动态接力，而不是继续给当前写入路径加锁或加日志。探针已从 `.py` 回退。
+- 2026-06-08 Carrot skip 原因探针：
+  - 改法：继续临时统计 `rewrite_carrot_support()` 的 False 出口，区分 support 未成熟、地块失败、材料不足和 `plant()` 返回失败。
+  - 请求 `644` 有效两轮 `7:09.317` / `7:09.736`，稳定均值 `7:09.527`，没有刷新当前 `7:08.255`。
+  - 第一轮 `carrot_skip=112`，其中 `unready=108`、`ground=2`、`cost=1`、`plant=1`；第二轮 `carrot_skip=96`，其中 `unready=94`、`ground=1`、`cost=1`、`plant=0`。
+  - 结论：Carrot skip 几乎全部来自 support 位未成熟；材料、地块和 `plant()` 失败都不是主项。探针已从 `.py` 回退。
+- 2026-06-08 unready support 一次补水救援：
+  - 改法：遇到 unready support 时最多 `use_item(Items.Water)` 一次，若补水后 `can_harvest()` 成立则继续 harvest 并写入 Carrot，否则仍按原逻辑跳过。
+  - 请求 `645` 有效两轮 `7:08.007` / `7:09.795`，稳定均值 `7:08.901`，没有刷新当前 `7:08.255`。
+  - 第一轮 `carrot_skip_unready=85`、`carrot_unready_water=80`、`carrot_unready_rescue=1`；第二轮 `carrot_skip_unready=82`、`carrot_unready_water=75`、`carrot_unready_rescue=2`。
+  - 结论：一次补水的救援率太低，还会引入额外水不足 warning；不保留。后续若继续处理 unready support，不能靠当前无人机补水硬救，必须改 support 更新节奏或结构。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -167,7 +184,8 @@
 ## 下一步优化方向
 
 - 当前 Grass+Carrot 动态 support 已有真实成绩；下一步重点确认：
-  - 能否在不损失当前约 `7:08` 速度的前提下降低 Carrot 地块 warning
+  - 如何减少 `carrot_skip` / `reroll`，而不是单纯消除 Carrot 地块 warning
+  - support 位未成熟是 `carrot_skip` 主因；当前无人机一次补水救援已失败，后续要改 support 更新节奏或结构
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
