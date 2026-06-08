@@ -123,6 +123,13 @@
   - 第二轮：`tree_harvest=2759`、`bush_harvest=2934`、`tree_delta=1987860992`、`bush_delta=1834168064`、`companion_bush=1003`、`companion_tree=4`、`companion_grass=1007`、`water_calls=516`、`fertilizer_calls=13`。
   - 结论：Bush 自身贡献了约 `1.78B~1.83B` Wood，不是纯 support；冻结 Bush support 会直接损失大块产量，必须先算净收益。
   - Tree 位 companion 采样里 Bush 和 Grass 接近同量级，Tree 极少；当前结构不是稳定 Bush companion 路线。单纯加入统计和 `get_companion()` 开销也会显著拖慢，所以探针已从 `.py` 回退并重新同步 `gamesave/`。
+- 2026-06-08 Tree/Bush 取舍离线模型
+  - 输入：请求 `624` 两轮 Tree/Bush delta、当前 `10:19.811`、#1 `3:44.313`、companion 半径 `3` 和满级 `160x` companion 倍率。
+  - 计数收益里 Tree 约占 `52.9%`，Bush 约占 `47.1%`；因此牺牲 Bush harvest 不是小代价。
+  - 当前 Tree/Bush 棋盘的一种静态 support 理论命中率约为 `16 / (24 * 3) = 22.2%`；即使把 Tree 周围 `24` 个坐标都变成某种静态可用 support，因每格只能放一种实体，理论成功率也只有 `33.3%`。
+  - 从 `22.2%` 提到静态上限 `33.3%`，Tree 侧理论收益约 `1.49x`，若 Bush 完全不损失，总收益也只有约 `1.26x`；不足以解释当前对 #1 的 `2.76x` 差距。
+  - 若冻结 `25%` Bush harvest，Tree 侧至少要提升 `1.22x` 才能不退化；冻结 `50%` 时要 `1.45x`。要接近 #1，在不损失 Bush 的理想情况下 Tree 侧也要约 `4.33x`。
+  - 结论：不要直接实机尝试“静态混合 support”“冻结一批 Bush”或“减少一批 worker 当 support”这类粗改；它们要么上限太低，要么需要 Tree 吞吐提升幅度不现实。下一步只有两类值得继续：能近似动态兑现 companion 且几乎不牺牲 Bush 的局部接力结构，或转向其他更可能推进的榜单。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -138,6 +145,7 @@
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；下一步不要继续在同一框架上微调筛选条件，应改成能真正提高 companion 兑现率的局部 claim / 支撑结构。
 - 已验证“冻结 Bush 当纯 support”的方向风险很高：Bush 本身贡献大量 Wood，必须先设计能保住 Bush 产木、同时提高 Tree companion 命中率的结构。
 - 下一步不应直接实机大改；先离线计算 Tree/Bush 产量损失与 Tree companion 增益的平衡，再决定是否做小规模布局对照。
+- 离线平衡已经排除静态混合 support、粗粒度 Bush freeze 和简单 support worker 分流；若继续 Wood，必须先提出“几乎不损失 Bush harvest 的动态接力”结构，否则应转 `lb_maze` 做 solver 分项探针。
 
 ## 候选策略方向（猜测 / 待验证）
 
