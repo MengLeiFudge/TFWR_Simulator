@@ -36,8 +36,9 @@
   - `main3` 2026-05-30 当前版本复跑：请求 `614` 两轮 `10:22.851` / `10:16.770`，稳定均值 `10:19.811`；仍有大量 `Items.Water` 不足 warning，后续 `finished=false` 取消摘要不作为成绩
   - `main3` 2026-06-08 收益拆分探针：请求 `624` 两轮 `10:42.356` / `10:43.340`，稳定均值 `10:42.848`；慢于当前基线，探针不保留在 `.py`
   - Grass-only 动态 support：请求 `638` 完成 13 轮，最快 `7:36.580`，均值 `7:38.905`；相对 `10:19.811` 明显刷新，后续手动停止产生的 `finished=false runs=14 average=7:08.576` 不作为成绩
+  - Grass+Carrot 动态 support：请求 `641` 完成 8 轮，最快 `7:06.871`，均值约 `7:08.255`；相对 Grass-only 继续刷新，但仍有少量 `不能在 Grounds.Grassland 上种植 Entities.Carrot` 警告
 - 当前仍慢于 #1 `3:44.313`，但相对 `main3` 已有明确进步
-- 证据来源：真实游戏 `run_real_game_script.py` 请求 `56`、`57`、`223`、`224`、`614`、`624`、`638`
+- 证据来源：真实游戏 `run_real_game_script.py` 请求 `56`、`57`、`223`、`224`、`614`、`624`、`638`、`641`、`642`
 
 ## 通用注意事项下的榜单特化
 
@@ -78,7 +79,15 @@
   - 请求 `638` 完成轮：`7:36.580`、`7:37.489`、`7:37.508`、`7:40.528`、`7:39.840`、`7:39.990`、`7:38.651`、`7:40.546`、`7:37.908`、`7:37.454`、`7:39.134`、`7:42.153`、`7:37.990`
   - 13 轮均值 `7:38.905`，最后两轮差异约 `0.9%`；`output.txt` 记录的 `finished=false runs=14 average=7:08.576` 是手动停止后的取消摘要，不作为有效成绩
   - 每轮统计显示 Grass rewrite 大约 `336~379` 次、static Bush 大约 `340~406` 次，证明 Grass companion 动态兑现是本次刷新来源
-  - 结论：作为当前默认入口；后续如果继续 Wood，优先评估 Grass+Carrot 动态 support，但必须先控制 till / 地块 churn 风险
+  - 结论：已被 Grass+Carrot 动态 support 刷新；保留为低 churn 对照。
+- Grass+Carrot 动态 support
+  - 改法：保留 32 无人机 Tree/Bush 奇偶扫描和 Grass 动态改写；Tree 位 companion 为 Carrot 且落在 Bush 奇偶格时，同无人机移动过去，必要时收割旧 support、`till()` 到 Soil、确认库存后 `plant(Entities.Carrot)`，再回 Tree 位收割。
+  - Bush 位不再无条件覆盖未成熟 support；如果已有未成熟实体就跳过，成熟后收割，并把非 Grassland 地块 `till()` 回草地再 `plant(Entities.Bush)`。
+  - 请求 `641` 完成轮：`7:08.850`、`7:09.447`、`7:08.612`、`7:08.542`、`7:08.156`、`7:07.888`、`7:06.871`、`7:07.670`。
+  - 8 轮均值约 `7:08.255`，最快 `7:06.871`，稳定刷新 Grass-only 的 `7:38.905`。
+  - 统计显示每轮约 `269~294` 次 Carrot request，其中约 `166~200` 次成功 rewrite，reroll 从 Grass-only 的约 `902~961` 降到约 `522~558`。
+  - 仍会出现少量 `不能在 Grounds.Grassland 上种植 Entities.Carrot` 与水不足警告；这些 warning 未阻止有效完成轮，但后续若继续 Wood，可单独研究更低噪声的 Carrot 写入或补水节奏。
+  - 结论：作为当前默认入口；锁版 request `642` 证明简单 support lock 不能消除 Carrot 地块 warning，且会把均值拖慢到 `7:13.784`。
 
 ## 失败对照
 
@@ -142,8 +151,13 @@
   - 离线预算 `.codex/tests/wood_dynamic_relay_budget.py` 估算 same-drone Grass-only distance<=3 为 `6:46.308`；实机请求 `638` 证明模型方向成立但偏乐观。
   - 真实完成 13 轮，均值 `7:38.905`，最快 `7:36.580`，稳定刷新旧基线 `10:19.811`。
   - 统计样例：第一轮 `static_bush=342`、`grass_request=357`、`grass_rewrite=357`、`reroll=950`；第十轮 `static_bush=347`、`grass_request=379`、`grass_rewrite=379`、`reroll=902`。
-  - 结论：动态兑现 Grass companion 的收益足以覆盖同无人机移动和改写成本；保留在 `.py`，同步 `lb_start.py` 当前复跑时间为 `7:38.905`。
-  - 继续方向：Grass+Carrot 纸面估算更高，但 Carrot support 需要 `till()` / 地块转换，可能破坏 Bush 产木和奇偶格节奏；必须先设计低 churn 版本再实机。
+  - 结论：动态兑现 Grass companion 的收益足以覆盖同无人机移动和改写成本；已被 Grass+Carrot 动态 support 刷新。
+- 2026-06-08 Grass+Carrot 动态 support
+  - 用 Grass-only 实测校准旧预算后，Grass+Carrot distance<=3 估算约 `5:50.900`，相对 `7:38.905` 仍有约 `1.31x` 余量。
+  - 请求 `640` 的安全版已有三轮 `7:10.150` / `7:09.016` / `7:05.698`，但仍缺少后续库存和地块 guard；作为方向成立证据，不作为最终默认版本成绩。
+  - 请求 `641` 的 guard 版补入库存检查、Soil 复核和 Bush 位地块恢复，完成 8 轮，最快 `7:06.871`，均值约 `7:08.255`。
+  - 请求 `642` 尝试 support lock 后三轮 `7:15.859` / `7:12.259` / `7:13.233`，均值 `7:13.784`；`support_lock_skip=0` 且仍有 Carrot Grassland warning，说明锁没有解决该 warning，失败实现不保留。
+  - 结论：保留无锁 guard 版为默认入口；Carrot warning 属于已知噪声，后续如果处理，必须同时证明不损失当前约 `7:08` 的速度。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -152,8 +166,8 @@
 
 ## 下一步优化方向
 
-- 当前 Grass-only 动态 support 已有真实成绩；下一步重点确认：
-  - Grass+Carrot support 的纸面上限能否在不破坏地块节奏的情况下兑现
+- 当前 Grass+Carrot 动态 support 已有真实成绩；下一步重点确认：
+  - 能否在不损失当前约 `7:08` 速度的前提下降低 Carrot 地块 warning
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
