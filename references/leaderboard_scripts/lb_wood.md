@@ -240,6 +240,12 @@
   - 但实机实现必须先移动到目标 Tree-slot 才知道目标 Tree 是否 ready；按 request `678` 的 `35%~45%` ready target 率，检查未成熟目标的失败移动成本吃掉收益。
   - 计入 failed-check cost 后，最好期望行是 `forward Grass ready=45%`，只转换约 `7.3` 次 bad slot、失败检查约 `8.9` 次，估算 `6:41.063`，慢于当前 `6:40.410`；`ready=35%` 为 `6:41.389`，`ready=60%` 仍只有 `6:40.575`。
   - 结论：修正 phase 模型后，Tree-slot Grass 临时 support 仍需要接近 `100%` ready oracle 才有纸面收益；当前 API 无远程 ready 判断，不进入实机。
+- 2026-06-09 Tree-slot 预留 spawn helper 筛选：
+  - `.codex/tests/wood_tree_slot_spawn_helper_budget.py` 评估少开常驻 worker、预留无人机名额，让当前 worker `spawn_drone()` 一个短命 helper 去 Tree-slot 检查并种 Grass support；helper 消失在目标位，当前 worker 不付回程。
+  - 该路线不同于通信 helper：不需要 `send/receive`，但必须牺牲至少一个常驻 worker 来保证有空闲 drone slot。
+  - 31 个常驻 worker + 1 helper 位时，按 request `678` 的 `45%` ready target 率，全 offset Grass 上界估算 `6:50.109`，慢于当前；`35%` 为 `6:52.622`，`60%` 仍为 `6:46.444`。
+  - 只有 `ready=100%` 的不现实 oracle 上界能到 `6:37.251`；这再次依赖当前 API 不具备的远程 ready 判断。
+  - 结论：不进入实机。预留 spawn helper 的吞吐损失比省掉当前 worker 回程更大；后续不要按“减少常驻 worker 给 Tree-slot helper 留空位”推进。
 - 2026-06-08 周期 Tree 掩码强破坏对照：
   - `.codex/tests/wood_periodic_tree_mask_screen.py` 枚举小周期非相邻 Tree/Bush 掩码；首次包含 `8x8` 的全枚举触发 `60s` timeout 且无有效输出，随后收窄到 `2x2..8x4`。
   - 乐观上界最佳为 `4x4` 对角掩码 `T.../.T../..T./...T`：Tree 密度从 `50%` 降到 `25%`，Tree companion support success 从当前 `66.7%` 提到 `91.7%`，估算 `6:14.474`。
@@ -288,6 +294,7 @@
   - Tree-slot 同列同 worker 延迟承接覆盖面太窄且 phase 成本过高，不进入实机
   - Tree-slot 目标 worker 恢复路线已被 phase-aware 预算筛掉；临时 support 成熟会让目标 worker 等多圈，最好估算仍慢于当前
   - Tree-slot wait-only phase 修正后，Grass 临时 support 只有在近似远程知道目标 Tree 必定 ready 时才有收益；当前 API 需要移动检查，35%~45% ready 率下不过线
+  - 预留 spawn helper 虽能省当前 worker 回程，但会损失常驻 worker 吞吐；31 worker + 1 helper 位的真实 ready 率估算仍慢于当前
   - 周期 Tree 掩码 / 低 Tree 密度布局 request `673` 已证伪；不能靠牺牲大量 Tree 位换 support 命中率
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - Bush 位未成熟 Grass / Carrot 动态 support 提前清理 request `677` 已证伪；未成熟 support 仍有后续伴生承接价值，不能只按 Bush 产木直觉清掉
