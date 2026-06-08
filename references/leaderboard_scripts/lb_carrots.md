@@ -109,6 +109,12 @@
   - 实机 request `670` 临时实现 16 tile / 10 anchor / spawn helper：两轮 `11:03.359` / `11:05.676`，稳定均值 `11:04.518`，明显慢于当前。
   - 运行统计显示 helper 机制本身可用但等待成本极高：第二轮 `helper_request=1951`、`helper_success=1951`、`helper_fail=0`、`helper_no_slot=0`。
   - 结论：按请求临时 spawn 并 `wait_for()` helper 会打穿并行吞吐；不再作为实机候选。后续 helper 必须是无需 anchor 阻塞等待、且无需不可用通信 API 的结构，否则继续暂缓。
+- 物理 mailbox helper 预算：
+  - 2026-06-09 `.codex/tests/carrot_physical_mailbox_budget.py` 检查不依赖 `send/receive` 的 world-state 信号方案：anchor 用实体格写请求，helper 解码后写 support，anchor 固定等待后收割。
+  - 前提仍然需要把 32 个 active tile 降成 16 个 anchor tile + 16 个 helper 位；如果 helper 只盲扫 support 且 anchor 不等待，类型仍不同步，估算退到 `9:08.628`。
+  - 如果 anchor 等待 helper 的类型轮换，2 类型 / 3 类型半周期等待估算约 `506` 分钟，完全不成立。
+  - 即使给物理 mailbox 极乐观实现，1 个信号格、support 距离 1、只写 Grass 的固定等待上界也为 `30:18.593`，远慢于当前；更多信号格或更远 support 会继续恶化。
+  - 结论：不实机物理 mailbox helper。没有真实消息 API 或共享状态时，用世界实体格编码请求 / 坐标 / 完成信号的动作和等待成本远高于 reroll。
 - 非通信定时 helper 预算：
   - 2026-06-09 `.codex/tests/carrot_noncomm_schedule_budget.py` 检查“helper 不知道 anchor 当前 companion 请求，只周期性把 support 格轮换成 `Grass / Bush / Tree`”的剩余接力方向。
   - 在当前 `4x8` tile / 8 锚点 / 24 support 格下，nearest-neighbor support 循环需要 `26` 步移动；每轮改写全部 support 的下界约 `14800t`，三类型轮换周期约 `44400t`。
@@ -232,6 +238,7 @@
   - `4x8` / 8 锚点周期 tile 已验证能继续提高总 companion 兑现次数，折线布局还能降低 blocked 锚点概率，但它仍是 Bush-only 静态支撑。
   - 4x8 静态锚点路径筛选已经排除继续加密锚点；后续不要再只换 8 锚点等价形状或 9/10 锚点静态布局。
   - 非通信定时 helper 已被预算筛掉；没有通信 / 共享状态时，support 类型轮换无法和随机 companion 请求同步，只会保持 `1/3` 命中或引入远高于 reroll 的等待。
+  - 物理 mailbox helper 也已被预算筛掉；世界实体格可以当低带宽信号，但编码请求、坐标和完成确认的动作 / 等待成本太高。
   - 下一轮若继续多机胡萝卜，应优先在当前折线 8 锚点 tile 上量化瓶颈：每 tile 成熟等待、reroll 次数、移动环路成本、水 / 肥消耗，以及是否存在低成本动态 helper 承接 `Grass / Tree`。
 - 简单策略先做数学门槛，不直接实机：
   - 先按榜一时间反推“如果每次收割都带 companion，需要多短的单次有效收割周期”
