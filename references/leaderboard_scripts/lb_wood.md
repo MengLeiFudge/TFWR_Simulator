@@ -228,6 +228,12 @@
   - 乐观 delayed forward 转换估算：all types 为 `7:18.798`，Bush-only 为 `6:53.115`，因为需要把成熟 Tree 延迟约一个 column cycle。
   - 2026-06-09 追加 delayed backward：虽然能避免同 worker 很快撞上未成熟 support，但仍要当前往返改写后方 Tree-slot，并让该目标 Tree 延迟到下一圈恢复；all types 乐观估算 `7:28.904`，Bush-only `6:56.306`。
   - 结论：同列 ownership 不能提供足够大、足够稳的低破坏窗口；不进入实机。后续 Tree-slot 方向必须同时避免回程、避免 phase 扰动，并覆盖更多 bad-slot 请求。
+- 2026-06-09 Tree-slot phase-aware 目标 worker 恢复筛选：
+  - `.codex/tests/wood_tree_slot_phase_budget.py` 评估“当前 worker 临时把目标 Tree-slot 改成 support，目标 worker 后续自己恢复 Tree”的路线；该路线试图省掉当前 worker 的显式恢复回程。
+  - 不计目标延迟时，乐观上界仍可出现 `6:33.838` 到 `6:39.x` 的候选，但这些都假设目标 Tree 位被改成 support 后没有等待恢复成本。
+  - 计入 `Grass=0.5s`、`Bush=4.0s`、`Carrot=6.0s` 成熟时间和 32 列 worker 的 `6400t` column cycle 后，目标 worker 恢复延迟为：`Grass≈5200~6000t`、`Bush≈24400~25200t`、`Carrot≈37000~37800t`。
+  - 最好 phase-aware 行为 `backward Grass ready=35% phase-delay`，只转换约 `5.7` 次 bad slot，估算 `6:44.846`，慢于当前 `6:40.410`。
+  - 结论：目标 worker 自己恢复 Tree-slot support 不能绕开 phase 成本；只要 support 成熟时间纳入，收益被目标 worker 空转吃掉，不进入实机。
 - 2026-06-08 周期 Tree 掩码强破坏对照：
   - `.codex/tests/wood_periodic_tree_mask_screen.py` 枚举小周期非相邻 Tree/Bush 掩码；首次包含 `8x8` 的全枚举触发 `60s` timeout 且无有效输出，随后收窄到 `2x2..8x4`。
   - 乐观上界最佳为 `4x4` 对角掩码 `T.../.T../..T./...T`：Tree 密度从 `50%` 降到 `25%`，Tree companion support success 从当前 `66.7%` 提到 `91.7%`，估算 `6:14.474`。
@@ -267,6 +273,7 @@
   - Tree-slot 目标成熟度 request `678` 显示 ready target 只占约 `35%~45%`，不足以支撑 ready-only 接力
   - Tree-slot 临时 Bush swap 已被 request `663` 证伪；`Entities.Bush` 不可交换，不能再按 swap 方向设计 Tree-slot 接力
   - Tree-slot 同列同 worker 延迟承接覆盖面太窄且 phase 成本过高，不进入实机
+  - Tree-slot 目标 worker 恢复路线已被 phase-aware 预算筛掉；临时 support 成熟会让目标 worker 等多圈，最好估算仍慢于当前
   - 周期 Tree 掩码 / 低 Tree 密度布局 request `673` 已证伪；不能靠牺牲大量 Tree 位换 support 命中率
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - Bush 位未成熟 Grass / Carrot 动态 support 提前清理 request `677` 已证伪；未成熟 support 仍有后续伴生承接价值，不能只按 Bush 产木直觉清掉
