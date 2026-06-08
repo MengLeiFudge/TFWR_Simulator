@@ -180,6 +180,10 @@
   - 请求 `646` 同时补 Grass / Carrot support，两轮 `7:10.030` / `7:07.109`，均值 `7:08.569`，慢于当前 `7:08.255`；统计为 `support_water=146/149`、`carrot_skip=74/89`。
   - 请求 `647` 收窄为只补 Grass support，两轮 `7:11.024` / `7:06.699`，均值 `7:08.862`，仍慢于当前 `7:08.255`；统计为 `support_water=123/119`、`carrot_skip=111/86`。
   - 结论：前置补水能在部分轮次降低 `carrot_skip`，但额外 `use_item(Items.Water)` 动作和水资源竞争抵消了收益；不保留。单轮 `7:06.699` 只是短窗波动，四轮合并均值仍慢于当前默认版。
+- 2026-06-08 动态 support 写入后施肥：
+  - 第一版在 Grass / Carrot support 新写入后尝试 `num_items(Items.Fertilizer) > 100` 再施肥，但主循环 Tree 位施肥会先消耗库存；request `655` 两轮 `7:12.199` / `7:10.366`，均值 `7:11.283`，且 `support_fertilizer=0`，等于没有真正触发 support 施肥。
+  - 第二版改成有肥就优先给动态 support 施肥，并取消主循环 Tree 位施肥；request `657` 两轮 `7:08.233` / `7:08.713`，均值 `7:08.473`，慢于当前 `7:08.255`。统计为 `support_fertilizer=9/17`、`carrot_skip=98/85`、`reroll=549/553`。
+  - 结论：support 施肥触发次数太少，且会引入 `Items.Fertilizer` 不足 warning；即便部分降低 `carrot_skip`，也吃不回额外动作和 Tree 位施肥机会成本。候选已从 `.py` 回退。
 - 2026-06-08 Soil 上未成熟 Grass 强制改 Carrot：
   - 机制前提：`plant()` 不能覆盖已有实体；`harvest()` 会摧毁未成熟实体并在移除实体时消耗 `200t`。因此不能无差别强制覆盖未成熟 support。
   - 改法：只在 `rewrite_carrot_support()` 遇到 `entity == Entities.Grass`、`not can_harvest()` 且地块已经是 `Grounds.Soil` 时，摧毁 Grass 并种 Carrot；不覆盖未成熟 Bush，不新增补水，不处理 Grassland 上的未成熟 Grass。
