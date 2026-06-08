@@ -100,6 +100,10 @@
   - 该脚本筛出的 distance<=1 动态候选最好估算 `17:26.594`，distance<=2 最好估算 `8:48.797`。
   - 额外直接计算当前四锚点：distance<=1 动态只有 `usable=8`、`success=8.33%`、`ticks=5745.333`；distance<=2 动态为 `usable=52`、`success=54.17%`、`ticks=1899.282`，仍慢于静态 `1774.857`。
   - 结论：当前收割者自己去写相邻 / 近距离 support 没有实机价值；distance<=1 覆盖太窄，distance<=2 往返和改写成本已经超过 reroll 收益。
+- 2026-06-09 mature-wait-aware 锚点筛选：
+  - `.codex/tests/carrot_single_mature_wait_screen.py` 用 request `622` 当前四锚点 `8:44.832` 和 request `650` 双锚点 `15:02.934` 校准成熟等待惩罚；双锚点动作模型原本只比当前慢 `0.933x`，但实机慢到 `1.720x`，折算成熟等待倍数 `1.845x`。
+  - 精确枚举 `2..6` 锚点、固定种子采样 `7..8` 锚点后，top candidates 全部是当前等价的相邻 `2x2` 四锚点：估算 `8:44.832`、`success=29.2%`、`path=4`，没有超过当前路线。
+  - 结论：不再实机测试静态锚点数量或静态锚点形状变化；少锚点会重复 request `650` 的成熟等待失败，多锚点没有几何收益。下一条候选必须改变 claim / 动态承接机制，而不是只换锚点。
 - 2026-04-30 已知支撑记录复测
   - 在 `main4` 初始化时记录 5x5 每格实体；后续 `get_companion()` 命中已知 `Bush` 支撑格时直接接受
   - 请求 `400` 完成 `13` 轮，均值 `9:45.406`
@@ -201,6 +205,7 @@
 - 已验证静态 Grass-only support 没有稳定刷新，默认保留静态 Bush-only support；后续不要再做单类型 support 平替。
 - 已通过静态多类型 support 筛选确认，当前四锚点几何下混合 `Grass/Bush/Tree` 不提高类型命中率；跳过 `(0,4)` 这个 unreachable support 也变慢，默认继续初始化全部非锚点 Bush。
 - 已通过 same-drone 动态 support 预算确认，当前收割者自己写相邻 / 近距离 support 不值得进实机；后续动态承接必须避免当前 drone 往返改写成本。
+- 已通过 mature-wait-aware 锚点筛选确认，当前相邻 `2x2` 四锚点是静态 Bush-only 锚点形状上界；不要继续只换锚点数量或形状。
 
 ## 候选策略方向（猜测 / 待验证）
 
