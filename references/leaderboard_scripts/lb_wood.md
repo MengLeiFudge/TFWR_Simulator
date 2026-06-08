@@ -175,6 +175,11 @@
   - 请求 `645` 有效两轮 `7:08.007` / `7:09.795`，稳定均值 `7:08.901`，没有刷新当前 `7:08.255`。
   - 第一轮 `carrot_skip_unready=85`、`carrot_unready_water=80`、`carrot_unready_rescue=1`；第二轮 `carrot_skip_unready=82`、`carrot_unready_water=75`、`carrot_unready_rescue=2`。
   - 结论：一次补水的救援率太低，还会引入额外水不足 warning；不保留。后续若继续处理 unready support，不能靠当前无人机补水硬救，必须改 support 更新节奏或结构。
+- 2026-06-08 support 改写后补水候选：
+  - 改法：在 `rewrite_grass_support()` / `rewrite_carrot_support()` 成功种下动态 support 后，仍停在 support 格时做一次库存门槛补水，目标是把 support 成熟时间前移，减少后续 `carrot_skip`。
+  - 请求 `646` 同时补 Grass / Carrot support，两轮 `7:10.030` / `7:07.109`，均值 `7:08.569`，慢于当前 `7:08.255`；统计为 `support_water=146/149`、`carrot_skip=74/89`。
+  - 请求 `647` 收窄为只补 Grass support，两轮 `7:11.024` / `7:06.699`，均值 `7:08.862`，仍慢于当前 `7:08.255`；统计为 `support_water=123/119`、`carrot_skip=111/86`。
+  - 结论：前置补水能在部分轮次降低 `carrot_skip`，但额外 `use_item(Items.Water)` 动作和水资源竞争抵消了收益；不保留。单轮 `7:06.699` 只是短窗波动，四轮合并均值仍慢于当前默认版。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
