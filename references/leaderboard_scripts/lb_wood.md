@@ -222,6 +222,12 @@
   - 乐观 immediate 同 worker 转换估算：Grass/Carrot 为 `6:41.773`，Bush-only 为 `6:40.381`；前者慢于当前 `6:40.410`，后者只快约 `0.029s`，低于两轮波动且未计入 phase 扰动。
   - 乐观 delayed forward 转换估算：all types 为 `7:18.798`，Bush-only 为 `6:53.115`，因为需要把成熟 Tree 延迟约一个 column cycle。
   - 结论：同列 ownership 不能提供足够大、足够稳的低破坏窗口；不进入实机。后续 Tree-slot 方向必须同时避免回程、避免 phase 扰动，并覆盖更多 bad-slot 请求。
+- 2026-06-08 周期 Tree 掩码强破坏对照：
+  - `.codex/tests/wood_periodic_tree_mask_screen.py` 枚举小周期非相邻 Tree/Bush 掩码；首次包含 `8x8` 的全枚举触发 `60s` timeout 且无有效输出，随后收窄到 `2x2..8x4`。
+  - 乐观上界最佳为 `4x4` 对角掩码 `T.../.T../..T./...T`：Tree 密度从 `50%` 降到 `25%`，Tree companion support success 从当前 `66.7%` 提到 `91.7%`，估算 `6:14.474`。
+  - 临时实机只把 Tree 判定改成 `x % 4 == y % 4`，保留动态 support、补水、施肥、统计和入口不变。
+  - request `673` 两条有效 run 均为 `8:10.429`，明显慢于当前 `6:40.410`；取消摘要 `finished=false runs=3 average=5:33.212` 不作为成绩。
+  - 结论：大幅降低 Tree 密度虽然能减少 Tree-slot reroll，但 Tree 产量损失、Bush/support 扫描节奏和额外 churn 远超纸面收益；不继续做周期掩码 / 低 Tree 密度布局实机微调。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -237,6 +243,7 @@
   - 剩余 reroll 主要来自 companion 坐标落在 Tree 位；已用离线预算判定“当前无人机改写并恢复 Tree 位”慢于当前，不直接实机
   - Tree-slot 临时 Bush swap 已被 request `663` 证伪；`Entities.Bush` 不可交换，不能再按 swap 方向设计 Tree-slot 接力
   - Tree-slot 同列同 worker 延迟承接覆盖面太窄且 phase 成本过高，不进入实机
+  - 周期 Tree 掩码 / 低 Tree 密度布局 request `673` 已证伪；不能靠牺牲大量 Tree 位换 support 命中率
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
