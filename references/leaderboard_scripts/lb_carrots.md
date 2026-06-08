@@ -94,7 +94,9 @@
   - 2026-06-08 `.codex/tests/carrot_dynamic_helper_budget.py` 只做离线动作预算；成功 `move()` / `harvest()` / `plant()` 按 `200` ticks，`get_companion()` 按 `1` tick，support 类型不匹配时按往返、移除旧 support、种新 support 计算。
   - 周期跨 tile 理想动态承接 distance<=3 估算 `4:16.198`，但需要跨到邻居 tile 改写 support；这会破坏当前静态 Bush-only 能跨 tile 无冲突成立的前提，结果不可解释。
   - 安全的本 tile 内同无人机动态改写 distance<=3 估算 `5:32.201`，distance<=1 / <=2 更慢，均弱于当前折线 8 锚点 `4:34.314`。
-  - 结论：不实机当前同无人机动态改写候选；后续只有出现低成本跨 tile 协调或廉价共享任务机制，才重新评估动态 helper / 接力。
+  - helper relay 预算筛选：`.codex/tests/carrot_helper_relay_budget.py` 估算 16 个 anchor + 16 个 helper 的 current-shape relay 约 `2:44.975`，但跨 tile support 请求约 `46.7%`，忽略了真实成熟等待、请求顺序扰动和互相覆盖。
+  - 2026-06-08 request `653/654` 临时实现 helper relay 后启动即失败；`output.txt` 报 `Error: get_drone_id 从未被定义。在使用变量之前必须先给它赋值。`，而当前真实 `Save0/__builtins__.py` 没有 `get_drone_id` / `send` / `receive` 定义。
+  - 结论：当前游戏脚本可用 API 下，不能依赖无人机间消息通信实现 helper relay；该失败候选已从 `.py` 回退并重新同步正式折线 8 锚点版本到 `gamesave/`。后续只有确认当前 Save0 暴露数字 drone id 与消息 API，或找到不依赖消息通信的邻机接力结构，才重新评估动态 helper / 接力。
 - 2026-05-31 多机胡萝卜理论复核：
   - 当前 `main3` 不是“没有伴生”的路线；按资源增量看，完成 `2,000,000,000` 胡萝卜约需要 `24414` 次满伴生收割，request `612` 的资源增长符合满伴生收割主导。
   - 当前 `32` 个双锚点单元的静态 Bush support，把 companion 类型成功率限制在约 `1/3`；双锚点 blocked 坐标后，理论失败重刷约 `2.13` 次 / 成功。
