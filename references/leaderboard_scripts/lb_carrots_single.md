@@ -90,6 +90,11 @@
   - 再追加完整统计请求 `669`：`finished=true runs=14 average=8:45.337`，慢于当前完整均值。
   - 两次完整统计合并均值约 `8:44.762`，只比当前记录快约 `0.07s`，低于波动；不认定刷新。
   - 结论：Grass-only 静态 support 没有稳定刷新，已从 `.py` 回退；不要只把 Bush-only 换成 Grass-only。
+- 2026-06-08 静态多类型 support 筛选：
+  - `.codex/tests/carrot_single_static_type_screen.py` 固定当前四锚点和 5x5 wrap companion 半径 `3`，计算 21 个非锚点 support 对 `Grass/Bush/Tree` 的类型权重。
+  - 结果：`bush_only_weight=84`、`best_static_weight=84`、`mixed_has_strict_advantage=False`；每个可命中 support 坐标对三种类型权重完全相同，因此静态多类型布局不会比 Bush-only 提高 companion 命中率。
+  - 额外发现 `(0,4)` support 权重为 `0`；临时在 `init_anchors()` 跳过该格 Bush 初始化后，request `672` 三条有效 run 为 `8:54.687` / `8:42.343` / `8:46.048`，均值 `8:47.693`，慢于当前 `8:44.832`。
+  - 结论：静态多类型 support 与跳过 unreachable support 都不保留；当前四锚点仍默认预置全部非锚点 Bush。
 - 2026-04-30 已知支撑记录复测
   - 在 `main4` 初始化时记录 5x5 每格实体；后续 `get_companion()` 命中已知 `Bush` 支撑格时直接接受
   - 请求 `400` 完成 `13` 轮，均值 `9:45.406`
@@ -189,6 +194,7 @@
 - 已验证静态 Bush/Tree 混合 support 没有刷新，默认保留静态 Bush-only support；后续不要再试坐标奇偶混合支撑。
 - 已验证相邻双锚点明显慢于当前四锚点，默认保留 `(2,1)/(3,1)/(3,2)/(2,2)` 四锚点；后续静态锚点数量变化必须把成熟等待纳入筛选。
 - 已验证静态 Grass-only support 没有稳定刷新，默认保留静态 Bush-only support；后续不要再做单类型 support 平替。
+- 已通过静态多类型 support 筛选确认，当前四锚点几何下混合 `Grass/Bush/Tree` 不提高类型命中率；跳过 `(0,4)` 这个 unreachable support 也变慢，默认继续初始化全部非锚点 Bush。
 
 ## 候选策略方向（猜测 / 待验证）
 
