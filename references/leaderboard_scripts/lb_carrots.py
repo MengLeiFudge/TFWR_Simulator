@@ -1,6 +1,6 @@
 from __builtins__ import *
 
-# 4:34.363
+# 4:32.943
 def lb_carrots():
     set_world_size(FIELD_SIZE)
     tile_count = 0
@@ -53,11 +53,11 @@ def goto(tx, ty):
 
 def water_carrot_anchor():
     # 32 台无人机会同时抢水；低库存调用只会刷警告，实际收益很小。
-    if num_items(Items.Water) > 512:
+    if num_items(Items.Water) > 384:
         use_item(Items.Water, 3)
-    elif num_items(Items.Water) > 256:
+    elif num_items(Items.Water) > 192:
         use_item(Items.Water, 2)
-    elif num_items(Items.Water) > 128:
+    elif num_items(Items.Water) > 64:
         use_item(Items.Water)
 
 
