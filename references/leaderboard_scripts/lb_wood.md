@@ -276,6 +276,12 @@
   - 最好 4x4 上界 `6:18.642`，Tree 密度 `37.5%`，success `77.8%`；最好 6x6 上界 `6:20.645`，Tree 密度 `38.9%`，success `76.2%`。这类收益主要来自显著降低 Tree 密度，风险与 request `673` 的低 Tree 密度失败同类。
   - 8x8 采样最好 `6:37.387`，Tree 密度 `40.6%`，只比当前乐观快约 `3s`；`density>=45%` 的 dense 候选最好是 6x6 `6:33.120`，Tree 密度 `47.2%`，success `68.6%`。
   - 结论：不进入实机。低密度 mask 已有 request `673` 失败对照；dense mask 在乐观模型下也只有秒级收益，未覆盖路径扰动、Bush/support 节奏和动态改写 churn。后续不要按“小周期 Tree mask / 低 Tree 密度 / 轻微降密度 seam”继续实机，除非新模型能证明不明显降低 Tree 密度且能处理 Tree-slot bad companion。
+- 2026-06-09 Tree-slot 静态 Bush reserve 筛选：
+  - `.codex/tests/wood_tree_slot_reserve_budget.py` 检查不通信、不恢复 Tree 的固定 reserve 方案：把少量 Tree 奇偶格长期改成 Bush，由对应 worker 按 Bush 位处理，目标是吃到 Bush 类型 bad-slot companion，同时用 reserve Bush 自身产木抵消少量 Tree 损失。
+  - 模型输入沿用当前 `6:40.410`、request `660` 的 companion 成功率约 `65.7%`、request `661/662` 的 bad-slot rate 约 `32.8%`，并乐观假设 reserve Bush 没有额外路径成本且满额保持 Bush 产木。
+  - 只转换 Bush 类型 bad-slot 请求时，`1/16` reserve 估算 `6:39.817`，`1/8` 为 `6:39.498`，`3/16` 为 `6:39.450`；最佳乐观收益不足 `1s`。
+  - impossible typed reserve ceiling 显示只有能按请求类型完美预留时才有更大纸面空间：`1/8` 估算 `6:32.040`，`1/4` 估算 `6:27.046`；但这需要通信或类型偏置，当前 Save0 API 不支持。
+  - 结论：不进入实机。固定 Bush reserve 的现实收益低于两轮波动，且模型已经忽略了路径扰动、Tree phase 变化和动态 support churn；后续不要按“固定预留少量 Tree 位给 Bush reserve”推进。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -296,6 +302,7 @@
   - Tree-slot wait-only phase 修正后，Grass 临时 support 只有在近似远程知道目标 Tree 必定 ready 时才有收益；当前 API 需要移动检查，35%~45% ready 率下不过线
   - 预留 spawn helper 虽能省当前 worker 回程，但会损失常驻 worker 吞吐；31 worker + 1 helper 位的真实 ready 率估算仍慢于当前
   - 周期 Tree 掩码 / 低 Tree 密度布局 request `673` 已证伪；不能靠牺牲大量 Tree 位换 support 命中率
+  - 固定少量 Tree 位为 Bush reserve 的乐观收益不足 `1s`，低于两轮波动；不作为实机候选
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - Bush 位未成熟 Grass / Carrot 动态 support 提前清理 request `677` 已证伪；未成熟 support 仍有后续伴生承接价值，不能只按 Bush 产木直觉清掉
   - 是否存在比同无人机往返更低成本的动态接力结构
