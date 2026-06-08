@@ -226,6 +226,7 @@
   - 同列目标只占 Tree-slot offsets 的 `25%`，朝前同列只占 `12.5%`；覆盖面本身偏小。
   - 乐观 immediate 同 worker 转换估算：Grass/Carrot 为 `6:41.773`，Bush-only 为 `6:40.381`；前者慢于当前 `6:40.410`，后者只快约 `0.029s`，低于两轮波动且未计入 phase 扰动。
   - 乐观 delayed forward 转换估算：all types 为 `7:18.798`，Bush-only 为 `6:53.115`，因为需要把成熟 Tree 延迟约一个 column cycle。
+  - 2026-06-09 追加 delayed backward：虽然能避免同 worker 很快撞上未成熟 support，但仍要当前往返改写后方 Tree-slot，并让该目标 Tree 延迟到下一圈恢复；all types 乐观估算 `7:28.904`，Bush-only `6:56.306`。
   - 结论：同列 ownership 不能提供足够大、足够稳的低破坏窗口；不进入实机。后续 Tree-slot 方向必须同时避免回程、避免 phase 扰动，并覆盖更多 bad-slot 请求。
 - 2026-06-08 周期 Tree 掩码强破坏对照：
   - `.codex/tests/wood_periodic_tree_mask_screen.py` 枚举小周期非相邻 Tree/Bush 掩码；首次包含 `8x8` 的全枚举触发 `60s` timeout 且无有效输出，随后收窄到 `2x2..8x4`。
