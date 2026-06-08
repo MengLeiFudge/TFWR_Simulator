@@ -95,6 +95,11 @@
   - 结果：`bush_only_weight=84`、`best_static_weight=84`、`mixed_has_strict_advantage=False`；每个可命中 support 坐标对三种类型权重完全相同，因此静态多类型布局不会比 Bush-only 提高 companion 命中率。
   - 额外发现 `(0,4)` support 权重为 `0`；临时在 `init_anchors()` 跳过该格 Bush 初始化后，request `672` 三条有效 run 为 `8:54.687` / `8:42.343` / `8:46.048`，均值 `8:47.693`，慢于当前 `8:44.832`。
   - 结论：静态多类型 support 与跳过 unreachable support 都不保留；当前四锚点仍默认预置全部非锚点 Bush。
+- 2026-06-08 same-drone 动态 support 预算复核：
+  - `.codex/tests/carrot_single_companion_screen.py` 在当前 5x5 / 2x2 四锚点结构下，静态 Bush-only 基线为 `success=29.2%`、`path=4`、`ticks=1774.9`。
+  - 该脚本筛出的 distance<=1 动态候选最好估算 `17:26.594`，distance<=2 最好估算 `8:48.797`。
+  - 额外直接计算当前四锚点：distance<=1 动态只有 `usable=8`、`success=8.33%`、`ticks=5745.333`；distance<=2 动态为 `usable=52`、`success=54.17%`、`ticks=1899.282`，仍慢于静态 `1774.857`。
+  - 结论：当前收割者自己去写相邻 / 近距离 support 没有实机价值；distance<=1 覆盖太窄，distance<=2 往返和改写成本已经超过 reroll 收益。
 - 2026-04-30 已知支撑记录复测
   - 在 `main4` 初始化时记录 5x5 每格实体；后续 `get_companion()` 命中已知 `Bush` 支撑格时直接接受
   - 请求 `400` 完成 `13` 轮，均值 `9:45.406`
@@ -195,6 +200,7 @@
 - 已验证相邻双锚点明显慢于当前四锚点，默认保留 `(2,1)/(3,1)/(3,2)/(2,2)` 四锚点；后续静态锚点数量变化必须把成熟等待纳入筛选。
 - 已验证静态 Grass-only support 没有稳定刷新，默认保留静态 Bush-only support；后续不要再做单类型 support 平替。
 - 已通过静态多类型 support 筛选确认，当前四锚点几何下混合 `Grass/Bush/Tree` 不提高类型命中率；跳过 `(0,4)` 这个 unreachable support 也变慢，默认继续初始化全部非锚点 Bush。
+- 已通过 same-drone 动态 support 预算确认，当前收割者自己写相邻 / 近距离 support 不值得进实机；后续动态承接必须避免当前 drone 往返改写成本。
 
 ## 候选策略方向（猜测 / 待验证）
 
@@ -208,7 +214,7 @@
   - 拒绝 `Grass` 后总冲突数是否明显下降
 - 当前落地版本：静态 Bush-only 四锚点 claim 已验证明显超过 `main3()` 纯滚动基线；13 锚点高密度版本已失败，下一步更适合评估是否放开 `Tree` companion，而不是继续盲目增加锚点。
 
-### 方向 2：围绕 `Bush / Tree` 做单机短链
+### 方向 2：围绕 `Bush / Tree` 做单机短链（当前暂缓）
 
 - 核心思路：胡萝卜不会出现胡萝卜 companion，因此短链只能围绕可落地的 `Grass / Bush / Tree` support 做，而不是继续假设“胡萝卜 -> 胡萝卜”。
 - 主瓶颈：当前主线只使用静态 `Bush`，没有评估 `Tree` companion 是否值得接入。
@@ -216,6 +222,7 @@
 - 优先探针：
   - `Tree` companion 出现频率
   - 接受 `Tree` 后的 reroll 降幅是否超过补树动作成本
+- 当前状态：动态补 Tree 已实机失败；same-drone 近距离动态 support 预算也慢于静态 Bush-only。除非出现“不由当前收割者往返改写”的新结构，否则不进实机。
 
 ### 方向 3：小图保留，但 support 服务于低成本可兑现伴生
 
