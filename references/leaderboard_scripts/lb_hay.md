@@ -160,6 +160,12 @@
   - `.codex/tests/hay_spawn_helper_budget.py` 的不安全上界显示，若只给 Tree 请求走 helper、Bush 仍直接接受，all-support distance<=3 估算 `2:33.767`；但这要求 Tree helper 写入后仍能无状态地信任 Bush support，实际不成立。
   - 保守正确模型需要 Bush/Tree 都经 helper 确认或重写 support；此时最好 all-support distance<=3 估算 `3:05.610`，慢于当前 `2:47.861`。
   - 结论：spawn-and-wait helper 不进入实机；减少活跃双草单元换 helper 空位会损失并行吞吐，且 support 类型被 Tree 改写后不能继续无条件接受 Bush companion。
+- 2026-06-08 多锚点 Bush-only 轮转筛选
+  - `.codex/tests/hay_multi_anchor_layout_budget.py` 用当前 `2:47.861` 校准，枚举单锚点、双锚点、三锚点、四锚点的 Bush-only 非通信结构，估算 Bush-only success、support 数量和最短闭环移动距离。
+  - 单锚点纸面 `2:14.096`、success `33.3%`，但模型忽略成熟等待；历史多机单草原地 companion 已无完成轮，因此不按纸面结果进实机。
+  - 当前竖向相邻双锚点 `((0,0),(0,1))` 仍是所有双锚点第一：估算 `2:47.861`、success `31.9%`、闭环移动距离 `2`。
+  - 三锚点最好 `((0,0),(0,1),(0,2))`，估算 `3:04.419`；四锚点最好 `2x2`，估算 `3:13.060`。
+  - 结论：当前双草相邻轮转仍是 Bush-only 非通信结构的上界；单草被成熟等待实机失败否定，三草 / 四草会因为 blocked anchor 增加和闭环移动变慢而退化，不进入实机。
 
 ## 下一步优化方向
 
@@ -176,6 +182,7 @@
 - 已验证静态混合 support 只是重新分配单类型坐标，不能突破类型上限；后续不做无新结构的 Bush/Tree 混合实机。
 - 已验证静态双草布局筛选里，当前竖向相邻双草是低移动上界；后续不要只换双草目标位置或拉开目标间距。
 - 已验证 spawn-on-demand helper 预算不过线；后续不要用“减少活跃单元腾 helper 位 + anchor wait_for”来追 Tree companion。
+- 已验证多锚点 Bush-only 轮转筛选里，单草纸面收益不可信，三草 / 四草估算慢于当前双草相邻轮转；后续不要只按单锚点、三锚点或四锚点 Bush-only 轮转继续实机。
 
 ## 候选策略方向（猜测 / 待验证）
 
