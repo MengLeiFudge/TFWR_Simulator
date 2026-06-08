@@ -155,6 +155,11 @@
   - 当前竖向相邻双草 `(0,0)/(0,1)` 估算仍是第一：Bush-only 成功率约 `31.9%`、目标间移动距离 `1`、估算 `2:47.861`。
   - 横向相邻双草估算约 `2:55.497`，更远目标格会因每轮移动距离增加退化到 `3:14.627` 或更慢。
   - 结论：不实机测试多机 hay 的静态目标格平替或拉开双草目标；当前结构已经是非通信 Bush-only 双草布局的低移动上界。
+- 2026-06-08 spawn-on-demand Tree helper 筛选
+  - 机制依据：当前 Save0 可用 `spawn_drone(task, *args)` / `wait_for(handle)`，因此理论上可把活跃双草单元从 32 降到 16，留下 helper 空位；Tree companion 出现时临时 spawn helper 写 Tree support，anchor 等待后继续。
+  - `.codex/tests/hay_spawn_helper_budget.py` 的不安全上界显示，若只给 Tree 请求走 helper、Bush 仍直接接受，all-support distance<=3 估算 `2:33.767`；但这要求 Tree helper 写入后仍能无状态地信任 Bush support，实际不成立。
+  - 保守正确模型需要 Bush/Tree 都经 helper 确认或重写 support；此时最好 all-support distance<=3 估算 `3:05.610`，慢于当前 `2:47.861`。
+  - 结论：spawn-and-wait helper 不进入实机；减少活跃双草单元换 helper 空位会损失并行吞吐，且 support 类型被 Tree 改写后不能继续无条件接受 Bush companion。
 
 ## 下一步优化方向
 
@@ -170,6 +175,7 @@
 - 已验证当前双草单元里“命中 Tree 后自己远距离补 Tree”明显慢于 Bush-only 默认路线；后续 Tree 方向必须控制在近距离支撑或交给更近 drone 接力，不能让收割 drone 自己追远点。
 - 已验证静态混合 support 只是重新分配单类型坐标，不能突破类型上限；后续不做无新结构的 Bush/Tree 混合实机。
 - 已验证静态双草布局筛选里，当前竖向相邻双草是低移动上界；后续不要只换双草目标位置或拉开目标间距。
+- 已验证 spawn-on-demand helper 预算不过线；后续不要用“减少活跃单元腾 helper 位 + anchor wait_for”来追 Tree companion。
 
 ## 候选策略方向（猜测 / 待验证）
 
