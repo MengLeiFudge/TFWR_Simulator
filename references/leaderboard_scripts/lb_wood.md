@@ -233,6 +233,12 @@
   - request `675` 两条有效 run 为 `7:22.179` / `7:23.839`，稳定均值 `7:23.009`，明显慢于当前 `6:40.410`。
   - 统计显示跳过 Grass 改写会直接放大 reroll：第一轮 `grass_request=286`、`grass_rewrite=177`、`grass_skip=109`、`reroll=567`；第二轮 `296 / 172 / 124 / 599`。当前默认版 request `660` 的 reroll 约 `439 / 371`。
   - 结论：保护未成熟 support 的收益远低于丢掉 Grass companion 兑现的代价；当前 Grass rewrite 必须继续允许摧毁未成熟旧实体。后续不要再按“低 churn Grass、未成熟就跳过”的方向实机。
+- 2026-06-08 周期 Tree 密度 mask 上界筛选：
+  - `.codex/tests/wood_tree_mask_density_screen.py` 精确枚举 `4x4..6x6` 周期无相邻 Tree mask，并用固定种子采样 `7x7/8x8`；模型乐观假设所有非 Tree 格都能无额外路径 / churn 地承担 Bush/support 产木。
+  - 首次全枚举版触发 `timeout 60s`，退出码 `124`；有界采样版 `py_compile` 通过，`timeout 60s` 下退出码 `0`。
+  - 最好 4x4 上界 `6:18.642`，Tree 密度 `37.5%`，success `77.8%`；最好 6x6 上界 `6:20.645`，Tree 密度 `38.9%`，success `76.2%`。这类收益主要来自显著降低 Tree 密度，风险与 request `673` 的低 Tree 密度失败同类。
+  - 8x8 采样最好 `6:37.387`，Tree 密度 `40.6%`，只比当前乐观快约 `3s`；`density>=45%` 的 dense 候选最好是 6x6 `6:33.120`，Tree 密度 `47.2%`，success `68.6%`。
+  - 结论：不进入实机。低密度 mask 已有 request `673` 失败对照；dense mask 在乐观模型下也只有秒级收益，未覆盖路径扰动、Bush/support 节奏和动态改写 churn。后续不要按“小周期 Tree mask / 低 Tree 密度 / 轻微降密度 seam”继续实机，除非新模型能证明不明显降低 Tree 密度且能处理 Tree-slot bad companion。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
