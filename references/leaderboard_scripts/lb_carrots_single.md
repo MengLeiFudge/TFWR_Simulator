@@ -23,11 +23,12 @@
 
 - 当前默认入口：`lb_carrots_single()`
 - 旧可靠基线是 `main3()`：外部 `Save0/carrot.py` 修真实目标后的 5x5 单列轮转胡萝卜；请求 `287` 两轮约 `23:49.323`。
-- 当前版本复跑时间：2026-05-31 请求 `622` 完整统计 `finished=true runs=14 average=8:44.832`；最快完整轮 `8:32.070`。
+- 当前版本复跑时间：2026-06-09 请求 `682` 完整统计 `finished=true runs=14 average=8:37.719`；最快完整轮 `8:31.992`。
+- 上一个静态 Bush-only 相邻 2x2 版本：2026-05-31 请求 `622` 完整统计 `finished=true runs=14 average=8:44.832`；最快完整轮 `8:32.070`。
 - 短跑验证：2026-05-31 请求 `621` 有效四轮 `8:44.335` / `8:51.718` / `8:44.099` / `8:45.799`，稳定均值 `8:46.488`；后续 `finished=false` 取消摘要不作为成绩。
 - 上一个分散四锚点当前复跑：2026-05-30 请求 `611` 有效两轮 `9:46.899` / `9:42.343`，稳定均值 `9:44.621`；后续 `finished=false` 取消摘要不作为成绩。
 - 历史完整统计：请求 `494` 完整统计 `13` 轮均值 `9:42.804`，请求 `495` 复跑完整统计 `13` 轮均值 `9:44.049`。
-- 当前 companion 路线：5x5 上只保留 `(2,1)/(3,1)/(3,2)/(2,2)` 相邻 2x2 四个胡萝卜锚点；其余格预置 `Bush` 支撑，锚点直接接受非锚点 `Bush` companion，成功命中后不再往返补支撑。
+- 当前 companion 路线：5x5 上只保留 `(2,1)/(3,1)/(3,2)/(2,2)` 相邻 2x2 四个胡萝卜锚点；其余格初始预置 `Bush` 支撑，并维护 `support_entity` 记住每个非锚点 support 的当前类型。锚点直接接受已知类型匹配的非锚点 companion；若类型不匹配且距离 `<=2`，当前无人机临时改写 support 并保留新类型；距离更远的类型不匹配请求仍 reroll。
 - 这条路线仍然没有真正解决 companion 兑现问题，但已经证明旧“无完成轮”主要是入口目标错误，而不是脚本完全无收益
 - 证据来源：
   - `lb_carrots_single.py` 当前默认入口
@@ -70,7 +71,8 @@
   - 2026-05-30 当前版本复跑请求 `611`：有效两轮稳定均值 `9:44.621`
   - 2026-05-31 相邻 2x2 锚点请求 `621`：有效四轮稳定均值 `8:46.488`
   - 2026-05-31 相邻 2x2 锚点请求 `622`：完整统计 `finished=true runs=14 average=8:44.832`，最快完整轮 `8:32.070`
-  - 结论：预置非锚点 Bush 支撑比命中后往返补支撑更快；静态支撑坐标足以判断成功命中，删除 `known_entity` 矩阵维护和查询后继续刷新，但仍慢于 #1 `3:46.963`
+  - 2026-06-09 adaptive support memory 请求 `682`：完整统计 `finished=true runs=14 average=8:37.719`，最快完整轮 `8:31.992`
+  - 结论：预置非锚点 Bush 支撑比命中后往返补支撑更快；静态支撑坐标足以判断成功命中，删除 `known_entity` 矩阵维护和查询后曾刷新到 `8:44.832`。本轮重新引入只记录 support 当前类型的轻量矩阵，并只在距离 `<=2` 时改写 mismatch support，完整统计继续刷新到 `8:37.719`，但仍慢于 #1 `3:46.963`
 - 2026-05-31 相邻 2x2 锚点：
   - 改法：不改 `Bush-only` 静态支撑和三桶优先补水，只把分散四锚点 `(1,1)/(3,1)/(1,3)/(3,3)` 改为相邻 2x2 `(2,1)/(3,1)/(3,2)/(2,2)`，按环路访问。
   - 理论筛选：粗略周期模型中，分散四锚点每有效锚点约 `2040t`，相邻 2x2 约 `1771t`；收益来自移动环路缩短，同时有效 support 权重仍约 `21`。
@@ -109,6 +111,14 @@
   - 最好 no-restore 下界 `hybrid d<=2 Grass+Tree` 估算 `8:06.162`，但它不恢复 Bush support，会污染后续静态 Bush 命中，不能直接实机。
   - 路径感知恢复后，`hybrid d<=1 Grass` / `Tree` 估算 `8:50.621`，比当前慢 `5.789s`；`anchor-sacrifice d<=1 Grass+Tree` 估算 `8:55.081`，比当前慢 `10.249s`。
   - 结论：当前四锚点下，“当前收割者临时改附近 Grass / Tree，再恢复 Bush”的低成本 claim 不进实机；恢复支撑和路径绕行成本已经吃掉 reroll 收益。
+- 2026-06-09 adaptive support memory：
+  - `.codex/tests/carrot_single_adaptive_support_memory_screen.py` 在低成本动态 claim 的 `no-restore` 上界基础上补 steady-state 模型：support 不恢复 Bush，而是保留最近一次请求类型；下一次同坐标类型匹配时直接接受，类型不匹配且距离 `<=2` 时当前 drone 改写为请求类型。
+  - 离线筛选显示 `memory-only no rewrite` 与静态单类型等价，仍是 `8:44.832`；`rewrite mismatch d<=2` 估算 `8:06.162`，纸面快约 `38.670s`，达到短窗验证门槛；`d<=3` 因改写太多退到 `8:32.891`。
+  - 临时实现保留 5x5 相邻 2x2 四锚点、三桶优先补水和 `10M` progress 日志；新增 `support_entity` 矩阵和 `static_hit/memory_hit/memory_rewrite/memory_far_reject/anchor_block` 计数。
+  - 请求 `681` 短窗有效三轮：`8:36.362` / `8:35.664` / `8:40.898`，runner 稳定均值 `8:37.641`。
+  - 请求 `682` 完整统计：`finished=true runs=14 average=8:37.719`；可见有效轮包括 `8:38.707`、`8:37.899`、`8:38.242`、`8:36.367`、`8:35.273`、`8:38.945`、`8:31.992`、`8:36.874`、`8:37.297`、`8:38.899`、`8:38.353`、`8:38.906`、`8:41.445`。
+  - 统计规模：单轮约 `700~760` 次 `memory_rewrite`、`325~397` 次 `memory_hit`、`207~263` 次 `static_hit`，证明收益来自非 Bush support 记忆和近距离改写；但实机收益只有约 `7.1s`，远低于离线 `38s` 上界，说明改写 churn、地块状态和成熟等待仍吃掉大部分纸面收益。
+  - 结论：保留为当前默认入口；后续不要把 `d<=3` 直接打开，模型已经显示改写过多会回吐收益。下一步若继续单机胡萝卜，应先压低 `memory_far_reject` 或减少 `memory_rewrite` 往返成本，而不是恢复 Bush 或只换静态 support 类型。
 - 2026-04-30 已知支撑记录复测
   - 在 `main4` 初始化时记录 5x5 每格实体；后续 `get_companion()` 命中已知 `Bush` 支撑格时直接接受
   - 请求 `400` 完成 `13` 轮，均值 `9:45.406`
@@ -211,8 +221,8 @@
 - 已通过静态多类型 support 筛选确认，当前四锚点几何下混合 `Grass/Bush/Tree` 不提高类型命中率；跳过 `(0,4)` 这个 unreachable support 也变慢，默认继续初始化全部非锚点 Bush。
 - 已通过 same-drone 动态 support 预算确认，当前收割者自己写相邻 / 近距离 support 不值得进实机；后续动态承接必须避免当前 drone 往返改写成本。
 - 已通过 mature-wait-aware 锚点筛选确认，当前相邻 `2x2` 四锚点是静态 Bush-only 锚点形状上界；不要继续只换锚点数量或形状。
-- 已通过低成本动态 claim 筛选确认，当前 drone 附近临时改 `Grass / Tree` 再恢复 `Bush` 也不值得进实机；后续必须避免破坏静态 Bush support 或找到无需当前 drone 往返恢复的新承接机制。
-- 当前单机胡萝卜 companion 主线进入暂缓：静态锚点、静态类型、same-drone 动态、低成本动态 claim 都已筛掉；下一轮只能先做更强的 claim / 成熟等待离线模型，不能直接实机微调。
+- 已通过低成本动态 claim 筛选确认，当前 drone 附近临时改 `Grass / Tree` 再恢复 `Bush` 不值得进实机；但 no-restore support memory 经 request `682` 完整统计确认能小幅刷新，当前默认保留 adaptive support memory。
+- 当前单机胡萝卜下一步不再是静态平替或恢复 Bush，而是围绕 adaptive support memory 继续压低 `memory_far_reject` / `memory_rewrite` 成本；任何新增分支都必须先过 mature-wait-aware / support-memory 模型。
 
 ## 候选策略方向（猜测 / 待验证）
 
@@ -224,7 +234,7 @@
 - 优先探针：
   - 不同 companion 类型的兑现率
   - 拒绝 `Grass` 后总冲突数是否明显下降
-- 当前状态：静态 Bush-only 四锚点 claim 已验证明显超过 `main3()` 纯滚动基线；13 锚点高密度、相邻双锚点、静态单类型 / 多类型和低成本动态 claim 都已失败。后续不能只重写接受顺序，必须先证明新 claim 模型能同时降低 reroll、成熟等待和 support 恢复成本。
+- 当前状态：静态 Bush-only 四锚点 claim 已验证明显超过 `main3()` 纯滚动基线；13 锚点高密度、相邻双锚点、静态单类型 / 多类型和低成本动态 claim 都已失败。adaptive support memory 已经刷新为当前默认；后续不能只重写接受顺序，必须先证明新 claim 模型能同时降低 reroll、成熟等待和 support 改写成本。
 
 ### 方向 2：围绕 `Bush / Tree` 做单机短链（当前暂缓）
 
@@ -234,7 +244,7 @@
 - 优先探针：
   - `Tree` companion 出现频率
   - 接受 `Tree` 后的 reroll 降幅是否超过补树动作成本
-- 当前状态：动态补 Tree 已实机失败；same-drone 近距离动态 support 和低成本动态 claim 预算也慢于静态 Bush-only。除非出现“不由当前收割者往返改写”的新结构，否则不进实机。
+- 当前状态：动态补 Tree 已实机失败；恢复 Bush 的 same-drone 近距离动态 support 和低成本动态 claim 预算也慢于静态 Bush-only。no-restore adaptive support memory 证明有限距离改写有小幅收益；后续只在模型能优于当前 `8:37.719` 时再进实机。
 
 ### 方向 3：小图保留，但 support 服务于低成本可兑现伴生
 
@@ -244,4 +254,4 @@
 - 优先探针：
   - 去掉 `Grass` 兼容后，support 冲突是否下降
   - 固定 support 与动态 support 哪种更适合单机胡萝卜
-- 当前状态：静态 Grass-only、Tree-only、Bush/Tree 混合和静态多类型 support 都已失败；固定 support 当前仍以 Bush-only 为默认，动态 support 必须先证明无需当前 drone 往返。
+- 当前状态：静态 Grass-only、Tree-only、Bush/Tree 混合和静态多类型 support 都已失败；固定 support 已从 Bush-only 演进为 adaptive support memory。动态 support 必须限制 churn，不要恢复 Bush，也不要扩大到 `d<=3` 这种改写过多的路线。
