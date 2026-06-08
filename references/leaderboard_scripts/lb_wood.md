@@ -37,8 +37,10 @@
   - `main3` 2026-06-08 收益拆分探针：请求 `624` 两轮 `10:42.356` / `10:43.340`，稳定均值 `10:42.848`；慢于当前基线，探针不保留在 `.py`
   - Grass-only 动态 support：请求 `638` 完成 13 轮，最快 `7:36.580`，均值 `7:38.905`；相对 `10:19.811` 明显刷新，后续手动停止产生的 `finished=false runs=14 average=7:08.576` 不作为成绩
   - Grass+Carrot 动态 support：请求 `641` 完成 8 轮，最快 `7:06.871`，均值约 `7:08.255`；相对 Grass-only 继续刷新，但仍有少量 `不能在 Grounds.Grassland 上种植 Entities.Carrot` 警告
+  - 未成熟 Bush 强制改 Carrot：请求 `660` 两轮 `6:40.746` / `6:40.073`，均值 `6:40.410`；相对 Grass+Carrot guard 版继续刷新
+  - 剩余 reroll 来源探针：请求 `661` / `662` 确认剩余 reroll 主要来自 Tree-slot companion，探针不保留在 `.py`
 - 当前仍慢于 #1 `3:44.313`，但相对 `main3` 已有明确进步
-- 证据来源：真实游戏 `run_real_game_script.py` 请求 `56`、`57`、`223`、`224`、`614`、`624`、`638`、`641`、`642`
+- 证据来源：真实游戏 `run_real_game_script.py` 请求 `56`、`57`、`223`、`224`、`614`、`624`、`638`、`641`、`642`、`660`、`661`、`662`
 
 ## 通用注意事项下的榜单特化
 
@@ -196,6 +198,18 @@
   - 请求 `652` 两轮 `7:06.993` / `7:10.696`，均值 `7:08.845`，慢于当前 `7:08.255`。
   - 第一轮统计 `carrot_soil_grass_force=0`，说明这个窄分支在实际路径里没有覆盖到有效机会；候选已从 `.py` 回退并重新同步正式版到 `gamesave/`。
   - 结论：不继续做“摧毁未成熟 Grass 来换 Carrot support”的分支；它既没有覆盖面，也没有刷新成绩。
+- 2026-06-08 剩余 reroll 来源探针：
+  - 探针只统计 `handle_tree_slot()` 失败收割路径，不改变收割、动态 support、补水或施肥逻辑。
+  - request `661` 两轮 `6:41.661` / `6:39.854`，均值 `6:40.758`；探针不作为成绩刷新。
+  - request `661` 统计显示剩余 `reroll` 几乎全来自 companion 坐标落在 Tree 奇偶位：第一轮 `reroll=382` 中 `reroll_bad_slot=369`，第二轮 `reroll=419` 中 `reroll_bad_slot=406`；`reroll_none=0`，`reroll_carrot_skip=8/8`。
+  - request `662` 加入轻量目标实体取样，两轮 `6:40.579` / `6:42.269`，均值 `6:41.424`；bad slot 请求类型近似三等分，第一轮 `bad_slot_bush=128`、`bad_slot_grass=127`、`bad_slot_carrot=112`，第二轮 `118/139/149`。
+  - 取样显示 bad slot 上通常是未成熟 Tree，且几乎没有现成匹配 support：第一轮 `bad_slot_target_tree_unready=1`、`bad_slot_target_match=0`，第二轮 `bad_slot_target_tree_unready=2`、`bad_slot_target_match=1`。
+  - 结论：当前剩余 companion 利用率瓶颈主要是棋盘几何导致的 Tree-slot companion，不是缺少 Carrot/Grass 写入分支。后续若继续 `lb_wood`，应先离线评估“牺牲 / 暂借 Tree 位做 support”的净收益；不能直接实机做 Tree 位改写，因为它会破坏 Tree/Bush 主循环和 Bush 产木节奏。
+- 2026-06-08 Tree-slot 改写离线预算：
+  - 临时脚本 `.codex/tests/wood_tree_slot_budget.py` 用 request `660/661/662` 统计估算，当前有效 companion 成功率约 `65.7%`，平均 bad slot 约 `387.8`。
+  - 如果把目标 Tree 位长期留作 support，纸面估算约 `6:32~6:35`，但结构上不安全：目标 worker 后续会在非 Tree 实体上运行 `handle_tree_slot()`，可能卡在未成熟 support、错误 companion 或延迟恢复 Tree。
+  - 如果每次都恢复目标 Tree 位，估算慢于当前：转换 `25%` bad slot 约 `6:54.137`，`50%` 约 `7:10.705`，`100%` 约 `7:50.596`；Carrot 还需要额外 `till()`，更慢。
+  - 结论：不实机实现 Tree-slot 即时改写。后续只有能不破坏目标 worker 主循环、或几乎零移动地由目标 worker 自己承接的结构，才重新评估 Tree-slot companion。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -208,6 +222,7 @@
   - 如何减少 `carrot_skip` / `reroll`，而不是单纯消除 Carrot 地块 warning
   - support 位未成熟是 `carrot_skip` 主因；当前无人机一次补水救援已失败，后续要改 support 更新节奏或结构
   - Soil 上未成熟 Grass 强制改 Carrot 没有覆盖到实际机会，不再作为下一轮分支
+  - 剩余 reroll 主要来自 companion 坐标落在 Tree 位；已用离线预算判定“当前无人机改写并恢复 Tree 位”慢于当前，不直接实机
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
