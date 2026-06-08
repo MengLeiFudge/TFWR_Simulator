@@ -108,6 +108,11 @@
   - 实机 request `670` 临时实现 16 tile / 10 anchor / spawn helper：两轮 `11:03.359` / `11:05.676`，稳定均值 `11:04.518`，明显慢于当前。
   - 运行统计显示 helper 机制本身可用但等待成本极高：第二轮 `helper_request=1951`、`helper_success=1951`、`helper_fail=0`、`helper_no_slot=0`。
   - 结论：按请求临时 spawn 并 `wait_for()` helper 会打穿并行吞吐；不再作为实机候选。后续 helper 必须是无需 anchor 阻塞等待、且无需不可用通信 API 的结构，否则继续暂缓。
+- periodic same-drone dynamic support probe
+  - 2026-06-08 临时在当前折线 8 锚点版本上实现同无人机动态承接：companion 坐标不是 carrot anchor 时，当前无人机移动到 companion 坐标，把 support 改成请求的 `Grass / Bush / Tree`，再回锚点收割；不使用通信 API，不使用 spawn helper，不改锚点和补水阈值。
+  - request `674` 两轮 `5:51.064` / `5:50.618`，稳定均值 `5:50.841`，明显慢于当前 `4:34.314`。
+  - probe 输出显示每轮 dynamic rewrite 约 `827 / 835` 次，dynamic fail 为 `1 / 0`；机制可运行，但大量跨 support 往返和改写动作把纸面收益吃掉。
+  - 结论：当前 4x8 周期结构下，不再做“本机 periodic 动态改写 support”实机；后续若重开动态承接，必须先有无需长距离往返、无需阻塞等待、且能处理跨 tile support 归属的结构。
 - 2026-05-31 多机胡萝卜理论复核：
   - 当前 `main3` 不是“没有伴生”的路线；按资源增量看，完成 `2,000,000,000` 胡萝卜约需要 `24414` 次满伴生收割，request `612` 的资源增长符合满伴生收割主导。
   - 当前 `32` 个双锚点单元的静态 Bush support，把 companion 类型成功率限制在约 `1/3`；双锚点 blocked 坐标后，理论失败重刷约 `2.13` 次 / 成功。
