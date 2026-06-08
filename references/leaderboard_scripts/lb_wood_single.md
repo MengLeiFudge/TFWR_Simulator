@@ -128,6 +128,22 @@
   - 改法：`process_support_slot()` 中 `support_count[x][y] > 0` 且 `entity == ct == Entities.Bush and can_harvest()` 时额外 `harvest()` 并立刻 `plant(Entities.Bush)`；不改树位布局、claim、tree reroll、冻结、补水和日志。
   - 反编译 `Growable.HasCompanion()` 只检查 companion 坐标有实体且类型匹配，不检查成熟度；因此该候选没有从类型上破坏 companion，但每次成熟 Bush support 会多出 `harvest + plant` 两个动作。
   - 结论：Bush support 自身产木吃不回额外动作成本；claimed support 默认仍只 keep，不额外收割。
+- `main11` claim/support 抖动探针
+  - 2026-06-08 请求 `664`：探针版两轮 `5:42.890` / `5:39.287`，稳定均值 `5:41.088`，慢于当前 `5:38.652`；探针版不作为刷新成绩。
+  - 2026-06-08 请求 `665`：用于保留输出细节，两轮 `5:41.638` / `5:45.976`，稳定均值 `5:43.807`。
+  - 两轮分桶显示 `tree_reroll` 不是单一来源：`reroll_tree_slot=502/549`，`reroll_claim_conflict=613/647`，claim conflict 比 tree-slot invalid 还略高。
+  - support 改写也不是单一作物问题：期望类型近似三等分，`support_expect_bush/grass/carrot=204/216/218` 与 `206/203/212`；旧实体也近似三等分，`support_old_bush/grass/carrot=193/197/203` 与 `191/190/195`，空位只有 `45/45`。
+  - 结论：不要直接做 Bush 优先、冻结 support、额外收割 support 或单类型过滤；这会重新落回已失败路线。下一步如果继续单机木头，应先减少 claim overlap，而不是追某一种 support 类型。
+- `main11` TREE_OFF support overlap 离线筛选
+  - 2026-06-08 `.codex/tests/wood_single_layout_overlap_screen.py` 用 8x8 wrap、companion 半径 `3`、24 个 active tree slot 评价布局。
+  - 当前布局分数为 `invalid=128`、`overlap=4672`、`max_degree=12`、`shared_cells=40`；这与既有 `tree-slot invalid = 128 / 576` 结论一致。
+  - 约 `488399` 个 swap / 随机候选检查后没有找到低于当前分数的布局。
+  - 结论：短期不要只换 `TREE_OFF` 或做 8 个 off 位的局部平替；当前布局在 tree-slot invalid 与 support overlap 这两个指标上都已是强局部最优。
+- `main11` Carrot companion 材料 guard
+  - 2026-06-08 请求 `665` 的探针输出里，开局出现 `Warning: 没有种植 Entities.Carrot 所需的物品。`，说明部分 Carrot support claim 接受后暂时落不了地。
+  - 候选改法：`roll_tree_companion()` 遇到 `ct == Entities.Carrot` 且当前不能支付 `plant(Entities.Carrot)` 成本时，直接 reroll，不占用 support claim。
+  - 2026-06-08 请求 `666` 两轮 `5:51.288` / `5:47.929`，稳定均值 `5:49.609`，慢于当前 `5:38.652`。
+  - 结论：缺材料 Carrot claim 的负面影响小于额外 reroll 成本；不要按“当前付不起就拒绝 Carrot companion”的方向继续。
 - `main11` 释放 Bush support 后冻结：
   - 2026-05-02 请求 `512`：runner 输出 `reached stable leaderboard runs 8 avg=7:39.980`。
   - 改法：`release_main10_tree_claim()` 在 `support_count` 降到 0 时保留 `Entities.Bush` 标记；`roll_main11_tree_companion()` 拒绝把空闲但 Bush-frozen 的 support 改成非 Bush。
@@ -158,6 +174,9 @@
 - 已验证收割成熟 orphan Bush support 没有刷新，默认 orphan support 只计数不收割。
 - 已验证收割成熟 claimed Bush support 没有刷新，默认 claimed support 只 keep，不额外收割重种。
 - 已验证释放后冻结 Bush support 明显退化；不要用“空闲 Bush 位拒绝非 Bush”这种方式做冻结，因为它会把 `tree_reroll` 推到不可接受范围。
+- 已通过 claim/support 抖动探针确认，当前 `tree_reroll` 里 claim conflict 不低于 tree-slot invalid；但 support 期望类型和旧实体都近似三等分，不能用单类型优先规则直接解决。
+- 已通过 TREE_OFF overlap 筛选确认，当前 8 个 off 位没有容易替换的局部布局；不要只做 tree slot 空洞微调。
+- 已验证 Carrot companion 材料 guard 变慢；不要因为开局缺材料 warning 就提前拒绝 Carrot companion。
 
 ## 候选策略方向（猜测 / 待验证）
 
