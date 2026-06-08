@@ -125,6 +125,10 @@
   - 从初始 `(0,0)` 访问这 21 个支撑格并回到 `(4,3)` 的当前手写路径，已经达到 21 次种植 + 21 次移动的下界；不能靠删除“无用 Bush”或大幅缩短开局路径拿到稳定收益。
   - 当前另一目标草格阻塞概率约 `1/24`，与 request `550` 约 `2%` 观察一致，不是主要瓶颈。
   - 因为类型和坐标独立，Tree-only 或 Bush/Tree 坐标混合不会把单类型成功率从约 `1/3` 提到 `2/3`；在没有类型坐标偏置证据前，不进入实机验证。
+- `main4` 静态混合 support 类型权重筛选：
+  - 2026-06-09 `.codex/tests/hay_single_static_type_screen.py` 固定当前 `(4,3)/(4,4)` 双目标和 21 个有效 support cell，统计每个 support 坐标对 `Bush / Carrot / Tree` 请求的权重。
+  - 结果：`bush_hits=46`、`best_static_hits=46`、`bush_success=31.94%`、`best_success=31.94%`；21 个 support cell 上三种类型权重完全相等，`strict_advantage_cells=0`。
+  - 结论：静态混合 support 不进实机；不存在通过坐标分配 Bush/Tree/Carrot support 提高命中率的空间，Carrot/Tree 静态平替只会替换掉等量 Bush 命中。
 - `main4` 目标草格枚举筛选：
   - 2026-06-08 `.codex/tests/hay_single_target_layout_budget.py` 枚举 5x5 世界内所有双目标草格，比较减少另一目标草格阻塞与增加移动成本的取舍。
   - 所有距离 `1` 的相邻目标对在循环模型里等价：有效 support 为 `21` 格、Bush-only 成功率约 `31.9%`、估算 `2:52.141`；当前 `(4,3)/(4,4)` 属于这组最优类。
@@ -179,6 +183,7 @@
 - 已通过 request `550` probe 确认目标草格重叠只占可见刷新约 `2.0%`，不优先继续做目标草格微调或填空洞。
 - 已通过 request `551` probe 确认非 Bush 废伴生几乎只由 Carrot / Tree 均分组成；不要直接做 Tree-only 或无证据的混合 support。
 - 已通过 2026-05-31 坐标推导确认当前 21 个 Bush support 没有无用铺设；开局支撑路径也已经达到当前支撑集合的移动下界，短期不要继续从删支撑格或改手写路径入手。
+- 已通过 2026-06-09 静态混合 support 类型权重筛选确认，21 个 support cell 上 `Bush / Carrot / Tree` 权重完全相等；不要按静态 Tree-only、Carrot-only 或混合 support 布局继续实机。
 - 已通过 2026-06-08 目标草格枚举确认当前相邻目标对属于最优类；不要再做 5x5 目标草位平替或拉开目标间距。
 - 已通过 2026-06-08 多锚点筛选和 request `676` 确认单锚点会被成熟等待打穿，三锚点 / 四锚点预算也慢于当前双锚点；不要再做 Bush-only 锚点数量平替。
 - 已通过 2026-06-09 非通信定时 Bush/Tree support 预算确认，盲轮换 support 类型无法和随机 companion 请求同步，等待正确类型比当前 reroll 贵一个数量级；不要按预轮换 Tree/Bush 继续实机。
