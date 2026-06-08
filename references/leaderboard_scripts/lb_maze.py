@@ -1,6 +1,6 @@
 from __builtins__ import *
 
-# 1:49.837
+# 1:43.336
 def lb_maze():
     clear()
     set_world_size(32)
@@ -212,7 +212,8 @@ def lb_maze():
     def k_center_on_tree(root, k=32):
         return 14
 
-    def solve_maze_in_area(center, area, radius):
+    def solve_maze_in_area(center, area, radius, owned_set):
+        owner_wait = 0.2
         path = {center: []}
         reverse_path = {center: []}
         nodes = [center]
@@ -232,7 +233,7 @@ def lb_maze():
         while num_items(Items.Gold) < target_gold_count:
             treasure = measure()
             wait_start = get_time()
-            while treasure not in area:
+            while treasure not in area or (treasure not in owned_set and get_time() - wait_start <= owner_wait):
                 if treasure == None or num_items(Items.Gold) >= target_gold_count:
                     return
                 if get_time() - wait_start > 1000:
@@ -251,7 +252,7 @@ def lb_maze():
             for direction in reverse_path[treasure]:
                 move(direction)
 
-            if measure() in area:
+            if measure() in owned_set:
                 continue
 
             for pos, moved_pos in new_paths:
@@ -296,7 +297,7 @@ def lb_maze():
                     nodes.append(neighbor)
                     node_parent[neighbor] = node
 
-        def task(center, area):
+        def task(center, area, owned_set):
             def _task():
                 path_to_center = []
                 node = center
@@ -305,7 +306,7 @@ def lb_maze():
                     node = node_parent[node]
                 for i in range(len(path_to_center) - 1, -1, -1):
                     move(path_to_center[i])
-                solve_maze_in_area(center, area, radius)
+                solve_maze_in_area(center, area, radius, owned_set)
             return _task
 
         covered = set()
@@ -322,9 +323,12 @@ def lb_maze():
             center = node
             node_set = set()
             node_set.add(node)
+            owned_set = set()
             node_dist = {node: 0}
             node_queue = [node]
             for current in node_queue:
+                if current not in covered:
+                    owned_set.add(current)
                 covered.add(current)
                 node_set.add(current)
                 x, y = current
@@ -333,11 +337,13 @@ def lb_maze():
                         if neighbor not in node_dist:
                             node_dist[neighbor] = node_dist[current] + 1
                             node_queue.append(neighbor)
-            drone = spawn_drone(task(center, node_set))
+            if not owned_set:
+                continue
+            drone = spawn_drone(task(center, node_set, owned_set))
             if drone:
                 solver_drones.append(drone)
             else:
-                task(center, node_set)()
+                task(center, node_set, owned_set)()
             chunk_count += 1
 
         quick_print("maze_multi chunks=", chunk_count, "nodes=", len(nodes))

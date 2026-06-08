@@ -50,7 +50,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Maze, "lb_maze", 10000)
 # 成功条件：num_items(Items.Gold) >= 9_863_168
-# 用时（#1/当前版本复跑）：0:32.998 / 1:48.180
+# 用时（#1/当前版本复跑）：0:32.998 / 1:43.336
 
 # leaderboard_run(Leaderboards.Maze_Single, "lb_maze_single", 10000)
 # 成功条件：num_items(Items.Gold) >= 616_448
