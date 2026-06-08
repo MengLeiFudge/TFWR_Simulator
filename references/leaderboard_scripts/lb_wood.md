@@ -216,6 +216,12 @@
   - request `663` 两轮 `6:46.913` / `6:48.217`，稳定均值 `6:47.565`，慢于当前 `6:40.410`。
   - 关键统计：第一轮 `tree_slot_bush_request=126`、`tree_slot_bush_swap=0`、`tree_slot_same_row_skip=31`、`tree_slot_no_bush_skip=16`、`tree_slot_swap_fail=79`；`output.txt` 明确报 `Warning: 尝试交换 Entities.Bush，但这是不可交换的。`
   - 结论：Bush 不能通过 `swap()` 临时塞进 Tree-slot support；该路线不成立，候选已从 `.py` 回退并重新同步正式版到 `gamesave/`。
+- 2026-06-08 Tree-slot 同列延迟承接筛选：
+  - 离线预算 `.codex/tests/wood_tree_slot_same_column_budget.py` 只看 Tree-slot 请求中目标仍在同一列、由同一 worker 拥有的窄窗口，避免跨 worker 通信和 swap。
+  - 同列目标只占 Tree-slot offsets 的 `25%`，朝前同列只占 `12.5%`；覆盖面本身偏小。
+  - 乐观 immediate 同 worker 转换估算：Grass/Carrot 为 `6:41.773`，Bush-only 为 `6:40.381`；前者慢于当前 `6:40.410`，后者只快约 `0.029s`，低于两轮波动且未计入 phase 扰动。
+  - 乐观 delayed forward 转换估算：all types 为 `7:18.798`，Bush-only 为 `6:53.115`，因为需要把成熟 Tree 延迟约一个 column cycle。
+  - 结论：同列 ownership 不能提供足够大、足够稳的低破坏窗口；不进入实机。后续 Tree-slot 方向必须同时避免回程、避免 phase 扰动，并覆盖更多 bad-slot 请求。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -230,6 +236,7 @@
   - Soil 上未成熟 Grass 强制改 Carrot 没有覆盖到实际机会，不再作为下一轮分支
   - 剩余 reroll 主要来自 companion 坐标落在 Tree 位；已用离线预算判定“当前无人机改写并恢复 Tree 位”慢于当前，不直接实机
   - Tree-slot 临时 Bush swap 已被 request `663` 证伪；`Entities.Bush` 不可交换，不能再按 swap 方向设计 Tree-slot 接力
+  - Tree-slot 同列同 worker 延迟承接覆盖面太窄且 phase 成本过高，不进入实机
   - 当前 Grass rewrite 对 Bush 产木的真实净损耗
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
