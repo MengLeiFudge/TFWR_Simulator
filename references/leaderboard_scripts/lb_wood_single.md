@@ -143,6 +143,12 @@
   - 2026-06-08 `.codex/tests/wood_single_open_tree_budget.py` 枚举从当前 24 个 active tree slot 中开放 `1..4` 个作为 buffer support；乐观模型下开放 `(4,0)/(7,1)/(0,4)/(3,5)` 可把几何 invalid 从 `128` 降到 `80`。
   - 真实验证 request `671`：三条有效 run 为 `5:44.999` / `5:38.499` / `5:44.840`，稳定均值 `5:42.779`，慢于当前 `5:38.652`；后续 `finished=false runs=4 average=5:02.465` 是取消摘要，不作为成绩。
   - 结论：少量开放 active tree slot 虽能降低 tree-slot reroll，但活树数损失、support 改写和 sweep 扰动吃掉收益；不要继续做“开放 2 到 4 个树位”的实机微调。
+- `main11` no-movement claim policy 筛选
+  - 2026-06-09 `.codex/tests/wood_single_claim_policy_screen.py` 用当前 8x8 / 24 active tree slot 布局、同一 serpent sweep 和 3 类 companion 类型，模拟不移动、不减少树位的 claim 接受策略。
+  - 当前 baseline：`reroll/accept=0.924`，其中 `tree_slot=0.429`、`conflict=0.496`、`same_type=0.245`、`avg_degree=11.363`。
+  - `degree<=4..7` 的 unclaimed support 限流全部 stall，说明当前非树 support 格几乎都是高共享度格，不能靠低度 support 子集承接。
+  - `free-bush-only` 和 `free-bush-or-degree<=4..6` 的总 reroll 约为 baseline `3.06x~3.16x`，即使同类型共享率提升到约 `0.43`，额外 policy reroll 和 tree-slot reroll 也会先压垮收益。
+  - 结论：不要继续做“只改 companion 接受顺序 / 更严格保灌木 / 不加移动”的实机微调；它本质上重复 Bush-only / Bush 优先 reroll 的失败模式。
 - `main11` Carrot companion 材料 guard
   - 2026-06-08 请求 `665` 的探针输出里，开局出现 `Warning: 没有种植 Entities.Carrot 所需的物品。`，说明部分 Carrot support claim 接受后暂时落不了地。
   - 候选改法：`roll_tree_companion()` 遇到 `ct == Entities.Carrot` 且当前不能支付 `plant(Entities.Carrot)` 成本时，直接 reroll，不占用 support claim。
@@ -182,18 +188,13 @@
 - 已通过 TREE_OFF overlap 筛选确认，当前 8 个 off 位没有容易替换的局部布局；不要只做 tree slot 空洞微调。
 - 已验证 Carrot companion 材料 guard 变慢；不要因为开局缺材料 warning 就提前拒绝 Carrot companion。
 - 已验证开放少量 active tree slot 变慢；不要用“少 2 到 4 棵树换更低 tree-slot reroll”的方式继续微调。
+- 已通过 no-movement claim policy 筛选确认，单纯更严格地挑 support 坐标或优先 Bush 会把总 reroll 放大到 baseline 约 `3x` 或直接 stall；不要按“只改接受顺序但不移动 / 不加状态”的方向实机。
 
 ## 候选策略方向（猜测 / 待验证）
 
 ### 方向 1：`main11` 上继续强化“灌木优先”的 support 冻结
 
-- 核心思路：在一个 sweep 内冻结部分 support，不允许被后续 claim 频繁改写，尤其优先保住已经落成灌木的格子
-- 主瓶颈：当前更像是 support 改写抖动，而不是树成熟不足
-- 可能更强的原因：灌木本身也产木头，所以保住灌木 support 的收益是双重的
-- 优先探针：
-  - support 改写最多的几个窗口
-  - 冻结后 `invalid / claim_conflict / support_replant` 的变化
-  - 冻结后灌木保有率的变化
+- 当前结论：普通冻结、Bush-only、有限 Bush 优先 reroll 和 no-movement claim policy 都已失败；除非能引入新的低成本状态信息或局部移动承接，否则不要继续把“灌木优先”写成更严格的接受规则。
 
 ### 方向 2：`main11` 上做更激进的“树位有限开放”，但只为保住树 / 灌木主结构服务
 
@@ -206,9 +207,4 @@
 
 ### 方向 3：维持 `main11` 布局，但把“灌木最理想”写进更严格的 companion 接受顺序
 
-- 核心思路：接受顺序首先围绕“能不能稳定落成灌木”来设计，其他伴生都放到后面
-- 主瓶颈：如果接受顺序里没有把灌木放在最优先，support 很容易被其他低价值分支扰乱
-- 可能更强的原因：这更符合木头榜的总纲，也更容易让主结构稳定
-- 优先探针：
-  - 灌木优先后 support 稳定性是否上升
-  - 其他伴生分支的净收益是否真的值得被保留
+- 当前结论：2026-06-09 no-movement claim policy 筛选已把这条路线降级为失败方向；更严格的接受顺序会先增加 reroll，不形成实机候选。
