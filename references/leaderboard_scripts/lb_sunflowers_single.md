@@ -154,6 +154,12 @@
   - 命令：`timeout 60s python3 .codex/tests/sunflowers_single_water_check_interval_screen.py`，约 `21s` 完成；`python3 -m py_compile .codex/tests/sunflowers_single_water_check_interval_screen.py` 通过。
   - 结果：该代理已经过度偏向“少查水”，因为它把真实已失败的 `harvest_only` 预测成 `0.9984x~0.9989x`，而真实 request `712 / 608` 是 `1.0112x` 退化；在这个偏乐观代理里，`every_2/3/4/6` 也只有约 `0.1%` 纸面收益。
   - 结论：不改 `lb_sunflowers_single.py`，不实机未成熟补水检查周期化。已知真实失败方向在偏乐观模型里都只有 `0.1%` 级收益，说明这条谱系没有足够 margin；默认继续每次访问未成熟格也调用 `water_if_available()`。
+- 收尾阶段 max / max-k 策略筛选
+  - 2026-06-10 `.codex/tests/sunflowers_single_tail_policy_screen.py` 检查“前中段继续盲收，只在 Power 接近目标后用完美花瓣记录收当前 max / max-k”的剩余收尾方向。
+  - 模型偏向收尾策略：花瓣值免费已知、跳过成熟株会保留、没有 `measure()` / 记录 / 分支成本，也不改变 6x6 蛇形路径。
+  - 命令：`python3 -m py_compile .codex/tests/sunflowers_single_tail_policy_screen.py` 通过；`timeout 60s python3 .codex/tests/sunflowers_single_tail_policy_screen.py` 约 `20.9s` 完成。
+  - 结果：成熟概率 `0.25 / 0.50 / 0.75` 下，`blind` 都是最佳。最保守的 `tail_9500_max` 也分别退到 `1.0351x / 1.0271x / 1.0193x`；从 `9000` 或 `8000` Power 开始收尾会因 skip/run 激增退到 `1.04x~1.78x`。
+  - 结论：不改 `lb_sunflowers_single.py`，不实机收尾 max / max-k。即使只在尾段追最大花瓣，跳过成熟株的访问损失仍高于减少错误收割链的收益；后续不要再把“末段再切严格最大”作为候选。
 
 ## 下一步优化方向
 
@@ -168,9 +174,10 @@
 - 2026-06-10 已把 Power 查询改为由外层 `current_power` 复用、并在 `harvest()` 后刷新；确认前不更新成绩注释。
 - `.codex/tests/sunflowers_single_pingpong_sweep_screen.py` 证明 ping-pong 反向扫图会显著拉长端点访问间隔；后续不要把“少一次 wrap move”作为单独方向。
 - `.codex/tests/sunflowers_single_water_check_interval_screen.py` 证明未成熟补水检查周期化只有 `0.1%` 级偏乐观纸面收益，且无法复现 request `712` 的真实退化；后续不要再围绕“少查水”做单机向日葵实机候选。
+- `.codex/tests/sunflowers_single_tail_policy_screen.py` 证明收尾阶段 max / max-k 在偏乐观模型里也慢于盲收；后续不要再按“末段严格最大”推进。
 - 可继续补探针确认：
   - 是否只在前 1~2 轮使用花瓣筛选，之后切回盲收
-  - 是否存在完全零路径成本的花瓣记录 / 收尾策略
+  - 是否存在完全零路径成本的花瓣记录策略
 - 当前不需要像多机那样先解决通信问题
 
 ## 候选策略方向（猜测 / 待验证）
