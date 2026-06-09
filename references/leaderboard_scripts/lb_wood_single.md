@@ -128,6 +128,11 @@
   - 改法：`process_support_slot()` 中 `support_count[x][y] > 0` 且 `entity == ct == Entities.Bush and can_harvest()` 时额外 `harvest()` 并立刻 `plant(Entities.Bush)`；不改树位布局、claim、tree reroll、冻结、补水和日志。
   - 反编译 `Growable.HasCompanion()` 只检查 companion 坐标有实体且类型匹配，不检查成熟度；因此该候选没有从类型上破坏 companion，但每次成熟 Bush support 会多出 `harvest + plant` 两个动作。
   - 结论：Bush support 自身产木吃不回额外动作成本；claimed support 默认仍只 keep，不额外收割。
+- `main11` support 补水 / 等成熟筛选
+  - 2026-06-09 `.codex/tests/wood_single_support_water_budget.py` 复核反编译 `Growable.HasCompanion()`：伴生只要求 support 坐标有匹配实体，不要求 support 成熟。
+  - 模型显示当前 claim 系统里树收割时 support 类型已匹配但未成熟的比例约 `45.8%`，这不是伴生失败；等待 support 成熟只会延迟树收割。
+  - 给所有 claimed support 补水约覆盖 `208994` 个 support event，额外 `41798800t`，按当前基线折算约 `+1:43.391`；额外收割 / 催熟 claimed Bush support 的动作成本在产出抵扣前约 `+0:39.657`，且成熟 claimed Bush support 收割已由 request `651` 实机证伪。
+  - 结论：不实机、不改 `.py`。support 补水、等成熟、为了 support 自身产木而催熟 claimed support 都不是当前可用方向；后续只有能同时降低 `tree_reroll` 与 `support_replant` 的新状态信息才值得重开。
 - `main11` claim/support 抖动探针
   - 2026-06-08 请求 `664`：探针版两轮 `5:42.890` / `5:39.287`，稳定均值 `5:41.088`，慢于当前 `5:38.652`；探针版不作为刷新成绩。
   - 2026-06-08 请求 `665`：用于保留输出细节，两轮 `5:41.638` / `5:45.976`，稳定均值 `5:43.807`。
@@ -194,6 +199,7 @@
 - 已验证有限 Bush 优先 reroll 仍明显退化；后续不要继续用“主动增加 tree reroll”追灌木比例，除非先找到能同时压低 reroll 的支持位冻结机制。
 - 已验证收割成熟 orphan Bush support 没有刷新，默认 orphan support 只计数不收割。
 - 已验证收割成熟 claimed Bush support 没有刷新，默认 claimed support 只 keep，不额外收割重种。
+- 已通过 support 补水 / 等成熟筛选确认，support 成熟度不是 `HasCompanion()` 条件；给 claimed support 补水或等待成熟只会增加动作成本，不作为实机候选。
 - 已验证释放后冻结 Bush support 明显退化；不要用“空闲 Bush 位拒绝非 Bush”这种方式做冻结，因为它会把 `tree_reroll` 推到不可接受范围。
 - 已通过 claim/support 抖动探针确认，当前 `tree_reroll` 里 claim conflict 不低于 tree-slot invalid；但 support 期望类型和旧实体都近似三等分，不能用单类型优先规则直接解决。
 - 已通过 TREE_OFF overlap 筛选确认，当前 8 个 off 位没有容易替换的局部布局；不要只做 tree slot 空洞微调。
