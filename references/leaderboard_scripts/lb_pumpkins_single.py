@@ -1,6 +1,6 @@
 from __builtins__ import *
 
-# 7:40.295
+# 7:38.450
 def lb_pumpkins_single():
     count = 10000000
     size = 6
@@ -173,6 +173,11 @@ def wait_wave(pending):
                     use_item(Items.Fertilizer)
                     entity = get_entity_type()
                     if entity == Entities.Pumpkin and can_harvest():
+                        continue
+                    if entity == Entities.Dead_Pumpkin:
+                        plant(Entities.Pumpkin)
+                        maybe_water_slot()
+                        append(next_pending, pos)
                         continue
                 maybe_water_slot()
                 append(next_pending, pos)

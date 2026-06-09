@@ -34,7 +34,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Pumpkins_Single, "lb_pumpkins_single", 10000)
 # 成功条件：num_items(Items.Pumpkin) >= 10_000_000
-# 用时（#1/当前版本复跑）：6:23.321 / 7:40.295
+# 用时（#1/当前版本复跑）：6:23.321 / 7:38.450
 
 # leaderboard_run(Leaderboards.Cactus, "lb_cactus", 10000)
 # 成功条件：num_items(Items.Cactus) >= 33_554_432
