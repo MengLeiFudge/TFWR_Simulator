@@ -138,6 +138,10 @@
   - 32x32 容量上，当前双锚点单元刚好是 `2` 胡萝卜 + `30` Bush support = `32` 格，`32` 个单元填满 `1024` 格。三锚点 L 至少 `36` 格、四锚点方块至少 `40` 格，不能无脑把单机相邻 2x2 结构搬到多机榜。
   - 动态接受近距离 `Grass / Tree` companion 的动作预算也不够大：在双锚点单元里，只接受距离 `<=1` 的非 Bush companion，理论只省约 `0.47` 个 `200t` 动作 / 成功；距离 `<=2` 约省 `0.39`，距离 `<=3` 反而亏。这个收益不足以解释 `3x` 差距。
   - 结论：后续多机胡萝卜不应继续做锚点数量或近距离动态补种微调；真正候选必须能低成本接近“全类型 companion 承接”，否则无法接近 #1。
+- 2026-06-09 当前 `4x8` / 8 锚点 tile 静态混合 support 筛选：
+  - `.codex/tests/carrot_tile_static_type_screen.py` 固定当前 `4x8` tile 和 8 个锚点，统计每个 support cell 对 `Grass / Bush / Tree` 请求的权重，比较 Bush-only 与最佳静态类型分配。
+  - 结果：`support_cells=24`、`events=576`、`anchor_blocked=120`；`bush_hits=152`，`best_static_hits=152`，`bush_success=26.3889%`，`best_success=26.3889%`；`equal_cells=24`、`strict_best_cells=0`。
+  - 结论：不进入实机；当前 tile 的每个 support cell 对三种类型权重完全相等，预置 Grass/Bush/Tree 混合支撑不能突破 Bush-only 静态上限。后续不要按“预置混合支撑”推进，除非同时引入低成本动态 writer。
 - 2026-04-26 动态放开 `Tree` companion 复测
   - 在 `main3` 基础上把可接受 companion 从 `Bush` 扩展为 `Bush / Tree`，命中后到伴生格种对应支撑
   - 请求 `317` 有效两轮：`10:11.835` / `10:13.866`
@@ -237,6 +241,7 @@
   - 当前双锚点 `main3()` 的顺路非 Bush 承接空间太小，不能再作为下一轮主线。
   - `4x8` / 8 锚点周期 tile 已验证能继续提高总 companion 兑现次数，折线布局还能降低 blocked 锚点概率，但它仍是 Bush-only 静态支撑。
   - 4x8 静态锚点路径筛选已经排除继续加密锚点；后续不要再只换 8 锚点等价形状或 9/10 锚点静态布局。
+  - 4x8 静态混合 support 类型筛选已经确认每个 support cell 的三类型权重完全相等；后续不要再按预置 Grass/Bush/Tree 混合支撑推进。
   - 非通信定时 helper 已被预算筛掉；没有通信 / 共享状态时，support 类型轮换无法和随机 companion 请求同步，只会保持 `1/3` 命中或引入远高于 reroll 的等待。
   - 物理 mailbox helper 也已被预算筛掉；世界实体格可以当低带宽信号，但编码请求、坐标和完成确认的动作 / 等待成本太高。
   - 下一轮若继续多机胡萝卜，应优先在当前折线 8 锚点 tile 上量化瓶颈：每 tile 成熟等待、reroll 次数、移动环路成本、水 / 肥消耗，以及是否存在低成本动态 helper 承接 `Grass / Tree`。
@@ -259,7 +264,7 @@
 - 优先探针：
   - support 区固定后，单位时间高倍收割次数是否明显上升
   - companion 坐标落入局部 support 区的命中率
-- 当前状态：已演进为 `4x8` / 折线 8 锚点静态 Bush support；静态锚点加密、8 锚点形状平替、9/10 锚点、同无人机顺路改写、spawn-on-demand helper、非通信定时 helper、physical mailbox 和 adaptive no-restore support 都已筛掉。后续不再直接按“链式胡萝卜”实机，除非先证明新的链路不需要 anchor 阻塞等待、不依赖当前缺失的通信 API，且不会破坏 tile owner。
+- 当前状态：已演进为 `4x8` / 折线 8 锚点静态 Bush support；静态锚点加密、8 锚点形状平替、9/10 锚点、静态混合 support、同无人机顺路改写、spawn-on-demand helper、非通信定时 helper、physical mailbox 和 adaptive no-restore support 都已筛掉。后续不再直接按“链式胡萝卜”实机，除非先证明新的链路不需要 anchor 阻塞等待、不依赖当前缺失的通信 API，且不会破坏 tile owner。
 
 ### 方向 2：围绕多类型 companion 建低成本承接结构
 
@@ -269,7 +274,7 @@
 - 优先探针：
   - 三种可落地 companion 的出现频率与目标格冲突率
   - 多类型承接比单类型 reroll 少掉的失败重刷，是否超过移动 / 改种成本
-- 当前状态：`carrot_adaptive_support_markov_screen.py` 已确认只记忆 support 最近类型不会突破 `1/3` 类型命中；写入安全的 own-tile mismatch rewrite 估算 `5:32.087`，慢于当前 `4:34.314`，且 request `674` 的 same-drone dynamic 实机也慢到 `5:50.841`。多类型承接只有在能安全跨 tile 写入、或 support writer 正好在请求格且无等待时才重开。
+- 当前状态：`carrot_tile_static_type_screen.py` 已确认预置静态混合 support 不优于 Bush-only；`carrot_adaptive_support_markov_screen.py` 已确认只记忆 support 最近类型不会突破 `1/3` 类型命中；写入安全的 own-tile mismatch rewrite 估算 `5:32.087`，慢于当前 `4:34.314`，且 request `674` 的 same-drone dynamic 实机也慢到 `5:50.841`。多类型承接只有在能安全跨 tile 写入、或 support writer 正好在请求格且无等待时才重开。
 
 ### 方向 3：让不同无人机承接同一条 companion 链
 
