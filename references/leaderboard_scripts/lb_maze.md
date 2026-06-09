@@ -282,6 +282,11 @@
   - 命令：`python3 -m py_compile .codex/tests/maze_bid_dispatcher_screen.py` 通过；`timeout 60s python3 .codex/tests/maze_bid_dispatcher_screen.py` 约 `12.6s` 完成。
   - 结果：game-like DFS 迷宫树 `chunk_count avg=30.6 min=28 p50=31 max=33`；当前 `finish=4578.144`；`bid_0.02 finish=4557.608 ratio=0.996`，`bid_0.05 finish=4566.638 ratio=0.997`，`bid_0.10 finish=4581.687 ratio=1.001`；bid 路线把 `dup` 从约 `69.864` 压到 `0`，但每次 Treasure 的竞价等待会快速吃掉去重收益。
   - 结论：不改 `lb_maze.py`，不实机短竞价 dispatcher。它证明“可取消 / 可抢占 dispatcher”仍是正确结构方向，但单纯每个 Treasure 等一个全局竞价窗口的收益只有噪声级；后续 Maze 需要的是不额外等待 Treasure 周期的动态分配，而不是固定 bid window。
+- 诊断计数删除候选
+  - 2026-06-10 代码候选：删除只服务阶段日志的 `edge_count`、`chunk_count` 及 `explore_done edges=` / `chunks=` 输出字段；保留 `explore_done time`、`nodes`、`gold` 进度、`solve_stall` 和 `solve_done`。
+  - 这不改变探图、`maze_map` 构建、chunk 生成、owner/fallback、solver 路径或 Treasure 处理；只减少探图合并边和 chunk 创建时的计数维护。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_maze.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
+  - 结论：这是多机 Maze 主结构内的管理成本候选。游戏恢复后短跑确认；若需要重新观察 edges / chunks 分布，则临时恢复诊断计数。
 
 ## 下一步优化方向
 

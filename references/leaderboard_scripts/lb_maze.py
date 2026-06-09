@@ -182,7 +182,6 @@ def lb_maze():
                 maze_map[-1].append(set())
 
         last_progress_time = get_time()
-        edge_count = 0
         while sub_drones:
             to_add = set()
             to_remove = set()
@@ -192,8 +191,6 @@ def lb_maze():
                     for path in paths:
                         (x, y), neighbor = path
                         if 0 <= x < size and 0 <= y < size:
-                            if neighbor not in maze_map[x][y]:
-                                edge_count += 1
                             maze_map[x][y].add(neighbor)
                     to_remove.add(drone)
                     for sub_drone in sub_sub_drones:
@@ -205,9 +202,9 @@ def lb_maze():
             for drone in to_add:
                 sub_drones.add(drone)
             if get_time() - last_progress_time > 1000:
-                quick_print("maze_multi explore_stall edges=", edge_count, "active=", len(sub_drones))
+                quick_print("maze_multi explore_stall active=", len(sub_drones))
                 break
-        quick_print("maze_multi explore_done edges=", edge_count, "time=", get_time())
+        quick_print("maze_multi explore_done time=", get_time())
 
     def k_center_on_tree(root, k=32):
         return 14
@@ -311,7 +308,6 @@ def lb_maze():
 
         covered = set()
         solver_drones = []
-        chunk_count = 0
         for i in range(len(nodes) - 1, -1, -1):
             node = nodes[i]
             if node in covered:
@@ -344,9 +340,8 @@ def lb_maze():
                 solver_drones.append(drone)
             else:
                 task(center, node_set, owned_set)()
-            chunk_count += 1
 
-        quick_print("maze_multi chunks=", chunk_count, "nodes=", len(nodes))
+        quick_print("maze_multi nodes=", len(nodes))
         solve_start_time = get_time()
         last_gold = num_items(Items.Gold)
         last_progress_time = get_time()
