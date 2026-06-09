@@ -291,6 +291,11 @@
   - `.codex/tests/wood_dynamic_support_marginal_value.py` 只汇总已验证请求，不预测新策略：旧 Tree/Bush `10:19.811` -> Grass dynamic `7:38.905` 节省约 `160.906s`，约 `1.351x`；Grass -> Grass+Carrot `7:08.255` 再省约 `30.650s`；未成熟 Bush 强制改 Carrot `6:40.410` 再省约 `27.845s`。
   - 反向对照显示泛化降 churn 不成立：low-churn Grass request `675` 退到 `7:23.009`，比当前慢约 `42.599s`；Bush 位提前清理动态 support request `677` 退到 `6:42.703`，比当前慢约 `2.293s`。
   - 结论：动态 support rewrite 是已验证提速来源，不能为了保护 Bush 或降低 churn 泛化减少 rewrite。后续只有在不降低当前 rewrite 覆盖率的前提下，才继续研究更低动作成本的 support 结构。
+- 2026-06-09 已知动态 support 按需改回 Bush：
+  - 改法：每个 worker 记住自己最近写入的少量 Grass / Carrot support；后续 Tree 请求同坐标 `Bush` 时，先把该格改回 Bush，再收割当前 Tree。
+  - request `684` 两条有效 run 为 `6:44.833` / `6:42.968`，稳定均值 `6:43.900`，慢于当前 `6:40.410`。
+  - 触发覆盖很低：第一轮 `bush_restore_request=3`、`bush_restore=3`；第二轮 `4 / 4`。同期 `reroll=401 / 416`，没有压过额外往返 / 改写成本。
+  - 结论：不保留；按 worker 本地短记忆恢复 Bush 覆盖不到主瓶颈。后续不要按“记住最近动态 support，Tree 请求 Bush 时再恢复”的方向继续实机，除非能无移动、跨 worker 知道 support 真实类型。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -315,6 +320,7 @@
   - 固定少量 Tree 位为 Bush reserve 的乐观收益不足 `1s`，低于两轮波动；不作为实机候选
   - Grass / Carrot 动态 support 的边际价值已用 request `638/641/660/675/677` 收口；泛化保护 Bush / 降 churn 会损失 rewrite 覆盖，不作为独立候选
   - Bush 位未成熟 Grass / Carrot 动态 support 提前清理 request `677` 已证伪；未成熟 support 仍有后续伴生承接价值，不能只按 Bush 产木直觉清掉
+  - 已知动态 support 按需改回 Bush request `684` 覆盖太低且慢于当前；本地短记忆不能解决主瓶颈
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
 - 已验证“冻结 Bush 当纯 support”的方向风险很高：Bush 本身贡献大量 Wood，必须先设计能保住 Bush 产木、同时提高 Tree companion 命中率的结构。
@@ -333,6 +339,7 @@
   - support 位最终稳定成灌木的比例
   - 灌木木头贡献占总木头的比例
 - 当前状态：Grass / Carrot 动态 support 和未成熟 Bush 强制改 Carrot 已刷新到当前默认 `6:40.410`；但 support lock、support 补水 / 施肥、low-churn Grass、Bush 位提前清理动态 support、成熟 Bush 自己追 Grass/Carrot 都已证伪。后续不要再用“减少 rewrite / 保护 Bush”当独立目标；只有能保持当前 rewrite 覆盖率并降低动作成本的新结构才重开。
+- 已知动态 support 按需改回 Bush 也已由 request `684` 证伪：本地短记忆只触发 `3~4` 次 / 轮，额外动作成本大于收益。
 
 ### 方向 2：树位排布继续围绕“树不相邻”做低冲突优化
 
