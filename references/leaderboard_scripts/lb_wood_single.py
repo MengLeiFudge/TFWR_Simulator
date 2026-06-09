@@ -13,19 +13,6 @@ def lb_wood_single():
     tree_companion_y = create_number_grid(8)
     needs_water = create_number_grid(8)
     first_cycle = True
-    sweep_count = [0]
-    harvest_count = [0]
-    tree_reroll_count = [0]
-    support_replant_count = [0]
-    support_keep_count = [0]
-    orphan_support_count = [0]
-    last_log_wood = [0]
-    last_log_time = [0]
-    sample_harvest = [0]
-    sample_reroll = [0]
-    sample_replant = [0]
-    sample_keep = [0]
-    sample_orphan = [0]
 
     quick_print("lb_wood_single", " init_time=", get_time(), " wood=", num_items(Items.Wood))
 
@@ -64,7 +51,6 @@ def lb_wood_single():
                             tree_companion_y,
                         )
                         harvest()
-                        harvest_count[0] = harvest_count[0] + 1
                     elif entity != None:
                         harvest()
 
@@ -78,7 +64,6 @@ def lb_wood_single():
                     ct, cx, cy = roll_tree_companion(
                         support_entity,
                         support_count,
-                        tree_reroll_count,
                     )
                     tree_companion_entity[x][y] = ct
                     tree_companion_x[x][y] = cx
@@ -91,9 +76,6 @@ def lb_wood_single():
                         y,
                         support_entity,
                         support_count,
-                        support_replant_count,
-                        support_keep_count,
-                        orphan_support_count,
                     )
 
                 if x == end_x:
@@ -103,22 +85,6 @@ def lb_wood_single():
 
             move(North)
 
-        sweep_count[0] = sweep_count[0] + 1
-        maybe_log_probe(
-            last_log_wood,
-            last_log_time,
-            sweep_count,
-            harvest_count,
-            tree_reroll_count,
-            support_replant_count,
-            support_keep_count,
-            orphan_support_count,
-            sample_harvest,
-            sample_reroll,
-            sample_replant,
-            sample_keep,
-            sample_orphan,
-        )
         first_cycle = False
 
     quick_print("lb_wood_single", " done wood=", num_items(Items.Wood), " time=", get_time())
@@ -218,16 +184,14 @@ def release_tree_claim(
 
 
 
-def roll_tree_companion(support_entity, support_count, tree_reroll_count):
+def roll_tree_companion(support_entity, support_count):
     while True:
         ct, (cx, cy) = get_companion()
         if is_tree_slot(cx, cy):
-            tree_reroll_count[0] = tree_reroll_count[0] + 1
             harvest()
             plant(Entities.Tree)
             continue
         if support_count[cx][cy] > 0 and support_entity[cx][cy] != ct:
-            tree_reroll_count[0] = tree_reroll_count[0] + 1
             harvest()
             plant(Entities.Tree)
             continue
@@ -238,71 +202,19 @@ def process_support_slot(
         x,
         y,
         support_entity,
-        support_count,
-        support_replant_count,
-        support_keep_count,
-        orphan_support_count):
+        support_count):
     entity = get_entity_type()
     if support_count[x][y] <= 0:
-        if entity != None:
-            orphan_support_count[0] = orphan_support_count[0] + 1
         return
 
     ct = support_entity[x][y]
     if entity == ct:
-        support_keep_count[0] = support_keep_count[0] + 1
         return
 
     if entity != None:
-        support_replant_count[0] = support_replant_count[0] + 1
         harvest()
 
     plant(ct)
-
-
-def maybe_log_probe(
-        last_log_wood,
-        last_log_time,
-        sweep_count,
-        harvest_count,
-        tree_reroll_count,
-        support_replant_count,
-        support_keep_count,
-        orphan_support_count,
-        sample_harvest,
-        sample_reroll,
-        sample_replant,
-        sample_keep,
-        sample_orphan):
-    curr_wood = num_items(Items.Wood)
-    if curr_wood < last_log_wood[0] + 20000000:
-        return
-
-    curr_time = get_time()
-    quick_print(
-        "lb_wood_single", " probe wood=", curr_wood,
-        " time=", curr_time,
-        " sweeps=", sweep_count[0],
-        " harvest=", harvest_count[0],
-        " tree_reroll=", tree_reroll_count[0],
-        " support_replant=", support_replant_count[0],
-        " support_keep=", support_keep_count[0],
-        " orphan_support=", orphan_support_count[0],
-        " d_harvest=", harvest_count[0] - sample_harvest[0],
-        " d_reroll=", tree_reroll_count[0] - sample_reroll[0],
-        " d_replant=", support_replant_count[0] - sample_replant[0],
-        " d_keep=", support_keep_count[0] - sample_keep[0],
-        " d_orphan=", orphan_support_count[0] - sample_orphan[0],
-        " dwood=", curr_wood - last_log_wood[0],
-        " dt=", curr_time - last_log_time[0],
-    )
-    last_log_wood[0] = curr_wood
-    last_log_time[0] = curr_time
-    sample_harvest[0] = harvest_count[0]
-    sample_reroll[0] = tree_reroll_count[0]
-    sample_replant[0] = support_replant_count[0]
-    sample_keep[0] = support_keep_count[0]
-    sample_orphan[0] = orphan_support_count[0]
 
 
 

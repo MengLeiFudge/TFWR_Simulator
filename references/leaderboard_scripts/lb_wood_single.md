@@ -104,6 +104,12 @@
   - 有效轮包括 `run=4 time=5:34.492`、`run=5 time=5:42.109`、`run=6 time=5:43.827`、`run=7 time=5:39.599`、`run=8 time=5:47.343`、`run=9 time=5:47.968`、`run=10 time=5:41.093`。
   - 取消摘要 `finished=false runs=11 average=5:16.555` 不作为刷新成绩。
   - 结论：没有刷新；周期 probe 输出不是当前主瓶颈，代码已恢复调用。
+- `main11` 删除 probe 计数维护候选
+  - 2026-06-10 代码候选：删除只服务周期 probe 的 `sweep / harvest / tree_reroll / support_replant / support_keep / orphan_support` 计数、sample 差分、`last_log_*` 状态和 `maybe_log_probe()` 函数；保留起止 `quick_print`、树位布局、claim / release、companion 接受、support 重种、补水和目标检查。
+  - 这不同于 request `452` 的“只跳过 probe 输出”：本候选连每次 harvest / reroll / support 访问时的计数递增和参数传递都删除，目标是压脚本管理成本。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_wood_single.py` 通过。
+  - 真实游戏当前最近 request `730` 仍为 `game_tick=0` timeout，暂未能跑完成轮；文件头成绩不更新。
+  - 风险：删除后运行中不再输出 `tree_reroll / support_replant` 等分项，若实机退化只能先看总时间和资源增速，再临时恢复探针定位。
 - `main11` 只接受 Bush companion
   - 2026-05-02 请求 `470`：runner 输出 `reached stable leaderboard runs 8 avg=7:51.324`。
   - 改法：`roll_main11_tree_companion()` 中除树位 target / support 冲突外，额外拒绝 `ct != Entities.Bush` 的 companion。
@@ -201,7 +207,8 @@
   - 现在不是继续发明新主题的时候
   - 但也不能继续重复“树位稳定、灌木 support 稳定”的普通微调
   - 下一次必须先拿离线模型证明 reroll 降幅不会被 support replant 或成熟等待吃掉
-- 已验证关闭 `main11` 周期 probe 输出没有刷新，默认保留 probe 以便继续观察 reroll / replant 抖动。
+- 已验证仅关闭 `main11` 周期 probe 输出没有刷新；该结论只覆盖“跳过输出但保留计数维护”的旧候选。
+- 2026-06-10 已进一步删除周期 probe 的计数维护和日志函数作为管理成本候选；这不改变策略结构，确认前不更新成绩注释。游戏恢复后必须短跑 `lb_wood_single`，若无稳定刷新或需要重新观测 reroll / replant，则回退或临时恢复探针。
 - 已验证只接受 Bush companion 明显退化，默认继续接受非冲突 companion，不把灌木优先写成硬过滤。
 - 已验证有限 Bush 优先 reroll 仍明显退化；后续不要继续用“主动增加 tree reroll”追灌木比例，除非先找到能同时压低 reroll 的支持位冻结机制。
 - 已验证收割成熟 orphan Bush support 没有刷新，默认 orphan support 只计数不收割。
