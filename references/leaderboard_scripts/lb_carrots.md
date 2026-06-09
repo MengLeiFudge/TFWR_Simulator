@@ -137,6 +137,12 @@
   - 同移动步数内最佳顺序为 `((0,0),(1,4),(1,5),(1,6),(0,4),(0,3),(0,2),(0,1))`，几何上界 success `26.3889% -> 42.0139%`；Monte Carlo 计入类型状态、pending 覆盖、重刷和改写成本后估算 `3:47.089`，略快于 `1.2x` 线 `3:48.797`。
   - 2026-06-09 续筛修正：原 `3:47.089` 来自周期 tile 折叠模型，隐含“跨 tile support 类型可预测”。真实 32 个 tile 独立随机运行时，一个 tile 改写 support 会破坏邻 tile 对跨 tile Bush support 的假设；若改为安全的 `own-tile only`，同移动步数最佳 Monte Carlo 退到 `5:56.246`。
   - 结论：不改 `lb_carrots.py`，也不在游戏恢复后短跑该候选。除非先证明跨 tile support 状态可预测 / 可同步，或者设计出不影响邻 tile 静态 Bush 成功率的零等待 writer，否则 Carrots 暂停继续实机。
+- private writer / immutable Bush hybrid 筛选
+  - 2026-06-10 `.codex/tests/carrot_hybrid_private_writer_screen.py` 复核上一条的中间模型：只允许本 tile 内、路线自然经过的 support 被当前无人机改写；跨 tile 只接受不可变 Bush support，不假设跨 tile support 状态可预测。
+  - `timeout 60s python3 .codex/tests/carrot_hybrid_private_writer_screen.py` 约 `6.3s` 完成，`py_compile` 通过。
+  - 解析模型里最佳同移动步数顺序仍是 `((0,0),(1,4),(1,5),(1,6),(0,4),(0,3),(0,2),(0,1))`，success `35.7639%`，估算 `3:57.786`，已经慢于 `1.2x` 线 `3:48.797`。
+  - Monte Carlo 计入 support 当前类型、pending 冲突和路线移动后，当前顺序估算 `4:32.819`，最佳顺序只到 `4:25.877`；`deferred=39023`、`rewrites=34974`、`failed_pending=7933`，说明私有 writer 的状态冲突和改写 churn 仍吃掉收益。
+  - 结论：不改 `lb_carrots.py`。当前 API 下，private writer 不足以压进 `1.2x`；多机胡萝卜后续只接受真正不破坏跨 tile Bush 成功率、且能低等待承接多类型 support 的新结构。
 - 2026-05-31 多机胡萝卜理论复核：
   - 当前 `main3` 不是“没有伴生”的路线；按资源增量看，完成 `2,000,000,000` 胡萝卜约需要 `24414` 次满伴生收割，request `612` 的资源增长符合满伴生收割主导。
   - 当前 `32` 个双锚点单元的静态 Bush support，把 companion 类型成功率限制在约 `1/3`；双锚点 blocked 坐标后，理论失败重刷约 `2.13` 次 / 成功。
