@@ -312,6 +312,10 @@
   - `can_pay_carrot_cost()` 原先每次检查都调用 `get_cost(Entities.Carrot)` 并重新构造全物品列表；`gamesave/__builtins__.py` 说明 `get_cost()` 调用耗 `1 tick`，而当前 wood 榜运行中不会升级或改变 Carrot 种植成本。
   - 代码已把 `CARROT_COST` 与 `CARROT_COST_ITEMS` 缓存在模块级常量，只减少 `rewrite_carrot_support()` 热路径里的成本查询和列表构造；不改变 Tree/Bush 棋盘、Grass/Carrot support 改写、未成熟 Bush 强制改 Carrot、补水、施肥、目标检查间隔或退出 guard。
   - 真实游戏当前仍为 `game_tick=0` timeout，暂未能跑完成轮；文件头成绩不更新。游戏恢复后与目标检查间隔 / 统计删除候选一起短跑，若无稳定刷新则回退。
+- 2026-06-09 Carrot support Soil 复核收窄候选：
+  - `rewrite_carrot_support()` 原先在准备种 Carrot 时会先读一次 `get_ground_type()` 决定是否 `till()`，随后无论初始是否已经是 Soil 都再读一次地块确认。当前改为只有执行过 `till()` 后才做第二次 Soil 复核；如果初始已经是 Soil，直接进入材料检查和 `plant(Entities.Carrot)`。
+  - 该候选不删除翻地失败保护，不改变未成熟 Bush 强制改 Carrot、未成熟 Grass 跳过、Carrot 成本检查、Tree/Bush 棋盘、补水、施肥或目标检查间隔；只减少 Carrot support 改写成功路径上的重复地块读取。
+  - 真实游戏当前仍为 `game_tick=0` timeout，暂未能跑完成轮；文件头成绩不更新。游戏恢复后与其他 Wood 管理成本候选一起短跑，若无稳定刷新则回退。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解

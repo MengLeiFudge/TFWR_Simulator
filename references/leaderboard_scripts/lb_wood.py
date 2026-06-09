@@ -109,9 +109,9 @@ def rewrite_carrot_support(pos):
                 harvest()
         if get_ground_type() != Grounds.Soil:
             till()
-        if get_ground_type() != Grounds.Soil:
-            move_to(ox, oy)
-            return False
+            if get_ground_type() != Grounds.Soil:
+                move_to(ox, oy)
+                return False
         if not can_pay_carrot_cost():
             move_to(ox, oy)
             return False
