@@ -4,9 +4,6 @@ from __builtins__ import *
 def lb_sunflowers_single():
     set_world_size(SINGLE_FIELD_SIZE)
     size = get_world_size()
-    harvest_count = 0
-    sweep_count = 0
-    last_log_power = 0
 
     # 单机没有多机规模优势，这里主动放弃严格最大花瓣管理，换取更高重种刷新频率。
     init_field(size)
@@ -14,16 +11,7 @@ def lb_sunflowers_single():
     quick_print("lb_sunflowers_single", " init power=", current_power, " time=", get_time())
 
     while current_power < SINGLE_POWER_GOAL:
-        harvest_count, current_power = sweep_field(size, harvest_count, current_power)
-        sweep_count = sweep_count + 1
-        if current_power >= last_log_power + 1000:
-            quick_print(
-                "lb_sunflowers_single", " progress power=", current_power,
-                " sweeps=", sweep_count,
-                " harvest=", harvest_count,
-                " time=", get_time(),
-            )
-            last_log_power = current_power
+        current_power = sweep_field(size, current_power)
 
 
 def init_field(size):
@@ -43,18 +31,17 @@ SINGLE_POWER_GOAL = 10000
 SINGLE_FIELD_SIZE = 6
 
 
-def sweep_field(size, harvest_count, current_power):
+def sweep_field(size, current_power):
     direction = East
     for row in range(size):
         for col in range(size):
             # 只沿相邻格蛇形前进，避免旧分桶路线反复 move_to 的管理成本。
             if can_harvest():
                 harvest()
-                harvest_count = harvest_count + 1
                 current_power = num_items(Items.Power)
                 if current_power >= SINGLE_POWER_GOAL:
-                    quick_print("lb_sunflowers_single", " done power=", current_power, " time=", get_time(), " harvest=", harvest_count)
-                    return harvest_count, current_power
+                    quick_print("lb_sunflowers_single", " done power=", current_power, " time=", get_time())
+                    return current_power
                 plant(Entities.Sunflower)
                 water_if_available()
             else:
@@ -65,7 +52,7 @@ def sweep_field(size, harvest_count, current_power):
             move(North)
             direction = opposite_horizontal(direction)
     move(North)
-    return harvest_count, current_power
+    return current_power
 
 
 def prepare_sunflower():

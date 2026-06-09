@@ -136,9 +136,10 @@
   - 结论：不保留。即使只做相邻立即成熟最高花瓣，额外移动、`measure()` 记录和控制流成本仍超过避免错误收割链的收益；后续不要继续做相邻 next-first / 前后格局部换序，除非能证明不增加路径成本。
 - Power 查询复用候选
   - 2026-06-10 代码候选：单机没有其他无人机同时修改 `Items.Power`，因此 `lb_sunflowers_single()` 可以把初始化后的 `current_power` 传入 `sweep_field()`，只在成功 `harvest()` 后用一次 `num_items(Items.Power)` 刷新。
-  - 改法：外层不再在每个 sweep 开头/结尾重复读取 `num_items(Items.Power)`；`sweep_field()` 返回 `(harvest_count, current_power)`，done 日志复用同一次查询结果。路径、成熟判断、收割、重种、补水和日志阈值都不改变。
+  - 改法：外层不再在每个 sweep 开头/结尾重复读取 `num_items(Items.Power)`；`sweep_field()` 返回同一次查询得到的 `current_power`，done 日志复用该结果。路径、成熟判断、收割、重种、补水和目标 guard 都不改变。
+  - 2026-06-10 追加管理成本候选：删除只服务 progress 日志的 `harvest_count` / `sweep_count` / `last_log_power`，不再每 `1000 Power` 打印一次进度；保留 init / done 输出。该改动只减少统计计数和日志分支，不改变 6x6 盲收结构。
   - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_sunflowers_single.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
-  - 结论：这是 6x6 盲收主结构内的低风险管理成本候选。游戏恢复后优先短跑确认；若无稳定刷新或出现退出延迟，则回退。
+  - 结论：这是 6x6 盲收主结构内的低风险管理成本候选。游戏恢复后优先短跑确认；若无稳定刷新或出现退出延迟、缺少必要观测，则回退或临时恢复统计探针。
 - skip / 当前最大花瓣策略离线筛选
   - 2026-06-10 `.codex/tests/sunflowers_single_skip_policy_screen.py` 在 6x6 蛇形路径上筛 `blind`、`max_minus_4/3/2/1`、`max_only`、错收后清标记等“成熟株是否跳过”的策略，并模拟 `Sunflower#Harvest()` 的错收链。
   - 第一次 `RUNS=300 VISITS=20000` 超过 `timeout 60s` 且无输出，已按项目约束缩到 `RUNS=80 VISITS=5000` 后重跑；命令：`timeout 60s python3 .codex/tests/sunflowers_single_skip_policy_screen.py`，约 `8.7s` 完成。
