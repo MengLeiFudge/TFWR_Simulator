@@ -200,6 +200,13 @@
   - 改法：不再用固定 `owner_wait=0.2` 等待全部非 owner Treasure，而是按 `path` 长度给 owner / non-owner 分别计算等待时间，试图让近距离 solver 更早接管。
   - 结果：首轮完成 `1:51.367`，`solve_done time=111.34 solve_time=92.21`，明显慢于当前默认 `1:43.336`；第二轮早期已主动停止，取消摘要不作为成绩。
   - 结论：把等待时间编码成路径长度仍会退化，说明问题不是单个 solver 的静态距离阈值，而是缺少真正的动态派发 / 最近可达判定；后续不要继续调 `owner_wait_per_step` / `non_owner_wait_per_step` 这类参数。
+- solver 竞争探针
+  - 2026-06-09 请求 `702` 验证。
+  - 改法：临时在 `solve_maze_in_area()` 内统计每个 solver 的 `owned` / `fallback` 命中、累计等待、路径长度和 Treasure 变化次数；探针后已从 `.py` 回退，并重新同步正式版到 `gamesave/`。
+  - 结果：探针首轮 `1:55.071`，因计数和输出开销明显慢于默认，不作为成绩；同轮 `solve_done time=115.04 solve_time=94.11`。
+  - 聚合：30 个 solver 共 `374` 次处理，`owned=290`、`fallback=84`，fallback 占 `22.5%`；14 个 solver 完全没有 fallback，9 个 solver fallback `>=5`，1 个 solver 只有 fallback 没有 owned 命中。
+  - 路径：总路径均长 `7.95`，owned 均长 `7.86`，fallback 均长 `8.26`，最大路径 `14`，Treasure 移动前变化次数 `0`。
+  - 结论：fallback 并不主要慢在“距离更远”，而是少数 chunk / owner 分配与实际 Treasure 时序错位；下一步应研究 chunk 生成顺序、owned_set 覆盖和开局中心分布，不再做全局等待或距离函数微调。
 
 ## 下一步优化方向
 
@@ -216,6 +223,7 @@
   - 请求 `625` 显示 solver 到 center 的平均 `approach` 约 `145` 步，最大 `341` 步；若要改调度，优先减少这段开局迁移，而不是继续压探图阶段本身。
   - 请求 `625` 显示每轮约 `362` 次 Treasure 处理才达到 `301` 次理论需求；请求 `626` 的初始唯一负责区已经退化，说明减少重复 `use_item` 不能以牺牲并发抢宝为代价。
   - 请求 `627` 证明短等待 fallback 有正收益；请求 `628/629` 显示 `owner_wait=0.2` 暂时优于 `0.1 / 0.3`，请求 `636/699/700` 证明固定距离阈值和路径长度等待都会退化。下一步不要继续做粗粒度等待参数或固定距离微调，应转向动态最近可达判定、dispatcher 或 solver 开局调度。
+  - 请求 `702` 显示 fallback 只占约 `22.5%`，且 fallback 路径并不明显长于 owned 路径；如果不能使用通信 API，优先做离线 / 探针驱动的 chunk owner 重分配，而不是让所有 solver 更积极抢非 owner Treasure。
 - 改进进度判断：
   - 首轮未完成时看 `gold` 增速和 `progress_estimate`。
   - 第一轮完成后只用真实完成轮时间判断。
