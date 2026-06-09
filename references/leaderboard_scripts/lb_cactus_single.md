@@ -182,6 +182,10 @@
   - 改法：在 `sort_columns()` 中每列先从 `y=0` 开始扫描相邻 `measure()` / `measure(North)`，只有发现逆序时才调用 `sort_one_way("y")`。
   - 尾部有效轮大量落在 `0:22~0:24`，整体慢于当前可靠 `0:21.325`。
   - 结论：预检扫描成本高于跳过少数已排序列的收益；默认每列直接执行完整 `sort_one_way("y")`，代码已恢复。
+- 行/列排序从近端开始的筛选
+  - 2026-06-10 `.codex/tests/cactus_single_sort_orientation_screen.py` 比较当前 `sort_one_way()` 固定从 `bound_low` 开始，和“按当前位置从近端开始，必要时先做 high-to-low pass”的候选。
+  - `timeout 60s python3 .codex/tests/cactus_single_sort_orientation_screen.py` 快速完成，`samples=50000`、`failures=0`；代理结果：`low_first score=5668.755`、`nearer_side score=5531.450`、`score_ratio=0.9758`，只有约 `2.4%` 的单线动作代理收益。
+  - 结论：不改 `lb_cactus_single.py`，不进入实机。该候选需要新增 high-first 排序分支，收益只来自小幅减少 line-sort 起点移动；而单机仙人掌已有大量微调实机反例，2.4% 的局部代理不足以覆盖分支成本和行列交互风险。
 
 ## 下一步优化方向
 
@@ -205,6 +209,7 @@
 - 已验证拆分横向/纵向排序函数没有刷新，默认保留通用 `sort_one_way("x"/"y")`
 - 已验证删除尾部二元比较会显著退化，默认保留 `bound_low + 1 == bound_high` 分支
 - 已验证列排序前预检跳过已排序列没有刷新，默认每列直接跑完整列排序
+- `.codex/tests/cactus_single_sort_orientation_screen.py` 证明近端起手排序只有约 `2.4%` 单线代理收益，且需要新增排序分支；不作为当前实机候选。
 - 优化目标应明确写成：
   - 尽快做出一次满 `8x8` 合法盘面
   - 而不是提高多轮平均产量
