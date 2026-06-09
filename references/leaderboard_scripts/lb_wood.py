@@ -22,6 +22,7 @@ def lb_wood():
 
 
 GOAL_WOOD = 10000000000
+WOOD_GOAL_CHECK_INTERVAL = 8
 WOOD_STATIC_BUSH = 0
 WOOD_GRASS_REQUEST = 0
 WOOD_GRASS_REWRITE = 0
@@ -34,7 +35,13 @@ WOOD_REROLL = 0
 
 
 def wood_worker():
-    while num_items(Items.Wood) < GOAL_WOOD:
+    goal_check_countdown = 0
+    while True:
+        if goal_check_countdown <= 0:
+            if num_items(Items.Wood) >= GOAL_WOOD:
+                return
+            goal_check_countdown = WOOD_GOAL_CHECK_INTERVAL
+        goal_check_countdown -= 1
         use_wood_water()
         if (get_pos_x() + get_pos_y()) % 2 == 0:
             handle_tree_slot()

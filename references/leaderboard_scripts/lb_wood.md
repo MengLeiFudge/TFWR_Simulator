@@ -296,6 +296,13 @@
   - request `684` 两条有效 run 为 `6:44.833` / `6:42.968`，稳定均值 `6:43.900`，慢于当前 `6:40.410`。
   - 触发覆盖很低：第一轮 `bush_restore_request=3`、`bush_restore=3`；第二轮 `4 / 4`。同期 `reroll=401 / 416`，没有压过额外往返 / 改写成本。
   - 结论：不保留；按 worker 本地短记忆恢复 Bush 覆盖不到主瓶颈。后续不要按“记住最近动态 support，Tree 请求 Bush 时再恢复”的方向继续实机，除非能无移动、跨 worker 知道 support 真实类型。
+- 2026-06-10 Wood 目标检查间隔候选：
+  - `.codex/tests/wood_goal_check_interval_screen.py` 评估当前 32 个 worker 每格都读 `num_items(Items.Wood)` 的管理成本，与“每个 worker 每 `N` 格检查一次目标”的尾部延迟之间的取舍。
+  - 命令：`python3 -m py_compile .codex/tests/wood_goal_check_interval_screen.py` 通过；`timeout 60s python3 .codex/tests/wood_goal_check_interval_screen.py` 快速完成。
+  - 结果：模型显示 interval 只有在 `num_items(Wood)` 查询成本足够高、且每 worker 访问率较高时才有明确收益；例如 `visit_rate=1.0`、`query_cost=0.001` 时，`interval=8` 估算净省约 `7.711s`，但模型没有计入目标达成后的额外 support churn，也没有真实脚本分支成本。
+  - 代码候选：`lb_wood.py` 新增 `WOOD_GOAL_CHECK_INTERVAL = 8`，`wood_worker()` 改为本地 countdown，每 `8` 格检查一次 `GOAL_WOOD`；Tree/Bush/support 路线完全不变。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_wood.py .codex/tests/wood_goal_check_interval_screen.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
+  - 风险：该候选最多延迟 `7` 格退出，若尾部 overshoot 或 support churn 超出查询节省，实机会退化。游戏恢复后必须短跑 `lb_wood`；若无稳定刷新则回退。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -321,6 +328,7 @@
   - Grass / Carrot 动态 support 的边际价值已用 request `638/641/660/675/677` 收口；泛化保护 Bush / 降 churn 会损失 rewrite 覆盖，不作为独立候选
   - Bush 位未成熟 Grass / Carrot 动态 support 提前清理 request `677` 已证伪；未成熟 support 仍有后续伴生承接价值，不能只按 Bush 产木直觉清掉
   - 已知动态 support 按需改回 Bush request `684` 覆盖太低且慢于当前；本地短记忆不能解决主瓶颈
+  - 2026-06-10 已把 Wood 目标检查改为每 worker 每 `8` 格检查一次；这是管理成本候选，不改变 support 结构，确认前不更新成绩注释
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
 - 已验证“冻结 Bush 当纯 support”的方向风险很高：Bush 本身贡献大量 Wood，必须先设计能保住 Bush 产木、同时提高 Tree companion 命中率的结构。
