@@ -259,7 +259,7 @@
 - 优先探针：
   - support 区固定后，单位时间高倍收割次数是否明显上升
   - companion 坐标落入局部 support 区的命中率
-- 当前落地版本：`main3()` 已验证 32 个双胡萝卜 `Bush` support 单元；如果继续推进，应优先评估放开 `Tree` companion 或调整双格间距，而不是回到纯吞吐。
+- 当前状态：已演进为 `4x8` / 折线 8 锚点静态 Bush support；静态锚点加密、8 锚点形状平替、9/10 锚点、同无人机顺路改写、spawn-on-demand helper、非通信定时 helper、physical mailbox 和 adaptive no-restore support 都已筛掉。后续不再直接按“链式胡萝卜”实机，除非先证明新的链路不需要 anchor 阻塞等待、不依赖当前缺失的通信 API，且不会破坏 tile owner。
 
 ### 方向 2：围绕多类型 companion 建低成本承接结构
 
@@ -269,6 +269,7 @@
 - 优先探针：
   - 三种可落地 companion 的出现频率与目标格冲突率
   - 多类型承接比单类型 reroll 少掉的失败重刷，是否超过移动 / 改种成本
+- 当前状态：`carrot_adaptive_support_markov_screen.py` 已确认只记忆 support 最近类型不会突破 `1/3` 类型命中；写入安全的 own-tile mismatch rewrite 估算 `5:32.087`，慢于当前 `4:34.314`，且 request `674` 的 same-drone dynamic 实机也慢到 `5:50.841`。多类型承接只有在能安全跨 tile 写入、或 support writer 正好在请求格且无等待时才重开。
 
 ### 方向 3：让不同无人机承接同一条 companion 链
 
@@ -278,3 +279,4 @@
 - 优先探针：
   - 接力链相对单机链的回头路减少量
   - 无人机间协同时序是否会引入新的阻塞
+- 当前状态：当前 Save0 没有 `send` / `receive`，`spawn_drone()` 会复制 parent scope，不能共享运行时队列；`spawn_drone() + wait_for()` 已被 request `670` 证伪，physical mailbox / world-state relay 预算也不过线。不同无人机接力暂缓到有真正通信 API、远程请求可见性，或无需完成信号的同步结构出现。

@@ -332,6 +332,7 @@
 - 优先探针：
   - support 位最终稳定成灌木的比例
   - 灌木木头贡献占总木头的比例
+- 当前状态：Grass / Carrot 动态 support 和未成熟 Bush 强制改 Carrot 已刷新到当前默认 `6:40.410`；但 support lock、support 补水 / 施肥、low-churn Grass、Bush 位提前清理动态 support、成熟 Bush 自己追 Grass/Carrot 都已证伪。后续不要再用“减少 rewrite / 保护 Bush”当独立目标；只有能保持当前 rewrite 覆盖率并降低动作成本的新结构才重开。
 
 ### 方向 2：树位排布继续围绕“树不相邻”做低冲突优化
 
@@ -341,6 +342,7 @@
 - 优先探针：
   - 不同树位排布下的冲突频率
   - 树不相邻约束下，哪些几何布局最容易把 support 留给灌木
+- 当前状态：Tree-slot bad companion 是剩余主瓶颈，但 ready-only、即时改写并恢复、临时 Bush swap、同列同 worker 延迟承接、phase-aware 目标 worker 恢复、wait-only phase、预留 spawn helper、零移动 owner relay、静态 Bush reserve、低密度 / dense 周期 mask 都已筛掉或实机失败。后续不要再按 Tree-slot 平替实机；必须先证明不明显降低 Tree 密度、不引入 phase 等待、且能覆盖足够 bad-slot 请求。
 
 ### 方向 3：只有在不破坏 Tree/Bush 主结构时，才评估其他伴生
 
@@ -350,3 +352,4 @@
 - 优先探针：
   - 非灌木伴生的净收益是否真的超过它带来的结构破坏
   - 试点位是否会引入跨线程冲突
+- 当前状态：非 Bush companion 只在 Tree 位触发且能低成本改写 support 时有收益；Bush 自身追 Grass/Carrot、固定少量 Tree 位 reserve、简单 support worker 分流和粗粒度 Bush freeze 都不过线。其他伴生方向暂缓到出现近似零移动、低恢复成本、且不损失 Bush / Tree 主吞吐的结构。
