@@ -181,6 +181,11 @@
   - 多机 hay 如果从 32 个双草单元降为 16 个 anchor + 16 个 helper，零开销且 Bush/Tree 全承接的上界只是 `2:47.861`，等于当前；说明并行吞吐减半已经吃掉类型成功率翻倍。
   - 最小实体 mailbox `signal=1 dist=1` 也会退到 `12:40.454`；盲扫 support 不等待时因类型仍不同步退到 `5:35.722`，等待半周期退到 `114:43.910`。
   - 结论：不实机物理 mailbox / world-state relay；没有“无需 anchor 等待的完成信号”时，实体格编码和固定等待成本远高于当前 Bush-only reroll。
+- 2026-06-10 目标检查间隔筛选
+  - `.codex/tests/hay_goal_check_interval_screen.py` 检查减少 `num_items(Items.Hay)` 读取频率的管理成本候选；当前 `run_pair_cycle()` 每个双草 cycle 至少有循环头和两次 harvest 后检查。
+  - 模型口径：当前 `2:47.861`、32 个 worker、每个 pair cycle 3 次查询；按 `cycles_per_worker_s=0.25..4.0`、`query_cost=0.0005..0.010`、`interval=1..64` 做敏感性筛选，并且偏向候选，只把尾巴算成发现达标的平均延迟，没有计入达标后的额外 reroll / 补水 / support 扰动。
+  - 结果：只有当查询成本偏高或 pair cycle 很快时，`interval=2..8` 出现明显纸面收益；在低 cycle rate / 低查询成本下收益是噪声级或被退出尾巴吃掉。
+  - 结论：不改 `lb_hay.py`，不实机目标检查间隔。Hay 当前主瓶颈仍是只兑现约三分之一 companion 类型；目标检查削减最多是实现成本小候选，且 tail / post-goal churn 风险没有真实验证支撑。
 - 2026-06-08 多锚点 Bush-only 轮转筛选
   - `.codex/tests/hay_multi_anchor_layout_budget.py` 用当前 `2:47.861` 校准，枚举单锚点、双锚点、三锚点、四锚点的 Bush-only 非通信结构，估算 Bush-only success、support 数量和最短闭环移动距离。
   - 单锚点纸面 `2:14.096`、success `33.3%`，但模型忽略成熟等待；历史多机单草原地 companion 已无完成轮，因此不按纸面结果进实机。
@@ -208,6 +213,7 @@
 - 已验证 adaptive no-restore Bush/Tree support 预算不过线；当前收割 drone 往返改写 support 的成本高于省掉的 reroll。
 - 已验证物理 mailbox / world-state relay 预算不过线；即使 helper 全承接 Bush/Tree，16 helper 结构也只追平当前，任何实体格编码和固定等待都会明显变慢。
 - 已验证多锚点 Bush-only 轮转筛选里，单草纸面收益不可信，三草 / 四草估算慢于当前双草相邻轮转；后续不要只按单锚点、三锚点或四锚点 Bush-only 轮转继续实机。
+- 已通过目标检查间隔筛选确认，少查 `num_items(Items.Hay)` 只有管理成本小空间，且模型偏向候选；没有真实游戏验证前不改默认检查频率。
 
 ## 候选策略方向（猜测 / 待验证）
 
