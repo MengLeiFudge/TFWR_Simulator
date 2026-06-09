@@ -210,6 +210,11 @@
   - 改法：首次遇到某个目标格时从目标反向 BFS 一次，缓存每个 source 到该 target 的下一步方向；后续同目标直接按缓存方向移动，路径缺失或阻塞时 fallback 到原双向 BFS。
   - 可见 32 轮 cache 指标汇总：`bfs=0`、`nodes=0`、`cache_hits=7595`、`cache_misses=2037`、`cache_invalid=0`、`cache_nodes=130368`；平均每轮 `cache_hits=237.34`、`cache_misses=63.66`、`cache_nodes=4074.0`。
   - 结论：命中率足够，问题不是缓存未命中，而是缓存树固定在较早图状态，无法吃到后续动态开墙带来的短路收益，实际移动路径显著变长；实现已回退。
+- target-cache 周期重建离线筛选
+  - 2026-06-10 `.codex/tests/maze_single_target_cache_rebuild_screen.py` 用 `8x8` 随机 DFS 迷宫树和低概率动态开墙模型，比较 fresh BFS 与“按目标格缓存 BFS 树并按使用次数 / 年龄重建”的策略；模型成本为 `route_steps * 1.0 + bfs_nodes * 0.08`。
+  - 命令：`timeout 60s python3 .codex/tests/maze_single_target_cache_rebuild_screen.py`，约 `16.5s` 完成。模型偏向缓存：没有脚本字典开销，也不模拟真实路径执行中的额外分支。
+  - 结果：所有缓存重建策略都慢于 fresh BFS。`never_rebuild cost_ratio=1.204 route_ratio=1.408`，复现旧图 stale path；`uses_1 cost_ratio=1.322 bfs_ratio=2.414`，重建过密；相对最好的 `uses_2 cost_ratio=1.139` 仍显著慢于 fresh BFS；`age_32 cost_ratio=1.166` 也不过线。
+  - 结论：不改 `lb_maze_single.py`，不进入实机。target-cache 的两难很明确：不重建会走旧图长路，频繁重建又比双向 fresh BFS 节点成本更高。后续不要再做按目标格缓存路径树；若继续缓存，只能缓存极轻量统计或 tie-break 启发，不能直接复用旧路径。
 - 路径执行前 `can_move()` 削减候选
   - 2026-06-10 代码候选：`move_with_bfs()` 的路径来自 `graph` 中已经确认可走的边；反编译 `Treasure.CompleteRepositioning()` 只会随机打开墙，不会关闭旧通路。request `553` probe 也已确认当前稳定路线 `no_path=0` / `blocked=0`。
   - 改法：保留成功 `move()` 后的逐步 `refresh_current_edges(graph)`，继续吃后续动态开墙收益；只删除执行 BFS 路径前每一步额外的 `can_move(direction)` 防守检查。
@@ -233,6 +238,7 @@
 - 已通过 request `554` probe 确认 `(start, target)` 重复率约 `3.31%`，后续不优先做完整 pair 路径缓存。
 - 已通过 request `555` probe 确认目标格重复率约 `78.88%`，可以验证“按 target 懒缓存 BFS 树”，但仍需真实成绩判断是否被缓存构建和旧路径长尾抵消。
 - 已通过 request `556` 验证懒 target-cache 退化到 `3:46.522`，后续不要保留旧图状态的 target-cache；如果还要碰缓存，只能是会随动态图刷新或只缓存距离启发，不直接复用旧路径。
+- `.codex/tests/maze_single_target_cache_rebuild_screen.py` 证明按使用次数 / 年龄重建 target-cache 也不过线；不再重开按目标格缓存路径树方向。
 - 2026-06-10 已把路径执行前的重复 `can_move()` 检查删掉，但保留每步 `refresh_current_edges(graph)`；确认前不更新成绩注释。
 
 ## 候选策略方向（猜测 / 待验证）
