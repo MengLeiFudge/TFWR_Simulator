@@ -152,6 +152,11 @@
   - 2026-06-09 `.codex/tests/dinosaur_recoverable_shortcut_screen.py` 用当前 `path` 构造 Hamiltonian cycle，从近似 `length=341` 的后半段状态开始，随机抽样 `120` 个状态，每个状态最多模拟 `20000` 步；候选只允许当前 apple 位于相邻格、且该格仍在同一回路前方时提前踏入，不做 BFS、不裸贪心、不改前期阈值。
   - 结果：`max_skip=2..32` 均保持 `120/120` 无碰撞，但加权移动成本没有下降；即使 `max_skip=32` 平均也只触发 `27.24` 次短切 / `20000` 步，平均成长 `61.4`，相对固定路径基线 `61.2` 只多 `+0.2`，低于模型噪声。
   - 结论：后半段相邻前向短切不进入实机；它没有显著提高 apple 获取率，还会引入额外 `measure()` / 邻格判断 / `can_move()` 分支成本。Dinosaur 后续仍应只看前期可恢复吃苹果结构，不做后半段邻格微调。
+- 前期 direct greedy / cycle-forward 恢复筛选
+  - 2026-06-10 `.codex/tests/dinosaur_early_greedy_recovery_screen.py` 用 snake occupancy + 当前 Hamiltonian `path` 恢复模型，筛前期 `limit=8/16/24/32/40` 内的 `direct`、`cycle_forward_8/16/free` 贪心，窗口内最多模拟 `12000` 步；`success` 只表示窗口内无碰撞，不要求完整榜完成。
+  - 命令：`timeout 60s python3 .codex/tests/dinosaur_early_greedy_recovery_screen.py`，约 `7.7s` 完成。
+  - 结果：`direct` 随阈值增加迅速不稳，`limit=8` 为 `37/40`，`limit=40` 只剩 `10/40`；`cycle_forward_8/16` 虽然全是 `40/40` 无碰撞，但 `12000` 步窗口平均只增长到约 `25.5~33.4`，明显不足以替代当前 `dinosaur2` 前期追苹果结构；`cycle_forward_free` 也不稳。
+  - 结论：不改 `lb_dinosaur.py`，不进入实机。裸 direct greedy 仍是结构不安全；仅按 Hamiltonian 前向窗口限制又过于保守，吃苹果效率太低。Dinosaur 后续不再重开“前 N 个尾长直接朝苹果走”的路线，除非能同时证明恢复安全和前 100 苹果效率超过既有 `dinosaur2`。
 - 早期 `measure()` 门控候选
   - 2026-06-10 代码候选：`update_and_move()` 原先每一步移动后都调用 `measure()`；但反编译 `Apple#Measure()` 只在当前格是 Apple 且已有 `nextPos` 时返回下一颗苹果位置，当前脚本也已经用 `mx/my` 保存了当前苹果坐标。
   - 改法：移动后先更新 `x/y`，只有 `x == mx and y == my` 时才调用 `measure()` 并更新下一目标与 `length`。路径选择、`can_move()` 兜底、前期阈值和后半段安全路径都不改变。
@@ -191,6 +196,7 @@
   - 后期 `simple_update_and_move(path[x][y])` 结算前是否存在可控提速
 - 已验证把前期追踪阈值轻度延长到 `3/8` 没有刷新；默认继续保留 `size * size / 3`。
 - 已验证把前期追踪阈值提前到 `5/16` 也没有刷新；后续不要继续做单变量阈值微调。
+- `.codex/tests/dinosaur_early_greedy_recovery_screen.py` 证明前期 direct greedy 不稳，cycle-forward 约束又太保守；不再重开“前 N 个尾长直接朝苹果走”的路线。
 - 2026-06-10 已把早期 `measure()` 改为“走到当前 apple 坐标才测下一目标”的候选；它不改变路径结构，只减少非目标格测量。下一次游戏恢复后必须优先真实短跑确认，确认前不更新成绩注释。
 - 优化目标应明确写成：
   - 不是做分段 cash-out
