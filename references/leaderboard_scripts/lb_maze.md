@@ -233,6 +233,11 @@
   - 改法：只把 `maze_chunking()` 的 chunk 遍历从叶子到根改为从 root 向外，保持 `radius=14`、`owner_wait=0.2`、owner/fallback 和 solver 逻辑不变，试图让中心区域先启动并降低首金延迟。
   - 结果：`explore_done time=9.7` 后一直没有正向金币增长；到停止前 `game_time≈167.846` 仍 `gold=0`，最终 `finished=false runs=1 average=2:48.557` 是取消摘要，不作为成绩。
   - 结论：root-first 会让先覆盖的中心 owned/area 分布破坏外圈 solver 的有效追宝，直接卡在无金币进展；代码已回退并重新同步正式版到 `gamesave/`。后续不要把 chunk 顺序简单改成 root-first。
+- 探图分支局部抢宝
+  - 2026-06-09 请求 `722` 验证。
+  - 改法：每个探图分支结束并拿到自己的局部 `paths` 后，先把局部路径建图并尝试追当前 Treasure；Treasure 不在局部图或短时间没有命中时退出，再让主流程收集完整地图并进入原 `maze_chunking()` 兜底，目标是复用探图结束时已经分散到远端的位置，减少所有 solver 从中心重走的开局迁移。
+  - 结果：早期只获得 `gold=65536` 后长期停滞；到主动停止前 `game_time=249.845` 仍无新增金币，`finished=false runs=1 average=4:10.754` 是取消摘要，不作为成绩。结束输出 `maze_multi chunks=28 nodes=975`，低于默认完整探图的 `1024` 节点。
+  - 结论：探图分支局部抢宝会干扰完整地图收集；局部命中率不足以覆盖它对全图 solver 启动的延迟。代码已回退并重新同步正式版到 `gamesave/`。后续不要让 explorer 在返回路径前抢宝，除非能保持完整 `nodes=1024` 且不延迟主流程收图。
 
 ## 下一步优化方向
 
@@ -255,6 +260,7 @@
   - 请求 `718` 证明固定前缀 launcher 分组会明显变慢；减少重复 root 前缀迁移不能以额外 launcher 调度和 spawn 占位为代价。
   - 请求 `720` 证明主无人机巡回前缀锚点批量 spawn 也会明显变慢；即使不占额外 drone slot，串行前缀调度仍会推迟首金。
   - 请求 `721` 证明 root-first chunk 生成会卡在无金币进展；当前叶子到根覆盖顺序不能简单反转。
+  - 请求 `722` 证明探图分支在返回路径前局部抢宝会破坏完整地图收集，`nodes` 只到 `975` 且 `gold` 卡在 `65536`；复用 explorer 位置不能以延迟全图 solver 为代价。
 - 改进进度判断：
   - 首轮未完成时看 `gold` 增速和 `progress_estimate`。
   - 第一轮完成后只用真实完成轮时间判断。
