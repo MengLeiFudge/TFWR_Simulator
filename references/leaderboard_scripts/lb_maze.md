@@ -262,6 +262,11 @@
   - 命令：`timeout 60s python3 .codex/tests/maze_wait_policy_grid_screen.py`，约 `20.5s` 完成；模型 `chunk_count avg=30.6 min=28 p50=31 max=33`。
   - 结果：最佳 `rank_0.05` / `dist_0.10` 只有 `ratio=0.998`，约 `0.2%` 代理收益；`nearest_0.2` 为 `ratio=0.999`；`current_0.4` 退化到 `1.002`。
   - 结论：固定等待函数、距离 rank、静态 nearest 等低通信等待策略都没有足够 margin；不改 `lb_maze.py`，也不在游戏恢复后优先短跑这类等待网格候选。Maze 后续只接受比“调等待”更大的结构，例如真正可取消 / 可抢占 dispatcher，或者不推迟首金的自然落位 solver。
+- 保守 owner 重分配筛选
+  - 2026-06-10 `.codex/tests/maze_owner_preserve_reassign_screen.py` 继续使用 game-like DFS 迷宫树和重复追宝 busy 成本；保持当前 `radius=14`、chunk `area`、路径缓存和 `owner_wait=0.2` 不变，只把重叠节点从 leaf-first owner 改给更近 solver，并给每个原 owner 保留最少 owned 节点，避免 request `707` 那类远端 solver 被掏空。
+  - 命令：`timeout 60s python3 .codex/tests/maze_owner_preserve_reassign_screen.py`，约 `18.9s` 完成；`python3 -m py_compile .codex/tests/maze_owner_preserve_reassign_screen.py` 通过。
+  - 结果：模型 `chunk_count avg=30.6 min=28 p50=31 max=33`；最佳 `preserve_12` 只有 `finish ratio=0.997`，约 `0.3%` 代理收益；其他 `preserve_1/4/8/16/24/32` 仅 `0.998x~0.999x`；每张图平均改 owner 约 `74~126` 个节点，但 duplicate 和 route 基本不降。
+  - 结论：不改 `lb_maze.py`，不实机保守 owner 重分配。即使避免了静态 owner score 的明显掏空问题，收益也只有噪声级；Maze 后续不要继续做“只改 owned_set、area/path 不变”的静态重分配。
 - 少量全图 dispatcher 筛选
   - 2026-06-10 `.codex/tests/maze_global_dispatcher_count_screen.py` 筛“用 `4/8/16` 个全图路径缓存 solver 替代约 `30` 个半径 chunk solver”的结构；对照包括固定几何中心和 farthest-point 中心上界。
   - 命令：`timeout 60s python3 .codex/tests/maze_global_dispatcher_count_screen.py`，约 `60s` 内完成；`python3 -m py_compile .codex/tests/maze_global_dispatcher_count_screen.py` 通过。
@@ -290,6 +295,7 @@
   - 请求 `627` 证明短等待 fallback 有正收益；请求 `628/629` 显示 `owner_wait=0.2` 暂时优于 `0.1 / 0.3`，请求 `636/699/700` 证明固定距离阈值和路径长度等待都会退化。下一步不要继续做粗粒度等待参数或固定距离微调，应转向动态最近可达判定、dispatcher 或 solver 开局调度。
   - 请求 `702` 显示 fallback 只占约 `22.5%`，且 fallback 路径并不明显长于 owned 路径；如果不能使用通信 API，优先做离线 / 探针驱动的 chunk owner 重分配，而不是让所有 solver 更积极抢非 owner Treasure。
   - 请求 `707` 证明仅按 `approach_len + node_dist` 做静态 owner 重分配会明显变慢；owner 重分配不能只看理论到位成本，必须保住远端 center 的 owned 命中和并发度。
+  - `.codex/tests/maze_owner_preserve_reassign_screen.py` 证明保住每个 solver 最少 owned 数以后，静态 owner 重分配仍只有约 `0.3%` 代理收益；后续不要再做只改 `owned_set` 的静态重分配，除非同时改变 Treasure 派发 / 可抢占模型。
   - 请求 `708` 证明共享 `claimed_treasures` 的简单全局去重也会变慢；减少重复竞争不能靠无条件加锁，否则会把并发抢宝收益换成空等。
   - `.codex/tests/maze_global_dispatcher_count_screen.py` 证明少量全图路径缓存 dispatcher 会比当前慢 `2x+`，即使全图 path-build 免费也不过线；不要再试 `4/8/16` 个全图 solver 替代 chunk solver。
   - 请求 `718` 证明固定前缀 launcher 分组会明显变慢；减少重复 root 前缀迁移不能以额外 launcher 调度和 spawn 占位为代价。
