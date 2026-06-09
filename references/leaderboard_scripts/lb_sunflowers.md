@@ -234,6 +234,11 @@
   - 命令：`python3 -m py_compile .codex/tests/sunflowers_local_threshold_upper_bound.py` 通过；`timeout 60s python3 .codex/tests/sunflowers_local_threshold_upper_bound.py` 快速完成。
   - 结果：盲收 `ppv=12.2963`；本地阈值 `15` 的上界 `ppv=13.3333`，只有 `1.0843x`；其他阈值 `8..14` 都慢于盲收。
   - 结论：不改 `lb_sunflowers.py`，不再把“本地记录花瓣 / RNG 预测 / 只收本地高值”作为无通信主线。没有全局同步收割顺序时，即使完美本地花瓣信息也到不了 `1.2x`；真实实现还会额外支付跳过、测量和成熟等待成本。
+- 免费全局最大同步上界筛选
+  - 2026-06-10 `.codex/tests/sunflowers_global_max_upper_bound.py` 检查更强的共享状态幻想：假设 row worker 免费知道当前全场最大花瓣、免费知道每株当前花瓣、无通信 / `measure()` / 记账成本，并且只收当前全场最大，所以每次收割都吃 `x8`。
+  - 命令：`python3 -m py_compile .codex/tests/sunflowers_global_max_upper_bound.py` 通过；`timeout 60s python3 .codex/tests/sunflowers_global_max_upper_bound.py` 快速完成。
+  - 结果：满 `32x32` 的 exact global-max 仍只有 `ppv=13.3333 ratio=1.0843`；固定吞吐幻想下 `10/12/16/20` 株活跃场能到 `1.5599x / 1.4319x / 1.2811x / 1.2006x`，但一旦按活跃株数折算吞吐，`1024` 株以下全部低于当前，`20` 株只剩 `0.0235x`。
+  - 结论：不改 `lb_sunflowers.py`，不实机“免费全局最大同步 / 小活跃场 exact-max”。全局最大知识本身不是 `1.2x` 结构；除非同时保住满场成熟收割密度，否则精确同步也只会变成跳过成熟株。
 - “已有低点数会让新种高点数概率变高”的思路
   - 这条线也是错误口径
   - 因为新种花瓣数是独立随机的 `7..15`
@@ -260,6 +265,7 @@
 - `.codex/tests/sunflowers_power_check_interval_screen.py` 证明周期性削减 Power 查询没有足够理论 margin；不再把“去循环头 Power 查询、保留 harvest 后查询”作为恢复后优先短跑候选。
 - `.codex/tests/sunflowers_phase_schedule_screen.py` 证明无通信时间窗 / 阶段阈值近似同步只有在高成熟率乐观档才有约 `9%` 纸面收益，并且平均每次收获前跳过约 `8` 株成熟株；不进入实机。
 - `.codex/tests/sunflowers_local_threshold_upper_bound.py` 证明完美本地花瓣信息、免费跳过、无实现成本的阈值上界也只有 `1.0843x`；没有全局同步收割顺序时，RNG / 本地测量不能作为压进 `1.2x` 的主结构。
+- `.codex/tests/sunflowers_global_max_upper_bound.py` 进一步证明即使免费知道全场最大并只收最大，满场也只有 `1.0843x`；小活跃场过线只存在于“吞吐不下降”的幻想，不进入实机。
 - 下一步若继续优化，应优先找“不依赖 send/receive 的近似同步”：
   - 降低错误 harvest 的同时，不引入 `main3` 那种全阶段扫描成本
   - 用少量花瓣测量 / 局部最大值估计，判断是否能把 `8:24.480` 拉近 #1
