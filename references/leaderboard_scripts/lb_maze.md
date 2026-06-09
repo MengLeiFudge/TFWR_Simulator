@@ -223,6 +223,11 @@
   - 请求 `717` 先暴露运行时限制：游戏脚本环境没有 `tuple()`，`tuple(prefix)` 直接 runtime error；修成整数 key 后继续验证。
   - 请求 `718` 两轮有效成绩 `2:10.799` / `2:03.398`，稳定均值 `2:07.099`，明显慢于当前默认 `1:43.336`。第一轮 `explore_done time=10.18`、`chunks=30`、`launchers=3`、`solve_done time=130.57 solve_time=99.73`。
   - 结论：launcher 分组把 root 共同前缀迁移换成额外 launcher 调度、spawn 占位和 solver 启动延迟，首金和 solve_time 都退化；代码已回退并重新同步正式版到 `gamesave/`。后续不要按“固定前缀 launcher / 分组 spawn”继续做 solver 开局调度，除非能证明不增加活跃 drone 占位且不推迟首金。
+- 主无人机前缀锚点批量 spawn
+  - 2026-06-09 请求 `720` 验证。
+  - 改法：不再额外生成 launcher drone；先收集所有 chunk，按 root 到 solver center 的前 `6` 步路径分组，由主无人机依次走到每个前缀锚点，直接在锚点批量 `spawn_drone()` 对应 solver，再返回 root 处理下一组，试图避免 request `718` 的 launcher 占用无人机槽问题。
+  - 结果：首轮 `2:06.868`，明显慢于当前默认 `1:43.336`；同轮 `explore_done time=8.64`、`chunks=31`、`spawn_groups=2`、`solve_done time=126.85 solve_time=89.9`。第二轮中途停止，`finished=false runs=2 average=2:00.452` 是取消摘要，不作为成绩。
+  - 结论：即使不占用额外 launcher drone，主无人机串行走前缀锚点仍会推迟 solver 启动和首金；前缀共享节省的路程吃不回批量调度延迟。代码已回退并重新同步正式版到 `gamesave/`。后续不要按“主机巡回锚点批量 spawn”继续做开局调度。
 
 ## 下一步优化方向
 
@@ -243,6 +248,7 @@
   - 请求 `707` 证明仅按 `approach_len + node_dist` 做静态 owner 重分配会明显变慢；owner 重分配不能只看理论到位成本，必须保住远端 center 的 owned 命中和并发度。
   - 请求 `708` 证明共享 `claimed_treasures` 的简单全局去重也会变慢；减少重复竞争不能靠无条件加锁，否则会把并发抢宝收益换成空等。
   - 请求 `718` 证明固定前缀 launcher 分组会明显变慢；减少重复 root 前缀迁移不能以额外 launcher 调度和 spawn 占位为代价。
+  - 请求 `720` 证明主无人机巡回前缀锚点批量 spawn 也会明显变慢；即使不占额外 drone slot，串行前缀调度仍会推迟首金。
 - 改进进度判断：
   - 首轮未完成时看 `gold` 增速和 `progress_estimate`。
   - 第一轮完成后只用真实完成轮时间判断。
