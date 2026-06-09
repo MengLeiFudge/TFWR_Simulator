@@ -165,6 +165,12 @@
   - 模型结果：baseline `reroll/accept=0.922`、`replant/accept=0.502`；`strict-orphan-match` 把 `replant/accept` 降到 `0`，但 `reroll/accept` 暴涨到 `2.862`，估算退化约 `342s`；`bush-or-orphan-match` 类似退化约 `340s`。
   - 2026-06-09 追加 degree 条件过滤：只在高共享度 support 格拒绝 orphan mismatch 时，`reject-high-degree>=10/12` 仍把 `reroll/accept` 放大到约 `2.43`，即使 `replant/accept` 降到 `0.111`，估算仍退化约 `266s`；只在低共享度格过滤几乎不触发，最好也只是 `-0.105s` 的噪声级估算。
   - 结论：不实机、不改 `.py`。orphan 记忆过滤只是把 support replant 换成更多 tree reroll，按共享度折中也没有净收益，明显重复“更严格接受顺序 / Bush 优先”类失败模式。
+- `main11` claim stealing 筛选：
+  - 2026-06-09 `.codex/tests/wood_single_claim_steal_screen.py` 筛选：当 support cell 被单个旧 owner 占用且类型冲突时，新 tree 直接抢占该 support，并把旧 owner 的 pending claim 标为失效，目标是把即时 reroll 换成更少的 support 重种。
+  - baseline：`effective=119976`、`reroll/eff=0.925`、`replant/eff=0.502`。
+  - `steal-single-owner` 虽把 `reroll/eff` 降到 `0.505`，但有效 companion harvest 降到 `75.3%`，`replant/eff` 升到 `0.690`，`lost/accept=0.247`。
+  - 低 degree 抢占 `<=4/<=6` 基本不触发；`<=8` 仍把有效 companion harvest 降到 `95.6%`，`replant/eff` 升到 `0.529`。
+  - 结论：不实机、不改 `.py`。claim stealing 只是把当前 tree 的 reroll 隐藏成旧 owner 后续低倍率 harvest，同时增加 support replant；后续不要按抢占 busy support / invalidate old owner 的方向推进。
 - `main11` Carrot companion 材料 guard
   - 2026-06-08 请求 `665` 的探针输出里，开局出现 `Warning: 没有种植 Entities.Carrot 所需的物品。`，说明部分 Carrot support claim 接受后暂时落不了地。
   - 候选改法：`roll_tree_companion()` 遇到 `ct == Entities.Carrot` 且当前不能支付 `plant(Entities.Carrot)` 成本时，直接 reroll，不占用 support claim。
@@ -209,12 +215,13 @@
 - 已通过 no-movement claim policy 筛选确认，单纯更严格地挑 support 坐标或优先 Bush 会把总 reroll 放大到 baseline 约 `3x` 或直接 stall；不要按“只改接受顺序但不移动 / 不加状态”的方向实机。
 - 已验证 delayed claim 单 owner 承接变慢；pending 能降低一部分 reroll，但会提高 support replant / 运行节奏成本，不要继续按单 owner pending 状态机微调。
 - 已通过 orphan support 实体记忆过滤筛选确认，严格匹配孤儿实体虽然能压掉 support replant，但会把 reroll 放大到 baseline 约 `3x`；degree 条件过滤要么同样大幅增加 reroll，要么几乎不触发。不要按“记住孤儿实体后拒绝不匹配类型”的方向实机。
+- 已通过 claim stealing 筛选确认，抢占 busy support 会降低当前 tree 的即时 reroll，但会让旧 owner 低倍率收割并提高 support replant；不要按“抢占单 owner claim / invalidate old owner”的方向实机。
 
 ## 候选策略方向（猜测 / 待验证）
 
 ### 方向 1：`main11` 上继续强化“灌木优先”的 support 冻结
 
-- 当前结论：普通冻结、Bush-only、有限 Bush 优先 reroll、no-movement claim policy 和 delayed claim 单 owner 承接都已失败；除非能同时降低 reroll 与 support replant，否则不要继续把“灌木优先”写成更复杂的接受 / pending 状态规则。
+- 当前结论：普通冻结、Bush-only、有限 Bush 优先 reroll、no-movement claim policy、delayed claim 单 owner 承接、orphan 实体记忆过滤和 claim stealing 都已失败；除非能同时降低 reroll、support replant 和旧 owner 失效，否则不要继续把“灌木优先”写成更复杂的接受 / pending / 抢占状态规则。
 
 ### 方向 2：`main11` 上做更激进的“树位有限开放”（已降级）
 
