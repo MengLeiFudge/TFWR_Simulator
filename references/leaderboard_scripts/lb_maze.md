@@ -277,6 +277,11 @@
   - 命令：`timeout 60s python3 .codex/tests/maze_natural_seed_solver_screen.py`，约 `2.8s` 完成；`python3 -m py_compile .codex/tests/maze_natural_seed_solver_screen.py` 通过。
   - 结果：模型 `chunk_count avg=30.60 min=28 p50=31 max=33`；solver 到 center 的起步距离从当前中心派发的 `avg=164.537 p90=331 max=572`，在自然 seed 上界下降到 `avg=30.454 p90=66 max=219`，但完整事件模型只从 `current_finish=4846.796` 到 `natural_finish=4624.321`，`ratio=0.954`；首个 Treasure 确实从 `180.645` 提前到 `45.119`，但 route / duplicate 几乎不变。
   - 结论：不改 `lb_maze.py`，不实机自然落位 seed solver。即使把最难的运行时限制全部忽略，这条谱系也只有约 `4.6%` 上界收益，远不足以解释当前到 `1.2x` 的结构差距；后续不要再按“复用 explorer 位置 / 从 seed 派 solver / 换 solver 起点”推进，除非同时改变 Treasure 处理模型，而不是只减少开局到 center 的路程。
+- 短竞价 dispatcher 筛选
+  - 2026-06-10 `.codex/tests/maze_bid_dispatcher_screen.py` 比较当前 `owner_wait=0.2` 与“同一 Treasure 出现后，覆盖它的 solver 在极短窗口内发布距离 / 预计完成时间，只让最优 bid 出发”的候选；该路线不同于已失败的共享 `claimed_treasures`，因为不是谁先 claim 谁持有，而是等一个短窗口后选最优。
+  - 命令：`python3 -m py_compile .codex/tests/maze_bid_dispatcher_screen.py` 通过；`timeout 60s python3 .codex/tests/maze_bid_dispatcher_screen.py` 约 `12.6s` 完成。
+  - 结果：game-like DFS 迷宫树 `chunk_count avg=30.6 min=28 p50=31 max=33`；当前 `finish=4578.144`；`bid_0.02 finish=4557.608 ratio=0.996`，`bid_0.05 finish=4566.638 ratio=0.997`，`bid_0.10 finish=4581.687 ratio=1.001`；bid 路线把 `dup` 从约 `69.864` 压到 `0`，但每次 Treasure 的竞价等待会快速吃掉去重收益。
+  - 结论：不改 `lb_maze.py`，不实机短竞价 dispatcher。它证明“可取消 / 可抢占 dispatcher”仍是正确结构方向，但单纯每个 Treasure 等一个全局竞价窗口的收益只有噪声级；后续 Maze 需要的是不额外等待 Treasure 周期的动态分配，而不是固定 bid window。
 
 ## 下一步优化方向
 
