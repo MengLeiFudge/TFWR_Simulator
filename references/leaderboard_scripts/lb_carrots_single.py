@@ -23,6 +23,18 @@ def lb_carrots_single():
 
 SINGLE_GOAL_CARROTS = 100000000
 SINGLE_FIELD_SIZE = 5
+CARROT_COST = get_cost(Entities.Carrot)
+CARROT_COST_ITEMS = (
+    Items.Hay,
+    Items.Wood,
+    Items.Carrot,
+    Items.Pumpkin,
+    Items.Power,
+    Items.Cactus,
+    Items.Gold,
+    Items.Bone,
+    Items.Weird_Substance,
+)
 
 
 def goto(tx, ty):
@@ -140,21 +152,10 @@ def companion_distance(tx, ty):
 
 
 def can_pay_carrot_cost():
-    cost = get_cost(Entities.Carrot)
+    cost = CARROT_COST
     if cost == None:
         return True
-    items = [
-        Items.Hay,
-        Items.Wood,
-        Items.Carrot,
-        Items.Pumpkin,
-        Items.Power,
-        Items.Cactus,
-        Items.Gold,
-        Items.Bone,
-        Items.Weird_Substance,
-    ]
-    for item in items:
+    for item in CARROT_COST_ITEMS:
         if item in cost and num_items(item) < cost[item]:
             return False
     return True
