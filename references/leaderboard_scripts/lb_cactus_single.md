@@ -191,6 +191,11 @@
   - `timeout 60s python3 .codex/tests/cactus_single_fusion_screen.py` 约 `9.8s` 完成；`python3 -m py_compile .codex/tests/cactus_single_fusion_screen.py` 通过。
   - 结果：当前 `current_rows_cols score=66269.327`，`failed=0`；`relax_forward score=85622.524`、`ratio=1.2920`，`relax_cocktail score=91203.451`、`ratio=1.3763`，两者都能生成合法盘面但动作代理明显慢。
   - 结论：不改 `lb_cactus_single.py`，不进入实机。单机 `8x8` 下行列 relax 只是减少很少 swap，却增加更多移动和测量；后续不要继续做“把完整行列排序拆成多轮轻 relax”的融合变体。
+- 蛇形连贯行列排序筛选
+  - 2026-06-10 `.codex/tests/cactus_single_serpentine_line_order_screen.py` 检查“行 / 列按当前位置选择 low-first 或 high-first 起手，列排序阶段按当前位置贪心选择最近未排序列”的偏乐观上界，目标是量化文档里剩余的更少 `goto()` 蛇形连贯流程。
+  - 命令：`python3 -m py_compile .codex/tests/cactus_single_serpentine_line_order_screen.py` 通过；`timeout 60s python3 .codex/tests/cactus_single_serpentine_line_order_screen.py` 约 `12.8s` 完成。
+  - 结果：`current score=76105.222 failed=0`；`serpentine score=73476.106 failed=0`，`serpentine_score_ratio=0.9655`；high-first 被选择在 `17.676%` 行和 `48.303%` 列。该模型已经不计真实脚本里的额外分支、选择列、函数层和二维 `goto()` 细节成本。
+  - 结论：不改 `lb_cactus_single.py`，不实机蛇形连贯排序。即使在偏向候选的代理里也只有约 `3.45%` 局部动作收益；考虑单机仙人掌已有大量 `1%~3%` 微调实机失败，这个 margin 不足以支撑重写排序控制流。
 
 ## 下一步优化方向
 
@@ -216,6 +221,7 @@
 - 已验证列排序前预检跳过已排序列没有刷新，默认每列直接跑完整列排序
 - `.codex/tests/cactus_single_sort_orientation_screen.py` 证明近端起手排序只有约 `2.4%` 单线代理收益，且需要新增排序分支；不作为当前实机候选。
 - `.codex/tests/cactus_single_fusion_screen.py` 证明行列交替 relax 在单机 `8x8` 下代理成本为当前 `1.292x` 到 `1.376x`；不作为当前实机候选。
+- `.codex/tests/cactus_single_serpentine_line_order_screen.py` 证明行列排序连贯化 / 近端起手 / 贪心最近列在偏乐观代理下也只有约 `3.45%` 局部收益，不作为当前实机候选。
 - 优化目标应明确写成：
   - 尽快做出一次满 `8x8` 合法盘面
   - 而不是提高多轮平均产量
