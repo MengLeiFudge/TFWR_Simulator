@@ -60,13 +60,14 @@ def update_and_move(dir):
     move(dir)
     step += 1
 
-    pos = measure()
-    if pos:
-        mx, my = pos
-        length += 1
-
     x = get_pos_x()
     y = get_pos_y()
+
+    if x == mx and y == my:
+        pos = measure()
+        if pos:
+            mx, my = pos
+            length += 1
 
     return x == 0
 
