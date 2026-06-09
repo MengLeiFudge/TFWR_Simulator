@@ -60,7 +60,14 @@ def update_and_move(dir):
     move(dir)
     step += 1
 
-    update_position(dir)
+    if dir == North:
+        y += 1
+    elif dir == South:
+        y -= 1
+    elif dir == East:
+        x += 1
+    else:
+        x -= 1
 
     if x == mx and y == my:
         pos = measure()
@@ -79,15 +86,6 @@ def simple_update_and_move(dir):
         return False
 
     move(dir)
-    update_position(dir)
-
-    return True
-
-
-def update_position(dir):
-    global x
-    global y
-
     if dir == North:
         y += 1
     elif dir == South:
@@ -97,11 +95,14 @@ def update_position(dir):
     else:
         x -= 1
 
+    return True
+
 
 def run_dinosaur_path():
     global step
 
-    while length < size * size / 3:
+    chase_limit = size * size / 3
+    while length < chase_limit:
         step = 0
         while step < length:
             update_and_move(path[x][y])

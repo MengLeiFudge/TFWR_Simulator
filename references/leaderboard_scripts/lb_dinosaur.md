@@ -167,6 +167,11 @@
   - 改法：新增 `update_position(dir)`，按 `North/South/East/West` 对本地 `x/y` 做增量更新；路径选择、苹果测量门控、前期阈值和后半段安全路径都不改变。
   - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_dinosaur.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
   - 风险：该候选依赖 `move(dir)` 成功后位置变化严格等于方向常量；若未来游戏改成恐龙可穿边或移动存在非方向位移，需要回退为回读坐标。当前机制和代码路径支持本地更新，游戏恢复后与 measure 门控一起短跑确认。
+- 移动热路径函数调用压缩候选
+  - 2026-06-10 代码候选：在上一本地坐标更新候选基础上，把 `update_position(dir)` 的方向分支内联到 `update_and_move()` / `simple_update_and_move()`，并把前期追苹果阈值 `size * size / 3` 缓存为 `chase_limit`。
+  - 这不改变 `dinosaur2` 的路径选择、`can_move()` 兜底、苹果测量门控、前期阈值或后半段安全路径，只减少每步成功移动后的函数调用和外层循环重复表达式计算。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_dinosaur.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
+  - 风险：这是纯脚本管理成本候选；如果实机没有稳定刷新，应视为波动或脚本层成本不足，直接回退到上一版本地坐标更新结构即可。
 - 列对收苹果 / 行蛇形 / Dinosaur 实体旁路
   - 2026-05-02 请求 `569` / `571` / `572` 验证。
   - 结果：
@@ -203,6 +208,7 @@
 - 已验证把前期追踪阈值提前到 `5/16` 也没有刷新；后续不要继续做单变量阈值微调。
 - `.codex/tests/dinosaur_early_greedy_recovery_screen.py` 证明前期 direct greedy 不稳，cycle-forward 约束又太保守；不再重开“前 N 个尾长直接朝苹果走”的路线。
 - 2026-06-10 已把早期 `measure()` 改为“走到当前 apple 坐标才测下一目标”的候选；它不改变路径结构，只减少非目标格测量。下一次游戏恢复后必须优先真实短跑确认，确认前不更新成绩注释。
+- 2026-06-10 已把坐标增量更新分支内联到移动热路径，并缓存 `chase_limit`；这是管理成本候选，不改变路径结构，确认前不更新成绩注释。
 - 优化目标应明确写成：
   - 不是做分段 cash-out
   - 而是保留 `dinosaur2` 的“前期追苹果、后期保命”结构，继续压缩吃苹果等待步数
