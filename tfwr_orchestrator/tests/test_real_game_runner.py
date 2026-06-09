@@ -110,6 +110,7 @@ class RealGameRunnerToolTests(unittest.TestCase):
         self.assertEqual(args.max_leaderboard_runs, 2)
         self.assertFalse(args.request_only)
         self.assertFalse(args.status_only)
+        self.assertFalse(args.include_game_output)
         self.assertEqual(args.status_lines, 80)
 
     def test_resolve_game_executable_prefers_non_crash_handler(self) -> None:
@@ -890,7 +891,7 @@ class RealGameRunnerToolTests(unittest.TestCase):
         wait_for_status.assert_not_called()
         self.assertIn("mode=request_only", stream.getvalue())
 
-    def test_main_status_only_reads_three_files_without_starting_game(self) -> None:
+    def test_main_status_only_skips_game_output_while_running(self) -> None:
         stream = io.StringIO()
         state = {
             "request_id": 9,
@@ -911,6 +912,7 @@ class RealGameRunnerToolTests(unittest.TestCase):
             log_path = game_root / "BepInEx" / "LogOutput.log"
             log_path.parent.mkdir(parents=True)
             log_path.write_text(
+                "[Info] [lb_pumpkins] run=1 time=6:40.664\n"
                 "[Info] item_snapshot request_id=9 real_elapsed=1.0 game_time=10 "
                 "game_tick=4000 leaderboard_script=lb_pumpkins pumpkin=100\n"
                 "[Info] item_snapshot request_id=9 real_elapsed=2.0 game_time=20 "
@@ -938,9 +940,55 @@ class RealGameRunnerToolTests(unittest.TestCase):
         ensure_game.assert_not_called()
         text = stream.getvalue()
         self.assertIn("state request_id=9 status=running target_script=lb_start", text)
-        self.assertIn("game_output [lb_pumpkins] run=1 time=6:40.664", text)
+        self.assertIn("game_output_lines=0", text)
+        self.assertIn("game_output skipped state=running reason=avoid_output_lock", text)
+        self.assertNotIn("game_output [lb_pumpkins] run=1 time=6:40.664", text)
         self.assertIn("mod_output [Info] item_snapshot request_id=9", text)
         self.assertIn("leaderboard_average runs=1 average=6:40.664", text)
+
+    def test_main_status_only_can_include_game_output_while_running(self) -> None:
+        stream = io.StringIO()
+        state = {
+            "request_id": 9,
+            "status": "running",
+            "target_script": "lb_start",
+            "timeout_seconds": 90.0,
+            "started_at": "2026-04-26T00:00:00Z",
+            "finished_at": None,
+            "last_error": None,
+        }
+        with tempfile.TemporaryDirectory() as temp_text:
+            root = Path(temp_text)
+            output_path = root / "output.txt"
+            output_path.write_text("[lb_pumpkins] run=1 time=6:40.664\n", encoding="utf-8")
+            log_path = root / "Game" / "BepInEx" / "LogOutput.log"
+            log_path.parent.mkdir(parents=True)
+            log_path.write_text("[Info] item_snapshot request_id=9\n", encoding="utf-8")
+
+            with mock.patch.object(
+                runner_module, "resolve_oracle_state_path", return_value=Path("/tmp/state.json")
+            ), mock.patch.object(
+                runner_module, "read_state_file", return_value=state
+            ), mock.patch.object(
+                runner_module, "resolve_output_path", return_value=output_path
+            ), mock.patch.object(
+                runner_module, "resolve_bepinex_log_path", return_value=log_path
+            ), contextlib.redirect_stdout(stream):
+                result = runner_module.main(
+                    [
+                        "--status-only",
+                        "--target-script",
+                        "lb_start",
+                        "--status-lines",
+                        "20",
+                        "--include-game-output",
+                    ]
+                )
+
+        self.assertEqual(result, 0)
+        text = stream.getvalue()
+        self.assertIn("game_output [lb_pumpkins] run=1 time=6:40.664", text)
+        self.assertNotIn("game_output skipped state=running reason=avoid_output_lock", text)
 
     def test_build_suspicious_python_process_lines_reports_orphan_inline_python(self) -> None:
         repo_root = Path("/work/TFWR_Simulator")

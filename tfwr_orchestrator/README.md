@@ -96,6 +96,8 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --target-script lb_start
 5. 等待 `done / failed / superseded`
 6. 请求结束后回读本次新增的 `output.txt` 与 `LogOutput.log`
 
+`--status-only` 在状态机仍是 `running` 时默认跳过游戏 `output.txt`，避免和游戏原生 Logger 的 `Clear` / `WriteLog` 抢文件句柄；需要强制读取时显式加 `--include-game-output`。
+
 ### 资源快照与反编译工具
 
 ```bash

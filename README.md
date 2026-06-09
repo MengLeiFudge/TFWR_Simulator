@@ -176,6 +176,7 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --status-only --target-s
 ```
 
 该命令会同时输出 `process_guard`。如果出现 `suspicious_python > 0`，说明当前仓库或旧仓库路径下有可疑的 `python3 -` 进程，应先用 `ps -p <pid> -o pid,ppid,stat,etime,time,%cpu,cmd` 确认，再决定是否停止。
+当状态机仍是 `running` 时，`--status-only` 默认不读取游戏 `output.txt`，只看状态机和 `BepInEx/LogOutput.log`，避免和游戏原生 Logger 抢文件句柄；确认游戏不在写日志时才加 `--include-game-output`。
 
 ### 3. 区分两路输出
 

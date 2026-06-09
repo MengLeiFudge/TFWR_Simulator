@@ -123,13 +123,21 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--status-only",
         action="store_true",
-        help="只读取 state.json、游戏 output.txt 与 BepInEx 日志尾部；不启动游戏、不写入请求。",
+        help=(
+            "只读取 state.json 与 BepInEx 日志尾部；state=running 时默认跳过游戏 output.txt，"
+            "避免和游戏 Logger 抢文件句柄。"
+        ),
     )
     parser.add_argument(
         "--status-lines",
         type=int,
         default=80,
         help="--status-only 输出每个日志文件的尾部行数，默认 80。",
+    )
+    parser.add_argument(
+        "--include-game-output",
+        action="store_true",
+        help="--status-only 即使 state=running 也读取游戏 output.txt；仅在确认游戏不在写日志时使用。",
     )
     return parser.parse_args(argv)
 
@@ -480,8 +488,10 @@ def terminate_windows_process(pid: int) -> None:
     subprocess.run(command, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def _print_captured_outputs(outputs: CapturedOutputs) -> None:
+def _print_captured_outputs(outputs: CapturedOutputs, *, game_output_skipped: bool = False) -> None:
     print(f"game_output_lines={len(outputs.game_output_lines)}")
+    if game_output_skipped:
+        print("game_output skipped state=running reason=avoid_output_lock")
     for line in outputs.game_output_lines:
         print(f"game_output {line}")
     print(f"mod_output_lines={len(outputs.mod_output_lines)}")
@@ -738,8 +748,11 @@ def print_status_only(args: argparse.Namespace) -> int:
     game_output_path = resolve_output_path(args.save_root, required=False)
     mod_output_path = resolve_bepinex_log_path(args.game_root, required=False)
     max_lines = max(0, int(args.status_lines))
+    should_read_game_output = bool(args.include_game_output) or not (
+        isinstance(state, dict) and state.get("status") == "running"
+    )
     outputs = CapturedOutputs(
-        game_output_lines=read_tail_lines(game_output_path, max_lines),
+        game_output_lines=read_tail_lines(game_output_path, max_lines) if should_read_game_output else (),
         mod_output_lines=read_tail_lines(mod_output_path, max_lines),
     )
 
@@ -763,7 +776,7 @@ def print_status_only(args: argparse.Namespace) -> int:
         print(line)
     for line in build_suspicious_python_process_lines():
         print(line)
-    _print_captured_outputs(outputs)
+    _print_captured_outputs(outputs, game_output_skipped=not should_read_game_output)
     return 0
 
 
