@@ -1,6 +1,6 @@
 from __builtins__ import *
 
-# 7:52.654
+# 7:40.295
 def lb_pumpkins_single():
     count = 10000000
     size = 6
@@ -14,8 +14,13 @@ def lb_pumpkins_single():
 
     quick_print("lb_pumpkins_single", " init_time=", get_time(), " pumpkin=", num_items(Items.Pumpkin))
 
+    first_wave = True
     while num_items(Items.Pumpkin) < count:
-        pending = prepare_wave(size)
+        if first_wave:
+            pending = prepare_wave(size)
+            first_wave = False
+        else:
+            pending = prepare_clean_wave(size)
         wait_wave(pending)
         harvest_wave(size, harvest_count)
         wave_count[0] = wave_count[0] + 1
@@ -58,7 +63,7 @@ def goto(tx, ty):
 
 
 def maybe_water_slot():
-    if get_water() < 0.425 and num_items(Items.Water) >= 3:
+    if get_water() < 0.4375 and num_items(Items.Water) >= 3:
         use_item(Items.Water, 3)
 
 
@@ -132,6 +137,29 @@ def prepare_wave(size):
     return pending
 
 
+def prepare_clean_wave(size):
+    pending = []
+    for row in range(size):
+        if row % 2 == 0:
+            move_dir = East
+        else:
+            move_dir = West
+
+        for i in range(size):
+            x = get_pos_x()
+            y = get_pos_y()
+            plant(Entities.Pumpkin)
+            maybe_water_slot()
+            append(pending, (x, y))
+
+            if i < size - 1:
+                move(move_dir)
+
+        move(North)
+
+    return pending
+
+
 def wait_wave(pending):
     while len(pending) > 0:
         next_pending = []
@@ -163,11 +191,8 @@ def wait_wave(pending):
 
 
 def harvest_wave(size, harvest_count):
-    # 6x6 已合并后任意一格收割都会结算整块；不再浪费一整轮 6x6 扫描。
-    goto(0, 0)
-    if get_entity_type() == Entities.Pumpkin and can_harvest():
-        harvest()
-        harvest_count[0] = harvest_count[0] + 1
+    harvest()
+    harvest_count[0] = harvest_count[0] + 1
 
 
 def maybe_log_progress(
