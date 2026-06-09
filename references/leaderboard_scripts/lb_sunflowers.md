@@ -223,6 +223,11 @@
   - 2026-06-10 `.codex/tests/sunflowers_power_check_interval_screen.py` 进一步筛“每 K 格检查一次 Power”的折中模型，把少查 `num_items()` 的收益和主行延迟退出尾巴放在同一抽象单位里比较。
   - 命令：`timeout 60s python3 .codex/tests/sunflowers_power_check_interval_screen.py`，快速完成。结果只有在 `query_cost=0.20` 且 `harvest_rate=0.05` 的保守性很差假设下，`interval=4` 有 `net=1.000`；`query_cost=0.20 harvest_rate=0.10` 与 `query_cost=0.10 harvest_rate=0.05` 只到 `net=0`，更常见成熟率下默认 `interval=1` 最稳。
   - 结论：不改 `lb_sunflowers.py`，也不再把“去循环头 Power 查询”列为游戏恢复后的第一短跑候选。该方向最多是小幅实现成本压缩，且退出尾巴容易回吐收益；Sunflowers 后续仍要找真正全局最大同步或几乎零路径成本的收割顺序调整。
+- 无通信阶段阈值近似同步筛选
+  - 2026-06-10 `.codex/tests/sunflowers_phase_schedule_screen.py` 筛时间窗 / 行访问次数驱动的无通信阶段阈值，例如 `15 -> 14 -> 13 -> 7`、`15 -> 14 -> 7`、固定 `14/13` 阈值，以及带 `fallback_after` 的短兜底。模型保留当前 32 行 worker 和每行 32 格扫线，且偏向阈值路线：跳过的成熟株会保留、同步免费、没有额外 `measure()` / 记录成本。
+  - 原始 `TARGET_POWER=100000 RUNS=180` 和缩小到 `RUNS=60` 都超过 `timeout 60s` 且无输出，已按项目约束改为 `TARGET_POWER=10000 RUNS=50 VISITS_PER_RUN_CAP=16000` 后重跑；命令 `timeout 60s python3 .codex/tests/sunflowers_phase_schedule_screen.py` 约 `6.1s` 完成，`python3 -m py_compile .codex/tests/sunflowers_phase_schedule_screen.py` 通过。
+  - 结果：成熟概率 `0.50` / `0.65` 下，所有阶段阈值都慢于盲收，最佳分别只有 `0.8745x` / `0.9403x`。只有在成熟概率 `0.80` 的高成熟乐观档，`phase_15_14_13` 到 `1.0919x`，但 `harvest_rate=0.0894`、`skip/h=7.99`，等价于每次收获前平均跳过约 `8` 株成熟株。
+  - 结论：不改 `lb_sunflowers.py`，不实机无通信阶段阈值近似同步。它只有在偏乐观高成熟率、免费跳过、免费同步下才有约 `9%` 纸面收益，远低于进入 `1.2x` 所需空间；且高 `skip/h` 与 request `703` 行内阈值、request `709` 单行本地最大失败同类。
 - “已有低点数会让新种高点数概率变高”的思路
   - 这条线也是错误口径
   - 因为新种花瓣数是独立随机的 `7..15`
@@ -247,6 +252,7 @@
 - `.codex/tests/sunflowers_active_columns_screen.py` 证明减少活跃列 / 小活跃场不会带来结构收益；32 株以上当前最大仍几乎总是 `15`，x8 raw-correct 概率接近 `1/9`，而更小活跃场的吞吐损失会远超倍率收益。
 - `.codex/tests/sunflowers_short_horizon_high_first_screen.py` 证明本行短窗口 high-first 只有在 `90%+` 目标成熟率和极低分支成本下才有上界空间；request `710` 的真实相邻命中率约 `85%` 且明显慢于盲收，因此不进入实机。
 - `.codex/tests/sunflowers_power_check_interval_screen.py` 证明周期性削减 Power 查询没有足够理论 margin；不再把“去循环头 Power 查询、保留 harvest 后查询”作为恢复后优先短跑候选。
+- `.codex/tests/sunflowers_phase_schedule_screen.py` 证明无通信时间窗 / 阶段阈值近似同步只有在高成熟率乐观档才有约 `9%` 纸面收益，并且平均每次收获前跳过约 `8` 株成熟株；不进入实机。
 - 下一步若继续优化，应优先找“不依赖 send/receive 的近似同步”：
   - 降低错误 harvest 的同时，不引入 `main3` 那种全阶段扫描成本
   - 用少量花瓣测量 / 局部最大值估计，判断是否能把 `8:24.480` 拉近 #1
