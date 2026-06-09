@@ -8,30 +8,10 @@ def lb_wood():
             break
         move(East)
     quick_print("lb_wood done wood=", num_items(Items.Wood), " time=", get_time())
-    quick_print(
-        "wood_dynamic_stats static_bush=", WOOD_STATIC_BUSH,
-        " grass_request=", WOOD_GRASS_REQUEST,
-        " grass_rewrite=", WOOD_GRASS_REWRITE,
-        " carrot_request=", WOOD_CARROT_REQUEST,
-        " carrot_rewrite=", WOOD_CARROT_REWRITE,
-        " carrot_skip=", WOOD_CARROT_SKIP,
-        " force_unready_bush=", WOOD_CARROT_FORCE_UNREADY_BUSH,
-        " bush_ground_fix=", WOOD_BUSH_GROUND_FIX,
-        " reroll=", WOOD_REROLL,
-    )
 
 
 GOAL_WOOD = 10000000000
 WOOD_GOAL_CHECK_INTERVAL = 8
-WOOD_STATIC_BUSH = 0
-WOOD_GRASS_REQUEST = 0
-WOOD_GRASS_REWRITE = 0
-WOOD_CARROT_REQUEST = 0
-WOOD_CARROT_REWRITE = 0
-WOOD_CARROT_SKIP = 0
-WOOD_CARROT_FORCE_UNREADY_BUSH = 0
-WOOD_BUSH_GROUND_FIX = 0
-WOOD_REROLL = 0
 
 
 def wood_worker():
@@ -53,13 +33,6 @@ def wood_worker():
 
 
 def handle_tree_slot():
-    global WOOD_STATIC_BUSH
-    global WOOD_GRASS_REQUEST
-    global WOOD_GRASS_REWRITE
-    global WOOD_CARROT_REQUEST
-    global WOOD_CARROT_REWRITE
-    global WOOD_CARROT_SKIP
-    global WOOD_REROLL
     if can_harvest():
         companion = get_companion()
         if companion != None:
@@ -67,26 +40,19 @@ def handle_tree_slot():
             companion_pos = companion[1]
             if is_bush_slot(companion_pos):
                 if companion_entity == Entities.Bush:
-                    WOOD_STATIC_BUSH += 1
                     harvest()
                     plant(Entities.Tree)
                     return
                 if companion_entity == Entities.Grass:
-                    WOOD_GRASS_REQUEST += 1
                     if rewrite_grass_support(companion_pos):
-                        WOOD_GRASS_REWRITE += 1
                         harvest()
                         plant(Entities.Tree)
                         return
                 if companion_entity == Entities.Carrot:
-                    WOOD_CARROT_REQUEST += 1
                     if rewrite_carrot_support(companion_pos):
-                        WOOD_CARROT_REWRITE += 1
                         harvest()
                         plant(Entities.Tree)
                         return
-                    WOOD_CARROT_SKIP += 1
-        WOOD_REROLL += 1
         harvest()
     plant(Entities.Tree)
 
@@ -111,7 +77,6 @@ def rewrite_grass_support(pos):
 
 
 def rewrite_carrot_support(pos):
-    global WOOD_CARROT_FORCE_UNREADY_BUSH
     tx = pos[0]
     ty = pos[1]
     ox = get_pos_x()
@@ -123,7 +88,6 @@ def rewrite_carrot_support(pos):
             already_harvested = False
             if not can_harvest():
                 if entity == Entities.Bush:
-                    WOOD_CARROT_FORCE_UNREADY_BUSH += 1
                     harvest()
                     already_harvested = True
                 else:
@@ -178,9 +142,7 @@ def can_pay_carrot_cost():
 
 
 def restore_bush_ground():
-    global WOOD_BUSH_GROUND_FIX
     if get_ground_type() != Grounds.Grassland:
-        WOOD_BUSH_GROUND_FIX += 1
         till()
 
 

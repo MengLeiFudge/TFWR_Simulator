@@ -303,6 +303,11 @@
   - 代码候选：`lb_wood.py` 新增 `WOOD_GOAL_CHECK_INTERVAL = 8`，`wood_worker()` 改为本地 countdown，每 `8` 格检查一次 `GOAL_WOOD`；Tree/Bush/support 路线完全不变。
   - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_wood.py .codex/tests/wood_goal_check_interval_screen.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
   - 风险：该候选最多延迟 `7` 格退出，若尾部 overshoot 或 support churn 超出查询节省，实机会退化。游戏恢复后必须短跑 `lb_wood`；若无稳定刷新则回退。
+- 2026-06-10 Wood dynamic_stats 统计计数删除候选：
+  - 代码候选：删除只服务最终 `wood_dynamic_stats` 输出的 `WOOD_STATIC_BUSH / WOOD_GRASS_REQUEST / WOOD_GRASS_REWRITE / WOOD_CARROT_REQUEST / WOOD_CARROT_REWRITE / WOOD_CARROT_SKIP / WOOD_CARROT_FORCE_UNREADY_BUSH / WOOD_BUSH_GROUND_FIX / WOOD_REROLL` 计数和输出。
+  - 这不改变 Tree/Bush 棋盘、Grass/Carrot support 改写、未成熟 Bush 强制改 Carrot、补水、施肥或目标检查；只移除热路径里的全局计数递增。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_wood.py` 通过；`rg` 确认脚本内无 `wood_dynamic_stats` 和上述统计字段残留，`WOOD_GOAL_CHECK_INTERVAL` 保留为目标检查候选常量。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
+  - 风险：删除后无法从正式输出直接看 `reroll / carrot_skip / force_unready_bush` 等分项；如果实机退化或继续分析动态 support，需要临时恢复统计探针。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
