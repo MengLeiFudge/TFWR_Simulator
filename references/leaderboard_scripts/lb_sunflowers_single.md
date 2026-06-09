@@ -144,6 +144,11 @@
   - 第一次 `RUNS=300 VISITS=20000` 超过 `timeout 60s` 且无输出，已按项目约束缩到 `RUNS=80 VISITS=5000` 后重跑；命令：`timeout 60s python3 .codex/tests/sunflowers_single_skip_policy_screen.py`，约 `8.7s` 完成。
   - 结果：在成熟率 `0.25/0.50/0.75` 三档里，`blind` 的 `power_per_visit` 分别为 `3.0867/6.1616/9.2435`；所有 skip 策略都明显低于盲收。即使 `max_only` 有 `100%` boost，也只达到盲收的 `0.471/0.375/0.331`；`max_minus_3` 只剩 `0.193/0.172/0.162`。
   - 结论：不改 `lb_sunflowers_single.py`，不进入实机。该模型已经偏向 skip 策略，因为跳过的成熟株会保留到后续访问；真实脚本还会额外支付分支、记录和等待成本。因此单机向日葵后续不要再重开“成熟低花瓣先跳过 / max-k / 错收后等最大清标记”路线，除非能做到几乎不减少成熟收割次数。
+- ping-pong 无回绕 sweep 筛选
+  - 2026-06-09 `.codex/tests/sunflowers_single_pingpong_sweep_screen.py` 检查 6x6 蛇形是否能省掉每轮末尾 `move(North)` 回绕：候选改为上扫后原地反向下扫，少一次 wrap move，但会让端点格连续检查两次，再隔接近两轮才重新访问。
+  - 命令：`timeout 60s python3 .codex/tests/sunflowers_single_pingpong_sweep_screen.py`，约 `1.3s` 完成；`python3 -m py_compile .codex/tests/sunflowers_single_pingpong_sweep_screen.py` 通过。
+  - 结果：在 `growth=12..36` 且 `check_cost=0..1` 的常见区间，ping-pong harvest rate 只有 cyclic wrap 的 `0.5147x..0.9296x`；只有 `growth=42/54/72` 且 `check_cost` 极低或刚好 alias 时出现约 `1.02x` 的窄幅纸面胜出，但 wasted checks 接近翻倍，`max_gap` 从 cyclic 的 `36/45/54/72` 拉长到 `70/87/105/141`。
+  - 结论：不改 `lb_sunflowers_single.py`，不实机 ping-pong sweep。少一次回绕移动不足以抵消端点重复检查和成熟访问间隔变长；后续不要再只围绕边界回绕 / 反向扫图做单机向日葵候选。
 
 ## 下一步优化方向
 
@@ -156,8 +161,8 @@
 - 已验证相邻最高花瓣 next-first 会稳定退到 `11:40` 量级；不要继续做前后格局部换序。
 - `.codex/tests/sunflowers_single_skip_policy_screen.py` 证明 max-k、max-only、错收后清标记等 skip 策略在乐观模型里也远低于盲收；后续不再重开成熟低花瓣跳过路线。
 - 2026-06-10 已把 Power 查询改为由外层 `current_power` 复用、并在 `harvest()` 后刷新；确认前不更新成绩注释。
+- `.codex/tests/sunflowers_single_pingpong_sweep_screen.py` 证明 ping-pong 反向扫图会显著拉长端点访问间隔；后续不要把“少一次 wrap move”作为单独方向。
 - 可继续补探针确认：
-  - 是否能减少 6x6 蛇形扫图的边界回绕成本
   - 是否只在前 1~2 轮使用花瓣筛选，之后切回盲收
   - 是否能减少 `get_water()` 调用而不显著降低成熟速度
 - 当前不需要像多机那样先解决通信问题
