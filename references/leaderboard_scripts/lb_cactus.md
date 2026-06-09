@@ -176,6 +176,12 @@
   - `current_window3` 平均 `moves=192.113`、`swaps=222.5045`、`measures=524.4095`
   - `pair_cocktail` 平均 `moves=360.3615`、`swaps=222.5045`、`measures=666.667`
   - 结论：当前 window3 鸡尾酒排序不应退回普通相邻 pair cocktail；普通 pair 交换数相同，但移动和测量更多
+- 2026-06-09 `.codex/tests/cactus_2d_presort_screen.py` 离线筛选：
+  - 基线 `rows_then_cols`：`total_moves=11157.672`、`total_swaps=11735.585`、`total_measures=30181.188`、`failed=0`
+  - 排序后单独跑一遍纵向相邻预交换：`total_moves=11734.243`、`total_swaps=11735.585`、`total_measures=30983.342`、`failed=0`
+  - 保持行有序的 safe 纵向预交换：`total_moves=12104.103`、`total_swaps=11735.585`、`total_measures=36088.731`、`failed=0`
+  - 行排序移动路径内直接顺手比较 South：`total_moves=8644.152`、`total_swaps=9123.154`、`total_measures=29420.043`，但 `failed=1000/1000`
+  - 结论：纵向预排序没有形成可实机候选；单独 pass 只是把列排序的一部分 swap 提前做，额外移动 / 测量吃回收益；行内顺手 South 会破坏最终有序性，不进入真实游戏验证
 - 优化目标应明确写成：
   - 不是提高“长期平均产量”
   - 而是尽快完成第一次满盘合法收割
@@ -191,6 +197,7 @@
 - 优先探针：
   - 行排序阶段里，额外加入纵向判断后能减少多少后续列交换
   - 融合后总移动步数和总 `swap()` 次数是否下降
+- 当前状态：2026-06-09 离线筛选已排除“排序后单独纵向 pass”和“行排序路径内直接 South 比较”；后续只有能证明不破坏最终合法性、且不额外扫完整行的融合结构才重开。
 
 ### 方向 2：种植阶段顺手交换，尽量少留后账给排序阶段
 
