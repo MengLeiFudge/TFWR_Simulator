@@ -207,6 +207,11 @@
   - 聚合：30 个 solver 共 `374` 次处理，`owned=290`、`fallback=84`，fallback 占 `22.5%`；14 个 solver 完全没有 fallback，9 个 solver fallback `>=5`，1 个 solver 只有 fallback 没有 owned 命中。
   - 路径：总路径均长 `7.95`，owned 均长 `7.86`，fallback 均长 `8.26`，最大路径 `14`，Treasure 移动前变化次数 `0`。
   - 结论：fallback 并不主要慢在“距离更远”，而是少数 chunk / owner 分配与实际 Treasure 时序错位；下一步应研究 chunk 生成顺序、owned_set 覆盖和开局中心分布，不再做全局等待或距离函数微调。
+- arrival-weighted owner 重分配
+  - 2026-06-09 请求 `707` 验证。
+  - 改法：保持 center、radius、`owner_wait=0.2` 和每个 solver 的可通行 `node_set` 不变；先收集所有 chunk，再把重叠区域节点的 owner 改为 `approach_len + node_dist` 最小的 solver，试图让预计更早到位的 solver 负责重叠 Treasure。
+  - 结果：两轮 `2:06.874` / `2:03.867`，稳定均值 `2:05.371`，明显慢于当前默认 `1:43.336`；第一轮 `explore_done time=9.39`、`chunks=31`、`solve_done time=126.6 solve_time=100.2`。
+  - 结论：静态按到位成本重算 owner 会把重叠区所有权推向更靠近 root 的 solver，导致远端 center 的有效 owned 命中不足，整体 solve_time 退化；代码已回退并重新同步正式版到 `gamesave/`。后续不要继续做 `approach + dist` 这类静态 owner score，除非同时改变 solver 开局位置或引入真正动态 dispatcher。
 
 ## 下一步优化方向
 
@@ -224,6 +229,7 @@
   - 请求 `625` 显示每轮约 `362` 次 Treasure 处理才达到 `301` 次理论需求；请求 `626` 的初始唯一负责区已经退化，说明减少重复 `use_item` 不能以牺牲并发抢宝为代价。
   - 请求 `627` 证明短等待 fallback 有正收益；请求 `628/629` 显示 `owner_wait=0.2` 暂时优于 `0.1 / 0.3`，请求 `636/699/700` 证明固定距离阈值和路径长度等待都会退化。下一步不要继续做粗粒度等待参数或固定距离微调，应转向动态最近可达判定、dispatcher 或 solver 开局调度。
   - 请求 `702` 显示 fallback 只占约 `22.5%`，且 fallback 路径并不明显长于 owned 路径；如果不能使用通信 API，优先做离线 / 探针驱动的 chunk owner 重分配，而不是让所有 solver 更积极抢非 owner Treasure。
+  - 请求 `707` 证明仅按 `approach_len + node_dist` 做静态 owner 重分配会明显变慢；owner 重分配不能只看理论到位成本，必须保住远端 center 的 owned 命中和并发度。
 - 改进进度判断：
   - 首轮未完成时看 `gold` 增速和 `progress_estimate`。
   - 第一轮完成后只用真实完成轮时间判断。
