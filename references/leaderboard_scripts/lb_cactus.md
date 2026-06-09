@@ -218,6 +218,11 @@
   - 模型口径：不再把每株 cactus 搬到精确全局 rank 目标格，而是先只搬到对应值的目标 row band，再乐观地把 band 内后处理视作并行行内排序；该模型仍忽略相邻 swap 路由冲突、临时存储、worker 任务切换和行列交互，因此偏向 bucket-band。
   - 结果：当前 rows-then-cols 代理 `current_proxy avg=2028.1`；bucket-band 串行上界 `avg=10881.8`，为当前 `5.366x`；幻想 `32` 路完美 staging 下界 `avg=1618.8`，为当前 `0.798x`；其中 band 内并行排序本身 `avg=1112.1`，已经占当前 `0.548x`。
   - 结论：不改 `lb_cactus.py`，不实机 bucket-band / 条带内排序。该路线只有在不可实机的 32 路完美 staging 下界里才有纸面收益；一旦需要真实搬运到目标 band，成本仍远高于当前 rows-then-cols。Cactus 后续不要再试“先粗分值带、再带内排序”的 bucket 变体，除非先给出具体低冲突 staging 路由。
+- 2026-06-10 `.codex/tests/cactus_cached_line_sort_screen.py` 离线筛选：
+  - 命令：`timeout 60s python3 .codex/tests/cactus_cached_line_sort_screen.py`，约 `23s` 完成；`python3 -m py_compile .codex/tests/cactus_cached_line_sort_screen.py` 通过。
+  - 模型口径：利用 cactus 只有 `0..9` 的小取值，先测整条线并把值缓存到脚本侧，再按当前 window3 相邻交换序列用缓存值判断，目标是减少排序阶段重复 `measure()`；同时对照“选择插入式计划相邻交换”。
+  - 结果：当前 `current_window3 avg_ticks=182132.0`；缓存 window3 且不计任何额外读线移动的幻想下界为 `181048.6`，仅为当前 `0.9941x`；计入列阶段预读移动后为 `187248.6`，退到当前 `1.0281x`；选择插入式计划排序为 `312883.8`，退到当前 `1.7179x`。
+  - 结论：不改 `lb_cactus.py`，不实机“缓存整条线值再排序”。当前排序的主成本仍是相邻 swap 和必要移动，重复 `measure()` 的可省空间不足；一旦为了缓存整列多扫一遍，收益会被移动成本反吃。
 - 优化目标应明确写成：
   - 不是提高“长期平均产量”
   - 而是尽快完成第一次满盘合法收割
@@ -264,3 +269,9 @@
   - 先只对 1 行用 16 台无人机做一轮奇偶 pair compare，确认 `swap()` 并发是否稳定
   - 再比较“少数行高并行排序 + 分批处理所有行”是否能抵消无人机重定位成本
 - 当前状态：2026-06-09 `cactus_pair_worker_screen.py` 已筛掉普通 pair-worker 排序网络；计入每个 phase/subbatch 的移动后所有并行度都慢于当前。不进实机。
+
+### 方向 5：缓存整条线的 cactus 值后计划排序
+
+- 核心思路：cactus variant 只有 `0..9`，看似可以先测完整行 / 列，把值存在脚本列表里，再用缓存比较执行相邻交换，减少 window3 排序里的重复 `measure()`。
+- 主瓶颈：相邻排序的必要 swap 数不会因为缓存值而下降，缓存只可能减少测量；而列阶段要先读完整列，会额外移动。
+- 当前状态：2026-06-10 `cactus_cached_line_sort_screen.py` 已筛掉。即使幻想读线移动免费，缓存 window3 也只有 `0.9941x` 纸面收益；计入列预读移动后退到 `1.0281x`，选择插入式计划相邻交换退到 `1.7179x`。后续不要按“缓存 line values / planned adjacent sort”推进，除非同时减少相邻 swap 数或消除额外读线移动。
