@@ -243,6 +243,11 @@
   - 改法：完整探图后用两次 BFS 估算当前迷宫图的直径中心，主机只沿完整图路径移动一次到该 `solver_root`，再从这个 root 生成所有 solver；owner/fallback、`radius=14` 和 chunk 逻辑不变，目标是减少所有 solver 的平均开局迁移。
   - 结果：首轮 `1:58.275`，慢于当前默认 `1:43.336`；同轮 `explore_done time=8.95`、`solver_root=(13,17) time=27.58`、`chunks=30 nodes=1024`、`solve_done time=117.9 solve_time=87.27`。第二轮主动停止，`finished=false runs=2 average=1:31.843` 是取消摘要，不作为成绩。
   - 结论：虽然完整探图节点数保持 `1024`，但 BFS 估中心和主机移动到新 root 会把 solver 启动推迟约 `18s`，没有换回足够的 solve_time 收益。代码已回退并重新同步正式版到 `gamesave/`。后续不要做单一 solver root 重选，除非 root 选择能零额外移动或在探图阶段自然落位。
+- 静态 chunk 形状筛选
+  - 2026-06-09 `.codex/tests/maze_chunk_static_screen.py` 用开放 `32x32` BFS 树代理比较 `shift/radius/order` 的 chunks、approach、owned_min、overlap 和 fallback exposure，只用于筛掉静态几何方向，不作为真实 Treasure 时序模型。
+  - `timeout 60s python3 .codex/tests/maze_chunk_static_screen.py` 约 `5.4s` 完成。
+  - 结果：root-order 候选纸面分数更好，但 request `721` 已证明 root-first 会卡到 `gold=0`；小半径 leaf 候选如 `shift=9 radius=10` 纸面 chunks 合格，但与已失败的 `radius=12` 低金币卡死同向；`shift>radius` 的近当前候选虽然可把 proxy chunks 拉到 `30`，但触发节点不保证在 solver area 内，结构风险高。
+  - 结论：静态 chunk 形状本身不足以进实机。后续若继续 Maze，只剩真正动态 dispatcher / 可抢占负责权 / 不推迟首金的自然落位 solver 调度；不要继续做 root-first、半径微调、静态 owner score 或固定前缀开局搬运。
 
 ## 下一步优化方向
 
