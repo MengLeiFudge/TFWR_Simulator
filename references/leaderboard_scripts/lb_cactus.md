@@ -198,6 +198,11 @@
   - 模型口径：利用 cactus variant 只有 `0..9`，把全盘值搬到 row-major 有序目标带；只算每个 cactus 到同值目标格的最短曼哈顿搬运距离，忽略规划、冲突、换位、worker 重定位和真实相邻 swap 路由，因此是非常乐观的移动下界。
   - 结果：当前 rows-then-cols 墙钟代理 `current_wall_ticks_avg=181886.2`；桶构盘串行下界 `bucket_ticks_serial_lower_avg=1191213.5`，为当前 `6.549x`；但如果幻想 `32` 路完美并行且无阻塞，`bucket_ticks_32way_fantasy_floor_avg=38217.4`，为当前 `0.210x`。
   - 结论：桶 / 分带构盘是一个真正不同于“行后列排序”的结构方向，理论并行下界很强；但当前还没有可运行方案能接近这个幻想下界。后续 Cactus 若重开，优先找“32 台无人机如何无阻塞地把 0..9 搬到目标带”的局部路由 / staging 模型；不要直接把全局 bucket sort 写进 `lb_cactus.py` 实机。
+- 2026-06-09 `.codex/tests/cactus_bucket_staging_load_screen.py` 离线筛选：
+  - 命令：`timeout 60s python3 .codex/tests/cactus_bucket_staging_load_screen.py`，约 30 秒内完成。
+  - 模型口径：沿用 bucket 目标带匹配，把搬运任务按不同 ownership 分给 32 个 worker；输出相邻 swap 负载下界，并额外把每个 swap 的 worker move 成本也计入 `move_swap_ticks`。该模型仍不模拟具体路径、阻塞、路由冲突和 worker 在任务间的真实移动。
+  - 结果：当前 rows-then-cols 墙钟代理 `181886.2`；`source_col_owner` 的 `move_swap_ticks=94565.5`，约当前 `0.520x`；`target_col_owner` 为 `97912.5`，约当前 `0.538x`；`target_row_owner` 为 `155515.5`，约当前 `0.855x`；`source_row_owner` 为 `170965.5`，约当前 `0.940x`。
+  - 结论：简单 row ownership 空间不大，但 column ownership / value-team ownership 在计入 move+swap 下界后仍有足够纸面空间。Cactus bucket 方向暂时保留；下一步只做 column-owner 或 value-team 的具体路由 / 冲突模型，不能直接改 `lb_cactus.py` 实机。
 - 优化目标应明确写成：
   - 不是提高“长期平均产量”
   - 而是尽快完成第一次满盘合法收割
