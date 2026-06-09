@@ -12,6 +12,18 @@ def lb_wood():
 
 GOAL_WOOD = 10000000000
 WOOD_GOAL_CHECK_INTERVAL = 8
+CARROT_COST = get_cost(Entities.Carrot)
+CARROT_COST_ITEMS = (
+    Items.Hay,
+    Items.Wood,
+    Items.Carrot,
+    Items.Pumpkin,
+    Items.Power,
+    Items.Cactus,
+    Items.Gold,
+    Items.Bone,
+    Items.Weird_Substance,
+)
 
 
 def wood_worker():
@@ -121,21 +133,10 @@ def handle_bush_slot():
 
 
 def can_pay_carrot_cost():
-    cost = get_cost(Entities.Carrot)
+    cost = CARROT_COST
     if cost == None:
         return True
-    items = [
-        Items.Hay,
-        Items.Wood,
-        Items.Carrot,
-        Items.Pumpkin,
-        Items.Power,
-        Items.Cactus,
-        Items.Gold,
-        Items.Bone,
-        Items.Weird_Substance,
-    ]
-    for item in items:
+    for item in CARROT_COST_ITEMS:
         if item in cost and num_items(item) < cost[item]:
             return False
     return True

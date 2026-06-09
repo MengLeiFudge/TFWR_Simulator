@@ -308,6 +308,10 @@
   - 这不改变 Tree/Bush 棋盘、Grass/Carrot support 改写、未成熟 Bush 强制改 Carrot、补水、施肥或目标检查；只移除热路径里的全局计数递增。
   - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_wood.py` 通过；`rg` 确认脚本内无 `wood_dynamic_stats` 和上述统计字段残留，`WOOD_GOAL_CHECK_INTERVAL` 保留为目标检查候选常量。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
   - 风险：删除后无法从正式输出直接看 `reroll / carrot_skip / force_unready_bush` 等分项；如果实机退化或继续分析动态 support，需要临时恢复统计探针。
+- 2026-06-10 Carrot support 种植成本缓存候选：
+  - `can_pay_carrot_cost()` 原先每次检查都调用 `get_cost(Entities.Carrot)` 并重新构造全物品列表；`gamesave/__builtins__.py` 说明 `get_cost()` 调用耗 `1 tick`，而当前 wood 榜运行中不会升级或改变 Carrot 种植成本。
+  - 代码已把 `CARROT_COST` 与 `CARROT_COST_ITEMS` 缓存在模块级常量，只减少 `rewrite_carrot_support()` 热路径里的成本查询和列表构造；不改变 Tree/Bush 棋盘、Grass/Carrot support 改写、未成熟 Bush 强制改 Carrot、补水、施肥、目标检查间隔或退出 guard。
+  - 真实游戏当前仍为 `game_tick=0` timeout，暂未能跑完成轮；文件头成绩不更新。游戏恢复后与目标检查间隔 / 统计删除候选一起短跑，若无稳定刷新则回退。
 - 当前仓库没有更多 multi wood 的成体系失败路线
 - 但从 `wood_single` 可以推断：如果动态 support 改写过重，冲突很容易吞掉收益
 - “只把灌木当陪衬、不把它当木头来源”的理解
@@ -334,6 +338,7 @@
   - Bush 位未成熟 Grass / Carrot 动态 support 提前清理 request `677` 已证伪；未成熟 support 仍有后续伴生承接价值，不能只按 Bush 产木直觉清掉
   - 已知动态 support 按需改回 Bush request `684` 覆盖太低且慢于当前；本地短记忆不能解决主瓶颈
   - 2026-06-10 已把 Wood 目标检查改为每 worker 每 `8` 格检查一次；这是管理成本候选，不改变 support 结构，确认前不更新成绩注释
+  - 2026-06-10 已缓存 Carrot support 种植成本和 cost item 列表；这是管理成本候选，不改变 support 结构，确认前不更新成绩注释
   - 是否存在比同无人机往返更低成本的动态接力结构
 - 已验证“在 `main3` 低移动框架里只加 `get_companion()` + Bush 奇偶格筛选”没有刷新；Grass-only 动态 support 说明同框架内只有在能实际改写并兑现非 Bush support 时才有足够收益。
 - 已验证“冻结 Bush 当纯 support”的方向风险很高：Bush 本身贡献大量 Wood，必须先设计能保住 Bush 产木、同时提高 Tree companion 命中率的结构。
