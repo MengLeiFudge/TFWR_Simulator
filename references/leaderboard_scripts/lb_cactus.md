@@ -187,6 +187,12 @@
   - 行列交替单向 window3 relax：`moves=25518.72`、`swaps=11075.037`、`measures=76556.16`、`score=113149.917`、平均 `13.291` 轮、`failed=0`
   - 行列交替 cocktail window3 relax：`moves=16273.92`、`swaps=10752.452`、`measures=48821.76`、`score=75848.132`、平均 `4.238` 轮、`failed=0`
   - 结论：行列交替 relax 能生成合法盘面，但动作总量明显高于当前先行后列；它只是把完整列排序拆成多轮同步松弛，减少少量 swap 的同时显著增加移动和测量，不进入真实游戏验证
+- 2026-06-09 `.codex/tests/cactus_pair_worker_screen.py` 离线筛选：
+  - 命令：`timeout 60s python3 .codex/tests/cactus_pair_worker_screen.py`，约 60 秒内完成。
+  - 模型口径：当前路线按“32 行并行排序 + 32 列并行排序”的墙钟下界计；pair-worker 按 32 台无人机集中到 `1/2/4/8/16/32` 条线，比较不计 phase 移动的极乐观下界和每个 phase/subbatch 至少 1 次移动的较现实下界。
+  - 结果：当前 `wall_ticks=181760.5`；不计 phase 移动时 `lines_parallel=8/16/32` 分别是当前 `0.798x/0.665x/0.55x`，但这是不可实机的 lower bound。
+  - 计入 phase 移动后，`lines_parallel=1/2/4/8/16/32` 分别是当前 `3.734x/1.978x/1.963x/1.876x/1.759x/1.62x`，全部慢于当前。
+  - 结论：真正 pair-worker 排序网络暂不进入真实游戏；它只有在忽略 worker 每轮换位 / parity 切换 / subbatch 重定位成本时才有纸面优势，而这些成本在真实脚本里不可忽略。后续不要按“把更多无人机集中到少数行做奇偶 pair compare”推进，除非能证明 pair workers 几乎不移动且不用牺牲 32 行 / 32 列并行度。
 - 优化目标应明确写成：
   - 不是提高“长期平均产量”
   - 而是尽快完成第一次满盘合法收割
@@ -232,3 +238,4 @@
 - 优先探针：
   - 先只对 1 行用 16 台无人机做一轮奇偶 pair compare，确认 `swap()` 并发是否稳定
   - 再比较“少数行高并行排序 + 分批处理所有行”是否能抵消无人机重定位成本
+- 当前状态：2026-06-09 `cactus_pair_worker_screen.py` 已筛掉普通 pair-worker 排序网络；计入每个 phase/subbatch 的移动后所有并行度都慢于当前。不进实机。
