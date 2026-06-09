@@ -38,7 +38,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Cactus, "lb_cactus", 10000)
 # 成功条件：num_items(Items.Cactus) >= 33_554_432
-# 用时（#1/当前版本复跑）：0:18.962 / 0:37.031
+# 用时（#1/当前版本复跑）：0:18.962 / 0:36.309
 
 # leaderboard_run(Leaderboards.Cactus_Single, "lb_cactus_single", 10000)
 # 成功条件：num_items(Items.Cactus) >= 131_072

@@ -1,6 +1,6 @@
 from __builtins__ import *
 
-# 0:37.265
+# 0:36.309
 def lb_cactus():
     goto(0, size - 1)
     while num_items(Items.Cactus) < 33554432:
