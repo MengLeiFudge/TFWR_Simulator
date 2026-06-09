@@ -228,6 +228,11 @@
   - 改法：不再额外生成 launcher drone；先收集所有 chunk，按 root 到 solver center 的前 `6` 步路径分组，由主无人机依次走到每个前缀锚点，直接在锚点批量 `spawn_drone()` 对应 solver，再返回 root 处理下一组，试图避免 request `718` 的 launcher 占用无人机槽问题。
   - 结果：首轮 `2:06.868`，明显慢于当前默认 `1:43.336`；同轮 `explore_done time=8.64`、`chunks=31`、`spawn_groups=2`、`solve_done time=126.85 solve_time=89.9`。第二轮中途停止，`finished=false runs=2 average=2:00.452` 是取消摘要，不作为成绩。
   - 结论：即使不占用额外 launcher drone，主无人机串行走前缀锚点仍会推迟 solver 启动和首金；前缀共享节省的路程吃不回批量调度延迟。代码已回退并重新同步正式版到 `gamesave/`。后续不要按“主机巡回锚点批量 spawn”继续做开局调度。
+- root-first chunk 生成顺序
+  - 2026-06-09 请求 `721` 验证。
+  - 改法：只把 `maze_chunking()` 的 chunk 遍历从叶子到根改为从 root 向外，保持 `radius=14`、`owner_wait=0.2`、owner/fallback 和 solver 逻辑不变，试图让中心区域先启动并降低首金延迟。
+  - 结果：`explore_done time=9.7` 后一直没有正向金币增长；到停止前 `game_time≈167.846` 仍 `gold=0`，最终 `finished=false runs=1 average=2:48.557` 是取消摘要，不作为成绩。
+  - 结论：root-first 会让先覆盖的中心 owned/area 分布破坏外圈 solver 的有效追宝，直接卡在无金币进展；代码已回退并重新同步正式版到 `gamesave/`。后续不要把 chunk 顺序简单改成 root-first。
 
 ## 下一步优化方向
 
@@ -249,6 +254,7 @@
   - 请求 `708` 证明共享 `claimed_treasures` 的简单全局去重也会变慢；减少重复竞争不能靠无条件加锁，否则会把并发抢宝收益换成空等。
   - 请求 `718` 证明固定前缀 launcher 分组会明显变慢；减少重复 root 前缀迁移不能以额外 launcher 调度和 spawn 占位为代价。
   - 请求 `720` 证明主无人机巡回前缀锚点批量 spawn 也会明显变慢；即使不占额外 drone slot，串行前缀调度仍会推迟首金。
+  - 请求 `721` 证明 root-first chunk 生成会卡在无金币进展；当前叶子到根覆盖顺序不能简单反转。
 - 改进进度判断：
   - 首轮未完成时看 `gold` 增速和 `progress_estimate`。
   - 第一轮完成后只用真实完成轮时间判断。
