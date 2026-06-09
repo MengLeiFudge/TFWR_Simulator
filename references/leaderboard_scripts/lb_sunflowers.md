@@ -228,6 +228,12 @@
   - 原始 `TARGET_POWER=100000 RUNS=180` 和缩小到 `RUNS=60` 都超过 `timeout 60s` 且无输出，已按项目约束改为 `TARGET_POWER=10000 RUNS=50 VISITS_PER_RUN_CAP=16000` 后重跑；命令 `timeout 60s python3 .codex/tests/sunflowers_phase_schedule_screen.py` 约 `6.1s` 完成，`python3 -m py_compile .codex/tests/sunflowers_phase_schedule_screen.py` 通过。
   - 结果：成熟概率 `0.50` / `0.65` 下，所有阶段阈值都慢于盲收，最佳分别只有 `0.8745x` / `0.9403x`。只有在成熟概率 `0.80` 的高成熟乐观档，`phase_15_14_13` 到 `1.0919x`，但 `harvest_rate=0.0894`、`skip/h=7.99`，等价于每次收获前平均跳过约 `8` 株成熟株。
   - 结论：不改 `lb_sunflowers.py`，不实机无通信阶段阈值近似同步。它只有在偏乐观高成熟率、免费跳过、免费同步下才有约 `9%` 纸面收益，远低于进入 `1.2x` 所需空间；且高 `skip/h` 与 request `703` 行内阈值、request `709` 单行本地最大失败同类。
+- 本地花瓣 / RNG 预测上界筛选
+  - 反编译 `Sunflower#OnRestart()` 显示每株新向日葵来自 `sim.randomSunflower.Next(7, 16)`；`Simulation` 构造时 `randomSunflower` 由内部 `random` 派生，leaderboard 下一轮 seed 又由多个内部 RNG 汇总派生，当前脚本 API 没有暴露 seed 或 `randomSunflower` 状态。
+  - 即使先忽略 seed 不可见问题，`.codex/tests/sunflowers_local_threshold_upper_bound.py` 也给了一个更强的乐观上界：假设每个 row worker 免费知道当前成熟株花瓣值、免费跳过、不付 `measure()` / 成熟等待 / 记录成本，并且 `32x32` 全场最大按几乎总是 `15` 处理。
+  - 命令：`python3 -m py_compile .codex/tests/sunflowers_local_threshold_upper_bound.py` 通过；`timeout 60s python3 .codex/tests/sunflowers_local_threshold_upper_bound.py` 快速完成。
+  - 结果：盲收 `ppv=12.2963`；本地阈值 `15` 的上界 `ppv=13.3333`，只有 `1.0843x`；其他阈值 `8..14` 都慢于盲收。
+  - 结论：不改 `lb_sunflowers.py`，不再把“本地记录花瓣 / RNG 预测 / 只收本地高值”作为无通信主线。没有全局同步收割顺序时，即使完美本地花瓣信息也到不了 `1.2x`；真实实现还会额外支付跳过、测量和成熟等待成本。
 - “已有低点数会让新种高点数概率变高”的思路
   - 这条线也是错误口径
   - 因为新种花瓣数是独立随机的 `7..15`
@@ -253,6 +259,7 @@
 - `.codex/tests/sunflowers_short_horizon_high_first_screen.py` 证明本行短窗口 high-first 只有在 `90%+` 目标成熟率和极低分支成本下才有上界空间；request `710` 的真实相邻命中率约 `85%` 且明显慢于盲收，因此不进入实机。
 - `.codex/tests/sunflowers_power_check_interval_screen.py` 证明周期性削减 Power 查询没有足够理论 margin；不再把“去循环头 Power 查询、保留 harvest 后查询”作为恢复后优先短跑候选。
 - `.codex/tests/sunflowers_phase_schedule_screen.py` 证明无通信时间窗 / 阶段阈值近似同步只有在高成熟率乐观档才有约 `9%` 纸面收益，并且平均每次收获前跳过约 `8` 株成熟株；不进入实机。
+- `.codex/tests/sunflowers_local_threshold_upper_bound.py` 证明完美本地花瓣信息、免费跳过、无实现成本的阈值上界也只有 `1.0843x`；没有全局同步收割顺序时，RNG / 本地测量不能作为压进 `1.2x` 的主结构。
 - 下一步若继续优化，应优先找“不依赖 send/receive 的近似同步”：
   - 降低错误 harvest 的同时，不引入 `main3` 那种全阶段扫描成本
   - 用少量花瓣测量 / 局部最大值估计，判断是否能把 `8:24.480` 拉近 #1
