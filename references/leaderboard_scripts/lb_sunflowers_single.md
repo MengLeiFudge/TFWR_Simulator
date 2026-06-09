@@ -139,6 +139,11 @@
   - 改法：外层不再在每个 sweep 开头/结尾重复读取 `num_items(Items.Power)`；`sweep_field()` 返回 `(harvest_count, current_power)`，done 日志复用同一次查询结果。路径、成熟判断、收割、重种、补水和日志阈值都不改变。
   - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_sunflowers_single.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
   - 结论：这是 6x6 盲收主结构内的低风险管理成本候选。游戏恢复后优先短跑确认；若无稳定刷新或出现退出延迟，则回退。
+- skip / 当前最大花瓣策略离线筛选
+  - 2026-06-10 `.codex/tests/sunflowers_single_skip_policy_screen.py` 在 6x6 蛇形路径上筛 `blind`、`max_minus_4/3/2/1`、`max_only`、错收后清标记等“成熟株是否跳过”的策略，并模拟 `Sunflower#Harvest()` 的错收链。
+  - 第一次 `RUNS=300 VISITS=20000` 超过 `timeout 60s` 且无输出，已按项目约束缩到 `RUNS=80 VISITS=5000` 后重跑；命令：`timeout 60s python3 .codex/tests/sunflowers_single_skip_policy_screen.py`，约 `8.7s` 完成。
+  - 结果：在成熟率 `0.25/0.50/0.75` 三档里，`blind` 的 `power_per_visit` 分别为 `3.0867/6.1616/9.2435`；所有 skip 策略都明显低于盲收。即使 `max_only` 有 `100%` boost，也只达到盲收的 `0.471/0.375/0.331`；`max_minus_3` 只剩 `0.193/0.172/0.162`。
+  - 结论：不改 `lb_sunflowers_single.py`，不进入实机。该模型已经偏向 skip 策略，因为跳过的成熟株会保留到后续访问；真实脚本还会额外支付分支、记录和等待成本。因此单机向日葵后续不要再重开“成熟低花瓣先跳过 / max-k / 错收后等最大清标记”路线，除非能做到几乎不减少成熟收割次数。
 
 ## 下一步优化方向
 
@@ -149,6 +154,7 @@
 - 已验证错收后等待当前最大花瓣清错误标记会把成绩拖到 `50min+`；后续不要为了清错误标记跳过大量成熟低花瓣。
 - 已验证删除未成熟空扫补水检查会在 8 轮统计退化，默认继续在未成熟分支调用 `water_if_available()`。
 - 已验证相邻最高花瓣 next-first 会稳定退到 `11:40` 量级；不要继续做前后格局部换序。
+- `.codex/tests/sunflowers_single_skip_policy_screen.py` 证明 max-k、max-only、错收后清标记等 skip 策略在乐观模型里也远低于盲收；后续不再重开成熟低花瓣跳过路线。
 - 2026-06-10 已把 Power 查询改为由外层 `current_power` 复用、并在 `harvest()` 后刷新；确认前不更新成绩注释。
 - 可继续补探针确认：
   - 是否能减少 6x6 蛇形扫图的边界回绕成本
