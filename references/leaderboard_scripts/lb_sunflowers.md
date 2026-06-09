@@ -220,7 +220,9 @@
   - 当前默认 `row_worker()` 在 `while num_items(Items.Power) < POWER_GOAL:` 的循环头每格都会读一次全局 Power；这包含大量未成熟空扫格。request `724/725` 只删除了 `harvest()` 后的即时目标检查，实际仍保留循环头每格查询，因此只看到 `0.107s` 级别差异。
   - 新候选方向是反过来：保留 `harvest()` 后的即时目标检查，但把外层改成无限循环，只在成功收割后读 `num_items(Items.Power)` 决定退出。这样不跳过成熟株、不测花瓣、不改变补水/种植顺序，只减少非成熟空扫时的资源查询。
   - 风险：如果某个 row worker 长时间没有成熟株，它会比默认更晚感知其他行已经达标；不过主脚本的主 row worker 也会持续收割并检查，理论额外尾巴只到下一次本行收割。该候选需要真实短跑确认，不能在当前 `game_tick=0` 执行态下替换默认脚本。
-  - 结论：列为下一次游戏恢复后的 Sunflowers 第一短跑候选；候选目标是小幅压默认盲收实现成本，不是解决 `1.2x` 主结构差距。
+  - 2026-06-10 `.codex/tests/sunflowers_power_check_interval_screen.py` 进一步筛“每 K 格检查一次 Power”的折中模型，把少查 `num_items()` 的收益和主行延迟退出尾巴放在同一抽象单位里比较。
+  - 命令：`timeout 60s python3 .codex/tests/sunflowers_power_check_interval_screen.py`，快速完成。结果只有在 `query_cost=0.20` 且 `harvest_rate=0.05` 的保守性很差假设下，`interval=4` 有 `net=1.000`；`query_cost=0.20 harvest_rate=0.10` 与 `query_cost=0.10 harvest_rate=0.05` 只到 `net=0`，更常见成熟率下默认 `interval=1` 最稳。
+  - 结论：不改 `lb_sunflowers.py`，也不再把“去循环头 Power 查询”列为游戏恢复后的第一短跑候选。该方向最多是小幅实现成本压缩，且退出尾巴容易回吐收益；Sunflowers 后续仍要找真正全局最大同步或几乎零路径成本的收割顺序调整。
 - “已有低点数会让新种高点数概率变高”的思路
   - 这条线也是错误口径
   - 因为新种花瓣数是独立随机的 `7..15`
@@ -244,7 +246,7 @@
 - 请求 `726` 证明 harvest 后每次重种的常规施肥会慢于默认；肥料不能当作免费成熟加速，除非触发点更少且不会引入额外资源状态扰动。
 - `.codex/tests/sunflowers_active_columns_screen.py` 证明减少活跃列 / 小活跃场不会带来结构收益；32 株以上当前最大仍几乎总是 `15`，x8 raw-correct 概率接近 `1/9`，而更小活跃场的吞吐损失会远超倍率收益。
 - `.codex/tests/sunflowers_short_horizon_high_first_screen.py` 证明本行短窗口 high-first 只有在 `90%+` 目标成熟率和极低分支成本下才有上界空间；request `710` 的真实相邻命中率约 `85%` 且明显慢于盲收，因此不进入实机。
-- 下一次游戏执行态恢复后，优先短跑“去循环头 Power 查询、保留 harvest 后查询”的候选；它不改变收割密度和顺序，只针对非成熟空扫的全局资源查询成本。若两轮内没有明显刷新，直接回退并继续找真正全局最大同步结构。
+- `.codex/tests/sunflowers_power_check_interval_screen.py` 证明周期性削减 Power 查询没有足够理论 margin；不再把“去循环头 Power 查询、保留 harvest 后查询”作为恢复后优先短跑候选。
 - 下一步若继续优化，应优先找“不依赖 send/receive 的近似同步”：
   - 降低错误 harvest 的同时，不引入 `main3` 那种全阶段扫描成本
   - 用少量花瓣测量 / 局部最大值估计，判断是否能把 `8:24.480` 拉近 #1

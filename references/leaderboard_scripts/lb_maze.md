@@ -257,6 +257,11 @@
   - 2026-06-10 `.codex/tests/maze_dispatcher_policy_screen.py` 先用反编译 `BushPlant.GenerateHedgeMaze()` 逻辑复刻“随机起点 DFS 生成迷宫树，再从中心 BFS chunking”的 game-like 代理；该代理 `chunk_count avg=30.5 min=28 p50=31 max=33`，贴近真实常见 `29~32`。
   - 同脚本对比当前 `owned_set + owner_wait=0.2 fallback`、静态最近 owner，以及免费 perfect dispatcher。game-like 代理结果：`static_nearest_owner_wait ratio_avg=0.919 p10=0.889 p50=0.921 p90=0.947`；perfect dispatcher 在该简化事件模型里同为 `0.919`。
   - 结论：静态最近 owner 有小幅纸面空间，且不需要 per-claim 共享锁；但它只解释约 `5%~11%` 的 route 代理收益，不足以解释当前到 `1.2x` 的结构差距，也远小于开放图上界。游戏执行态恢复后可短跑一次，但不能把它当作 Maze 主攻结构；主攻仍应是低成本动态负责权、自然落位 solver 或能减少首金/重复竞争的大结构。
+- 非 owner 等待策略网格筛选
+  - 2026-06-10 `.codex/tests/maze_wait_policy_grid_screen.py` 继续用 game-like DFS 迷宫树，额外把“多个 solver 在 Treasure 被赢家处理前已经出发”的重复追宝计入 busy / route 成本，避免免费 dispatcher 模型过度乐观。
+  - 命令：`timeout 60s python3 .codex/tests/maze_wait_policy_grid_screen.py`，约 `20.5s` 完成；模型 `chunk_count avg=30.6 min=28 p50=31 max=33`。
+  - 结果：最佳 `rank_0.05` / `dist_0.10` 只有 `ratio=0.998`，约 `0.2%` 代理收益；`nearest_0.2` 为 `ratio=0.999`；`current_0.4` 退化到 `1.002`。
+  - 结论：固定等待函数、距离 rank、静态 nearest 等低通信等待策略都没有足够 margin；不改 `lb_maze.py`，也不在游戏恢复后优先短跑这类等待网格候选。Maze 后续只接受比“调等待”更大的结构，例如真正可取消 / 可抢占 dispatcher，或者不推迟首金的自然落位 solver。
 
 ## 下一步优化方向
 
