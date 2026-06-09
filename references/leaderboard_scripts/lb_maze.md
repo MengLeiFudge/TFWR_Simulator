@@ -217,6 +217,12 @@
   - 改法：保留当前 owner 优先 + `0.2` 短等待 fallback，但每个 solver 准备追某个 Treasure 前先把该 Treasure 坐标加入共享 `claimed_treasures`，其他 solver 看到同坐标已被 claim 时继续等待，试图减少多个 solver 同时追同一个 Treasure 的重复竞争。
   - 结果：两轮 `1:55.195` / `1:56.835`，稳定均值 `1:56.015`，慢于当前默认 `1:43.336`；第二轮 `explore_done time=9.44`、`chunks=30`、`solve_done time=116.16 solve_time=96.91`。
   - 结论：简单共享 claim set 会把重复竞争换成更多空等，且不能判断当前 claim 是否由真正最近 / 最快可达的 solver 持有；代码已回退并重新同步正式版到 `gamesave/`。后续不要做“同坐标全局加锁”式 dispatcher，除非 claim 选择同时考虑当前 solver 位置和可取消 / 可抢占。
+- solver 路径前缀 launcher 分组
+  - 2026-06-09 请求 `717/718` 验证。
+  - 改法：不改 `radius=14`、`owner_wait=0.2`、`owned_set` 和 Treasure 处理逻辑；先按 root 到 solver center 的前 `6` 步路径前缀分组，派 launcher 走到共同前缀锚点，再从锚点 `spawn_drone()` 对应 solver，试图减少多个 solver 重复走同一段开局路径。
+  - 请求 `717` 先暴露运行时限制：游戏脚本环境没有 `tuple()`，`tuple(prefix)` 直接 runtime error；修成整数 key 后继续验证。
+  - 请求 `718` 两轮有效成绩 `2:10.799` / `2:03.398`，稳定均值 `2:07.099`，明显慢于当前默认 `1:43.336`。第一轮 `explore_done time=10.18`、`chunks=30`、`launchers=3`、`solve_done time=130.57 solve_time=99.73`。
+  - 结论：launcher 分组把 root 共同前缀迁移换成额外 launcher 调度、spawn 占位和 solver 启动延迟，首金和 solve_time 都退化；代码已回退并重新同步正式版到 `gamesave/`。后续不要按“固定前缀 launcher / 分组 spawn”继续做 solver 开局调度，除非能证明不增加活跃 drone 占位且不推迟首金。
 
 ## 下一步优化方向
 
@@ -236,6 +242,7 @@
   - 请求 `702` 显示 fallback 只占约 `22.5%`，且 fallback 路径并不明显长于 owned 路径；如果不能使用通信 API，优先做离线 / 探针驱动的 chunk owner 重分配，而不是让所有 solver 更积极抢非 owner Treasure。
   - 请求 `707` 证明仅按 `approach_len + node_dist` 做静态 owner 重分配会明显变慢；owner 重分配不能只看理论到位成本，必须保住远端 center 的 owned 命中和并发度。
   - 请求 `708` 证明共享 `claimed_treasures` 的简单全局去重也会变慢；减少重复竞争不能靠无条件加锁，否则会把并发抢宝收益换成空等。
+  - 请求 `718` 证明固定前缀 launcher 分组会明显变慢；减少重复 root 前缀迁移不能以额外 launcher 调度和 spawn 占位为代价。
 - 改进进度判断：
   - 首轮未完成时看 `gold` 增速和 `progress_estimate`。
   - 第一轮完成后只用真实完成轮时间判断。
