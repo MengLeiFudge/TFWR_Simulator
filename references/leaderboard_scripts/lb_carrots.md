@@ -135,8 +135,8 @@
   - 2026-06-09 `.codex/tests/carrot_deferred_zero_extra_support_screen.py` 检查“同无人机不阻塞 anchor、不通信，只在后续正常锚点路径自然经过 support 格时顺手改写，下一圈再兑现”的候选。
   - 当前锚点顺序的乐观上界：非 Bush 延迟命中只增加 `32` 个事件，success `26.3889% -> 31.9444%`，Monte Carlo 计入 support 当前类型与 pending 冲突后估算 `4:15.674`，不足以进入实机。
   - 同移动步数内最佳顺序为 `((0,0),(1,4),(1,5),(1,6),(0,4),(0,3),(0,2),(0,1))`，几何上界 success `26.3889% -> 42.0139%`；Monte Carlo 计入类型状态、pending 覆盖、重刷和改写成本后估算 `3:47.089`，略快于 `1.2x` 线 `3:48.797`。
-  - 该估算仍未计入真实成熟等待、水/肥节奏、游戏脚本字典/列表成本和真实 `can_harvest()` 时序；当前 request `728/729` 又连续 `game_tick=0`，所以本轮不改 `lb_carrots.py`，不进实机。
-  - 结论：这是当前多机胡萝卜唯一仍值得在游戏恢复后短跑的非通信候选。实现时必须保持 32 个 active tile，不让 anchor `wait_for()` helper，不跨 tile 写邻居 support；若短跑无法稳定进入 `3:50` 内，应立即回退并切到 `lb_wood`。
+  - 2026-06-09 续筛修正：原 `3:47.089` 来自周期 tile 折叠模型，隐含“跨 tile support 类型可预测”。真实 32 个 tile 独立随机运行时，一个 tile 改写 support 会破坏邻 tile 对跨 tile Bush support 的假设；若改为安全的 `own-tile only`，同移动步数最佳 Monte Carlo 退到 `5:56.246`。
+  - 结论：不改 `lb_carrots.py`，也不在游戏恢复后短跑该候选。除非先证明跨 tile support 状态可预测 / 可同步，或者设计出不影响邻 tile 静态 Bush 成功率的零等待 writer，否则 Carrots 暂停继续实机。
 - 2026-05-31 多机胡萝卜理论复核：
   - 当前 `main3` 不是“没有伴生”的路线；按资源增量看，完成 `2,000,000,000` 胡萝卜约需要 `24414` 次满伴生收割，request `612` 的资源增长符合满伴生收割主导。
   - 当前 `32` 个双锚点单元的静态 Bush support，把 companion 类型成功率限制在约 `1/3`；双锚点 blocked 坐标后，理论失败重刷约 `2.13` 次 / 成功。
