@@ -161,18 +161,12 @@ def lb_maze_single():
         while path_length > 0:
             path_length = path_length - 1
             direction = bfs_path[path_length]
-            if not can_move(direction):
-                refresh_current_edges(graph)
-                return False
             move(direction)
             refresh_current_edges(graph)
 
         current = meet
         while current != target:
             direction = bfs_target_direction[current]
-            if not can_move(direction):
-                refresh_current_edges(graph)
-                return False
             move(direction)
             refresh_current_edges(graph)
             current = bfs_target_previous[current]
