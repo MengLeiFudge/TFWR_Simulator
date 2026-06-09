@@ -162,6 +162,11 @@
   - 改法：移动后先更新 `x/y`，只有 `x == mx and y == my` 时才调用 `measure()` 并更新下一目标与 `length`。路径选择、`can_move()` 兜底、前期阈值和后半段安全路径都不改变。
   - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_dinosaur.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
   - 风险：该候选依赖“只有站到已知 apple 坐标时才需要读取下一目标”的机制判断；若游戏存在目标坐标外的 Apple 测量副作用，实机会暴露。游戏恢复后优先短跑 `lb_dinosaur`，若无完成轮或明显退化则回退。
+- 本地坐标更新候选
+  - 2026-06-10 代码候选：`update_and_move()` / `simple_update_and_move()` 原先每次 `move()` 成功后都调用 `get_pos_x()` / `get_pos_y()` 回读位置；当前脚本已经维护全局 `x/y`，且恐龙帽下不能穿边，所有移动前也有 `can_move()` 兜底。
+  - 改法：新增 `update_position(dir)`，按 `North/South/East/West` 对本地 `x/y` 做增量更新；路径选择、苹果测量门控、前期阈值和后半段安全路径都不改变。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_dinosaur.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
+  - 风险：该候选依赖 `move(dir)` 成功后位置变化严格等于方向常量；若未来游戏改成恐龙可穿边或移动存在非方向位移，需要回退为回读坐标。当前机制和代码路径支持本地更新，游戏恢复后与 measure 门控一起短跑确认。
 - 列对收苹果 / 行蛇形 / Dinosaur 实体旁路
   - 2026-05-02 请求 `569` / `571` / `572` 验证。
   - 结果：
