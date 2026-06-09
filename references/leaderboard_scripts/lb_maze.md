@@ -262,6 +262,11 @@
   - 命令：`timeout 60s python3 .codex/tests/maze_wait_policy_grid_screen.py`，约 `20.5s` 完成；模型 `chunk_count avg=30.6 min=28 p50=31 max=33`。
   - 结果：最佳 `rank_0.05` / `dist_0.10` 只有 `ratio=0.998`，约 `0.2%` 代理收益；`nearest_0.2` 为 `ratio=0.999`；`current_0.4` 退化到 `1.002`。
   - 结论：固定等待函数、距离 rank、静态 nearest 等低通信等待策略都没有足够 margin；不改 `lb_maze.py`，也不在游戏恢复后优先短跑这类等待网格候选。Maze 后续只接受比“调等待”更大的结构，例如真正可取消 / 可抢占 dispatcher，或者不推迟首金的自然落位 solver。
+- 少量全图 dispatcher 筛选
+  - 2026-06-10 `.codex/tests/maze_global_dispatcher_count_screen.py` 筛“用 `4/8/16` 个全图路径缓存 solver 替代约 `30` 个半径 chunk solver”的结构；对照包括固定几何中心和 farthest-point 中心上界。
+  - 命令：`timeout 60s python3 .codex/tests/maze_global_dispatcher_count_screen.py`，约 `60s` 内完成；`python3 -m py_compile .codex/tests/maze_global_dispatcher_count_screen.py` 通过。
+  - 结果：game-like DFS 迷宫树下，即使 `build_node_cost=0.00` 把全图 path-build 设为免费，`fixed_4/fixed_8/fixed_16` 也分别为当前 `6.732x / 4.175x / 2.054x`；farthest-point 上界也为 `7.610x / 4.132x / 2.206x`。`build_node_cost` 提高到 `0.10` 时结论不变，`fixed_16` 仍约 `2.053x`。
+  - 结论：不改 `lb_maze.py`，不实机少量全图 dispatcher。减少 solver 数会让每个 Treasure 的负责中心太远，损失的并发和路径成本远大于减少重叠 chunk 的收益；后续不要再做 `4/8/16` 个全图 solver 或固定几何 dispatcher，除非同时改变 Treasure 收宝模型。
 - 自然落位 seed solver 上界筛选
   - 2026-06-09 `.codex/tests/maze_natural_seed_solver_screen.py` 检查一个偏乐观的自然落位上界：假设探图的 8 个 seed 位置和中心位置都能在完整地图已知后免费派出 solver，且忽略 finished explorer 不能复用、保活 explorer 会延迟 `wait_for()`、缺少通信和 drone slot 压力等真实限制。
   - 命令：`timeout 60s python3 .codex/tests/maze_natural_seed_solver_screen.py`，约 `2.8s` 完成；`python3 -m py_compile .codex/tests/maze_natural_seed_solver_screen.py` 通过。
@@ -286,6 +291,7 @@
   - 请求 `702` 显示 fallback 只占约 `22.5%`，且 fallback 路径并不明显长于 owned 路径；如果不能使用通信 API，优先做离线 / 探针驱动的 chunk owner 重分配，而不是让所有 solver 更积极抢非 owner Treasure。
   - 请求 `707` 证明仅按 `approach_len + node_dist` 做静态 owner 重分配会明显变慢；owner 重分配不能只看理论到位成本，必须保住远端 center 的 owned 命中和并发度。
   - 请求 `708` 证明共享 `claimed_treasures` 的简单全局去重也会变慢；减少重复竞争不能靠无条件加锁，否则会把并发抢宝收益换成空等。
+  - `.codex/tests/maze_global_dispatcher_count_screen.py` 证明少量全图路径缓存 dispatcher 会比当前慢 `2x+`，即使全图 path-build 免费也不过线；不要再试 `4/8/16` 个全图 solver 替代 chunk solver。
   - 请求 `718` 证明固定前缀 launcher 分组会明显变慢；减少重复 root 前缀迁移不能以额外 launcher 调度和 spawn 占位为代价。
   - 请求 `720` 证明主无人机巡回前缀锚点批量 spawn 也会明显变慢；即使不占额外 drone slot，串行前缀调度仍会推迟首金。
   - 请求 `721` 证明 root-first chunk 生成会卡在无金币进展；当前叶子到根覆盖顺序不能简单反转。
