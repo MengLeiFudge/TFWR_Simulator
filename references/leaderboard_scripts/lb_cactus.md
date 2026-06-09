@@ -213,6 +213,11 @@
   - 模型口径：仍使用 bucket 目标带匹配，统计不同 block 大小下 source 和 target 能留在同一 block 内的比例；用于判断“局部 staging / 批量搬运”能否隐藏全局分带的长距离搬运。
   - 结果：`8x8` block 只有 `25.0823%` item 留在同块，且同块距离只占 `5.7078%`，跨块距离 `94.2922%`；即使用 `16x16` 大块，同块距离也只有 `23.0930%`，跨块距离仍有 `76.9070%`。
   - 结论：全局 bucket 目标带强迫大量长距离跨块搬运，局部 staging 不能解决核心成本。Cactus bucket / 分带路线暂时关闭，不进实机；后续 Cactus 只有出现完全不同的构盘模型时才重开。
+- 2026-06-10 `.codex/tests/cactus_bucket_band_intraband_sort_screen.py` 离线筛选：
+  - 命令：`timeout 60s python3 .codex/tests/cactus_bucket_band_intraband_sort_screen.py`，约 `2.4s` 完成；`python3 -m py_compile .codex/tests/cactus_bucket_band_intraband_sort_screen.py` 通过。
+  - 模型口径：不再把每株 cactus 搬到精确全局 rank 目标格，而是先只搬到对应值的目标 row band，再乐观地把 band 内后处理视作并行行内排序；该模型仍忽略相邻 swap 路由冲突、临时存储、worker 任务切换和行列交互，因此偏向 bucket-band。
+  - 结果：当前 rows-then-cols 代理 `current_proxy avg=2028.1`；bucket-band 串行上界 `avg=10881.8`，为当前 `5.366x`；幻想 `32` 路完美 staging 下界 `avg=1618.8`，为当前 `0.798x`；其中 band 内并行排序本身 `avg=1112.1`，已经占当前 `0.548x`。
+  - 结论：不改 `lb_cactus.py`，不实机 bucket-band / 条带内排序。该路线只有在不可实机的 32 路完美 staging 下界里才有纸面收益；一旦需要真实搬运到目标 band，成本仍远高于当前 rows-then-cols。Cactus 后续不要再试“先粗分值带、再带内排序”的 bucket 变体，除非先给出具体低冲突 staging 路由。
 - 优化目标应明确写成：
   - 不是提高“长期平均产量”
   - 而是尽快完成第一次满盘合法收割
