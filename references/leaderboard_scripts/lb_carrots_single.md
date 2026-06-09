@@ -136,6 +136,10 @@
   - `.codex/tests/carrot_single_adaptive_anchor_layout_screen.py` 用当前 `d<=2` adaptive memory 完整统计 `8:37.719` 校准，重新枚举 / 采样 5x5 内的锚点数量和形状。
   - 精确枚举 `2..6` 锚点，采样 `7/8` 锚点各 `40000` 个；top candidates 全部是当前等价的相邻 `2x2` 四锚点，估算 `8:37.719`、`success=65.3%`、`rewrite=36.1%`、`path=4`。
   - 结论：adaptive support memory 后，锚点数量 / 形状仍没有超过当前相邻 `2x2` 四锚点；不按 anchor layout 平替或加密进入实机。
+- 2026-06-09 deferred far rewrite 筛选：
+  - `.codex/tests/carrot_single_deferred_far_rewrite_screen.py` 检查 `memory_far_reject` 的 distance-3 mismatch support，是否可以不做当前锚点往返，而是在继续锚点循环时顺路改写，下圈再收割原锚点。
+  - distance-3 非 Bush far event 共 `64` 个，没有任何一个在原始动作 tick 上快于直接 `harvest()+plant()` reroll；最佳 detour 也要 `4` 步，`best_deferred_ticks=1200`，而直接 reroll 只有 `401t`，且还没计入延迟一圈收割的机会成本。
+  - 结论：不进入实机；当前锚点循环没有免费经过 support 的窗口，far support 仍需要绕行和延迟收割。后续不要按 deferred far rewrite 降 `memory_far_reject`，除非出现无需 detour 的支撑 writer 或通信结构。
 - 2026-06-09 type-filtered adaptive support 筛选：
   - `.codex/tests/carrot_single_type_filtered_adaptive_support_screen.py` 检查是否只对 `Grass / Bush / Tree` 中部分类型执行 `d<=2` mismatch rewrite。
   - 当前全类型 `d<=2` 仍是最优，估算 `8:37.719`；任意双类型组合估算 `8:45.239`，慢约 `7.520s`；任意单类型组合估算 `8:57.152`，慢约 `19.433s`。
@@ -243,7 +247,7 @@
 - 已通过 same-drone 动态 support 预算确认，当前收割者自己写相邻 / 近距离 support 不值得进实机；后续动态承接必须避免当前 drone 往返改写成本。
 - 已通过 mature-wait-aware 锚点筛选确认，当前相邻 `2x2` 四锚点是静态 Bush-only 锚点形状上界；不要继续只换锚点数量或形状。
 - 已通过低成本动态 claim 筛选确认，当前 drone 附近临时改 `Grass / Tree` 再恢复 `Bush` 不值得进实机；但 no-restore support memory 经 request `682` 完整统计确认能小幅刷新，当前默认保留 adaptive support memory。
-- 当前单机胡萝卜下一步不再是静态平替、恢复 Bush、锚点布局平替或按类型收窄 rewrite，而是围绕 adaptive support memory 继续压低 `memory_far_reject` / `memory_rewrite` 成本；`d<=1` 已实机变慢，selective support cell、directional rewrite filter、adaptive memory anchor layout、type-filtered rewrite 和 selective `d=3` 已模型判定无实机余量，`d<=3` 全开已在模型中显示改写过多，任何新增分支都必须先过 mature-wait-aware / support-memory 模型。
+- 当前单机胡萝卜下一步不再是静态平替、恢复 Bush、锚点布局平替或按类型收窄 rewrite，而是围绕 adaptive support memory 继续压低 `memory_far_reject` / `memory_rewrite` 成本；`d<=1` 已实机变慢，selective support cell、directional rewrite filter、adaptive memory anchor layout、type-filtered rewrite、selective `d=3` 和 deferred far rewrite 已模型判定无实机余量，`d<=3` 全开已在模型中显示改写过多，任何新增分支都必须先过 mature-wait-aware / support-memory 模型。
 
 ## 候选策略方向（猜测 / 待验证）
 
