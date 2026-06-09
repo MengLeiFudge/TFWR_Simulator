@@ -262,6 +262,11 @@
   - 命令：`timeout 60s python3 .codex/tests/maze_wait_policy_grid_screen.py`，约 `20.5s` 完成；模型 `chunk_count avg=30.6 min=28 p50=31 max=33`。
   - 结果：最佳 `rank_0.05` / `dist_0.10` 只有 `ratio=0.998`，约 `0.2%` 代理收益；`nearest_0.2` 为 `ratio=0.999`；`current_0.4` 退化到 `1.002`。
   - 结论：固定等待函数、距离 rank、静态 nearest 等低通信等待策略都没有足够 margin；不改 `lb_maze.py`，也不在游戏恢复后优先短跑这类等待网格候选。Maze 后续只接受比“调等待”更大的结构，例如真正可取消 / 可抢占 dispatcher，或者不推迟首金的自然落位 solver。
+- 自然落位 seed solver 上界筛选
+  - 2026-06-09 `.codex/tests/maze_natural_seed_solver_screen.py` 检查一个偏乐观的自然落位上界：假设探图的 8 个 seed 位置和中心位置都能在完整地图已知后免费派出 solver，且忽略 finished explorer 不能复用、保活 explorer 会延迟 `wait_for()`、缺少通信和 drone slot 压力等真实限制。
+  - 命令：`timeout 60s python3 .codex/tests/maze_natural_seed_solver_screen.py`，约 `2.8s` 完成；`python3 -m py_compile .codex/tests/maze_natural_seed_solver_screen.py` 通过。
+  - 结果：模型 `chunk_count avg=30.60 min=28 p50=31 max=33`；solver 到 center 的起步距离从当前中心派发的 `avg=164.537 p90=331 max=572`，在自然 seed 上界下降到 `avg=30.454 p90=66 max=219`，但完整事件模型只从 `current_finish=4846.796` 到 `natural_finish=4624.321`，`ratio=0.954`；首个 Treasure 确实从 `180.645` 提前到 `45.119`，但 route / duplicate 几乎不变。
+  - 结论：不改 `lb_maze.py`，不实机自然落位 seed solver。即使把最难的运行时限制全部忽略，这条谱系也只有约 `4.6%` 上界收益，远不足以解释当前到 `1.2x` 的结构差距；后续不要再按“复用 explorer 位置 / 从 seed 派 solver / 换 solver 起点”推进，除非同时改变 Treasure 处理模型，而不是只减少开局到 center 的路程。
 
 ## 下一步优化方向
 
@@ -286,6 +291,7 @@
   - 请求 `721` 证明 root-first chunk 生成会卡在无金币进展；当前叶子到根覆盖顺序不能简单反转。
   - 请求 `722` 证明探图分支在返回路径前局部抢宝会破坏完整地图收集，`nodes` 只到 `975` 且 `gold` 卡在 `65536`；复用 explorer 位置不能以延迟全图 solver 为代价。
   - 请求 `723` 证明单一 graph-center solver root 会把 solver 启动推迟到 `time=27.58`，一次性 root 重选 / 主机移动成本吃不回。
+  - `.codex/tests/maze_natural_seed_solver_screen.py` 证明自然 seed 起点即使按免费上界也只有约 `4.6%` 代理收益；后续不要继续只围绕 solver 出发点 / 开局迁移做结构重排，必须改变 Treasure 分配、可抢占 dispatcher 或收宝模型本身。
 - 改进进度判断：
   - 首轮未完成时看 `gold` 增速和 `progress_estimate`。
   - 第一轮完成后只用真实完成轮时间判断。
