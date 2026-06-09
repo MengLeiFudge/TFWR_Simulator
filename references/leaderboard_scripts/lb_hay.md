@@ -12,8 +12,8 @@
 - 这和胡萝卜正好相反：
   - 胡萝卜必须保持耕地 / Soil
   - 草则必须尽量保持所有目标地块都是草地
-- 因此如果草的伴生是 `Carrot`，这个伴生应直接视为废伴生：
-  - 因为伴生格必须维持草地，不能为了胡萝卜去翻成耕地
+- 草的 companion 类型会从 `Bush / Carrot / Tree` 中选择；`Carrot` support 不是物理上永远无效，因为 companion 只要求目标坐标有对应实体。
+- 当前把 Carrot 当弱候选处理，是因为由收割者自己往返改写 support 时，要额外切 Soil / Grassland，动作成本高于原地 reroll 收益。
 - 另一个非常关键的事实是：
   - 草成熟非常快，基础只要 `0.5s = 200t`
   - 如果浇水，成熟时间甚至会压到几十 `t`
@@ -50,7 +50,7 @@
 ## 通用注意事项下的榜单特化
 
 - hay 的高收益核心来自 companion 命中后的 `160x` 收益，而不是单纯成熟就收
-- `Carrot` 伴生在草榜里默认应视为废伴生，因为目标草格必须一直保持草地
+- `Carrot` 伴生不是物理无效，但 same-drone 往返改写 support 的成本太高；没有低等待 writer 前仍按弱候选处理
 - 多机环境下当然不能无脑像单机那样频繁来回移动，但也不能退化成“没伴生也无所谓”的纯吞吐路线
 - 这个榜单真正要平衡的是：
   - 伴生兑现率
@@ -150,6 +150,10 @@
   - Tree-only 已有请求 `508` 十轮均值 `2:47.692`，未刷新可靠基线 `2:47.405`；私有近距离 Tree 动态切换请求 `637` 均值 `2:59.922`，明显退化。
   - Carrot support 虽然会被 `ChooseCompanion()` 选中，但动态兑现非阻塞 companion 已验证会引入大量往返、耕地切换和缺种子警告；在草榜中继续追 Carrot 不进实机。
   - 结论：当前不再实机测试静态混合 support、Tree-only、Carrot support 或由收割 drone 自己追 Tree / Carrot。下一次只有出现“更近 drone 接力改写 support”或“同一局部低成本多类型承接”的新结构，才重新进入实机。
+- 2026-06-10 same-drone 全类型 adaptive support 筛选：
+  - 反编译 `Growable.HasCompanion()` 只检查 companion 坐标实体类型；Carrot support 在物理上不是无效，但需要把 support 格 `till()` 成 Soil 后再种 Carrot。Bush / Tree 与 Carrot 之间切换还要额外地块切换成本。
+  - `.codex/tests/hay_adaptive_all_type_support_screen.py` 按“当前收割者自己往返改写 mismatch support，且不恢复”的上界估算：`lb_hay` 静态单类型 success `31.9%`、ticks `1054.3`；全类型 adaptive success `95.8%`，但 `rewrite_prob=0.67`、rewrite_ticks `993.2`、总 ticks `1210.7`，估算退到 `3:12.757`。
+  - 结论：不改 `lb_hay.py`，不实机 same-drone 全类型承接。Carrot support 的正确口径是“可承接但改写成本高”，不是“永远物理无效”；hay 后续仍只接受已经在请求 support 格附近、能近零等待写入目标类型的 writer 结构。
 - 2026-06-08 静态双草布局筛选
   - `.codex/tests/hay_pair_layout_budget.py` 枚举 4x8 周期 tile 内两目标草格，比较减少 blocked companion 与增加目标间移动的取舍。
   - 当前竖向相邻双草 `(0,0)/(0,1)` 估算仍是第一：Bush-only 成功率约 `31.9%`、目标间移动距离 `1`、估算 `2:47.861`。
@@ -163,7 +167,7 @@
 - 2026-06-09 非通信定时 Bush/Tree support 预算
   - `.codex/tests/hay_noncomm_schedule_budget.py` 检查 helper 不知道当前 companion 请求、只盲目周期轮换 support 为 `Bush / Tree` 的接力形态。
   - 当前 `4x8` 双草单元唯一 support 格为 `22` 个；nearest-neighbor support 循环移动 `28` 步；改写一轮 support 下界约 `14400t`，Bush/Tree 两类型周期约 `28800t`。
-  - 如果 anchor 不等待，请求类型和 support 类型独立；在 `Carrot` 废伴生仍占约 `1/3` 的前提下，总成功率不会突破当前 Bush-only 的数量级。
+  - 如果 anchor 不等待，请求类型和 support 类型独立；在 `Carrot` 请求仍约占 `1/3` 的前提下，总成功率不会突破当前 Bush-only 的数量级。
   - 如果 anchor 等待目标类型，平均等待约 `14400t`，是当前 Bush-only 期望 reroll 成本 `854.3t` 的 `16.9x`。
   - 结论：不实机盲定时 support 轮换；hay 的 Tree 方向仍必须是请求感知的近场接力，而不是无通信周期改写。
 - 2026-06-09 adaptive no-restore Bush/Tree support 筛选
@@ -188,15 +192,16 @@
 
 - 继续量化：
   - 真正带来 `160x` 的伴生命中率
-  - `Carrot` 废伴生出现频率
+  - `Carrot` 未兑现请求出现频率
   - 多机为了吃伴生额外引入的移动 / 等待是否还能压住
   - 是否存在比 32 个双草单元更高的单位 drone 收益结构
-- 请求 `403` 已确认 `Bush / Tree / Carrot` 出现近似三等分；下一轮应从“怎样低移动兑现 Tree，怎样完全丢弃 Carrot”开始，而不是继续只微调 Bush-only 的补水或支撑半径
+- 请求 `403` 已确认 `Bush / Tree / Carrot` 出现近似三等分；下一轮应从“怎样低移动兑现非 Bush 类型，尤其是有没有近零等待 support writer”开始，而不是继续只微调 Bush-only 的补水或支撑半径
 - 已验证三桶-only 补水慢于当前三桶优先 + 低库存 fallback，默认保留 fallback。
 - 已验证 31 个活跃双草单元明显慢于 32 个，默认保留 32 个单元。
 - 已验证 Tree-only support 慢于 Bush-only，默认保留 Bush-only support。
 - 已验证当前双草单元里“命中 Tree 后自己远距离补 Tree”明显慢于 Bush-only 默认路线；后续 Tree 方向必须控制在近距离支撑或交给更近 drone 接力，不能让收割 drone 自己追远点。
 - 已验证静态混合 support 只是重新分配单类型坐标，不能突破类型上限；后续不做无新结构的 Bush/Tree 混合实机。
+- 已通过 2026-06-10 same-drone 全类型 adaptive support 筛选确认，Carrot support 可作为 companion 类型承接，但由当前收割者往返改写 Bush/Tree/Carrot support 会比原地 reroll 更慢；后续不要把“全类型承接”写成 same-drone support 改写，除非有近零等待 writer。
 - 已验证静态双草布局筛选里，当前竖向相邻双草是低移动上界；后续不要只换双草目标位置或拉开目标间距。
 - 已验证 spawn-on-demand helper 预算不过线；后续不要用“减少活跃单元腾 helper 位 + anchor wait_for”来追 Tree companion。
 - 已验证非通信定时 Bush/Tree support 轮换预算不过线；没有请求感知时类型仍不同步，等待正确类型比当前 reroll 贵一个数量级。
@@ -216,15 +221,15 @@
   - 为了命中伴生新增的移动量是否还能接受
 - 当前状态：当前 `main2` 本质已经是相邻双草 Bush-only 命中后移动；单锚点和多锚点 Bush-only 已被预算 / 实机筛掉。后续不再只改活跃草数量或锚点数量，必须有新的低等待承接机制。
 
-### 方向 2：只围绕非 `Carrot` 伴生设计 support 网络（已收窄）
+### 方向 2：低等待全类型 support writer（已收窄）
 
-- 核心思路：明确把 `Carrot` 伴生当成废分支，support 只服务于真正能落地的伴生
-- 主瓶颈：如果布局里还在为 `Carrot` 伴生留位置，就等于平白浪费草地
-- 可能更强的原因：砍掉废分支后，草地布局和伴生命中都更干净
+- 核心思路：不再把 `Carrot` 物理判死，而是只在 support writer 已经接近请求格、且不需要 anchor 长等时承接 `Bush / Tree / Carrot`
+- 主瓶颈：当前 Bush-only 只兑现约三分之一类型；但 same-drone 全类型改写要为 2/3 有效请求付往返和地块切换成本
+- 可能更强的原因：如果 writer 正好在请求 support 附近，才能把全类型高命中率兑现出来
 - 优先探针：
-  - `Carrot` 废伴生出现频率
-  - 去掉相关分支后，实际有效伴生率是否提高
-- 当前状态：`Carrot` 已按废伴生处理；静态 Bush/Tree 混合、Tree-only、adaptive no-restore 和非通信定时轮换都不能突破类型命中上限或动作成本。后续只接受请求感知且低等待的 Bush/Tree 承接。
+  - `Carrot / Tree` 未兑现请求的空间分布
+  - writer 是否能在不等待 anchor 的情况下到达请求 support
+- 当前状态：same-drone 全类型 adaptive support 已筛掉；静态混合、Tree-only、adaptive no-restore 和非通信定时轮换都不能突破类型命中上限或动作成本。后续只接受请求感知且低等待的全类型承接。
 
 ### 方向 3：多机链式伴生接力（暂缓）
 
