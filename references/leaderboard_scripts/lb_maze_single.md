@@ -177,6 +177,11 @@
   - 有效轮包括 `3:01.249`、`2:47.099`、`3:29.899`、`3:32.599`、`3:02.109`、`3:26.874`、`2:54.062`、`3:11.132`、`3:14.799`、`3:07.031`、`3:03.799`。
   - 取消摘要 `finished=false runs=13 average=3:00.462` 不作为刷新成绩。
   - 结论：没有刷新；诊断输出不是当前主瓶颈，代码已恢复两条 `quick_print`，保留后续判断 BFS 节点数和探图成本的观测能力。
+- 删除 BFS / 探图诊断计数维护
+  - 2026-06-10 代码候选：删除只服务最终诊断的 `explore_steps`、`bfs_count`、`bfs_nodes` 及输出中的 `steps= / bfs= / nodes=` 字段；保留 `explore_time / total_time` 两条阶段时间输出。
+  - 这不同于请求 `450` 的“删除 quick_print”：本候选移除的是 DFS 每步计数和 BFS 每个扩展节点的循环内计数维护，East-first、双向 BFS、逐步刷新动态边、寻宝和收割策略都不变。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_maze_single.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
+  - 结论：这是单机迷宫主结构内的管理成本候选。游戏恢复后短跑确认；若无稳定刷新或需要重新定位 BFS 长尾，则回退或临时恢复诊断计数。
 - East-first 单源 BFS
   - 2026-05-02 请求 `451`：runner 输出 `reached stable leaderboard runs 11 avg=3:17.658`。
   - 改法：保留 `[East, North, West, South]` 方向顺序，但把 `move_with_bfs()` 从双向 BFS 改回单源 BFS 固定缓冲区。
@@ -220,6 +225,11 @@
   - 改法：保留成功 `move()` 后的逐步 `refresh_current_edges(graph)`，继续吃后续动态开墙收益；只删除执行 BFS 路径前每一步额外的 `can_move(direction)` 防守检查。
   - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_maze_single.py` 通过。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
   - 风险：如果未来游戏机制改为会关闭旧墙，这个优化会失去防守；当前反编译和 request `553` 都支持旧边不会失效。游戏恢复后优先短跑确认。
+- BFS / 探图诊断计数删除候选：
+  - 2026-06-10 代码候选：删除 `explore_steps`、`bfs_count`、`bfs_nodes` 以及对应输出字段，只保留 `explore_time` / `total_time` 阶段时间。
+  - 这不同于 request `450` 的“只删除 quick_print”：本候选移除的是 DFS 每步计数和 BFS 每次扩展节点计数，路径、双向 BFS、逐步 `refresh_current_edges(graph)`、East-first 顺序和目标处理都不改变。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_maze_single.py` 通过；`rg` 确认脚本内无 `explore_steps / bfs_count / bfs_nodes / steps= / bfs= / nodes=` 残留。真实游戏当前仍为 `game_tick=0`，暂未能跑完成轮；文件头成绩不更新。
+  - 风险：删除后不能直接观察每轮 BFS 次数和节点扩展数；如果实机退化或需要继续分析 target-cache / BFS 长尾，需要临时恢复诊断计数。
 
 ## 下一步优化方向
 

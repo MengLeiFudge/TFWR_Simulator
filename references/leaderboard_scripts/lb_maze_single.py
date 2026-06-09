@@ -16,9 +16,6 @@ def lb_maze_single():
     backs = {North: South, East: West, South: North, West: East, None: None}
     dx = {North: 0, East: 1, South: 0, West: -1}
     dy = {North: 1, East: 0, South: -1, West: 0}
-    explore_steps = 0
-    bfs_count = 0
-    bfs_nodes = 0
 
 
     def maze_index(x, y):
@@ -52,7 +49,6 @@ def lb_maze_single():
 
 
     def explore_maze(graph, visited, entered_from):
-        global explore_steps
         x = get_pos_x()
         y = get_pos_y()
         current = maze_index(x, y)
@@ -84,15 +80,11 @@ def lb_maze_single():
             if visited[target]:
                 continue
             move(direction)
-            explore_steps = explore_steps + 1
             explore_maze(graph, visited, direction)
             move(backs[direction])
-            explore_steps = explore_steps + 1
 
 
     def move_with_bfs(tx, ty, graph):
-        global bfs_count
-        global bfs_nodes
         global bfs_stamp
         start = maze_index(get_pos_x(), get_pos_y())
         target = maze_index(tx, ty)
@@ -111,11 +103,9 @@ def lb_maze_single():
         target_head = 0
         target_tail = 1
         meet = -1
-        bfs_count = bfs_count + 1
         while head < tail and target_head < target_tail and meet == -1:
             current = bfs_queue[head]
             head = head + 1
-            bfs_nodes = bfs_nodes + 1
             for edge in graph[current]:
                 neighbor = edge[0]
                 if bfs_seen[neighbor] == bfs_stamp:
@@ -134,7 +124,6 @@ def lb_maze_single():
 
             current = bfs_target_queue[target_head]
             target_head = target_head + 1
-            bfs_nodes = bfs_nodes + 1
             for edge in graph[current]:
                 neighbor = edge[0]
                 if bfs_target_seen[neighbor] == bfs_stamp:
@@ -215,7 +204,7 @@ def lb_maze_single():
     start_time = get_time()
     explore_maze(graph, visited, None)
     explore_done_time = get_time()
-    quick_print("maze_single_dfs", "explore_time=", explore_done_time - start_time, "steps=", explore_steps)
+    quick_print("maze_single_dfs", "explore_time=", explore_done_time - start_time)
 
     while True:
         if goto_treasure(graph):
@@ -239,8 +228,6 @@ def lb_maze_single():
     quick_print(
         "maze_single_dfs",
         "total_time=", get_time() - start_time,
-        "bfs=", bfs_count,
-        "nodes=", bfs_nodes,
     )
 
 
