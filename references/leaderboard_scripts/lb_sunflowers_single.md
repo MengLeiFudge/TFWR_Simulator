@@ -160,6 +160,12 @@
   - 命令：`python3 -m py_compile .codex/tests/sunflowers_single_tail_policy_screen.py` 通过；`timeout 60s python3 .codex/tests/sunflowers_single_tail_policy_screen.py` 约 `20.9s` 完成。
   - 结果：成熟概率 `0.25 / 0.50 / 0.75` 下，`blind` 都是最佳。最保守的 `tail_9500_max` 也分别退到 `1.0351x / 1.0271x / 1.0193x`；从 `9000` 或 `8000` Power 开始收尾会因 skip/run 激增退到 `1.04x~1.78x`。
   - 结论：不改 `lb_sunflowers_single.py`，不实机收尾 max / max-k。即使只在尾段追最大花瓣，跳过成熟株的访问损失仍高于减少错误收割链的收益；后续不要再把“末段再切严格最大”作为候选。
+- 前几轮高花瓣筛选后切回盲收
+  - 2026-06-10 `.codex/tests/sunflowers_single_initial_filter_screen.py` 检查文档中剩余的“只在前 `1~4` 个 6x6 sweep 用 `max / max-1 / max-2 / max-3` 筛选，之后完全切回盲收”方向。
+  - 模型偏向筛选策略：花瓣免费已知、跳过成熟株会保留、没有 `measure()` / 记账 / 分支 / 路径成本。
+  - 命令：`python3 -m py_compile .codex/tests/sunflowers_single_initial_filter_screen.py references/leaderboard_scripts/lb_sunflowers_single.py` 通过；`timeout 60s python3 .codex/tests/sunflowers_single_initial_filter_screen.py` 约 `13.9s` 完成。
+  - 结果：成熟率 `0.25` 最佳 `first_3_max_minus_0 ratio=1.0069`；成熟率 `0.50` 最佳 `first_1_max_minus_0 ratio=1.0078`；成熟率 `0.75` 最佳 `first_1_max_minus_0 ratio=1.0059`。收益均低于 `1%`，且真实实现还要额外付测量和记录成本。
+  - 结论：不改 `lb_sunflowers_single.py`，不实机“前几轮筛选后盲收”。这条线只是噪声级乐观收益，不能作为压进 `1.2x` 的结构候选。
 
 ## 下一步优化方向
 
@@ -175,9 +181,8 @@
 - `.codex/tests/sunflowers_single_pingpong_sweep_screen.py` 证明 ping-pong 反向扫图会显著拉长端点访问间隔；后续不要把“少一次 wrap move”作为单独方向。
 - `.codex/tests/sunflowers_single_water_check_interval_screen.py` 证明未成熟补水检查周期化只有 `0.1%` 级偏乐观纸面收益，且无法复现 request `712` 的真实退化；后续不要再围绕“少查水”做单机向日葵实机候选。
 - `.codex/tests/sunflowers_single_tail_policy_screen.py` 证明收尾阶段 max / max-k 在偏乐观模型里也慢于盲收；后续不要再按“末段严格最大”推进。
-- 可继续补探针确认：
-  - 是否只在前 1~2 轮使用花瓣筛选，之后切回盲收
-  - 是否存在完全零路径成本的花瓣记录策略
+- `.codex/tests/sunflowers_single_initial_filter_screen.py` 证明只在前几轮做高花瓣筛选、随后切回盲收的乐观收益也不足 `1%`；不进入实机。
+- 后续只保留“完全零路径成本的花瓣记录 / 管理成本削减”这类候选；凡是会跳过成熟株的策略都先按失败处理。
 - 当前不需要像多机那样先解决通信问题
 
 ## 候选策略方向（猜测 / 待验证）
