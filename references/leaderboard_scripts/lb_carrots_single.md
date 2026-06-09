@@ -119,6 +119,12 @@
   - 请求 `682` 完整统计：`finished=true runs=14 average=8:37.719`；可见有效轮包括 `8:38.707`、`8:37.899`、`8:38.242`、`8:36.367`、`8:35.273`、`8:38.945`、`8:31.992`、`8:36.874`、`8:37.297`、`8:38.899`、`8:38.353`、`8:38.906`、`8:41.445`。
   - 统计规模：单轮约 `700~760` 次 `memory_rewrite`、`325~397` 次 `memory_hit`、`207~263` 次 `static_hit`，证明收益来自非 Bush support 记忆和近距离改写；但实机收益只有约 `7.1s`，远低于离线 `38s` 上界，说明改写 churn、地块状态和成熟等待仍吃掉大部分纸面收益。
   - 结论：保留为当前默认入口；后续不要把 `d<=3` 直接打开，模型已经显示改写过多会回吐收益。下一步若继续单机胡萝卜，应先压低 `memory_far_reject` 或减少 `memory_rewrite` 往返成本，而不是恢复 Bush 或只换静态 support 类型。
+- 2026-06-10 删除 adaptive 统计计数候选：
+  - 代码候选：删除 `cycle / harvest / reroll / static_hit / memory_hit / memory_rewrite / memory_far_reject / anchor_block` 计数、`10M` progress 日志和 done 统计字段；保留 `support_entity` 记忆、四锚点顺序、`d<=2` mismatch rewrite、三桶优先补水和起止 `quick_print`。
+  - 这不改变 adaptive support memory 策略，只减少每个锚点 / reroll / support 命中路径上的观测计数和参数传递。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_carrots_single.py` 通过。
+  - 真实游戏当前最近 request `730` 仍为 `game_tick=0` timeout，暂未能跑完成轮；文件头成绩不更新。
+  - 风险：删除后无法直接从脚本输出看到 `static_hit / memory_hit / memory_rewrite / memory_far_reject` 分布；如果实机退化，只能先看总时间，再临时恢复统计探针定位。
 - 2026-06-09 adaptive support memory `d<=1` 收窄对照：
   - 改法：只把 `roll_adaptive_companion()` 的 mismatch support 改写阈值从 `companion_distance <= 2` 收窄到 `<= 1`，其他锚点、补水、support memory 和计数器不变。
   - 请求 `683` 短窗两轮 `8:45.898` / `8:47.148`，稳定均值 `8:46.523`，明显慢于当前 `d<=2` 完整统计 `8:37.719`。
@@ -252,6 +258,7 @@
 - 已通过 mature-wait-aware 锚点筛选确认，当前相邻 `2x2` 四锚点是静态 Bush-only 锚点形状上界；不要继续只换锚点数量或形状。
 - 已通过低成本动态 claim 筛选确认，当前 drone 附近临时改 `Grass / Tree` 再恢复 `Bush` 不值得进实机；但 no-restore support memory 经 request `682` 完整统计确认能小幅刷新，当前默认保留 adaptive support memory。
 - 当前单机胡萝卜下一步不再是静态平替、恢复 Bush、锚点布局平替或按类型收窄 rewrite，而是围绕 adaptive support memory 继续压低 `memory_far_reject` / `memory_rewrite` 成本；`d<=1` 已实机变慢，selective support cell、directional rewrite filter、adaptive memory anchor layout、type-filtered rewrite、selective `d=3`、deferred far rewrite 和 rewrite cooldown 已模型判定无实机余量，`d<=3` 全开已在模型中显示改写过多，任何新增分支都必须先过 mature-wait-aware / support-memory 模型。
+- 2026-06-10 已删除 adaptive 统计计数和 progress 日志作为管理成本候选；确认前不更新成绩注释。游戏恢复后必须短跑 `lb_carrots_single`，若无稳定刷新或需要重新观测 hit / rewrite 分布，则回退或临时恢复统计探针。
 
 ## 候选策略方向（猜测 / 待验证）
 
