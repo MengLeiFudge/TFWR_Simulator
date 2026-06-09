@@ -208,6 +208,11 @@
   - 模型口径：在 bucket 目标带匹配后，按 `source_col` / `target_col` / `value_team` / row ownership 分组；每个 worker 用 nearest-next 顺序处理自己的任务，计入到 source 的巡航移动、source 到 target 的移动和每步 swap。仍然不模拟 swap 冲突，所以对 bucket 路线偏乐观。
   - 结果：当前 rows-then-cols 墙钟代理 `181886.2`；`source_col=226696.0`，约当前 `1.246x`；`target_col=241868.0`，约当前 `1.330x`；`value_team=324073.0`，约当前 `1.782x`；row ownership 均超过当前 `2.5x`。
   - 结论：简单 column-owner / value-team bucket staging 在加入任务间巡航后已经慢于当前，且真实 swap 冲突只会更差；不进入实机。Cactus bucket 若继续，必须是批量搬运 / 局部 staging / 减少任务切换巡航的新模型，不再做“每个 worker 按列逐个搬到目标带”的路线。
+- 2026-06-09 `.codex/tests/cactus_bucket_block_locality_screen.py` 离线筛选：
+  - 命令：`timeout 60s python3 .codex/tests/cactus_bucket_block_locality_screen.py`，约 30 秒内完成。
+  - 模型口径：仍使用 bucket 目标带匹配，统计不同 block 大小下 source 和 target 能留在同一 block 内的比例；用于判断“局部 staging / 批量搬运”能否隐藏全局分带的长距离搬运。
+  - 结果：`8x8` block 只有 `25.0823%` item 留在同块，且同块距离只占 `5.7078%`，跨块距离 `94.2922%`；即使用 `16x16` 大块，同块距离也只有 `23.0930%`，跨块距离仍有 `76.9070%`。
+  - 结论：全局 bucket 目标带强迫大量长距离跨块搬运，局部 staging 不能解决核心成本。Cactus bucket / 分带路线暂时关闭，不进实机；后续 Cactus 只有出现完全不同的构盘模型时才重开。
 - 优化目标应明确写成：
   - 不是提高“长期平均产量”
   - 而是尽快完成第一次满盘合法收割
