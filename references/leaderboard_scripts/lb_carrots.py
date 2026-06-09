@@ -65,32 +65,17 @@ def companion_carrot_tile_thread():
     base_x = get_pos_x()
     base_y = get_pos_y()
 
-    harvest_count = 0
-    reroll_count = 0
-    last_log_carrots = 0
-
     init_tile_support(base_x, base_y)
     init_tile_anchors(base_x, base_y)
 
     while num_items(Items.Carrot) < GOAL_CARROTS:
         for dx, dy in TILE_ANCHOR_OFFSETS:
             goto((base_x + dx) % FIELD_SIZE, (base_y + dy) % FIELD_SIZE)
-            harvest_count = harvest_tile_carrot(harvest_count)
+            harvest_tile_carrot()
             if num_items(Items.Carrot) >= GOAL_CARROTS:
                 break
-            reroll_count = roll_static_bush_companion(reroll_count)
+            roll_static_bush_companion()
             water_carrot_anchor()
-
-        if base_x == TILE_BASE_XS[0] and base_y == TILE_BASE_YS[0]:
-            curr_carrots = num_items(Items.Carrot)
-            if curr_carrots >= last_log_carrots + 100000000:
-                last_log_carrots = curr_carrots
-                quick_print(
-                    "lb_carrots progress carrots=", curr_carrots,
-                    " time=", get_time(),
-                    " harvest=", harvest_count,
-                    " reroll=", reroll_count,
-                )
 
     if base_x == TILE_BASE_XS[0] and base_y == TILE_BASE_YS[0]:
         quick_print("lb_carrots done carrots=", num_items(Items.Carrot), " time=", get_time())
@@ -115,7 +100,7 @@ def init_tile_anchors(base_x, base_y):
     for dx, dy in TILE_ANCHOR_OFFSETS:
         goto((base_x + dx) % FIELD_SIZE, (base_y + dy) % FIELD_SIZE)
         prepare_static_carrot_slot()
-        roll_static_bush_companion(0)
+        roll_static_bush_companion()
         water_carrot_anchor()
 
 
@@ -139,28 +124,24 @@ def prepare_static_carrot_slot():
     water_carrot_anchor()
 
 
-def harvest_tile_carrot(harvest_count):
+def harvest_tile_carrot():
     if can_harvest():
         harvest()
-        harvest_count = harvest_count + 1
         plant(Entities.Carrot)
     else:
         water_carrot_anchor()
-    return harvest_count
 
 
-def roll_static_bush_companion(reroll_count):
+def roll_static_bush_companion():
     while num_items(Items.Carrot) < GOAL_CARROTS:
         companion = get_companion()
         if companion != None:
             companion_entity = companion[0]
             companion_pos = companion[1]
             if companion_entity == Entities.Bush and not is_carrot_anchor(companion_pos[0], companion_pos[1]):
-                return reroll_count
+                return
         harvest()
         plant(Entities.Carrot)
-        reroll_count = reroll_count + 1
-    return reroll_count
 
 
 if __name__ == "__main__":
