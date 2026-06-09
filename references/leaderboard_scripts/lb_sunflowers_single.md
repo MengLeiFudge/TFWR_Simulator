@@ -149,6 +149,11 @@
   - 命令：`timeout 60s python3 .codex/tests/sunflowers_single_pingpong_sweep_screen.py`，约 `1.3s` 完成；`python3 -m py_compile .codex/tests/sunflowers_single_pingpong_sweep_screen.py` 通过。
   - 结果：在 `growth=12..36` 且 `check_cost=0..1` 的常见区间，ping-pong harvest rate 只有 cyclic wrap 的 `0.5147x..0.9296x`；只有 `growth=42/54/72` 且 `check_cost` 极低或刚好 alias 时出现约 `1.02x` 的窄幅纸面胜出，但 wasted checks 接近翻倍，`max_gap` 从 cyclic 的 `36/45/54/72` 拉长到 `70/87/105/141`。
   - 结论：不改 `lb_sunflowers_single.py`，不实机 ping-pong sweep。少一次回绕移动不足以抵消端点重复检查和成熟访问间隔变长；后续不要再只围绕边界回绕 / 反向扫图做单机向日葵候选。
+- 未成熟补水检查周期化筛选
+  - 2026-06-10 `.codex/tests/sunflowers_single_water_check_interval_screen.py` 使用反编译 `Growable.GrowTimeFactor = 1 / (1 + 4 * water)`、`use_item(Items.Water)` 每次加 `0.25`、水量衰减机制，筛只在 harvest 后补水、每 `2/3/4/6` 次访问检查未成熟格、或只在行端检查的节奏。
+  - 命令：`timeout 60s python3 .codex/tests/sunflowers_single_water_check_interval_screen.py`，约 `21s` 完成；`python3 -m py_compile .codex/tests/sunflowers_single_water_check_interval_screen.py` 通过。
+  - 结果：该代理已经过度偏向“少查水”，因为它把真实已失败的 `harvest_only` 预测成 `0.9984x~0.9989x`，而真实 request `712 / 608` 是 `1.0112x` 退化；在这个偏乐观代理里，`every_2/3/4/6` 也只有约 `0.1%` 纸面收益。
+  - 结论：不改 `lb_sunflowers_single.py`，不实机未成熟补水检查周期化。已知真实失败方向在偏乐观模型里都只有 `0.1%` 级收益，说明这条谱系没有足够 margin；默认继续每次访问未成熟格也调用 `water_if_available()`。
 
 ## 下一步优化方向
 
@@ -162,9 +167,10 @@
 - `.codex/tests/sunflowers_single_skip_policy_screen.py` 证明 max-k、max-only、错收后清标记等 skip 策略在乐观模型里也远低于盲收；后续不再重开成熟低花瓣跳过路线。
 - 2026-06-10 已把 Power 查询改为由外层 `current_power` 复用、并在 `harvest()` 后刷新；确认前不更新成绩注释。
 - `.codex/tests/sunflowers_single_pingpong_sweep_screen.py` 证明 ping-pong 反向扫图会显著拉长端点访问间隔；后续不要把“少一次 wrap move”作为单独方向。
+- `.codex/tests/sunflowers_single_water_check_interval_screen.py` 证明未成熟补水检查周期化只有 `0.1%` 级偏乐观纸面收益，且无法复现 request `712` 的真实退化；后续不要再围绕“少查水”做单机向日葵实机候选。
 - 可继续补探针确认：
   - 是否只在前 1~2 轮使用花瓣筛选，之后切回盲收
-  - 是否能减少 `get_water()` 调用而不显著降低成熟速度
+  - 是否存在完全零路径成本的花瓣记录 / 收尾策略
 - 当前不需要像多机那样先解决通信问题
 
 ## 候选策略方向（猜测 / 待验证）
