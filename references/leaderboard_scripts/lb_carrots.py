@@ -53,11 +53,12 @@ def goto(tx, ty):
 
 def water_carrot_anchor():
     # 32 台无人机会同时抢水；低库存调用只会刷警告，实际收益很小。
-    if num_items(Items.Water) > 384:
+    water = num_items(Items.Water)
+    if water > 384:
         use_item(Items.Water, 3)
-    elif num_items(Items.Water) > 192:
+    elif water > 192:
         use_item(Items.Water, 2)
-    elif num_items(Items.Water) > 64:
+    elif water > 64:
         use_item(Items.Water)
 
 

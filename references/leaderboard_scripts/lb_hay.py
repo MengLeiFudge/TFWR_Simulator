@@ -117,11 +117,12 @@ def harvest_ready_grass():
 
 def water_pair_slot():
     # 32 线程会同时抢水；只在仍有库存时补水，避免无水时反复调用。
-    if num_items(Items.Water) > 2:
+    water = num_items(Items.Water)
+    if water > 2:
         use_item(Items.Water, 3)
-    elif num_items(Items.Water) > 1:
+    elif water > 1:
         use_item(Items.Water, 2)
-    elif num_items(Items.Water) > 0:
+    elif water > 0:
         use_item(Items.Water)
 
 

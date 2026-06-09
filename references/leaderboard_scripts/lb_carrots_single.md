@@ -260,6 +260,7 @@
 - 当前单机胡萝卜下一步不再是静态平替、恢复 Bush、锚点布局平替或按类型收窄 rewrite，而是围绕 adaptive support memory 继续压低 `memory_far_reject` / `memory_rewrite` 成本；`d<=1` 已实机变慢，selective support cell、directional rewrite filter、adaptive memory anchor layout、type-filtered rewrite、selective `d=3`、deferred far rewrite 和 rewrite cooldown 已模型判定无实机余量，`d<=3` 全开已在模型中显示改写过多，任何新增分支都必须先过 mature-wait-aware / support-memory 模型。
 - 2026-06-10 已删除 adaptive 统计计数和 progress 日志作为管理成本候选；确认前不更新成绩注释。游戏恢复后必须短跑 `lb_carrots_single`，若无稳定刷新或需要重新观测 hit / rewrite 分布，则回退或临时恢复统计探针。
 - 2026-06-10 Carrot 种植成本缓存候选：`can_pay_carrot_cost()` 原先在每次检查时调用 `get_cost(Entities.Carrot)` 并重新构造全物品列表；`gamesave/__builtins__.py` 说明 `get_cost()` 调用耗 `1 tick`，且当前单机胡萝卜榜运行中不会升级或改变 Carrot 种植成本。代码已把 `CARROT_COST` 与 `CARROT_COST_ITEMS` 缓存在模块级常量，只减少 adaptive support rewrite 热路径的查询和列表构造，不改变四锚点、`d<=2` mismatch rewrite、support memory、补水或 reroll 逻辑。真实游戏当前最近 request `730` 仍为 `game_tick=0` timeout，暂未能跑完成轮；文件头成绩不更新。游戏恢复后与统计删除候选一起短跑，若无稳定刷新则回退。
+- 2026-06-09 补水库存读取缓存候选：`water_anchor()` 原先低库存时会连续调用最多三次 `num_items(Items.Water)` 判断 `>2 / >1 / >0`；当前改为单次读取 `water` 后按原阈值分支。该候选不改变三桶 / 两桶 / 单桶 fallback、四锚点顺序、adaptive support memory、`d<=2` 改写或 reroll 逻辑。真实游戏当前仍为 `game_tick=0` timeout，暂未能跑完成轮；文件头成绩不更新。游戏恢复后与统计删除 / Carrot cost 缓存候选一起短跑，若无稳定刷新则回退。
 
 ## 候选策略方向（猜测 / 待验证）
 
