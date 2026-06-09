@@ -193,6 +193,11 @@
   - 结果：当前 `wall_ticks=181760.5`；不计 phase 移动时 `lines_parallel=8/16/32` 分别是当前 `0.798x/0.665x/0.55x`，但这是不可实机的 lower bound。
   - 计入 phase 移动后，`lines_parallel=1/2/4/8/16/32` 分别是当前 `3.734x/1.978x/1.963x/1.876x/1.759x/1.62x`，全部慢于当前。
   - 结论：真正 pair-worker 排序网络暂不进入真实游戏；它只有在忽略 worker 每轮换位 / parity 切换 / subbatch 重定位成本时才有纸面优势，而这些成本在真实脚本里不可忽略。后续不要按“把更多无人机集中到少数行做奇偶 pair compare”推进，除非能证明 pair workers 几乎不移动且不用牺牲 32 行 / 32 列并行度。
+- 2026-06-09 `.codex/tests/cactus_bucket_band_lower_bound_screen.py` 离线筛选：
+  - 命令：`timeout 60s python3 .codex/tests/cactus_bucket_band_lower_bound_screen.py`，约 30 秒内完成。
+  - 模型口径：利用 cactus variant 只有 `0..9`，把全盘值搬到 row-major 有序目标带；只算每个 cactus 到同值目标格的最短曼哈顿搬运距离，忽略规划、冲突、换位、worker 重定位和真实相邻 swap 路由，因此是非常乐观的移动下界。
+  - 结果：当前 rows-then-cols 墙钟代理 `current_wall_ticks_avg=181886.2`；桶构盘串行下界 `bucket_ticks_serial_lower_avg=1191213.5`，为当前 `6.549x`；但如果幻想 `32` 路完美并行且无阻塞，`bucket_ticks_32way_fantasy_floor_avg=38217.4`，为当前 `0.210x`。
+  - 结论：桶 / 分带构盘是一个真正不同于“行后列排序”的结构方向，理论并行下界很强；但当前还没有可运行方案能接近这个幻想下界。后续 Cactus 若重开，优先找“32 台无人机如何无阻塞地把 0..9 搬到目标带”的局部路由 / staging 模型；不要直接把全局 bucket sort 写进 `lb_cactus.py` 实机。
 - 优化目标应明确写成：
   - 不是提高“长期平均产量”
   - 而是尽快完成第一次满盘合法收割

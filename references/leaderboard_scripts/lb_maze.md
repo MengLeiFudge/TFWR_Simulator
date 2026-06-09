@@ -248,6 +248,11 @@
   - `timeout 60s python3 .codex/tests/maze_chunk_static_screen.py` 约 `5.4s` 完成。
   - 结果：root-order 候选纸面分数更好，但 request `721` 已证明 root-first 会卡到 `gold=0`；小半径 leaf 候选如 `shift=9 radius=10` 纸面 chunks 合格，但与已失败的 `radius=12` 低金币卡死同向；`shift>radius` 的近当前候选虽然可把 proxy chunks 拉到 `30`，但触发节点不保证在 solver area 内，结构风险高。
   - 结论：静态 chunk 形状本身不足以进实机。后续若继续 Maze，只剩真正动态 dispatcher / 可抢占负责权 / 不推迟首金的自然落位 solver 调度；不要继续做 root-first、半径微调、静态 owner score 或固定前缀开局搬运。
+- 动态 dispatcher 上界筛选
+  - 2026-06-09 `.codex/tests/maze_dispatcher_ceiling_screen.py` 用当前 `radius=14`、leaf-first chunk 规则在开放 `32x32` BFS 树代理上比较当前 owner 分配与“免费完美最近覆盖 solver dispatcher”。
+  - `timeout 60s python3 .codex/tests/maze_dispatcher_ceiling_screen.py` 约 `2s` 完成；模型输出 `chunks=38`，比真实随机迷宫常见 `29~32` 偏多，因此只作为上界筛选，不作为实机时间预测。
+  - 结果：`owner_route_avg=22.015`、`nearest_route_avg=13.389`、`route_save_ratio=39.1832%`、`owner_not_nearest_rate=89.0078%`、`avg_covering_solvers=12.664`。
+  - 结论：免费完美 dispatcher 的理论空间存在，说明 Maze 不是只能靠局部微调；但这个结果假设零协调成本。request `700` 已证明距离编码等待会退化，request `708` 已证明简单 claim 锁会把重复竞争换成空等，所以当前不改 `lb_maze.py`。后续只有能在不增加共享状态等待、不推迟首金的前提下接近“最近可达 solver”的结构，才进入实机。
 
 ## 下一步优化方向
 
