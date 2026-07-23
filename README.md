@@ -17,6 +17,9 @@
 - `oracle_runner_mod/`
   - Unity / BepInEx 模组
   - 负责轮询 `state.json` 并在游戏内执行 `lb_start`
+- `mechanism_model/`
+  - C# 本地理论验证动作模型
+  - 负责在不进入游戏的情况下估算 Dinosaur、Cactus、Companion 等候选策略的动作成本和命中率
 - `gamesave/`
   - 指向本机验证用 `Save0` 的本地链接目录
   - 只作为部署目标，不是 git 真源
@@ -32,6 +35,9 @@
 - `oracle_runner_mod/README.md`
   - Unity / BepInEx 模组细节
   - 承接构建、安装、配置项、状态机协议
+- `mechanism_model/README.md`
+  - 本地动作模型细节
+  - 承接理论筛选模型边界、命令和输出指标
 - `references/leaderboard_scripts/README.md`
   - 榜单脚本与策略文档的长期维护约定
 
@@ -42,10 +48,12 @@
 3. `lb_start.py` 是部署时生成的派生入口，不是手工维护的长期真源。
 4. 真实结果优先级高于仓库推断；如果仓库逻辑和游戏实际输出冲突，应以真实结果为准。
 5. leaderboard 策略先看 `references/leaderboard_scripts/README.md`，再看对应 `lb_xxx.md`。
-6. 对依赖 companion 的资源榜，默认先做理论筛选：用 #1 时间、目标资源量、满级收益和动作成本反推每次有效伴生收获的目标周期；理论明显慢的候选不要直接进真实游戏验证。
-7. 理论筛选也要限输入、限时和有进度；不要用匿名 `python3 -` 跑长时间全组合枚举。需要重型探针时，放到 `.codex/tests/*.py` 或正式测试脚本里，并写清早停条件。
-8. 探索阶段脚本应保留详细阶段日志，先定位最大时间来源；真实游戏用于验证已经过理论筛选的候选，不用于枚举试错。
-9. 具体 `lb_xxx.py` 只保留当前确认最快的可执行策略；版本经验、失败路线、接近候选和每个版本的大致时间写入同名 `lb_xxx.md`。候选时间接近时必须跑完整统计或足够多轮对比后再替换 py 真源。
+6. 打榜优化默认走固定效率闭环：先用 `lb_start.py` 里的 `#1` 时间和当前复跑时间反推目标效率，再用本地模型筛选策略，最后只把接近预算的少数候选迁入真实游戏验证。
+7. 反推效率要落到该榜单的主机制指标，例如 companion 命中率和有效收获周期、Dinosaur 每个 apple 的移动预算、Cactus 排序动作数、Maze 节点 / treasure 路线成本。
+8. 理论筛选也要限输入、限时和有进度；不要用匿名 `python3 -` 跑长时间全组合枚举。需要重型探针时，放到 `.codex/tests/*.py` 或正式测试脚本里，并写清早停条件。
+9. 对 Dinosaur、Cactus、Companion 这类已有正式模型的方向，优先用 `mechanism_model/` 做动作成本、完成率或命中率筛选；真实游戏用于验证已经过理论筛选的少数候选，不用于枚举试错。
+10. 探索阶段脚本应保留详细阶段日志，先定位最大时间来源；只有结构接近 `#1` 预算或候选差距很小时，才优先减少 `1t` 判断、重复 `measure()`、坐标回读、日志和函数层开销。
+11. 具体 `lb_xxx.py` 只保留当前确认最快的可执行策略；版本经验、失败路线、接近候选和每个版本的大致时间写入同名 `lb_xxx.md`。候选时间接近时必须跑完整统计或足够多轮对比后再替换 py 真源。
 
 ## 第一次使用时的前期布置
 
@@ -219,4 +227,11 @@ Python 主项目测试：
 
 ```bash
 PYTHONPATH=tfwr_orchestrator/src python3 -m unittest discover -s tfwr_orchestrator/tests -p 'test_*.py' -v
+```
+
+本地动作模型构建与示例运行：
+
+```bash
+dotnet build mechanism_model/TFWRMechanismModel.csproj
+dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- all
 ```

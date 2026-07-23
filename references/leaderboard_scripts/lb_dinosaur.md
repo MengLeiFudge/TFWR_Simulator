@@ -130,6 +130,108 @@
   - 改法：给固定回路建立 `path_index`，只允许 BFS 短切沿哈密顿顺序前进，避免跳到回路后方；窗口限制为 `max_depth=size+size//2`、`max_nodes=size*5`，仅在 `length < size*size/3` 的前期阶段启用。
   - 结果：`15:25.390` / `15:13.593`，两轮均值 `15:19.492`。
   - 结论：这是目前唯一有正收益且可完成的改法，保留为当前候选。
+- 2026-06-25 按 GIF / Snake 思路重建哈密顿顺序短切候选
+  - 用户明确该方向只用于 Dinosaur，并强调算法自身耗时。
+  - 离线探针 `.codex/tests/dinosaur_hamilton_safe_chase_screen.py` 尝试“全程 Hamiltonian-order safe chase”：邻格 O(1) 规则、不做 BFS / A*。60 秒 timeout 前多个组合仍 `0/24` 完整完成，平均长度明显不足；结论是不做全程替换。
+  - 代码候选曾改为复用历史 request `563` 的小窗口方案：`lb_dinosaur.py` 初始化 `path_index`，只在 `length < size*size/3` 前期调用 `try_hamilton_shortcut()`；搜索硬限制 `max_depth=size+size//2`、`max_nodes=size*5`，且只允许沿固定回路前方、不越过当前 apple 和安全窗口。
+  - 真实验证 request `731` 失败：运行到 `real_elapsed≈328.9s`、`game_time≈75990` 时仍 `leaderboard_runs=0`、`bone=0`，手动写入 `stop_requested` 后得到 `[lb_dinosaur] finished=false runs=1 average=1269:23.157`。
+  - 结论：这次“按旧结论重建”的 `path_index` / `try_hamilton_shortcut()` 不是可靠恢复，已从 `.py` 回退；后续不能再把 request `563` 的描述当成可直接复用代码，必须先有同 apple 条件的本地 game-like trace 再进实机。
+- 撞击现场一次性诊断
+  - 2026-06-26 为 `update_and_move()` 增加异常路径诊断：只有 `can_move(dir)` 为 `False` 时才 `quick_print("lb_dinosaur crash", phase, dir, head, apple, path, length, step, time)`，正常路径不打印每步移动。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_dinosaur.py` 通过；同步后 request `733` 两轮 `16:42.109` / `16:10.390`，没有出现 `lb_dinosaur crash` 输出，说明诊断未误触发。
+  - 结论：该改动只用于排查撞击，不视为效率优化；如果后续冲击最终成绩，应去掉 `phase` 赋值和诊断函数后再做正式复测。
+- 撞击诊断热路径压缩
+  - 2026-06-26 代码候选：删除常态路径上的 `phase` 全局变量和每阶段赋值，只保留 `can_move(dir)` 失败时的一行极简 `quick_print("lb_dinosaur crash", dir, x, y, mx, my, length, step, get_time())`。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_dinosaur.py` 通过；同步后 request `734` 两轮 `16:27.617` / `16:22.656`，均值 `16:25.137`，没有出现 crash 输出。
+  - 结论：该改动恢复了竞速热路径，但本轮实机仍没有刷新，成绩和 request `733` 接近；保留极简 crash 行作为排查兜底，不更新文件头成绩。
+- 预检查直移候选
+  - 2026-06-26 代码候选：在 `run_dinosaur_path()` 的 `can_move(North/South)` 成功分支里跳过 `update_and_move()` 内部的第二次 `can_move(dir)`，改为预检查后直接 `move()` 并更新本地 `x/y`、`step` 和 apple 状态；路径决策、追踪阈值、apple 更新规则和 crash 诊断都不变。
+  - 验证：`python3 -m py_compile references/leaderboard_scripts/lb_dinosaur.py` 通过；同步后 request `735` 两轮 `16:31.835` / `16:22.064`，均值 `16:26.950`，没有出现 crash 输出，运行结束后状态回到 `idle` 且 `suspicious_python=0`。
+  - 结论：该候选可完成但没有实机收益，已从正式 `.py` 回退；后续不要再做单纯“预检查成功后少一次 `can_move()`”的小改，除非能同时减少函数层或改变真实动作路径。
+- C# game-like 本地模型校准
+  - 2026-06-26 将 `mechanism_model` 增加 `lb-current-game` policy，按当前脚本流程模拟 `Apple.Measure()` 先读 `nextPos`、`DinosaurHat.OnMove()` 离开 apple 格时生成下一颗 apple、`target.nextPos == oldPos` 时重投，以及 `BoneCount()` 按 grid 上 `Dinosaur` 实体计数。
+  - 验证：`dotnet build mechanism_model/TFWRMechanismModel.csproj` 通过；`timeout 20s dotnet mechanism_model/bin/Debug/net10.0/TFWRMechanismModel.dll dinosaur --size 32 --runs 20 --max-moves 2000000 --policy lb-current-game` 完成 `20/20`，均值 `125706.750` moves / `4623468.950` action_ticks / `1023` apple。
+  - 阈值筛选：同模型下 `1/4, 9/32, 5/16, 1/3, 11/32, 3/8, 13/32, 1/2` 均 `100/100` 完成，模型动作数倾向 `13/32` / `3/8`，但真实 request `714` 已证明 `3/8` 慢于当前基线。
+  - 结论：模型已能复现当前脚本完成，可用于筛掉明显不成立的路线；但动作 tick 仍没有覆盖真实脚本分支、`1t` 调用和恢复成本，不能单独推翻既有实机结论。阈值上调暂不迁入正式脚本。
+- `chase_fill` 步数压缩候选
+  - 2026-06-26 在 `mechanism_model` 增加 `--fill-step-num/--fill-step-den`，用于筛 `run_dinosaur_path()` 每轮开头安全回路填充步数比例；当前默认 `15/16` 对齐正式脚本，旧 `1/1` 基线需要显式传参复现。
+  - 动态口径筛选：`fill_step=0/1, 1/4, 1/2, 3/4, 7/8` 均在 100 轮内 100% 撞击；`25/27` 为 `99/100` 完成；`14/15`、`13/14`、`15/16`、`23/24`、`31/32` 均 `100/100` 完成。
+  - 模型最佳可迁入候选是 `14/15`：seed `20260625` 下 `1/1` 为 `126288.120` moves / `4646999.100` action_ticks，`14/15` 为 `124075.650` moves / `4563148.040` action_ticks；seed `20260626..20260628` 的 `14/15` 也均 `100/100` 完成。
+  - 真实验证：把 `while step < length` 改为 `while step < length * 14 // 15` 后 request `736` 两轮 `16:36.284` / `16:02.381`，均值 `16:19.333`；同环境恢复基线 request `737` 两轮 `16:47.812` / `16:21.328`，均值 `16:34.570`；再次切回 `14/15` 的 request `738` 两轮 `16:31.099` / `16:40.742`，均值 `16:35.921`。
+  - 结论：`14/15` 可完成，但实机没有稳定刷新，也没有稳定压过基线波动；已从正式 `.py` 回退。后续不要继续做固定比例 `chase_fill` 压缩，除非结合更强的恢复判定或同 apple trace。
+- `chase_fill` 压缩 + 恢复绕行候选
+  - 2026-06-26 在 `mechanism_model` 增加 `--recover-detour`，用于筛 `recover_west` / `recover_south` 原方向被挡时走一步 Hamilton 路径方向再继续恢复；默认禁用。
+  - 模型筛选：`fill_step=25/27 --recover-detour` 在 seed `20260625..20260629` 共 `500/500` 完成，seed `20260625` 为 `123658.960` moves / `4548282.240` action_ticks，较默认 `126288.120` / `4646999.100` 有约 `2.1%` 动作 tick 收益；`shortcuts≈0`，说明主要收益仍来自少填充，detour 只补极少数恢复风险。
+  - 真实验证：迁入为 `while step < length * 25 // 27`，并在恢复段 `West/South` 被挡时退到 `path[x][y]`；request `739` 两轮 `16:24.453` / `16:32.265`，均值 `16:28.359`，没有 crash 输出，运行结束后状态回到 `idle`。
+  - 结论：该候选可完成但没有刷新，也没有稳定压过近期待测基线；已从正式 `.py` 回退。模型中保留 `--recover-detour` 作为后续组合筛选工具，不把固定比例少填充路线单独迁入实机。
+- `cycle_finish` phase 统计与后半段邻格短切
+  - 2026-06-26 `--phase-stats` 显示当前主线 100 轮中 `cycle_finish` 占 `62.77%` action_ticks，`chase_fill` 占 `22.03%`，其余单段均低于 `4%`。
+  - 后半段邻格短切筛选：`--cycle-adjacent-max-skip 2` 不触发；`4/8/16` 会出现碰撞且平均动作 tick 升高。
+  - 真实 phase probe request `740`：临时打印阶段耗时后，两轮分别为 `chase=391.54 / cycle=621.98 / total=1013.52` 和 `chase=367.24 / cycle=585.16 / total=952.39`；该 probe 已从正式 `.py` 撤掉并重新同步。
+  - `--cycle-bfs-shortcut` 上界探针：假设 `cycle_finish` 能持续知道下一颗 apple，并复用 Hamilton 单调小窗口 BFS；20 轮结果 `0/20` 完成，全部在 `cycle_finish` 碰撞。
+  - 结论：后半段大头是真实存在的，但“相邻 apple 就前向短切”和“直接套小窗口 BFS”都不是有效解；若要优化 `cycle_finish`，需要新的可恢复结构，而不是额外 `measure()` 加局部短切。
+- 延长追踪 + 少填充 + 恢复绕行组合
+  - 2026-06-26 模型候选：`chase_limit=3/8`、`fill_step=15/16`、`recover_detour_max_steps=1`。该组合在 seed `20260625..20260629` 共 `500/500` 完成，模型 action_ticks 约 `4.49M`，比默认 `4.65M` 低约 `3.2%`。
+  - 真实验证：迁入 `lb_dinosaur.py` 后 request `741` 两轮 `16:07.929` / `16:50.624`，均值 `16:29.277`；request `742` 两轮 `15:56.482` / `16:52.773`，均值 `16:24.628`。
+  - 同环境基线：恢复默认后 request `743` 两轮 `16:47.890` / `15:48.242`，均值 `16:18.066`，快于候选。
+  - 结论：模型收益没有转化成实机收益，候选长尾明显；已从正式 `.py` 回退。后续不要再只靠延长追踪阈值 + 固定 fill 比例组合进实机，除非能解释并压住第二轮长尾。
+- 后半段 / 全局 `move()` 返回值压缩
+  - 反编译依据：`Drone.Move()` 不能移动时直接返回 `false`，不调用 `DinosaurHat.OnMove()`，不改无人机位置；调度层 `SideEffect.Move` 会把该布尔值返回给脚本，失败成本是 `1` tick。即 `move(dir)` 本身可以承担原先 `can_move(dir)` 的安全检查。
+  - 本地模型增加 `--check-tick-cost`、`--cycle-use-move-result` 和 `--use-move-result`：
+    - 默认 100 轮：`avg_moves=126288.120`、`avg_action_ticks=4646999.100`、`avg_script_checks=130290.240`、`avg_total_ticks_with_checks=4777289.340`。
+    - 只压 `cycle_finish`：移动和动作 tick 不变，`avg_script_checks=41902.740`、`avg_total_ticks_with_checks=4688901.840`。
+    - 全局压 `update_and_move()` / `simple_update_and_move()`：移动和动作 tick 不变，`avg_script_checks=4002.120`、`avg_total_ticks_with_checks=4651001.220`。
+  - 后半段候选 request `744`：两轮 `16:07.031` / `16:30.937`，均值 `16:18.984`；request `745`：四轮 `16:38.515` / `16:48.437` / `16:09.960` / `16:01.015`，均值 `16:24.482`。结论是可完成但没有稳定压过基线。
+  - 全局候选 request `746`：四轮 `17:09.218` / `16:21.288` / `16:03.164` / `15:26.478`，均值 `16:15.037`；略快于同环境默认 request `743` 的 `16:18.066`，但差距仍在 Dinosaur 随机波动范围内。
+  - 结论：全局 `move()` 返回值压缩不改变路径，只减少 `1t` 检测，当前保留在 `.py` 作为实现层改进；但它还不能作为“已稳定刷新”的策略结论，文件头成绩暂不更新。若要确认最终成绩，需要跑完整统计或显式增加轮次数。
+- `cycle_finish` 等待分布与 9/25 保守延长追踪候选
+  - 2026-06-26 在 `mechanism_model` 增加 `--cycle-wait-stats`，统计后半段固定回路中每颗 apple 的等待移动数，以及当前 head 到 apple 的 Hamilton 前向距离 / 曼哈顿邻域机会密度。
+  - 默认 direct move 300 轮：`avg_wait_moves_per_apple=131.214`，`forward_le4=3.77%`，`manhattan_le1=2.07%`，`manhattan_le4=10.59%`。结论是 apple 机会接近稀疏随机，纯邻格 / 小窗口短切没有足够机会密度。
+  - 复核后半段短切：`cycle-adjacent-max-skip=2` 不触发；`4` 为 `49/50` 完成且更慢，首个失败发生在 `cycle_finish`，不迁入实机。
+  - 模型筛选出更保守的组合：`chase_limit=9/25`、`fill_step=15/16`、恢复段原方向被挡时沿 Hamilton 路径绕行，并保留全局 `move()` 返回值压缩。seed `20260625..20260628` 各 100 轮均 `100/100` 完成，action_ticks 约 `4.498M..4.520M`，低于旧默认 direct move 约 `2.4%..3.0%`。
+  - 真实验证 request `747`：四轮 `16:15.299` / `15:57.421` / `15:51.210` / `15:55.781`，均值 `15:59.928`。
+  - 真实验证 request `748`：四轮 `16:08.788` / `16:15.195` / `15:53.081` / `16:27.578`，均值 `16:11.161`。
+  - 结论：该候选两组 8 轮合并均值约 `16:05.545`，优于近期待测默认 / direct move 基线，但仍未超过历史最好复跑；当前保留在 `.py`，文件头成绩暂不更新。若要确认当前最快，需要跑完整统计或更多轮。
+- 2026-06-26 继续筛 `9/25` 附近阈值：
+  - 修正 `mechanism_model` 口径：`chase_limit` 改为乘法比较，匹配 Python 脚本的浮点 `length < size*size*num/den`，避免整数除法提前截断。
+  - 同时把 `mechanism_model` 默认 Dinosaur 参数对齐当前正式脚本：`9/25`、`15/16`、恢复段最多沿 Hamilton 路径绕行 `size*size` 步、默认使用 `move()` 返回值。
+  - `11/30 + 15/16` 在 seed `20260625` 为 `100/100` 且 `avg_action_ticks=4502340.840`，但 seed `20260626` 只有 `99/100`，首个失败在 `recover_south dir=S head=0,3`；该阈值不迁入。
+  - 细扫 `361/1000..364/1000`：`363/1000` 在 seed `20260626` 最快，`avg_action_ticks=4502196.030`，但 seed `20260627/20260628` 分别退化到 `4525203.840` / `4531651.160`；不是稳定收益。
+  - `362/1000` 在 seed `20260627` 出现 `recover_south` 左边界碰撞；新增 `--recover-south-edge-probe` 试探简单 East/North 逃逸后仍为 `99/100`，失败转移到 `recover_south dir=N head=1,1`。
+  - `--recover-south-edge-cycle` 试探先沿 Hamilton 路径绕回左边界再继续向南，seed `20260627` 仍为 `99/100`，失败转移到 `recover_south dir=N head=1,3`。
+  - `--recover-south-sweep` 试探 South 被挡时横向 sweep 等待释放：`362/1000` seed `20260627` 仍为 `99/100`，失败到四邻全封；`11/30` seed `20260626` 仍为 `99/100`，失败转移到下一轮 `chase_fill`。
+  - 结论：继续把追踪阈值从 `9/25` 上探，会遇到左边界恢复形状问题；局部逃逸、沿 Hamilton 小绕行或横向 sweep 都不能稳定解决。当前不改 `lb_dinosaur.py`，后续若再上探阈值，必须重新设计恢复段，而不是单变量微调。
+- recover 检测压缩负结论
+  - 2026-06-26 新增 `--recover-use-move-result` 探针，试探把恢复段 `can_move(West/South)` 预检查换成直接 `move(West/South)` 返回值。
+  - 模型结果：seed `20260625/20260626/20260627` 分别只有 `91/100`、`95/100`、`89/100` 完成，失败集中在 `recover_west`。
+  - 结论：失败 `move()` 虽只耗 `1` tick，但会改变尾巴释放时序，破坏当前稳定形状；recover 段不能用 `move()` 返回值替代 `can_move()` 预检查，不迁入实机。
+- cycle entry 统计与同阈值 entry tick 筛选
+  - 2026-06-26 新增 `--cycle-entry-stats`，记录进入 `cycle_finish` 时的脚本长度、grid dinosaur 数、剩余 apple、前期 moves / action ticks / 检测次数。
+  - 当前 `9/25 + 15/16`，seed `20260625` 100 轮：进入后半段时 `avg_script_length=369.780`、`avg_remaining_apples=653.230`、`avg_entry_action_ticks=1835760.060`，全局 `avg_action_ticks=4511825.760`。
+  - 旧 `1/3 + 1/1` 显著少吃前期 apple：`avg_script_length=342.820`、`avg_remaining_apples=680.180`、全局 `avg_action_ticks=4637419.560`。
+  - `3/8 + 15/16` 进入后半段前多吃约 `15` 颗 apple，但 `avg_entry_action_ticks=1945351.700`，比当前多约 `109591` tick；模型虽显示全局更快，实机 request `741/742` 已否掉，说明前期长尾和恢复形状成本不能只按动作模型判断。
+  - 同阈值 `fill_step` 复筛：`59/64`、`29/32`、`7/8` 都不稳；`31/32` 和 `1/1` 稳但更慢。当前 `15/16` 基本处在稳定与 entry tick 的边界。
+  - `--chase-skip-left-x 1..4` 是强负例：会让早期低 X apple 被长期跳过，`x=1` 仅 `1/100` 完成，`x=2..4` 均 `0/100`，失败多为 move-limit 空转。
+  - `--recover-west-stop-x 1..3` 试探恢复西移阶段停在 `x=1/2/3` 后直接向南恢复，entry tick 略低，但完成率只有 `59/100`、`35/100`、`16/100`，大量 move-limit 出现在下一轮 `chase_fill`。
+  - 结论：下一步不能靠简单跳过左侧 apple、继续压 `fill_step`，或让 recover_west 停在非零列；这些都会破坏下一轮左下角安全形状。若要减少 entry tick，必须改“追 apple 后如何恢复安全形状”，且最终仍要恢复到可进入下一轮的稳定形态。
+- recover BFS 回原点负结论
+  - 2026-06-26 新增 `--recover-bfs-to-origin` 上界探针：每轮追 apple 后尝试用有限 BFS 回到 `(0,0)`，并用虚拟执行确认从上方进入原点后下一步 Hamilton 出口仍可走。
+  - 未加虚拟执行约束时，seed `20260625/20260626` 都是 `0/100` 完成，首个失败在下一轮 `chase_fill` 从 `(0,0)` 往东时被尾巴堵住；说明“回到原点”不等于“回到可继续走的左下角形状”。
+  - 加虚拟执行后，seed `20260625/20260628` 分别只有 `99/100`、`97/100` 完成，失败集中在后续 `recover_west` 四邻被封；seed `20260626/20260627` 虽为 `100/100`，但 `avg_action_ticks` 分别为 `4519088.380`、`4515195.950`，不稳定优于默认。
+  - 用它给更高追踪阈值兜底也不稳：`11/30` 在 seed `20260625/20260626` 为 `100/100`，但 seed `20260627/20260628` 只有 `98/100`、`99/100`；`362/1000` seed `20260627` 仍 `99/100`，`363/1000` seed `20260626` 仍 `99/100`。
+  - 结论：这类 BFS 主要减少少量 `can_move()` 统计，动作 tick 没有稳定收益，还要付出游戏脚本搜索成本和完成率风险；不迁入 `lb_dinosaur.py`。后续 recover 优化不能只把目标设为 `(0,0)`，必须显式定义并保持下一轮可持续的左下角尾形。
+- chase vertical move-result 负结论
+  - 2026-06-26 新增 `--chase-vertical-use-move-result` 探针：在追 apple 的 `North/South` 调整里先尝试 `move(North/South)`，失败再走 `West`，用于替代原先 `can_move(North/South)` 预检查。
+  - 模型结果：seed `20260625..20260628` 均 `100/100` 完成，`avg_script_checks` 从约 `8.6k` 降到约 `4.6k`，但失败垂直尝试会把 `avg_action_ticks` 提高约 `85`。
+  - 真实验证 request `749`：迁入 `try_vertical_or_west()` 后 300 秒内没有任何 leaderboard 完成轮，`leaderboard_runs=0`，手动写入 `stop_requested` 后状态变为 `failed`；已回退正式 `lb_dinosaur.py` 并重新同步 Save0。
+  - 结论：垂直分支不能用失败 `move()` 替代 `can_move()`；模型低估了失败移动在真实脚本中的长尾影响。后续不要再做追 apple 分支的“先 move 失败再兜底”改法。
+- 额外追踪窗口与后半段 O(4) 贪心短切负结论
+  - 2026-06-26 新增 `--extra-chase-limit-num/den`、`--extra-chase-min-apple-x`、`--extra-chase-fill-step-num/den`，用于筛“基础 `9/25` 后只追门控 apple”的额外窗口。
+  - `3/8 + minX=8 + 默认 15/16 fill` 在 seed `20260625..20260627` 可完成但 seed `20260628` 只有 `99/100`，首个失败为 `recover_west dir=W head=8,1`；`11/30 + minX=8` 虽在 seed `20260625..20260628` 均 `100/100`，但收益方向不稳，seed `20260628` 比默认更慢。
+  - 试图在额外窗口里降低 fill 成本更差：`extra_fill=0/1, 1/2, 3/4, 7/8` 在 seed `20260625` 的完成率分别只有 `20/100`、`16/100`、`15/100`、`52/100`，失败集中在 `chase_west_to_apple_x` 或 `recover_west` 被尾巴封住。
+  - 更激进额外窗口没有稳定性：`13/32` 在 seed `20260626/20260627` 只有 `99/100`，`2/5` 在 seed `20260625` 只有 `98/100`；失败仍集中在 `recover_south` / `recover_west`。
+  - 新增 `--cycle-greedy-shortcut-max-skip` 试探后半段 O(4) Hamilton 前向贪心短切；在 `--use-move-result false` 且 seed `20260625` 下，`skip=4` 虽 `100/100` 完成但 `avg_moves=179354.210`、`avg_action_ticks=6394843.840`，明显慢于当前约 `122543.700` / `4511825.760`；`skip=8` 为 `99/100` 且 `avg_moves=239913.710`；`skip=16` 为 `97/100` 且 `avg_moves=266770.780`。
+  - 结论：基础 `9/25` 后继续追 apple 的收益不足以抵消恢复形状风险；额外阶段不能省 `chase_fill` 释放步数；后半段 O(4) 贪心短切会破坏固定回路等待分布。以上候选均不迁入 `lb_dinosaur.py`。
 - 放宽短切窗口或延长追踪阶段
   - 2026-05-02 请求 `564` / `565` / `567` / `570` 验证。
   - 结果：
@@ -209,6 +311,9 @@
 - `.codex/tests/dinosaur_early_greedy_recovery_screen.py` 证明前期 direct greedy 不稳，cycle-forward 约束又太保守；不再重开“前 N 个尾长直接朝苹果走”的路线。
 - 2026-06-10 已把早期 `measure()` 改为“走到当前 apple 坐标才测下一目标”的候选；它不改变路径结构，只减少非目标格测量。下一次游戏恢复后必须优先真实短跑确认，确认前不更新成绩注释。
 - 2026-06-10 已把坐标增量更新分支内联到移动热路径，并缓存 `chase_limit`；这是管理成本候选，不改变路径结构，确认前不更新成绩注释。
+- 2026-06-26 已实测“预检查成功后少一次 `can_move()`”没有刷新，正式脚本已回退；后续不要继续做这种单点 `1t` 检测小改。
+- 2026-06-26 已实测固定比例压缩 `chase_fill` 到 `14/15` 没有稳定刷新，正式脚本已回退；后续需要同 apple trace 或动态恢复判定，而不是固定比例微调。
+- 2026-06-26 已把 `move()` 返回值用于 `update_and_move()` / `simple_update_and_move()`，以替代移动前 `can_move()` 预检查；该改法同路径、可完成，模型中 `avg_script_checks` 从约 `130k` 降到约 `4k`，但实机 request `746` 只显示轻微优势，仍需更长统计确认。
 - 优化目标应明确写成：
   - 不是做分段 cash-out
   - 而是保留 `dinosaur2` 的“前期追苹果、后期保命”结构，继续压缩吃苹果等待步数

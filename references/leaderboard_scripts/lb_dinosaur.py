@@ -53,11 +53,11 @@ def update_and_move(dir):
     global mx
     global my
 
-    if not can_move(dir):
+    if not move(dir):
+        quick_print("lb_dinosaur crash", dir, x, y, mx, my, length, step, get_time())
         while True:
             pass
 
-    move(dir)
     step += 1
 
     if dir == North:
@@ -82,10 +82,9 @@ def simple_update_and_move(dir):
     global x
     global y
 
-    if not can_move(dir):
+    if not move(dir):
         return False
 
-    move(dir)
     if dir == North:
         y += 1
     elif dir == South:
@@ -101,10 +100,10 @@ def simple_update_and_move(dir):
 def run_dinosaur_path():
     global step
 
-    chase_limit = size * size / 3
+    chase_limit = size * size * 9 / 25
     while length < chase_limit:
         step = 0
-        while step < length:
+        while step < length * 15 // 16:
             update_and_move(path[x][y])
         while x < mx:
             update_and_move(East)
@@ -140,9 +139,15 @@ def run_dinosaur_path():
             if x == 0:
                 break
         while x > 0:
-            update_and_move(West)
+            if can_move(West):
+                update_and_move(West)
+            else:
+                update_and_move(path[x][y])
         while y > 0:
-            update_and_move(South)
+            if can_move(South):
+                update_and_move(South)
+            else:
+                update_and_move(path[x][y])
     while simple_update_and_move(path[x][y]):
         pass
     clear()
