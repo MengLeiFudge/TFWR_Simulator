@@ -90,6 +90,8 @@ class FarmWorld:
         self.dry_due = math.inf
         self.next_plant_order = 0
         self.pumpkin_squares = {}
+        self.sunflower_petals = Counter()
+        self.snake_counts = Counter()
         self.calls, self.costs = Counter(), Counter()
         self.harvests, self.warnings = [], []
         self.size_limit = 0
@@ -146,6 +148,8 @@ class FarmWorld:
         self.dry_growing.clear()
         self.dry_due = math.inf
         self.pumpkin_squares.clear()
+        self.sunflower_petals.clear()
+        self.snake_counts.clear()
         self.grounds.clear()
         self.water = {pos: value for pos, value in self.water.items() if self.in_bounds(pos)}
         self.water_updated = {pos: self.water_updated[pos] for pos in self.water}
@@ -176,6 +180,8 @@ class FarmWorld:
         crop = Plant(kind, pos, order=self.next_plant_order)
         self.next_plant_order += 1
         self.entities[pos] = crop
+        if kind in (Entities.Apple, Entities.Dinosaur):
+            self.snake_counts[kind] += 1
         spec = CROPS.get(kind)
         if spec:
             rng = self.rng['various']
@@ -191,6 +197,7 @@ class FarmWorld:
                 crop.number = self.cache[pos]
             elif kind == Entities.Sunflower:
                 crop.number = self.rng['sunflower'].next(7, 16)
+                self.sunflower_petals[crop.number] += 1
             elif kind == Entities.Pumpkin:
                 crop.number = int.from_bytes(hashlib.sha256(self.rng['pumpkin'].bytes(16)).digest()[:4], 'little') & 2147483647
         crop.tree_factor = self.tree_penalty(crop)
@@ -222,6 +229,12 @@ class FarmWorld:
                 self.remove(p, regrow=regrow, internal=internal)
             return
         self.entities.pop(pos, None)
+        if crop.kind in (Entities.Apple, Entities.Dinosaur):
+            self.snake_counts[crop.kind] -= 1
+        if crop.kind == Entities.Sunflower:
+            self.sunflower_petals[crop.number] -= 1
+            if self.sunflower_petals[crop.number] == 0:
+                del self.sunflower_petals[crop.number]
         self.growing.pop(crop, None)
         self.dry_growing.pop(crop, None)
         if crop.kind == Entities.Pumpkin and crop.grown:
@@ -390,6 +403,7 @@ class FarmWorld:
         positions = [self.pos]
         if crop.kind == Entities.Cactus:
             popped, pending = set(), [self.pos]
+            sorted_cacti = {}
             while pending:
                 pos = pending.pop()
                 current = self.entities.get(pos)
@@ -397,7 +411,15 @@ class FarmWorld:
                     continue
                 popped.add(pos)
                 neighbors = self.neighbors(pos)
-                if all(n is None or n.kind != Entities.Cactus or self.is_sorted(n) for n in neighbors):
+                for neighbor in neighbors:
+                    if neighbor is None or neighbor.kind != Entities.Cactus:
+                        continue
+                    if neighbor not in sorted_cacti:
+                        sorted_cacti[neighbor] = self.is_sorted(neighbor)
+                    if not sorted_cacti[neighbor]:
+                        break
+                else:
+                    # 遍历期间实体不变，排序结果只在这次收获中复用。
                     pending.extend(n.pos for n in neighbors if n is not None and n.kind == Entities.Cactus)
             positions = sorted(popped)
             per_plant = len(positions) * factor
@@ -413,8 +435,7 @@ class FarmWorld:
                 if companion is not None and companion.kind == kind:
                     per_plant *= 5 << self.unlocks['polyculture']
             if crop.kind == Entities.Sunflower:
-                flowers = [c for c in self.entities.values() if c.kind == Entities.Sunflower]
-                if len(flowers) >= 10 and crop.number == max(c.number for c in flowers):
+                if sum(self.sunflower_petals.values()) >= 10 and crop.number == max(self.sunflower_petals):
                     per_plant *= 8
         weird = sum(self.entities[p].weird for p in positions)
         goo = math.floor(0.5 * weird * per_plant)

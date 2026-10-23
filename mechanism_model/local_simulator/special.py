@@ -180,7 +180,7 @@ class Dinosaur:
         if world.size <= 1:
             self.target.number = None
             return
-        if all(e.kind in (Entities.Apple, Entities.Dinosaur) for e in world.entities.values()) and len(world.entities) == world.width * world.size:
+        if world.snake_counts[Entities.Apple] + world.snake_counts[Entities.Dinosaur] == world.width * world.size:
             self.target.number = None
             return
         for _ in range(100000):
@@ -223,7 +223,7 @@ class Dinosaur:
         world = self.world
         world.dinosaur = None
         if self.tail:
-            count = sum(e.kind == Entities.Dinosaur for e in world.entities.values())
+            count = world.snake_counts[Entities.Dinosaur]
             world.add_item(Items.Bone, count * count * world.yield_factor(Entities.Dinosaur))
         for segment in self.tail:
             world.remove(segment.pos, internal=True)
