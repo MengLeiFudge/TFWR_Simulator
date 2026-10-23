@@ -44,11 +44,38 @@ class Drone:
         return self
 
 
+class BudgetChecks(ast.NodeTransformer):
+    """在源语句和循环边界计步；检查不yield，也不增加虚拟游戏时间。"""
+
+    @staticmethod
+    def call(line):
+        return ast.Call(ast.Name('_budget', ast.Load()), [ast.Constant(line)], [])
+
+    def generic_visit(self, node):
+        super().generic_visit(node)
+        for field, values in ast.iter_fields(node):
+            if not isinstance(values, list):
+                continue
+            statements = []
+            for value in values:
+                if isinstance(value, ast.stmt) and hasattr(value, 'lineno') and not isinstance(value, ast.Global):
+                    statements.append(ast.copy_location(ast.Expr(self.call(value.lineno)), value))
+                statements.append(value)
+            setattr(node, field, statements)
+        if isinstance(node, ast.While):
+            node.test = ast.copy_location(ast.BoolOp(ast.And(), [self.call(node.lineno), node.test]), node.test)
+        elif isinstance(node, ast.For):
+            node.body.insert(0, ast.copy_location(ast.Expr(self.call(node.lineno)), node))
+        return node
+
+
 class Calls(ast.NodeTransformer):
     """把普通调用改成可暂停调用；每个用户函数都变为协程，包括无 API 的函数。"""
 
     def visit_Call(self, node):
         self.generic_visit(node)
+        if isinstance(node.func, ast.Name) and node.func.id == '_budget':
+            return node
         return ast.copy_location(ast.YieldFrom(ast.Call(
             ast.Name('_dispatch', ast.Load()), [node.func, *node.args], node.keywords)), node)
 
@@ -87,6 +114,7 @@ def compile_script(tree, path):
     entry = ast.FunctionDef('_entry', ast.arguments(posonlyargs=[], args=[], kwonlyargs=[],
                            kw_defaults=[], defaults=[]), tree.body, [], returns=None, type_params=[])
     tree.body = [entry]
+    tree = BudgetChecks().visit(tree)
     tree = Calls().visit(tree)
     return compile(ast.fix_missing_locations(tree), str(path), 'exec')
 

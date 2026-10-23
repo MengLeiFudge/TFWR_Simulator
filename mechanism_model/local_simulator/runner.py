@@ -53,6 +53,11 @@ def compile_source(source, filename):
             raise UnsupportedMechanism(f'第 {getattr(node, "lineno", "?")} 行：尚未支持 {type(node).__name__}')
         if isinstance(node, ast.Attribute) and (node.attr.startswith('_') or node.attr not in attributes):
             raise UnsupportedMechanism(f'第 {node.lineno} 行：尚未支持属性 {node.attr}')
+        if ((isinstance(node, ast.Name) and node.id == '_budget')
+                or (isinstance(node, ast.FunctionDef) and node.name == '_budget')
+                or (isinstance(node, ast.arg) and node.arg == '_budget')
+                or (isinstance(node, ast.Global) and '_budget' in node.names)):
+            raise UnsupportedMechanism('_budget 是执行预算保留名称')
         if isinstance(node, ast.Name) and node.id.startswith('__') and node.id != '__name__':
             raise UnsupportedMechanism(f'第 {node.lineno} 行：不支持名称 {node.id}')
         if isinstance(node, ast.FunctionDef) and (node.decorator_list or node.returns):
@@ -117,33 +122,30 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
     env.update({name: Api(name) for name in API_NAMES})
     scheduler = Scheduler(world, observe if trace else None, check)
 
-    def guard(frame, event, _arg):
+    def budget(line):
+        """编译检查点限制源语句与循环次数；API检查和父进程另行兜住墙钟。"""
         nonlocal steps, last_line
-        if frame.f_code.co_filename != str(path):
-            return None
-        if event in ('line', 'call'):
-            steps += 1
-            last_line = frame.f_lineno
-            if steps > max_steps:
-                raise BudgetExceeded(f'达到脚本执行步数上限 {max_steps}')
-            if steps % 1024 == 0 and time.monotonic() >= deadline:
-                raise BudgetExceeded(f'达到墙钟上限 {seconds:g}s')
-        return guard
+        steps += 1
+        last_line = line
+        if steps > max_steps:
+            raise BudgetExceeded(f'达到脚本执行步数上限 {max_steps}')
+        if steps % 1024 == 0 and time.monotonic() >= deadline:
+            raise BudgetExceeded(f'达到墙钟上限 {seconds:g}s')
+        return True
+
+    env['_budget'] = budget
 
     status = 'completed'
     error = None
-    previous_trace = sys.gettrace()
     try:
         if trace:
             trace_file = Path(trace).open('w', encoding='utf-8', newline='\n')
-        sys.settrace(guard)
         exec(code, env)
         scheduler.run(env['_entry'])
     except (Exception, KeyboardInterrupt) as exc:
         status = 'stopped'
         error = {'type': type(exc).__name__, 'message': str(exc), 'line': last_line}
     finally:
-        sys.settrace(previous_trace)
         if trace_file:
             trace_file.close()
     return {
@@ -154,7 +156,7 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         'api_ticks': world.ticks, 'tick_ns': world.tick_ns,
         'predicted_game_seconds': world.now_ns / 1000000000,
         'predicted_api_seconds': world.now_ns / 1000000000,
-        'interpreter_ticks': None, 'script_steps': steps,
+        'interpreter_ticks': None, 'script_steps': steps, 'step_basis': 'compiled_checkpoint',
         'api_calls': {k:v for k,v in world.calls.items() if k != '_step'},
         'api_ticks_by_function': {k:v for k,v in world.costs.items() if k != '_step'},
         'estimated_loop_ticks': world.costs.get('_step', 0),
@@ -213,7 +215,7 @@ def main():
     parser.add_argument('--trace', type=Path, help='写入逐 API JSONL；会覆盖指定文件')
     parser.add_argument('--output', type=Path, help='写入 JSON 报告；会覆盖指定文件')
     parser.add_argument('--max-api-calls', type=int, default=100000)
-    parser.add_argument('--max-steps', type=int, default=2000000, help='脚本行/函数调用事件上限，不是游戏 tick')
+    parser.add_argument('--max-steps', type=int, default=2000000, help='编译后源语句/循环预算检查点上限，不是游戏tick')
     parser.add_argument('--timeout', type=float, default=10, help='整个工作进程的墙钟上限，默认 10 秒')
     args = parser.parse_args()
     seeds = args.seeds or [args.seed]

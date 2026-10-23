@@ -1,21 +1,41 @@
 """南瓜分组、迷宫和恐龙的状态机；农田与资源仍由 FarmWorld 持有。"""
 
 from collections import deque
+import heapq
 
 from .catalog import Direction, Entities, Grounds, Items
+
+
+def update_pumpkin_squares(world, pos):
+    """单格变化只刷新依赖它的西南正方形；按x+y降序保证先更新依赖。"""
+    dp = world.pumpkin_squares
+    pending = [(-(pos[0] + pos[1]), pos)]
+    queued = {pos}
+    while pending:
+        _, current = heapq.heappop(pending)
+        x, y = current
+        crop = world.entities.get(current)
+        value = 0
+        if crop is not None and crop.kind == Entities.Pumpkin and crop.grown:
+            value = 1 + min(dp.get((x + 1, y), 0), dp.get((x, y + 1), 0), dp.get((x + 1, y + 1), 0))
+        if value == dp.get(current, 0):
+            continue
+        if value:
+            dp[current] = value
+        else:
+            dp.pop(current, None)
+        for neighbor in ((x - 1, y), (x, y - 1), (x - 1, y - 1)):
+            if world.in_bounds(neighbor) and neighbor not in queued:
+                queued.add(neighbor)
+                heapq.heappush(pending, (-(neighbor[0] + neighbor[1]), neighbor))
 
 
 def merge_pumpkin(world, plant):
     """选择包含新成熟南瓜的最大正方形，已有合并组不能被部分切开。"""
     size = world.size
-    dp = {}
-    maximum = 1
-    for y in range(size - 1, -1, -1):
-        for x in range(world.width - 1, -1, -1):
-            crop = world.entities.get((x, y))
-            if crop is not None and crop.kind == Entities.Pumpkin and crop.grown:
-                dp[x, y] = 1 + min(dp.get((x + 1, y), 0), dp.get((x, y + 1), 0), dp.get((x + 1, y + 1), 0))
-                maximum = max(maximum, dp[x, y])
+    update_pumpkin_squares(world, plant.pos)
+    dp = world.pumpkin_squares
+    maximum = max(dp.values(), default=1)
     px, py = plant.pos
     for side in range(maximum, 0, -1):
         for y in range(max(0, py - side + 1), min(py + 1, size - side + 1)):

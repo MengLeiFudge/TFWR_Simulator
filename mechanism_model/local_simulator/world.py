@@ -7,7 +7,7 @@ import math
 
 from .catalog import Direction, Entities, Grounds, Items, Hats, Unlocks, UNLOCK_DATA, VECTORS, CROPS, OBJECTS
 from .randomness import MonoRandom, stream_seeds
-from .special import Dinosaur, Maze, merge_pumpkin
+from .special import Dinosaur, Maze, merge_pumpkin, update_pumpkin_squares
 
 WATER_DECAY_RATE = -10 * math.log(0.999)
 
@@ -31,6 +31,7 @@ class Plant:
     maze: object = None
     passable: bool = False
     tree_factor: int = 1
+    order: int = 0
 
 
 class FarmWorld:
@@ -82,7 +83,13 @@ class FarmWorld:
         self.vectors = VECTORS
         self.water, self.grounds, self.entities, self.cache = {}, {}, {}, {}
         self.water_updated = {}
+        self.water_factor_time = None
+        self.water_factors = {}
         self.growing = {}
+        self.dry_growing = {}
+        self.dry_due = math.inf
+        self.next_plant_order = 0
+        self.pumpkin_squares = {}
         self.calls, self.costs = Counter(), Counter()
         self.harvests, self.warnings = [], []
         self.size_limit = 0
@@ -136,6 +143,9 @@ class FarmWorld:
         self.mazes.clear()
         self.entities.clear()
         self.growing.clear()
+        self.dry_growing.clear()
+        self.dry_due = math.inf
+        self.pumpkin_squares.clear()
         self.grounds.clear()
         self.water = {pos: value for pos, value in self.water.items() if self.in_bounds(pos)}
         self.water_updated = {pos: self.water_updated[pos] for pos in self.water}
@@ -163,7 +173,8 @@ class FarmWorld:
         """替换实体，统一处理南瓜组、迷宫和恐龙尾巴的连带删除。"""
         if pos in self.entities:
             self.remove(pos, regrow=False, internal=internal)
-        crop = Plant(kind, pos)
+        crop = Plant(kind, pos, order=self.next_plant_order)
+        self.next_plant_order += 1
         self.entities[pos] = crop
         spec = CROPS.get(kind)
         if spec:
@@ -182,9 +193,8 @@ class FarmWorld:
                 crop.number = self.rng['sunflower'].next(7, 16)
             elif kind == Entities.Pumpkin:
                 crop.number = int.from_bytes(hashlib.sha256(self.rng['pumpkin'].bytes(16)).digest()[:4], 'little') & 2147483647
-        if spec:
-            self.growing[crop] = None
         crop.tree_factor = self.tree_penalty(crop)
+        self.track_growth(crop)
         if kind == Entities.Tree:
             self.update_neighbors(pos)
         return crop
@@ -213,6 +223,9 @@ class FarmWorld:
             return
         self.entities.pop(pos, None)
         self.growing.pop(crop, None)
+        self.dry_growing.pop(crop, None)
+        if crop.kind == Entities.Pumpkin and crop.grown:
+            update_pumpkin_squares(self, pos)
         if regrow and self.grounds.get(pos) == Grounds.Grassland:
             self.set_entity(pos, Entities.Grass)
 
@@ -229,6 +242,7 @@ class FarmWorld:
         if crop.grown or self.entities.get(crop.pos) is not crop:
             return
         self.growing.pop(crop, None)
+        self.dry_growing.pop(crop, None)
         crop.progress = 1
         crop.grown = True
         if crop.kind == Entities.Cactus:
@@ -239,6 +253,33 @@ class FarmWorld:
             else:
                 merge_pumpkin(self, crop)
         self.update_neighbors(crop.pos)
+
+    def growth_progress(self, crop):
+        """补算干燥非树木作物的线性进度；其他作物已在时间推进中更新。"""
+        updated = self.dry_growing.get(crop)
+        if updated is None:
+            return crop.progress
+        return crop.progress + (self.now_ns - updated) / (1000000000 * crop.seconds)
+
+    def sync_growth(self, crop):
+        """改变水量、位置或施肥前，先结算旧条件下的进度。"""
+        if crop in self.dry_growing:
+            crop.progress = self.growth_progress(crop)
+            self.dry_growing[crop] = self.now_ns
+
+    def track_growth(self, crop):
+        """稳定干燥作物延迟计算；树木与湿润作物保留逐段积分。"""
+        self.growing.pop(crop, None)
+        self.dry_growing.pop(crop, None)
+        if crop.seconds <= 0 or crop.grown:
+            return
+        if crop.kind != Entities.Tree and self.water_at(crop.pos) == 0:
+            self.dry_growing[crop] = self.now_ns
+            due = self.now_ns + max(0, 1 - 1e-12 - crop.progress) * crop.seconds * 1000000000
+            # 下取整作为保守下界；删除作物可留下过早下界，至多多扫描一次。
+            self.dry_due = min(self.dry_due, math.floor(due))
+        else:
+            self.growing[crop] = None
 
     def advance_to(self, end):
         """推进生长与补给；同一次动作内按估计成熟时刻处理死亡/南瓜合并。"""
@@ -260,9 +301,20 @@ class FarmWorld:
                     offset = dt * max(0, 1 - crop.progress) / progress if progress else 0
                     grown.append((offset, crop))
                 crop.progress += progress
+            if stop >= self.dry_due:
+                self.dry_due = math.inf
+                for crop, updated in self.dry_growing.items():
+                    initial = self.growth_progress(crop)
+                    crop.progress += (stop - updated) / (1000000000 * crop.seconds)
+                    self.dry_growing[crop] = stop
+                    if crop.progress >= 1 - 1e-12:
+                        grown.append((max(0, 1 - initial) * crop.seconds, crop))
+                    else:
+                        due = stop + (1 - 1e-12 - crop.progress) * crop.seconds * 1000000000
+                        self.dry_due = min(self.dry_due, math.floor(due))
             self.ticks += (stop - self.now_ns) / self.tick_ns
             self.now_ns = stop
-            for _, crop in sorted(grown, key=lambda pair: pair[0]):
+            for _, crop in sorted(grown, key=lambda pair: (pair[0], pair[1].order)):
                 self.mature(crop)
             for maze in self.mazes:
                 if not maze.removed and maze.relocate_at is not None and maze.relocate_at <= stop:
@@ -450,7 +502,9 @@ class FarmWorld:
         self.entities.pop(dest, None)
         for crop, pos in ((here, dest), (there, self.pos)):
             if crop is not None:
+                self.sync_growth(crop)
                 crop.pos = pos
+                self.track_growth(crop)
                 self.entities[pos] = crop
         return True, 200
 
@@ -523,11 +577,18 @@ class FarmWorld:
         return self.script_rng.double(), 1
 
     def water_at(self, pos):
-        """按最后一次浇水时间计算当前水量；查询不修改水量或推进虚拟时钟。"""
+        """按需结算水量；同一时刻共享相同间隔的衰减因子，不推进时钟。"""
         if pos not in self.water:
             return 0.0
-        elapsed = (self.now_ns - self.water_updated[pos]) / 1000000000
-        return self.water[pos] * math.exp(-WATER_DECAY_RATE * elapsed)
+        if self.water_factor_time != self.now_ns:
+            self.water_factors.clear()
+            self.water_factor_time = self.now_ns
+        elapsed = self.now_ns - self.water_updated[pos]
+        if elapsed not in self.water_factors:
+            self.water_factors[elapsed] = math.exp(-WATER_DECAY_RATE * elapsed / 1000000000)
+        self.water[pos] *= self.water_factors[elapsed]
+        self.water_updated[pos] = self.now_ns
+        return self.water[pos]
 
     def api_get_water(self):
         return self.water_at(self.pos), 1
@@ -542,16 +603,23 @@ class FarmWorld:
             return False, 1
         crop = self.entities.get(self.pos)
         if item == Items.Water:
+            if crop is not None:
+                self.sync_growth(crop)
             self.water[self.pos] = min(1, self.water_at(self.pos) + 0.25 * amount)
             self.water_updated[self.pos] = self.now_ns
+            if crop is not None:
+                self.track_growth(crop)
         elif item == Items.Fertilizer:
             if crop is None or crop.kind not in CROPS:
                 return False, 1
+            self.sync_growth(crop)
             crop.weird = True
             crop.tree_factor = self.tree_penalty(crop)
             crop.progress += 2 * amount * (1 + 4 * self.water_at(self.pos)) / (crop.seconds * crop.tree_factor)
             if crop.progress >= 1:
                 self.mature(crop)
+            else:
+                self.track_growth(crop)
         elif item == Items.Weird_Substance:
             size = amount // (1 << max(0, self.unlocks['mazes'] - 1))
             if crop and crop.kind == Entities.Bush and self.unlocks['mazes'] > 0 and size > 0:
@@ -656,7 +724,7 @@ class FarmWorld:
         return {'size':self.size, 'width':self.width, 'pos':list(self.pos),
                 'items':{key.value:value for key,value in self.items.items()}, 'unlocks':self.unlocks,
                 'water':{str(pos):self.water_at(pos) for pos in self.water},
-                'entities':[{'pos':c.pos,'kind':c.kind.value,'grown':c.grown,'progress':c.progress,
+                'entities':[{'pos':c.pos,'kind':c.kind.value,'grown':c.grown,'progress':self.growth_progress(c),
                              'number':c.number,'weird':c.weird,'companion':c.companion,'group':c.group}
                             for c in self.entities.values()],
                 'board':[[self.entities[x,y].number if (x,y) in self.entities and self.entities[x,y].kind == Entities.Cactus else None
