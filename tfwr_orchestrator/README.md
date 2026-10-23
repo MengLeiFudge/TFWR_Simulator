@@ -140,7 +140,7 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --action result --reques
 
 回执分别提供 `outcome`、`reason_code`、`completed_runs`、`average_game_seconds` 与 `full_statistics`。只将真实 `run=` 日志计入完成轮；`progress.prediction=true` 表示轮内估算。默认达到至少两轮且最近两轮差异不超过10%时主动停止，`reason_code=sample_limit`，不等于官方完整统计。要等待完整统计，设 `--max-leaderboard-runs 0`，并给足请求和等待超时。
 
-JSON任务接口的 `--status-lines` 默认每份输出显示最后80行。活动任务按保存的字节游标读取新增完整日志行，并保留未完成行、完成轮和首末库存样本；重复查询不从请求起点重读全部日志。终态摘要保留80行尾部，常规JSON查询直接返回摘要；显式要求更多行且输出超过80行时才加载完整归档。旧版文本 `--status-only` 保留原来的日志统计方式。
+JSON任务接口的 `--status-lines` 默认每份输出显示最后80行。活动任务按保存的字节游标读取新增完整日志行，并保留未完成行、完成轮和首末库存样本；重复查询不从请求起点重读全部日志。持续等待与状态查询共用增量统计，等待期间不累积完整日志历史；进度展示使用首末库存样本，均值和稳定性使用真实完成轮，官方成功摘要单独保留。终态摘要保留80行尾部，常规JSON查询直接返回摘要；显式要求更多行且输出超过80行时才加载完整归档。旧版文本 `--status-only` 保留原来的日志统计方式。
 
 `output_lines`、`outputs_truncated`标明展示截断，完整终态报告在 `result_path`；新版归档直接保存报告对象，旧版路径仍指向含 `result` 字段的回执。结果同时保留BepInEx与Unity日志。退出码0表示该操作正常结束，仍须检查 `outcome/full_statistics`；忙为3，执行或接口错误为5，参数解析错误为2。`submit`没有持续监控：调用者应及时wait，或自行有界监看并取消、回收。
 

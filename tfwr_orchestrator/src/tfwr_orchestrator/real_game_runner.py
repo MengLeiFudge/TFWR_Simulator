@@ -13,7 +13,7 @@ import subprocess
 import tempfile
 import time
 import sys
-from typing import Any, cast
+from typing import Any, Sequence, cast
 
 from .config import (
     load_local_env,
@@ -464,16 +464,14 @@ def wait_for_status(
 ) -> dict[str, object]:
     deadline = time.monotonic() + timeout_seconds
     last_output_activity_at = time.monotonic()
-    last_mod_output_count = 0
     log_cursor = LogCursor(baseline.mod_output_path, baseline.mod_output_signature)
-    mod_output_lines: list[str] = []
-    run_times: tuple[float, ...] = ()
+    monitor = new_task_monitor()
+    run_times = monitor['runs']
     next_process_check_at = 0.0
     stop_requested_for_stall = False
     controlled_stop_message: str | None = None
     last_live_progress_at = 0.0
     last_live_progress_line = ""
-    request_pattern = re.compile(rf'\brequest_id={request_id}\b')
     while time.monotonic() < deadline:
         loop_now = time.monotonic()
         if loop_now >= next_process_check_at:
@@ -507,21 +505,15 @@ def wait_for_status(
                 appended = log_cursor.read_lines()
                 if appended:
                     last_output_activity_at = loop_now
-                new_lines = tuple(line for line in appended if request_pattern.search(line))
-                if new_lines:
-                    mod_output_lines.extend(new_lines)
-                    last_mod_output_count += len(new_lines)
-                    run_times += parse_leaderboard_run_times(new_lines)
+                accumulate_task_lines(monitor, appended, request_id)
 
                 if loop_now - last_live_progress_at >= 5.0:
                     last_live_progress_at = loop_now
-                    live_outputs = CapturedOutputs(
-                        game_output_lines=(),
-                        mod_output_lines=tuple(mod_output_lines),
-                    )
-                    live_lines = build_leaderboard_average_lines(live_outputs)
-                    if not live_lines:
-                        live_lines = build_progress_estimate_lines(live_outputs, None)
+                    summary = LEADERBOARD_SUMMARY_RE.search(monitor.get('summary', ''))
+                    live_lines = format_leaderboard_average(run_times, summary)
+                    if not live_lines and not monitor['full_statistics']:
+                        snapshots = tuple(monitor[key] for key in ('first_snapshot', 'latest_snapshot') if key in monitor)
+                        live_lines = build_progress_estimate_lines(CapturedOutputs((), snapshots), monitor.get('script'))
                     if live_lines and live_lines[-1] != last_live_progress_line:
                         last_live_progress_line = live_lines[-1]
                         print(f"real_game_runner live {last_live_progress_line}", flush=True)
@@ -550,7 +542,7 @@ def wait_for_status(
                 ):
                     message = (
                         f"mod log stalled for {output_stall_timeout:g}s "
-                        f"after mod_lines={last_mod_output_count}"
+                        f"after mod_lines={monitor.get('request_line_count', 0)}"
                     )
                     if not request_script_stop(state_path, request_id, message):
                         continue
@@ -689,7 +681,7 @@ def format_leaderboard_seconds(seconds: float) -> str:
     return f"{minutes}:{second:02d}.{milliseconds:03d}"
 
 
-def leaderboard_runs_are_stable(run_times: tuple[float, ...], threshold: float) -> bool:
+def leaderboard_runs_are_stable(run_times: Sequence[float], threshold: float) -> bool:
     if len(run_times) < 2:
         return False
     previous_time, latest_time = run_times[-2], run_times[-1]
@@ -820,13 +812,17 @@ def build_leaderboard_average_lines(outputs: CapturedOutputs) -> tuple[str, ...]
     run_times = parse_leaderboard_run_times(outputs.mod_output_lines)
     summaries = [match for line in outputs.mod_output_lines
                  if (match := LEADERBOARD_SUMMARY_RE.search(line)) and match.group(1) == "true"]
-    if not run_times and not summaries:
+    return format_leaderboard_average(run_times, summaries[-1] if summaries else None)
+
+
+def format_leaderboard_average(run_times: Sequence[float], summary: re.Match[str] | None) -> tuple[str, ...]:
+    if not run_times and summary is None:
         return ()
     run_count = len(run_times)
     average_time = sum(run_times) / run_count if run_count else 0.0
-    if summaries:
-        run_count = int(summaries[-1].group(2))
-        average_time = parse_leaderboard_clock(summaries[-1].group(3)) or 0.0
+    if summary is not None:
+        run_count = int(summary.group(2))
+        average_time = parse_leaderboard_clock(summary.group(3)) or 0.0
     # 总均值不能复制成 N 条相同单轮数据，否则会伪造 stable=true。
     stable = leaderboard_runs_are_stable(run_times, LEADERBOARD_STABILITY_THRESHOLD)
     fields = [
@@ -1187,32 +1183,25 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
     raise AssertionError('请求未进入投递阶段')
 
 
-def update_task_monitor(receipt: dict, baseline: OutputBaseline, request_id: int, *, terminal: bool = False) -> dict:
-    """锁内恢复字节游标并归约新增行；只保留轮次、首末库存样本及有限尾部。"""
-    monitor: dict[str, Any] | None = receipt.get('monitor')
-    if monitor is None or monitor.get('platform') != os.name:
-        # 文件身份在Windows/WSL间不可比较，换平台后从基线重建，不能重复累加旧摘要。
-        monitor = {'platform': os.name, 'runs': [], 'full_statistics': False, 'line_count': 0, 'tail': []}
-    signature = FileSignature(**monitor['signature']) if 'signature' in monitor else baseline.mod_output_signature
-    cursor = LogCursor(baseline.mod_output_path, signature, bytes.fromhex(monitor.get('pending', '')))
-    lines = cursor.read_lines()
-    if (signature.inode and cursor.signature.inode
-            and (signature.device, signature.inode) != (cursor.signature.device, cursor.signature.inode)) or cursor.signature.size < signature.size:
-        monitor['rotated'] = True
-    if terminal and cursor.pending:
-        lines += (cursor.pending.rstrip(b'\r').decode('utf-8', errors='replace'),)
-        cursor.pending = b''
-    monitor['signature'] = asdict(cursor.signature)
-    monitor['pending'] = cursor.pending.hex()
+def new_task_monitor() -> dict[str, Any]:
+    return {'platform': os.name, 'runs': [], 'full_statistics': False, 'line_count': 0, 'tail': []}
+
+
+def accumulate_task_lines(monitor: dict, lines: tuple[str, ...], request_id: int) -> None:
+    """等待和持久化查询共用摘要，原始日志只保留有界尾部与首末库存样本。"""
     monitor['line_count'] += len(lines)
     monitor['tail'] = (monitor['tail'] + list(lines))[-RESULT_TAIL_LINES:]
     pattern = re.compile(rf'\brequest_id={request_id}\b')
     for line in lines:
         if not pattern.search(line):
             continue
+        monitor['request_line_count'] = monitor.get('request_line_count', 0) + 1
         monitor['runs'].extend(parse_leaderboard_run_times((line,)))
         if LEADERBOARD_SUCCESS_SUMMARY_RE.search(line):
             monitor['full_statistics'] = True
+        summary = LEADERBOARD_SUMMARY_RE.search(line)
+        if summary and summary.group(1) == 'true':
+            monitor['summary'] = line
         snapshot = parse_item_snapshot(line)
         script = normalize_target_script_name(snapshot.get('leaderboard_script'))
         match = LEADERBOARD_SCRIPT_RE.search(line)
@@ -1226,6 +1215,26 @@ def update_task_monitor(receipt: dict, baseline: OutputBaseline, request_id: int
                 monitor['snapshot_key'] = key
                 monitor['first_snapshot'] = line
             monitor['latest_snapshot'] = line
+
+
+def update_task_monitor(receipt: dict, baseline: OutputBaseline, request_id: int, *, terminal: bool = False) -> dict:
+    """锁内恢复字节游标并归约新增行；只保留轮次、首末库存样本及有限尾部。"""
+    monitor: dict[str, Any] | None = receipt.get('monitor')
+    if monitor is None or monitor.get('platform') != os.name:
+        # 文件身份在Windows/WSL间不可比较，换平台后从基线重建，不能重复累加旧摘要。
+        monitor = new_task_monitor()
+    signature = FileSignature(**monitor['signature']) if 'signature' in monitor else baseline.mod_output_signature
+    cursor = LogCursor(baseline.mod_output_path, signature, bytes.fromhex(monitor.get('pending', '')))
+    lines = cursor.read_lines()
+    if (signature.inode and cursor.signature.inode
+            and (signature.device, signature.inode) != (cursor.signature.device, cursor.signature.inode)) or cursor.signature.size < signature.size:
+        monitor['rotated'] = True
+    if terminal and cursor.pending:
+        lines += (cursor.pending.rstrip(b'\r').decode('utf-8', errors='replace'),)
+        cursor.pending = b''
+    monitor['signature'] = asdict(cursor.signature)
+    monitor['pending'] = cursor.pending.hex()
+    accumulate_task_lines(monitor, lines, request_id)
     receipt['monitor'] = monitor
     return monitor
 
