@@ -23,12 +23,14 @@ from .config import (
     resolve_oracle_state_path,
     resolve_output_path,
     resolve_request_record_path,
+    resolve_request_result_path,
     resolve_request_key_path,
     resolve_unity_log_path,
     to_windows_path,
 )
 from .output_capture import (
     CapturedOutputs,
+    FileSignature,
     LogCursor,
     OutputBaseline,
     capture_output_baseline,
@@ -46,6 +48,7 @@ load_local_env()
 
 STATE_IO_MAX_ATTEMPTS = 20
 STATE_IO_RETRY_SECONDS = 0.05
+RESULT_TAIL_LINES = 80
 LEADERBOARD_SUCCESS_SUMMARY_RE = re.compile(
     r"\[lb_[^\]]+(?:\.py)?\]\s+finished=true\s+runs=[1-9][0-9]*\s+average="
 )
@@ -861,7 +864,13 @@ def print_status_only(args: argparse.Namespace) -> int:
         with state_transaction(state_path):
             receipt = read_record(resolve_request_record_path(state_path, cast(int, state['request_id'])))
     if receipt and receipt.get('result') is not None:
-        mod_lines = tuple(receipt['result']['outputs']['mod_output_lines'])
+        saved = receipt['result']
+        if receipt.get('result_file'):
+            assert state is not None
+            saved = read_record(resolve_request_result_path(state_path, cast(int, state['request_id'])))
+            if saved is None:
+                raise TaskError('result_unavailable', '完整结果文件缺失', request_id=state['request_id'])
+        mod_lines = tuple(saved['outputs']['mod_output_lines'])
     elif receipt and 'baseline' in receipt:
         baseline = deserialize_baseline(receipt['baseline'])
         mod_lines = read_appended_lines(baseline.mod_output_path, baseline.mod_output_signature)
@@ -1178,12 +1187,86 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
     raise AssertionError('请求未进入投递阶段')
 
 
-def build_task_report(state: dict, outputs: CapturedOutputs, *, output_complete: bool) -> dict[str, Any]:
+def update_task_monitor(receipt: dict, baseline: OutputBaseline, request_id: int, *, terminal: bool = False) -> dict:
+    """锁内恢复字节游标并归约新增行；只保留轮次、首末库存样本及有限尾部。"""
+    monitor: dict[str, Any] | None = receipt.get('monitor')
+    if monitor is None or monitor.get('platform') != os.name:
+        # 文件身份在Windows/WSL间不可比较，换平台后从基线重建，不能重复累加旧摘要。
+        monitor = {'platform': os.name, 'runs': [], 'full_statistics': False, 'line_count': 0, 'tail': []}
+    signature = FileSignature(**monitor['signature']) if 'signature' in monitor else baseline.mod_output_signature
+    cursor = LogCursor(baseline.mod_output_path, signature, bytes.fromhex(monitor.get('pending', '')))
+    lines = cursor.read_lines()
+    if (signature.inode and cursor.signature.inode
+            and (signature.device, signature.inode) != (cursor.signature.device, cursor.signature.inode)) or cursor.signature.size < signature.size:
+        monitor['rotated'] = True
+    if terminal and cursor.pending:
+        lines += (cursor.pending.rstrip(b'\r').decode('utf-8', errors='replace'),)
+        cursor.pending = b''
+    monitor['signature'] = asdict(cursor.signature)
+    monitor['pending'] = cursor.pending.hex()
+    monitor['line_count'] += len(lines)
+    monitor['tail'] = (monitor['tail'] + list(lines))[-RESULT_TAIL_LINES:]
+    pattern = re.compile(rf'\brequest_id={request_id}\b')
+    for line in lines:
+        if not pattern.search(line):
+            continue
+        monitor['runs'].extend(parse_leaderboard_run_times((line,)))
+        if LEADERBOARD_SUCCESS_SUMMARY_RE.search(line):
+            monitor['full_statistics'] = True
+        snapshot = parse_item_snapshot(line)
+        script = normalize_target_script_name(snapshot.get('leaderboard_script'))
+        match = LEADERBOARD_SCRIPT_RE.search(line)
+        if script:
+            monitor['script'] = script
+        elif match:
+            monitor['script'] = normalize_target_script_name(match.group(1))
+        if snapshot and script:
+            key = [script, snapshot.get('request_id'), snapshot.get('leaderboard_runs')]
+            if key != monitor.get('snapshot_key'):
+                monitor['snapshot_key'] = key
+                monitor['first_snapshot'] = line
+            monitor['latest_snapshot'] = line
+    receipt['monitor'] = monitor
+    return monitor
+
+
+def save_task_result(state_path: Path, request_id: int, receipt: dict, report: dict) -> Path:
+    """完整报告先归档，轻量回执后提交；调用者随后才能确认idle。"""
+    archive_path = resolve_request_result_path(state_path, request_id)
+    write_state_file(archive_path, report)
+    outputs = report.get('outputs', {})
+    receipt['result'] = {**report, 'output_lines': {key: len(lines) for key, lines in outputs.items()},
+                         'outputs': {key: list(lines[-RESULT_TAIL_LINES:]) for key, lines in outputs.items()}}
+    receipt['result_file'] = True
+    receipt.pop('monitor', None)
+    write_state_file(resolve_request_record_path(state_path, request_id), receipt)
+    return archive_path
+
+
+def saved_task_report(receipt: dict, state_path: Path, request_id: int, max_lines: int) -> dict:
+    """兼容旧版内嵌结果；新版默认查询摘要，显式超过尾部容量才加载完整报告。"""
+    report = receipt['result']
+    path = resolve_request_record_path(state_path, request_id)
+    if receipt.get('result_file'):
+        path = resolve_request_result_path(state_path, request_id)
+        if max_lines > RESULT_TAIL_LINES and any(count > RESULT_TAIL_LINES for count in report['output_lines'].values()):
+            report = read_record(path)
+            if report is None:
+                raise TaskError('result_unavailable', '完整结果文件缺失', request_id=request_id)
+    return present_task_report(report, path, max_lines)
+
+
+def build_task_report(state: dict, outputs: CapturedOutputs, *, output_complete: bool, monitor: dict | None = None) -> dict[str, Any]:
     """执行状态、完成轮和完整统计分别报告，不把取消摘要当成真实完成轮。"""
     pattern = re.compile(rf"\brequest_id={state['request_id']}\b")
     scoped = CapturedOutputs((), tuple(line for line in outputs.mod_output_lines if pattern.search(line)))
-    run_times = parse_leaderboard_run_times(scoped.mod_output_lines)
-    full_statistics = has_successful_leaderboard_summary(scoped)
+    run_times = tuple(monitor['runs']) if monitor is not None else parse_leaderboard_run_times(scoped.mod_output_lines)
+    full_statistics = monitor['full_statistics'] if monitor is not None else has_successful_leaderboard_summary(scoped)
+    progress_script = state.get('target_script')
+    if monitor is not None:
+        scoped = CapturedOutputs((), tuple(monitor[key] for key in ('first_snapshot', 'latest_snapshot') if key in monitor))
+        if not progress_script or normalize_target_script_name(progress_script) == 'lb_start':
+            progress_script = monitor.get('script')
     reason = str(state.get('last_error') or '')
     reasons = (('reached stable leaderboard runs', 'sample_limit'),
                ('client cancelled', 'cancelled'), ('client wait', 'client_timeout'),
@@ -1199,7 +1282,8 @@ def build_task_report(state: dict, outputs: CapturedOutputs, *, output_complete:
     else:
         outcome = str(state['status'])
     progress = []
-    for line in build_progress_estimate_lines(scoped, state.get('target_script')):
+    estimates = () if run_times or full_statistics else build_progress_estimate_lines(scoped, progress_script)
+    for line in estimates:
         fields = {}
         for key, value in re.findall(r'(\w+)=([^\s]+)', line):
             number = to_float(value)
@@ -1214,17 +1298,16 @@ def build_task_report(state: dict, outputs: CapturedOutputs, *, output_complete:
 
 
 def task_result(state_path: Path, request_id: int, *, collect: bool = False, max_lines: int = 80) -> dict[str, Any]:
-    """同一事务内取结果、留存、确认；只在当前ID终态时读取output.txt。"""
+    """锁内增量查询；终态先归档完整输出和轻量回执，再确认匹配ID。"""
     with state_transaction(state_path):
         current = read_state_file(state_path)
         record_path = resolve_request_record_path(state_path, request_id)
         receipt = read_record(record_path) if request_id else None
         if receipt and receipt.get('result') is not None:
-            result = receipt['result']
-            # 允许恢复“结果已落盘、idle写入失败”的中断。
+            result = saved_task_report(receipt, state_path, request_id, max_lines)
             if collect and current and current['request_id'] == request_id and current['status'] in ('done', 'failed'):
                 write_state_file(state_path, build_idle_state(request_id=request_id))
-            return present_task_report(result, record_path, max_lines)
+            return result
         if current is None:
             raise TaskError('not_connected', '找不到模组状态文件', request_id=request_id)
         if current['request_id'] != request_id:
@@ -1235,38 +1318,46 @@ def task_result(state_path: Path, request_id: int, *, collect: bool = False, max
                 'target_script': receipt['fingerprint']['target_script'],
                 'last_error': '状态已不属于该请求，未读取其他请求的输出'}, CapturedOutputs((), ()), output_complete=False)
             if collect and status == 'superseded':
-                receipt['result'] = result
-                write_state_file(record_path, receipt)
+                record_path = save_task_result(state_path, request_id, receipt, result)
             return present_task_report(result, record_path, max_lines)
         terminal = current['status'] in ('done', 'failed')
         if collect and not terminal:
             raise TaskError('not_terminal', '请求尚未结束，请使用wait或cancel', request_id=request_id, status=current['status'])
-        if receipt:
+        monitor = None
+        if receipt and 'baseline' in receipt:
             baseline = deserialize_baseline(receipt['baseline'])
+            monitor = update_task_monitor(receipt, baseline, request_id, terminal=terminal)
             if terminal and collect:
                 outputs = capture_request_outputs(baseline, execution_started=bool(current.get('started_at')))
             else:
-                outputs = CapturedOutputs((), read_appended_lines(baseline.mod_output_path, baseline.mod_output_signature),
-                                          read_log_tail(baseline.unity_log_path, max_lines))
+                mod_lines = tuple(monitor['tail'])
+                if max_lines > RESULT_TAIL_LINES:
+                    mod_lines = read_log_tail(baseline.mod_output_path, max_lines, start_signature=baseline.mod_output_signature)
+                outputs = CapturedOutputs((), mod_lines, read_log_tail(baseline.unity_log_path, max_lines))
+                write_state_file(record_path, receipt)
         else:
-            # 旧客户端没有保存偏移，显式取结果可回收状态，但不能伪造完整日志。
             outputs = CapturedOutputs((), ())
-        report = build_task_report(current, outputs, output_complete=bool(receipt and terminal and collect))
+        complete = bool(monitor is not None and terminal and collect and not monitor.get('rotated'))
+        # 完整终态以刚捕获的日志重算一次，包含游标读取后才刷出的结算行。
+        report_monitor = None if complete else monitor
+        report = build_task_report(current, outputs, output_complete=complete, monitor=report_monitor)
         if terminal and collect:
             receipt = receipt or {'schema_version': 1, 'request_id': request_id}
-            receipt['result'] = report
-            write_state_file(record_path, receipt)
+            record_path = save_task_result(state_path, request_id, receipt, report)
             write_state_file(state_path, build_idle_state(request_id=request_id))
+        elif monitor is not None:
+            report['output_lines'] = {key: len(lines) for key, lines in report['outputs'].items()}
+            report['output_lines']['mod_output_lines'] = monitor['line_count']
         return present_task_report(report, record_path, max_lines)
 
 
 def present_task_report(report: dict, record_path: Path, max_lines: int) -> dict[str, Any]:
-    """终端只显示有限日志，完整结果留在回执文件中；截断不改变统计样本。"""
+    """按实际可用尾部截断展示，保留统计行数和完整结果路径。"""
     result = dict(report)
     outputs = report.get('outputs', {})
-    result['output_lines'] = {key: len(lines) for key, lines in outputs.items()}
+    result['output_lines'] = report.get('output_lines', {key: len(lines) for key, lines in outputs.items()})
     result['outputs'] = {key: list(lines[-max_lines:]) if max_lines else [] for key, lines in outputs.items()}
-    result['outputs_truncated'] = any(len(lines) > max_lines for lines in outputs.values())
+    result['outputs_truncated'] = any(result['output_lines'][key] > len(lines) for key, lines in result['outputs'].items())
     result['result_path'] = str(record_path) if record_path.exists() else None
     return result
 

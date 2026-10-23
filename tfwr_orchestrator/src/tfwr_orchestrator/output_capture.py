@@ -58,26 +58,31 @@ def deserialize_baseline(values: dict) -> OutputBaseline:
     return OutputBaseline(**fields)
 
 
-def read_log_tail(path: Path | None, max_lines: int, max_bytes: int = 1048576) -> tuple[str, ...]:
-    """从尾部读取展示用日志，最多1MiB；不把截断的首行当成完整记录。"""
+def read_log_tail(path: Path | None, max_lines: int, max_bytes: int = 1048576,
+                  start_signature: FileSignature = EMPTY_SIGNATURE) -> tuple[str, ...]:
+    """从尾部读取最多1MiB，限制在请求基线之后；替换/截断则从新文件起点读取。"""
     if path is None or max_lines <= 0:
         return ()
     for attempt in range(FILE_READ_MAX_ATTEMPTS):
         try:
             with path.open('rb') as stream:
-                end = stream.seek(0, os.SEEK_END)
+                stat = os.fstat(stream.fileno())
+                same_file = not start_signature.inode or (
+                    stat.st_dev == start_signature.device and stat.st_ino == start_signature.inode)
+                end = stat.st_size
+                floor = start_signature.size if start_signature.exists and same_file and end >= start_signature.size else 0
                 start = end
                 chunks = []
                 lines = 0
-                while start > 0 and lines <= max_lines and end - start < max_bytes:
-                    count = min(8192, start, max_bytes - (end - start))
+                while start > floor and lines <= max_lines and end - start < max_bytes:
+                    count = min(8192, start - floor, max_bytes - (end - start))
                     start -= count
                     stream.seek(start)
                     chunk = stream.read(count)
                     chunks.append(chunk)
                     lines += chunk.count(b'\n')
                 rows = b''.join(reversed(chunks)).splitlines()
-                if start and rows:
+                if start > floor and rows:
                     rows.pop(0)
                 return tuple(row.decode('utf-8', errors='replace') for row in rows[-max_lines:])
         except FileNotFoundError:

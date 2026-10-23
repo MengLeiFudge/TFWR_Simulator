@@ -136,11 +136,13 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --action result --reques
 
 幂等键在同一状态目录内持久有效。相同键、脚本名、请求超时与输出路径复用原ID；参数不同返回 `idempotency_conflict`。更换脚本内容或发起新一轮应使用新键。中断发生在回执写入与状态投递之间时返回 `submission_unknown`，不会自动重复启动。未提供键时，每次提交都是新请求。
 
-回执在状态文件旁的 `config/mlj.tfwr.oracle-runner.state.requests/`，不写Save0。`<id>.json`保存输出起点及最终结果，`key-<hash>.json`保存幂等索引，`0.json`预留递增ID。回执随请求累计，当前不自动清理。结果保存后idle写入失败，可用同一ID重试result回收。旧客户端请求缺少起点时，result可回收终态，但 `output_complete=false`，不会补造完整日志。被替换且尚未保存的请求标记 `superseded`，不读取新请求的输出。
+回执在状态文件旁的 `config/mlj.tfwr.oracle-runner.state.requests/`，不写Save0。`<id>.json`保存输出起点、增量查询游标及终态摘要，`<id>.result.json`保存含三份完整输出的终态报告，`key-<hash>.json`保存幂等索引，`0.json`预留递增ID。新版仍可读取旧版内嵌完整结果的回执。回执随请求累计，当前不自动清理。完整报告及摘要保存后才确认idle；确认失败可用同一ID重试result回收。旧客户端请求缺少起点，或监测到模组日志被替换/截断时，`output_complete=false`。被替换且尚未保存的请求标记 `superseded`，不读取新请求的输出。
 
 回执分别提供 `outcome`、`reason_code`、`completed_runs`、`average_game_seconds` 与 `full_statistics`。只将真实 `run=` 日志计入完成轮；`progress.prediction=true` 表示轮内估算。默认达到至少两轮且最近两轮差异不超过10%时主动停止，`reason_code=sample_limit`，不等于官方完整统计。要等待完整统计，设 `--max-leaderboard-runs 0`，并给足请求和等待超时。
 
-`--status-lines` 默认每份输出显示最后80行；`output_lines`、`outputs_truncated`标明截断，完整终态输出在 `result_path`。结果同时保留BepInEx与Unity日志。退出码0表示该操作正常结束，仍须检查 `outcome/full_statistics`；忙为3，执行或接口错误为5，参数解析错误为2。`submit`没有持续监控：调用者应及时wait，或自行有界监看并取消、回收。
+JSON任务接口的 `--status-lines` 默认每份输出显示最后80行。活动任务按保存的字节游标读取新增完整日志行，并保留未完成行、完成轮和首末库存样本；重复查询不从请求起点重读全部日志。终态摘要保留80行尾部，常规JSON查询直接返回摘要；显式要求更多行且输出超过80行时才加载完整归档。旧版文本 `--status-only` 保留原来的日志统计方式。
+
+`output_lines`、`outputs_truncated`标明展示截断，完整终态报告在 `result_path`；新版归档直接保存报告对象，旧版路径仍指向含 `result` 字段的回执。结果同时保留BepInEx与Unity日志。退出码0表示该操作正常结束，仍须检查 `outcome/full_statistics`；忙为3，执行或接口错误为5，参数解析错误为2。`submit`没有持续监控：调用者应及时wait，或自行有界监看并取消、回收。
 
 ### 资源快照与反编译工具
 

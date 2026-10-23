@@ -188,6 +188,11 @@ def resolve_request_record_path(state_path: Path, request_id: int) -> Path:
     return state_path.with_suffix('.requests') / f'{request_id}.json'
 
 
+def resolve_request_result_path(state_path: Path, request_id: int) -> Path:
+    """完整终态报告独立归档，常规查询只读取轻量请求回执。"""
+    return state_path.with_suffix('.requests') / f'{request_id}.result.json'
+
+
 def resolve_request_key_path(state_path: Path, key: str) -> Path:
     """幂等键只作为摘要文件名，避免用户输入成为路径片段。"""
     digest = hashlib.sha256(key.encode('utf-8')).hexdigest()
