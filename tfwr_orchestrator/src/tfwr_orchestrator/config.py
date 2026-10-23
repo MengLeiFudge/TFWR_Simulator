@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -23,7 +24,8 @@ DEFAULT_ENV_EXAMPLE_FILE = REPO_ROOT / ".env.example"
 DEFAULT_GAME_ROOT_TEXT = r"D:\Steam\steamapps\common\The Farmer Was Replaced"
 GAME_ROOT_ENV_VAR = "TFWR_GAME_ROOT"
 SAVE_ROOT_ENV_VAR = "TFWR_SAVE_ROOT"
-BEPINEX_LOG_RELATIVE_PATH = Path("BepInEx") / "LogOutput.log"
+BEPINEX_ROOT_ENV_VAR = "TFWR_BEPINEX_ROOT"
+ORACLE_STATE_FILE_NAME = "mlj.tfwr.oracle-runner.state.json"
 
 
 def _strip_wrapping_quotes(value: str) -> str:
@@ -125,6 +127,17 @@ def resolve_output_path(save_root: str | Path | None = None, required: bool = Tr
     return persistent_root / "output.txt"
 
 
+def resolve_unity_log_path(save_root: str | Path | None = None, required: bool = True) -> Path | None:
+    """Unity Player.log 与 output.txt 同属游戏持久数据目录，不位于 BepInEx profile。"""
+    root = resolve_persistent_data_root(save_root, required=required)
+    if root is None:
+        return None
+    path = root / "Player.log"
+    if required and not path.is_file():
+        raise FileNotFoundError(f"未找到 Unity 日志文件: {path}")
+    return path
+
+
 def resolve_game_root(game_root: str | Path | None = None, required: bool = True) -> Path | None:
     return _resolve_config_root(
         game_root,
@@ -135,11 +148,63 @@ def resolve_game_root(game_root: str | Path | None = None, required: bool = True
     )
 
 
-def resolve_bepinex_log_path(game_root: str | Path | None = None, required: bool = True) -> Path | None:
+def resolve_bepinex_root(
+    game_root: str | Path | None = None,
+    required: bool = True,
+    *,
+    bepinex_root: str | Path | None = None,
+) -> Path | None:
+    """优先使用显式 BepInEx/profile 路径；未配置时回退到游戏目录/BepInEx。"""
+    load_local_env()
+    configured = bepinex_root if bepinex_root is not None else os.environ.get(BEPINEX_ROOT_ENV_VAR, "").strip()
+    if configured:
+        return _resolve_config_root(
+            configured,
+            BEPINEX_ROOT_ENV_VAR,
+            required=required,
+            missing_message=f"{BEPINEX_ROOT_ENV_VAR} 未配置。",
+        )
     root = resolve_game_root(game_root, required=required)
     if root is None:
         return None
-    log_path = root / BEPINEX_LOG_RELATIVE_PATH
+    return _resolve_config_root(
+        root / "BepInEx",
+        BEPINEX_ROOT_ENV_VAR,
+        required=required,
+        missing_message="未找到游戏目录下的 BepInEx。",
+    )
+
+
+def resolve_oracle_state_path(
+    game_root: str | Path | None = None, *, bepinex_root: str | Path | None = None
+) -> Path:
+    """状态和日志必须来自同一个 BepInEx 安装/profile。"""
+    root = resolve_bepinex_root(game_root, bepinex_root=bepinex_root)
+    assert root is not None
+    return root / "config" / ORACLE_STATE_FILE_NAME
+
+def resolve_request_record_path(state_path: Path, request_id: int) -> Path:
+    """客户端请求回执与结果存放在profile状态文件旁，独立于游戏Save0。"""
+    return state_path.with_suffix('.requests') / f'{request_id}.json'
+
+
+def resolve_request_key_path(state_path: Path, key: str) -> Path:
+    """幂等键只作为摘要文件名，避免用户输入成为路径片段。"""
+    digest = hashlib.sha256(key.encode('utf-8')).hexdigest()
+    return state_path.with_suffix('.requests') / f'key-{digest}.json'
+
+
+def resolve_bepinex_log_path(
+    game_root: str | Path | None = None,
+    required: bool = True,
+    *,
+    bepinex_root: str | Path | None = None,
+) -> Path | None:
+    """解析手动安装或 R2 profile 的模组日志路径。"""
+    root = resolve_bepinex_root(game_root, required=required, bepinex_root=bepinex_root)
+    if root is None:
+        return None
+    log_path = root / "LogOutput.log"
     if required and not log_path.is_file():
         raise FileNotFoundError(f"未找到 BepInEx 日志文件: {log_path}")
     return log_path

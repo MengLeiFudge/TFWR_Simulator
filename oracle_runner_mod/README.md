@@ -29,6 +29,8 @@
 
 默认目标脚本是 `lb_start`，不带 `.py`。
 
+`--request-only` 默认拒绝覆盖活动请求；明确替换须加 `--replace`，终态须先回收。AI调用推荐 `--action submit/status/wait/cancel/result/health` 的JSON任务接口，支持幂等提交和结果留存，沿用当前DLL协议。常规文本等待模式先等待 `idle`。本仓库打榜使用 `lb_start` 派生入口；参数与任务生命周期见 [协调器说明](https://github.com/MengLeiFudge/TFWR_Simulator/blob/master/tfwr_orchestrator/README.md)。
+
 ## 构建
 
 ```bash
