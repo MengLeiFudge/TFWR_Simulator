@@ -1,5 +1,15 @@
 # lb_pumpkins
 
+当前阶段（2026-10-24）：当前正式脚本seed1触及30秒计算预算，尚未完整达标；三类时间均未取得。保留部分阶段账用于安排后续完整基线，不把当前库存比例外推成游戏成绩。
+
+## 2026-10-24：有界原版基线未完成
+
+源码SHA256为 `e175db1b2c5c9e9b205424bcd5b27443bada1d8ac6a3843c02a6ec128f5a161b`。显式满级32机，初始Power/Carrot各十亿，其余0，目标2亿Pumpkin；seed1一次30墙钟秒/100万API/500万检查点，无trace。执行28.743226秒达到预留报告余量后的截止，停在218.600434游戏秒、Pumpkin101114112。五秒进度持续更新，无语义异常；不扩seed。
+
+已记录成熟Pumpkin收割1076次：36株组699次、25株组375次、单株2次，感染和收益分档单列。主要动作move141351、plant107696、harvest1342、use_item5692、till776、spawn31；总API843575、检查点2137810。纯等待墙钟无法从汇总单独归因，不把can_harvest次数都当等待。
+
+三值：**未取得 / 未取得 / 未取得**。证据 `.codex/leaderboard-sol/pumpkins/baseline/{manifest.json,seed1.json,analysis.json,three-times.json}`。已安排同SHA同场景seed1单次75秒/250万API/600万检查点补齐，另存budget75，旧报告保留；再次触限停止此项。50.56%库存进度只用于估算计算预算，完整游戏时间仍未知。正式py和Save0未改。
+
 ## 榜单目标
 
 - 目标资源：`Items.Pumpkin`
