@@ -3,6 +3,7 @@
 import argparse
 import ast
 import hashlib
+from contextlib import suppress
 from functools import lru_cache
 import json
 import multiprocessing
@@ -186,9 +187,14 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
     }
 
 
-def worker(connection, options, seeds=None):
-    """同一隔离进程按seed顺序复用编译缓存；批次共享墙钟上限，不复用世界状态。"""
+def worker(connection, options, deadline, seeds=None):
+    """共享父进程截止时间，预留报告回传时间；各seed不复用世界状态。"""
     try:
+        report_margin = min(1.0, options['seconds'] / 10)
+        remaining = deadline - report_margin - time.monotonic()
+        if remaining <= 0:
+            raise BudgetExceeded('工作进程启动已用完执行预算')
+        options = dict(options, seconds=remaining)
         if seeds is None:
             connection.send(run_script(**options, progress=True))
         else:
@@ -210,9 +216,13 @@ def worker(connection, options, seeds=None):
                 print(f'local_simulator completed={completed}/{len(seeds)} seed={seed}', file=sys.stderr, flush=True)
             connection.send({'kind': 'prediction_batch', 'seeds': seeds,
                              'status': 'completed' if completed == len(seeds) and succeeded else 'stopped'})
+    except (BrokenPipeError, EOFError):
+        # 父进程已结束接收，不向同一关闭管道再次发送错误。
+        pass
     except Exception as exc:
-        connection.send({'kind': 'prediction', 'status': 'stopped',
-                         'error': {'type': type(exc).__name__, 'message': str(exc)}})
+        with suppress(BrokenPipeError, EOFError):
+            connection.send({'kind': 'prediction', 'status': 'stopped',
+                             'error': {'type': type(exc).__name__, 'message': str(exc)}})
     finally:
         connection.close()
 
@@ -246,11 +256,11 @@ def main():
                'scenario': json.loads(args.scenario.read_text()) if args.scenario else None}
     context = multiprocessing.get_context('spawn')
     parent, child = context.Pipe(duplex=False)
-    process = context.Process(target=worker, args=(child, options, args.seeds))
+    deadline = time.monotonic() + args.timeout
+    process = context.Process(target=worker, args=(child, options, deadline, args.seeds))
     process.start()
     child.close()
     reports = []
-    deadline = time.monotonic() + args.timeout
     try:
         while True:
             remaining = deadline - time.monotonic()
