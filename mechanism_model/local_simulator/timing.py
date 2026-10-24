@@ -324,7 +324,8 @@ class StaticBindings(ast.NodeTransformer):
             for child in ast.walk(node):
                 if isinstance(child, ast.Global):
                     names.update(child.names)
-        names.difference_update(globals_)
+        if self.scopes:
+            names.difference_update(globals_)
         self.serial += 1
         scope = (names, globals_, f'_timing_bindings_{self.serial}')
         self.scopes.append(scope)
@@ -333,12 +334,26 @@ class StaticBindings(ast.NodeTransformer):
                      [ast.Constant(False) for _ in names])))
 
     def flag(self, name, context):
-        """global使用模块字典，其他名称按最近词法作用域解析。"""
-        scopes = self.scopes[:1] if name in self.scopes[-1][1] else self.scopes
+        """global跳过本层，按游戏规则选择最近的父作用域绑定。"""
+        scopes = self.scopes[:-1] if len(self.scopes) > 1 and name in self.scopes[-1][1] else self.scopes
         for names, _, variable in reversed(scopes):
             if name in names:
                 return ast.Subscript(ast.Name(variable, ast.Load()), ast.Constant(name), context)
         return ast.Constant(False)
+
+    def visit_Global(self, node):
+        # 游戏global可写外层函数；Python需要用nonlocal表达该绑定。
+        outer = []
+        module = []
+        for name in node.names:
+            target = outer if any(name in names for names, _, _ in self.scopes[1:-1]) else module
+            target.append(name)
+        declarations = []
+        if outer:
+            declarations.append(ast.copy_location(ast.Nonlocal(outer), node))
+        if module:
+            declarations.append(ast.copy_location(ast.Global(module), node))
+        return declarations
 
     def set_flag(self, name, value):
         return self.native(ast.Assign([self.flag(name, ast.Store())], ast.Constant(value)))

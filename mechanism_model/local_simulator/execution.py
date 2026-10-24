@@ -64,7 +64,7 @@ class BudgetChecks(ast.NodeTransformer):
                 continue
             statements = []
             for value in values:
-                if isinstance(value, ast.stmt) and hasattr(value, 'lineno') and not isinstance(value, ast.Global):
+                if isinstance(value, ast.stmt) and hasattr(value, 'lineno') and not isinstance(value, (ast.Global, ast.Nonlocal)):
                     statements.append(ast.copy_location(ast.Expr(self.call(value.lineno)), value))
                 statements.append(value)
             setattr(node, field, statements)
@@ -190,7 +190,8 @@ def clone_function(function, args):
             result.extend(clone(v) for v in value)
             return result
         if isinstance(value, types.FunctionType) and value.__code__.co_filename == function.__code__.co_filename:
-            cells = tuple(types.CellType(None) for _ in (value.__closure__ or ()))
+            # 同一无人机内的兄弟闭包须共享复制后的绑定，尤其是global写入的标量。
+            cells = tuple(memo.setdefault(id(cell), types.CellType()) for cell in (value.__closure__ or ()))
             global_env = memo.get(id(value.__globals__))
             owns_globals = global_env is None
             if owns_globals:
@@ -202,7 +203,11 @@ def clone_function(function, args):
             if owns_globals:
                 global_env.update((key, clone(item)) for key, item in value.__globals__.items())
             for old, new in zip(value.__closure__ or (), cells):
-                new.cell_contents = clone(old.cell_contents)
+                try:
+                    content = old.cell_contents
+                except ValueError:
+                    continue  # 保留尚未赋值的闭包绑定。
+                new.cell_contents = clone(content)
             result.__defaults__ = clone(value.__defaults__)
             return result
         return copy.deepcopy(value, memo)
