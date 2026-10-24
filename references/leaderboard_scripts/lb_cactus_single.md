@@ -1,5 +1,7 @@
 # lb_cactus_single
 
+当前阶段先完善模拟器，暂停新策略实现。2026-10-23 已能 [直接本地运行当前脚本](../../mechanism_model/local_simulator/README.md)：六 seed 的 API 返回值与实机对齐，API 时间预测低约 2.84%～2.92%，单次本地计算约 0.05～0.06 秒。这是模拟基线，不更新本页的真实打榜成绩。
+
 ## 榜单目标
 
 - 目标资源：`Items.Cactus`
@@ -254,3 +256,11 @@
 - 优先探针：
   - 双向融合后总移动步数和总交换次数是否下降
   - 融合逻辑是否会因为判断过多反而拖慢成盘
+
+## 2026-10-23 本地模拟基线
+
+- 实现未改：仍使用当前 `lb_cactus_single()`、`plant_and_sort_rows()`、`local_sort_after_plant()`、`sort_columns()` 与 `sort_one_way()`。
+- 真实请求 35：六 seed 分别运行原策略、API 记录版和边界探针。9473 个离散 API 返回值、54 条边界观测一致；原策略与本地的最终库存均为 Cactus=131072、Pumpkin=999995904。
+- seed=1：本地 API 时间 21.3601 秒，实机 tick 折算 21.9996 秒；差额含游戏解释器及验证入口开销，不用经验倍率抹平。其他五个 seed 的低估比例也在 2.84%～2.92% 内。
+- 使用：`python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cactus_single.py --seed 1`。支持轨迹与上限，范围见上方说明。
+- 后续先补模拟器机制/计时覆盖，再用其筛选策略。模型预测通过后仍须真实游戏打榜，不能把本次 `simulate` 当作官方完整统计。

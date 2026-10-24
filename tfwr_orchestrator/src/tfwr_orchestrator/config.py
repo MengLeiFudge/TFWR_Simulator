@@ -17,6 +17,8 @@ REPO_ROOT = PROJECT_ROOT.parent
 GAMESAVE_LINK = REPO_ROOT / "gamesave"
 REFERENCES_ROOT = REPO_ROOT / "references"
 LEADERBOARD_REFERENCE_ROOT = REFERENCES_ROOT / "leaderboard_scripts"
+LEADERBOARD_CACHE_PATH = LEADERBOARD_REFERENCE_ROOT / "leaderboard_cache.json"
+LEADERBOARD_REPORT_PATH = LEADERBOARD_REFERENCE_ROOT / "leaderboard_targets.md"
 DECOMPILED_SOURCE_ROOT = REFERENCES_ROOT / "DecompiledSource"
 
 DEFAULT_ENV_FILE = REPO_ROOT / ".env"
@@ -277,6 +279,7 @@ def create_directory_link(link_path: Path, target_path: Path) -> None:
 
 def refresh_gamesave_link(save_root: str | Path | None = None) -> tuple[Path, Path]:
     target = resolve_save_root(save_root)
+    assert target is not None
     link_path = GAMESAVE_LINK
     remove_existing_link(link_path)
     create_directory_link(link_path, target)

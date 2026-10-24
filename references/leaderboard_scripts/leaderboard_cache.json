@@ -1,0 +1,6535 @@
+{
+  "schema_version": 1,
+  "app_id": 2060160,
+  "limit": 100,
+  "boards": [
+    {
+      "script": "lb_cactus",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869881/",
+      "retrieved_at": "2026-10-22T07:35:27.775451+00:00",
+      "total_entries": 2230,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 5432
+        },
+        {
+          "rank": 2,
+          "time_ms": 7184
+        },
+        {
+          "rank": 3,
+          "time_ms": 7940
+        },
+        {
+          "rank": 4,
+          "time_ms": 9364
+        },
+        {
+          "rank": 5,
+          "time_ms": 9500
+        },
+        {
+          "rank": 6,
+          "time_ms": 9873
+        },
+        {
+          "rank": 7,
+          "time_ms": 9908
+        },
+        {
+          "rank": 8,
+          "time_ms": 10503
+        },
+        {
+          "rank": 9,
+          "time_ms": 11209
+        },
+        {
+          "rank": 10,
+          "time_ms": 18962
+        },
+        {
+          "rank": 11,
+          "time_ms": 21618
+        },
+        {
+          "rank": 12,
+          "time_ms": 23739
+        },
+        {
+          "rank": 13,
+          "time_ms": 24236
+        },
+        {
+          "rank": 14,
+          "time_ms": 24248
+        },
+        {
+          "rank": 15,
+          "time_ms": 24319
+        },
+        {
+          "rank": 16,
+          "time_ms": 25659
+        },
+        {
+          "rank": 17,
+          "time_ms": 26759
+        },
+        {
+          "rank": 18,
+          "time_ms": 26972
+        },
+        {
+          "rank": 19,
+          "time_ms": 27664
+        },
+        {
+          "rank": 20,
+          "time_ms": 28059
+        },
+        {
+          "rank": 21,
+          "time_ms": 28280
+        },
+        {
+          "rank": 22,
+          "time_ms": 29831
+        },
+        {
+          "rank": 23,
+          "time_ms": 30034
+        },
+        {
+          "rank": 24,
+          "time_ms": 30851
+        },
+        {
+          "rank": 25,
+          "time_ms": 31189
+        },
+        {
+          "rank": 26,
+          "time_ms": 31473
+        },
+        {
+          "rank": 27,
+          "time_ms": 31651
+        },
+        {
+          "rank": 28,
+          "time_ms": 31758
+        },
+        {
+          "rank": 29,
+          "time_ms": 32567
+        },
+        {
+          "rank": 30,
+          "time_ms": 32800
+        },
+        {
+          "rank": 31,
+          "time_ms": 32815
+        },
+        {
+          "rank": 32,
+          "time_ms": 32937
+        },
+        {
+          "rank": 33,
+          "time_ms": 33161
+        },
+        {
+          "rank": 34,
+          "time_ms": 33215
+        },
+        {
+          "rank": 35,
+          "time_ms": 33344
+        },
+        {
+          "rank": 36,
+          "time_ms": 33384
+        },
+        {
+          "rank": 37,
+          "time_ms": 33392
+        },
+        {
+          "rank": 38,
+          "time_ms": 33542
+        },
+        {
+          "rank": 39,
+          "time_ms": 33554
+        },
+        {
+          "rank": 40,
+          "time_ms": 33560
+        },
+        {
+          "rank": 41,
+          "time_ms": 33590
+        },
+        {
+          "rank": 42,
+          "time_ms": 33601
+        },
+        {
+          "rank": 43,
+          "time_ms": 33681
+        },
+        {
+          "rank": 44,
+          "time_ms": 33710
+        },
+        {
+          "rank": 45,
+          "time_ms": 33741
+        },
+        {
+          "rank": 46,
+          "time_ms": 33993
+        },
+        {
+          "rank": 47,
+          "time_ms": 34052
+        },
+        {
+          "rank": 48,
+          "time_ms": 34057
+        },
+        {
+          "rank": 49,
+          "time_ms": 34075
+        },
+        {
+          "rank": 50,
+          "time_ms": 34087
+        },
+        {
+          "rank": 51,
+          "time_ms": 34129
+        },
+        {
+          "rank": 52,
+          "time_ms": 34173
+        },
+        {
+          "rank": 53,
+          "time_ms": 34194
+        },
+        {
+          "rank": 54,
+          "time_ms": 34232
+        },
+        {
+          "rank": 55,
+          "time_ms": 34281
+        },
+        {
+          "rank": 56,
+          "time_ms": 34295
+        },
+        {
+          "rank": 57,
+          "time_ms": 34376
+        },
+        {
+          "rank": 58,
+          "time_ms": 34377
+        },
+        {
+          "rank": 59,
+          "time_ms": 34436
+        },
+        {
+          "rank": 60,
+          "time_ms": 34460
+        },
+        {
+          "rank": 61,
+          "time_ms": 34463
+        },
+        {
+          "rank": 62,
+          "time_ms": 34490
+        },
+        {
+          "rank": 63,
+          "time_ms": 34586
+        },
+        {
+          "rank": 64,
+          "time_ms": 34704
+        },
+        {
+          "rank": 65,
+          "time_ms": 35196
+        },
+        {
+          "rank": 66,
+          "time_ms": 35249
+        },
+        {
+          "rank": 67,
+          "time_ms": 35268
+        },
+        {
+          "rank": 68,
+          "time_ms": 35356
+        },
+        {
+          "rank": 69,
+          "time_ms": 35384
+        },
+        {
+          "rank": 70,
+          "time_ms": 35419
+        },
+        {
+          "rank": 71,
+          "time_ms": 35431
+        },
+        {
+          "rank": 72,
+          "time_ms": 35442
+        },
+        {
+          "rank": 73,
+          "time_ms": 35538
+        },
+        {
+          "rank": 74,
+          "time_ms": 35542
+        },
+        {
+          "rank": 75,
+          "time_ms": 35543
+        },
+        {
+          "rank": 76,
+          "time_ms": 35650
+        },
+        {
+          "rank": 77,
+          "time_ms": 35659
+        },
+        {
+          "rank": 78,
+          "time_ms": 35811
+        },
+        {
+          "rank": 79,
+          "time_ms": 35863
+        },
+        {
+          "rank": 80,
+          "time_ms": 35886
+        },
+        {
+          "rank": 81,
+          "time_ms": 35892
+        },
+        {
+          "rank": 82,
+          "time_ms": 35965
+        },
+        {
+          "rank": 83,
+          "time_ms": 36015
+        },
+        {
+          "rank": 84,
+          "time_ms": 36084
+        },
+        {
+          "rank": 85,
+          "time_ms": 36182
+        },
+        {
+          "rank": 86,
+          "time_ms": 36192
+        },
+        {
+          "rank": 87,
+          "time_ms": 36198
+        },
+        {
+          "rank": 88,
+          "time_ms": 36361
+        },
+        {
+          "rank": 89,
+          "time_ms": 36386
+        },
+        {
+          "rank": 90,
+          "time_ms": 36386
+        },
+        {
+          "rank": 91,
+          "time_ms": 36430
+        },
+        {
+          "rank": 92,
+          "time_ms": 36474
+        },
+        {
+          "rank": 93,
+          "time_ms": 36514
+        },
+        {
+          "rank": 94,
+          "time_ms": 36565
+        },
+        {
+          "rank": 95,
+          "time_ms": 36601
+        },
+        {
+          "rank": 96,
+          "time_ms": 36670
+        },
+        {
+          "rank": 97,
+          "time_ms": 36679
+        },
+        {
+          "rank": 98,
+          "time_ms": 36688
+        },
+        {
+          "rank": 99,
+          "time_ms": 36835
+        },
+        {
+          "rank": 100,
+          "time_ms": 36899
+        }
+      ]
+    },
+    {
+      "script": "lb_cactus_single",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17827398/",
+      "retrieved_at": "2026-10-22T07:35:29.566394+00:00",
+      "total_entries": 522,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 8145
+        },
+        {
+          "rank": 2,
+          "time_ms": 8242
+        },
+        {
+          "rank": 3,
+          "time_ms": 8548
+        },
+        {
+          "rank": 4,
+          "time_ms": 12272
+        },
+        {
+          "rank": 5,
+          "time_ms": 12813
+        },
+        {
+          "rank": 6,
+          "time_ms": 12859
+        },
+        {
+          "rank": 7,
+          "time_ms": 13869
+        },
+        {
+          "rank": 8,
+          "time_ms": 14274
+        },
+        {
+          "rank": 9,
+          "time_ms": 14734
+        },
+        {
+          "rank": 10,
+          "time_ms": 14868
+        },
+        {
+          "rank": 11,
+          "time_ms": 15054
+        },
+        {
+          "rank": 12,
+          "time_ms": 15246
+        },
+        {
+          "rank": 13,
+          "time_ms": 15283
+        },
+        {
+          "rank": 14,
+          "time_ms": 15473
+        },
+        {
+          "rank": 15,
+          "time_ms": 15566
+        },
+        {
+          "rank": 16,
+          "time_ms": 15987
+        },
+        {
+          "rank": 17,
+          "time_ms": 16220
+        },
+        {
+          "rank": 18,
+          "time_ms": 16287
+        },
+        {
+          "rank": 19,
+          "time_ms": 16421
+        },
+        {
+          "rank": 20,
+          "time_ms": 16583
+        },
+        {
+          "rank": 21,
+          "time_ms": 16767
+        },
+        {
+          "rank": 22,
+          "time_ms": 16877
+        },
+        {
+          "rank": 23,
+          "time_ms": 17160
+        },
+        {
+          "rank": 24,
+          "time_ms": 17487
+        },
+        {
+          "rank": 25,
+          "time_ms": 17721
+        },
+        {
+          "rank": 26,
+          "time_ms": 17840
+        },
+        {
+          "rank": 27,
+          "time_ms": 18046
+        },
+        {
+          "rank": 28,
+          "time_ms": 18076
+        },
+        {
+          "rank": 29,
+          "time_ms": 18211
+        },
+        {
+          "rank": 30,
+          "time_ms": 18234
+        },
+        {
+          "rank": 31,
+          "time_ms": 18296
+        },
+        {
+          "rank": 32,
+          "time_ms": 18525
+        },
+        {
+          "rank": 33,
+          "time_ms": 18542
+        },
+        {
+          "rank": 34,
+          "time_ms": 18543
+        },
+        {
+          "rank": 35,
+          "time_ms": 18582
+        },
+        {
+          "rank": 36,
+          "time_ms": 18805
+        },
+        {
+          "rank": 37,
+          "time_ms": 18864
+        },
+        {
+          "rank": 38,
+          "time_ms": 19178
+        },
+        {
+          "rank": 39,
+          "time_ms": 19183
+        },
+        {
+          "rank": 40,
+          "time_ms": 19207
+        },
+        {
+          "rank": 41,
+          "time_ms": 19328
+        },
+        {
+          "rank": 42,
+          "time_ms": 19486
+        },
+        {
+          "rank": 43,
+          "time_ms": 19579
+        },
+        {
+          "rank": 44,
+          "time_ms": 19713
+        },
+        {
+          "rank": 45,
+          "time_ms": 19723
+        },
+        {
+          "rank": 46,
+          "time_ms": 19768
+        },
+        {
+          "rank": 47,
+          "time_ms": 19781
+        },
+        {
+          "rank": 48,
+          "time_ms": 19920
+        },
+        {
+          "rank": 49,
+          "time_ms": 20120
+        },
+        {
+          "rank": 50,
+          "time_ms": 20169
+        },
+        {
+          "rank": 51,
+          "time_ms": 20173
+        },
+        {
+          "rank": 52,
+          "time_ms": 20219
+        },
+        {
+          "rank": 53,
+          "time_ms": 20224
+        },
+        {
+          "rank": 54,
+          "time_ms": 20300
+        },
+        {
+          "rank": 55,
+          "time_ms": 20312
+        },
+        {
+          "rank": 56,
+          "time_ms": 20318
+        },
+        {
+          "rank": 57,
+          "time_ms": 20370
+        },
+        {
+          "rank": 58,
+          "time_ms": 20407
+        },
+        {
+          "rank": 59,
+          "time_ms": 20482
+        },
+        {
+          "rank": 60,
+          "time_ms": 20482
+        },
+        {
+          "rank": 61,
+          "time_ms": 20526
+        },
+        {
+          "rank": 62,
+          "time_ms": 20551
+        },
+        {
+          "rank": 63,
+          "time_ms": 20619
+        },
+        {
+          "rank": 64,
+          "time_ms": 20675
+        },
+        {
+          "rank": 65,
+          "time_ms": 20786
+        },
+        {
+          "rank": 66,
+          "time_ms": 20791
+        },
+        {
+          "rank": 67,
+          "time_ms": 20879
+        },
+        {
+          "rank": 68,
+          "time_ms": 20890
+        },
+        {
+          "rank": 69,
+          "time_ms": 20897
+        },
+        {
+          "rank": 70,
+          "time_ms": 20930
+        },
+        {
+          "rank": 71,
+          "time_ms": 20941
+        },
+        {
+          "rank": 72,
+          "time_ms": 21038
+        },
+        {
+          "rank": 73,
+          "time_ms": 21038
+        },
+        {
+          "rank": 74,
+          "time_ms": 21131
+        },
+        {
+          "rank": 75,
+          "time_ms": 21141
+        },
+        {
+          "rank": 76,
+          "time_ms": 21265
+        },
+        {
+          "rank": 77,
+          "time_ms": 21358
+        },
+        {
+          "rank": 78,
+          "time_ms": 21366
+        },
+        {
+          "rank": 79,
+          "time_ms": 21440
+        },
+        {
+          "rank": 80,
+          "time_ms": 21467
+        },
+        {
+          "rank": 81,
+          "time_ms": 21524
+        },
+        {
+          "rank": 82,
+          "time_ms": 21615
+        },
+        {
+          "rank": 83,
+          "time_ms": 21672
+        },
+        {
+          "rank": 84,
+          "time_ms": 21695
+        },
+        {
+          "rank": 85,
+          "time_ms": 21696
+        },
+        {
+          "rank": 86,
+          "time_ms": 21761
+        },
+        {
+          "rank": 87,
+          "time_ms": 21876
+        },
+        {
+          "rank": 88,
+          "time_ms": 21924
+        },
+        {
+          "rank": 89,
+          "time_ms": 21925
+        },
+        {
+          "rank": 90,
+          "time_ms": 21974
+        },
+        {
+          "rank": 91,
+          "time_ms": 21993
+        },
+        {
+          "rank": 92,
+          "time_ms": 22010
+        },
+        {
+          "rank": 93,
+          "time_ms": 22056
+        },
+        {
+          "rank": 94,
+          "time_ms": 22149
+        },
+        {
+          "rank": 95,
+          "time_ms": 22220
+        },
+        {
+          "rank": 96,
+          "time_ms": 22259
+        },
+        {
+          "rank": 97,
+          "time_ms": 22287
+        },
+        {
+          "rank": 98,
+          "time_ms": 22288
+        },
+        {
+          "rank": 99,
+          "time_ms": 22313
+        },
+        {
+          "rank": 100,
+          "time_ms": 22321
+        }
+      ]
+    },
+    {
+      "script": "lb_carrots",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869887/",
+      "retrieved_at": "2026-10-22T07:35:41.036710+00:00",
+      "total_entries": 620,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 118229
+        },
+        {
+          "rank": 2,
+          "time_ms": 134429
+        },
+        {
+          "rank": 3,
+          "time_ms": 181686
+        },
+        {
+          "rank": 4,
+          "time_ms": 190664
+        },
+        {
+          "rank": 5,
+          "time_ms": 191646
+        },
+        {
+          "rank": 6,
+          "time_ms": 198951
+        },
+        {
+          "rank": 7,
+          "time_ms": 202297
+        },
+        {
+          "rank": 8,
+          "time_ms": 205136
+        },
+        {
+          "rank": 9,
+          "time_ms": 205901
+        },
+        {
+          "rank": 10,
+          "time_ms": 212744
+        },
+        {
+          "rank": 11,
+          "time_ms": 212779
+        },
+        {
+          "rank": 12,
+          "time_ms": 222994
+        },
+        {
+          "rank": 13,
+          "time_ms": 223059
+        },
+        {
+          "rank": 14,
+          "time_ms": 223145
+        },
+        {
+          "rank": 15,
+          "time_ms": 225872
+        },
+        {
+          "rank": 16,
+          "time_ms": 227955
+        },
+        {
+          "rank": 17,
+          "time_ms": 230222
+        },
+        {
+          "rank": 18,
+          "time_ms": 230940
+        },
+        {
+          "rank": 19,
+          "time_ms": 232904
+        },
+        {
+          "rank": 20,
+          "time_ms": 234347
+        },
+        {
+          "rank": 21,
+          "time_ms": 236034
+        },
+        {
+          "rank": 22,
+          "time_ms": 236396
+        },
+        {
+          "rank": 23,
+          "time_ms": 237120
+        },
+        {
+          "rank": 24,
+          "time_ms": 237351
+        },
+        {
+          "rank": 25,
+          "time_ms": 240501
+        },
+        {
+          "rank": 26,
+          "time_ms": 241744
+        },
+        {
+          "rank": 27,
+          "time_ms": 243862
+        },
+        {
+          "rank": 28,
+          "time_ms": 245884
+        },
+        {
+          "rank": 29,
+          "time_ms": 248362
+        },
+        {
+          "rank": 30,
+          "time_ms": 249746
+        },
+        {
+          "rank": 31,
+          "time_ms": 251752
+        },
+        {
+          "rank": 32,
+          "time_ms": 253275
+        },
+        {
+          "rank": 33,
+          "time_ms": 253861
+        },
+        {
+          "rank": 34,
+          "time_ms": 255569
+        },
+        {
+          "rank": 35,
+          "time_ms": 255765
+        },
+        {
+          "rank": 36,
+          "time_ms": 256558
+        },
+        {
+          "rank": 37,
+          "time_ms": 257238
+        },
+        {
+          "rank": 38,
+          "time_ms": 257273
+        },
+        {
+          "rank": 39,
+          "time_ms": 257479
+        },
+        {
+          "rank": 40,
+          "time_ms": 258024
+        },
+        {
+          "rank": 41,
+          "time_ms": 258940
+        },
+        {
+          "rank": 42,
+          "time_ms": 259076
+        },
+        {
+          "rank": 43,
+          "time_ms": 259564
+        },
+        {
+          "rank": 44,
+          "time_ms": 260829
+        },
+        {
+          "rank": 45,
+          "time_ms": 261923
+        },
+        {
+          "rank": 46,
+          "time_ms": 262167
+        },
+        {
+          "rank": 47,
+          "time_ms": 262450
+        },
+        {
+          "rank": 48,
+          "time_ms": 263919
+        },
+        {
+          "rank": 49,
+          "time_ms": 264967
+        },
+        {
+          "rank": 50,
+          "time_ms": 265768
+        },
+        {
+          "rank": 51,
+          "time_ms": 268321
+        },
+        {
+          "rank": 52,
+          "time_ms": 268578
+        },
+        {
+          "rank": 53,
+          "time_ms": 270951
+        },
+        {
+          "rank": 54,
+          "time_ms": 272950
+        },
+        {
+          "rank": 55,
+          "time_ms": 274596
+        },
+        {
+          "rank": 56,
+          "time_ms": 274662
+        },
+        {
+          "rank": 57,
+          "time_ms": 280290
+        },
+        {
+          "rank": 58,
+          "time_ms": 280301
+        },
+        {
+          "rank": 59,
+          "time_ms": 281521
+        },
+        {
+          "rank": 60,
+          "time_ms": 282950
+        },
+        {
+          "rank": 61,
+          "time_ms": 284503
+        },
+        {
+          "rank": 62,
+          "time_ms": 286438
+        },
+        {
+          "rank": 63,
+          "time_ms": 286586
+        },
+        {
+          "rank": 64,
+          "time_ms": 287801
+        },
+        {
+          "rank": 65,
+          "time_ms": 288591
+        },
+        {
+          "rank": 66,
+          "time_ms": 289265
+        },
+        {
+          "rank": 67,
+          "time_ms": 289460
+        },
+        {
+          "rank": 68,
+          "time_ms": 290199
+        },
+        {
+          "rank": 69,
+          "time_ms": 291093
+        },
+        {
+          "rank": 70,
+          "time_ms": 291119
+        },
+        {
+          "rank": 71,
+          "time_ms": 292209
+        },
+        {
+          "rank": 72,
+          "time_ms": 292347
+        },
+        {
+          "rank": 73,
+          "time_ms": 292525
+        },
+        {
+          "rank": 74,
+          "time_ms": 293737
+        },
+        {
+          "rank": 75,
+          "time_ms": 294145
+        },
+        {
+          "rank": 76,
+          "time_ms": 294179
+        },
+        {
+          "rank": 77,
+          "time_ms": 294498
+        },
+        {
+          "rank": 78,
+          "time_ms": 294718
+        },
+        {
+          "rank": 79,
+          "time_ms": 296068
+        },
+        {
+          "rank": 80,
+          "time_ms": 296123
+        },
+        {
+          "rank": 81,
+          "time_ms": 296378
+        },
+        {
+          "rank": 82,
+          "time_ms": 296567
+        },
+        {
+          "rank": 83,
+          "time_ms": 296663
+        },
+        {
+          "rank": 84,
+          "time_ms": 297090
+        },
+        {
+          "rank": 85,
+          "time_ms": 297207
+        },
+        {
+          "rank": 86,
+          "time_ms": 297621
+        },
+        {
+          "rank": 87,
+          "time_ms": 297759
+        },
+        {
+          "rank": 88,
+          "time_ms": 298088
+        },
+        {
+          "rank": 89,
+          "time_ms": 298093
+        },
+        {
+          "rank": 90,
+          "time_ms": 298732
+        },
+        {
+          "rank": 91,
+          "time_ms": 298778
+        },
+        {
+          "rank": 92,
+          "time_ms": 298800
+        },
+        {
+          "rank": 93,
+          "time_ms": 299069
+        },
+        {
+          "rank": 94,
+          "time_ms": 299631
+        },
+        {
+          "rank": 95,
+          "time_ms": 300988
+        },
+        {
+          "rank": 96,
+          "time_ms": 301310
+        },
+        {
+          "rank": 97,
+          "time_ms": 301835
+        },
+        {
+          "rank": 98,
+          "time_ms": 301957
+        },
+        {
+          "rank": 99,
+          "time_ms": 302121
+        },
+        {
+          "rank": 100,
+          "time_ms": 302795
+        }
+      ]
+    },
+    {
+      "script": "lb_carrots_single",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17827400/",
+      "retrieved_at": "2026-10-22T07:35:55.994410+00:00",
+      "total_entries": 301,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 172712
+        },
+        {
+          "rank": 2,
+          "time_ms": 226718
+        },
+        {
+          "rank": 3,
+          "time_ms": 228342
+        },
+        {
+          "rank": 4,
+          "time_ms": 230148
+        },
+        {
+          "rank": 5,
+          "time_ms": 232380
+        },
+        {
+          "rank": 6,
+          "time_ms": 232651
+        },
+        {
+          "rank": 7,
+          "time_ms": 232687
+        },
+        {
+          "rank": 8,
+          "time_ms": 234236
+        },
+        {
+          "rank": 9,
+          "time_ms": 234818
+        },
+        {
+          "rank": 10,
+          "time_ms": 235344
+        },
+        {
+          "rank": 11,
+          "time_ms": 235755
+        },
+        {
+          "rank": 12,
+          "time_ms": 237031
+        },
+        {
+          "rank": 13,
+          "time_ms": 237331
+        },
+        {
+          "rank": 14,
+          "time_ms": 238821
+        },
+        {
+          "rank": 15,
+          "time_ms": 241626
+        },
+        {
+          "rank": 16,
+          "time_ms": 244033
+        },
+        {
+          "rank": 17,
+          "time_ms": 244994
+        },
+        {
+          "rank": 18,
+          "time_ms": 245449
+        },
+        {
+          "rank": 19,
+          "time_ms": 245953
+        },
+        {
+          "rank": 20,
+          "time_ms": 249969
+        },
+        {
+          "rank": 21,
+          "time_ms": 251090
+        },
+        {
+          "rank": 22,
+          "time_ms": 252214
+        },
+        {
+          "rank": 23,
+          "time_ms": 252428
+        },
+        {
+          "rank": 24,
+          "time_ms": 255453
+        },
+        {
+          "rank": 25,
+          "time_ms": 260321
+        },
+        {
+          "rank": 26,
+          "time_ms": 263523
+        },
+        {
+          "rank": 27,
+          "time_ms": 264261
+        },
+        {
+          "rank": 28,
+          "time_ms": 267482
+        },
+        {
+          "rank": 29,
+          "time_ms": 267697
+        },
+        {
+          "rank": 30,
+          "time_ms": 268342
+        },
+        {
+          "rank": 31,
+          "time_ms": 268472
+        },
+        {
+          "rank": 32,
+          "time_ms": 273397
+        },
+        {
+          "rank": 33,
+          "time_ms": 284639
+        },
+        {
+          "rank": 34,
+          "time_ms": 292875
+        },
+        {
+          "rank": 35,
+          "time_ms": 293563
+        },
+        {
+          "rank": 36,
+          "time_ms": 293860
+        },
+        {
+          "rank": 37,
+          "time_ms": 300876
+        },
+        {
+          "rank": 38,
+          "time_ms": 302308
+        },
+        {
+          "rank": 39,
+          "time_ms": 305531
+        },
+        {
+          "rank": 40,
+          "time_ms": 306157
+        },
+        {
+          "rank": 41,
+          "time_ms": 306283
+        },
+        {
+          "rank": 42,
+          "time_ms": 310627
+        },
+        {
+          "rank": 43,
+          "time_ms": 313660
+        },
+        {
+          "rank": 44,
+          "time_ms": 315950
+        },
+        {
+          "rank": 45,
+          "time_ms": 316188
+        },
+        {
+          "rank": 46,
+          "time_ms": 320592
+        },
+        {
+          "rank": 47,
+          "time_ms": 323229
+        },
+        {
+          "rank": 48,
+          "time_ms": 326104
+        },
+        {
+          "rank": 49,
+          "time_ms": 331997
+        },
+        {
+          "rank": 50,
+          "time_ms": 334086
+        },
+        {
+          "rank": 51,
+          "time_ms": 336104
+        },
+        {
+          "rank": 52,
+          "time_ms": 345038
+        },
+        {
+          "rank": 53,
+          "time_ms": 345567
+        },
+        {
+          "rank": 54,
+          "time_ms": 352644
+        },
+        {
+          "rank": 55,
+          "time_ms": 353292
+        },
+        {
+          "rank": 56,
+          "time_ms": 355228
+        },
+        {
+          "rank": 57,
+          "time_ms": 355470
+        },
+        {
+          "rank": 58,
+          "time_ms": 355516
+        },
+        {
+          "rank": 59,
+          "time_ms": 356545
+        },
+        {
+          "rank": 60,
+          "time_ms": 359331
+        },
+        {
+          "rank": 61,
+          "time_ms": 366320
+        },
+        {
+          "rank": 62,
+          "time_ms": 370342
+        },
+        {
+          "rank": 63,
+          "time_ms": 372594
+        },
+        {
+          "rank": 64,
+          "time_ms": 373342
+        },
+        {
+          "rank": 65,
+          "time_ms": 374399
+        },
+        {
+          "rank": 66,
+          "time_ms": 377123
+        },
+        {
+          "rank": 67,
+          "time_ms": 377909
+        },
+        {
+          "rank": 68,
+          "time_ms": 378756
+        },
+        {
+          "rank": 69,
+          "time_ms": 379170
+        },
+        {
+          "rank": 70,
+          "time_ms": 379788
+        },
+        {
+          "rank": 71,
+          "time_ms": 380589
+        },
+        {
+          "rank": 72,
+          "time_ms": 380909
+        },
+        {
+          "rank": 73,
+          "time_ms": 381130
+        },
+        {
+          "rank": 74,
+          "time_ms": 383870
+        },
+        {
+          "rank": 75,
+          "time_ms": 384582
+        },
+        {
+          "rank": 76,
+          "time_ms": 385029
+        },
+        {
+          "rank": 77,
+          "time_ms": 388689
+        },
+        {
+          "rank": 78,
+          "time_ms": 389889
+        },
+        {
+          "rank": 79,
+          "time_ms": 390316
+        },
+        {
+          "rank": 80,
+          "time_ms": 391716
+        },
+        {
+          "rank": 81,
+          "time_ms": 392908
+        },
+        {
+          "rank": 82,
+          "time_ms": 393296
+        },
+        {
+          "rank": 83,
+          "time_ms": 395237
+        },
+        {
+          "rank": 84,
+          "time_ms": 396092
+        },
+        {
+          "rank": 85,
+          "time_ms": 399580
+        },
+        {
+          "rank": 86,
+          "time_ms": 400470
+        },
+        {
+          "rank": 87,
+          "time_ms": 401633
+        },
+        {
+          "rank": 88,
+          "time_ms": 401747
+        },
+        {
+          "rank": 89,
+          "time_ms": 405584
+        },
+        {
+          "rank": 90,
+          "time_ms": 411039
+        },
+        {
+          "rank": 91,
+          "time_ms": 411853
+        },
+        {
+          "rank": 92,
+          "time_ms": 411990
+        },
+        {
+          "rank": 93,
+          "time_ms": 412060
+        },
+        {
+          "rank": 94,
+          "time_ms": 412498
+        },
+        {
+          "rank": 95,
+          "time_ms": 412597
+        },
+        {
+          "rank": 96,
+          "time_ms": 420949
+        },
+        {
+          "rank": 97,
+          "time_ms": 421589
+        },
+        {
+          "rank": 98,
+          "time_ms": 426442
+        },
+        {
+          "rank": 99,
+          "time_ms": 426681
+        },
+        {
+          "rank": 100,
+          "time_ms": 426835
+        }
+      ]
+    },
+    {
+      "script": "lb_dinosaur",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869889/",
+      "retrieved_at": "2026-10-22T07:35:58.238257+00:00",
+      "total_entries": 1694,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 227942
+        },
+        {
+          "rank": 2,
+          "time_ms": 266473
+        },
+        {
+          "rank": 3,
+          "time_ms": 274725
+        },
+        {
+          "rank": 4,
+          "time_ms": 300846
+        },
+        {
+          "rank": 5,
+          "time_ms": 314900
+        },
+        {
+          "rank": 6,
+          "time_ms": 317171
+        },
+        {
+          "rank": 7,
+          "time_ms": 323789
+        },
+        {
+          "rank": 8,
+          "time_ms": 339468
+        },
+        {
+          "rank": 9,
+          "time_ms": 458814
+        },
+        {
+          "rank": 10,
+          "time_ms": 472494
+        },
+        {
+          "rank": 11,
+          "time_ms": 477833
+        },
+        {
+          "rank": 12,
+          "time_ms": 486900
+        },
+        {
+          "rank": 13,
+          "time_ms": 518203
+        },
+        {
+          "rank": 14,
+          "time_ms": 557232
+        },
+        {
+          "rank": 15,
+          "time_ms": 571462
+        },
+        {
+          "rank": 16,
+          "time_ms": 607997
+        },
+        {
+          "rank": 17,
+          "time_ms": 623923
+        },
+        {
+          "rank": 18,
+          "time_ms": 631378
+        },
+        {
+          "rank": 19,
+          "time_ms": 636871
+        },
+        {
+          "rank": 20,
+          "time_ms": 648540
+        },
+        {
+          "rank": 21,
+          "time_ms": 656310
+        },
+        {
+          "rank": 22,
+          "time_ms": 676329
+        },
+        {
+          "rank": 23,
+          "time_ms": 678611
+        },
+        {
+          "rank": 24,
+          "time_ms": 684089
+        },
+        {
+          "rank": 25,
+          "time_ms": 690285
+        },
+        {
+          "rank": 26,
+          "time_ms": 693433
+        },
+        {
+          "rank": 27,
+          "time_ms": 697011
+        },
+        {
+          "rank": 28,
+          "time_ms": 702892
+        },
+        {
+          "rank": 29,
+          "time_ms": 710861
+        },
+        {
+          "rank": 30,
+          "time_ms": 716230
+        },
+        {
+          "rank": 31,
+          "time_ms": 719946
+        },
+        {
+          "rank": 32,
+          "time_ms": 721788
+        },
+        {
+          "rank": 33,
+          "time_ms": 722619
+        },
+        {
+          "rank": 34,
+          "time_ms": 725045
+        },
+        {
+          "rank": 35,
+          "time_ms": 725216
+        },
+        {
+          "rank": 36,
+          "time_ms": 725641
+        },
+        {
+          "rank": 37,
+          "time_ms": 725904
+        },
+        {
+          "rank": 38,
+          "time_ms": 726213
+        },
+        {
+          "rank": 39,
+          "time_ms": 727646
+        },
+        {
+          "rank": 40,
+          "time_ms": 727835
+        },
+        {
+          "rank": 41,
+          "time_ms": 728170
+        },
+        {
+          "rank": 42,
+          "time_ms": 729429
+        },
+        {
+          "rank": 43,
+          "time_ms": 729477
+        },
+        {
+          "rank": 44,
+          "time_ms": 731250
+        },
+        {
+          "rank": 45,
+          "time_ms": 733757
+        },
+        {
+          "rank": 46,
+          "time_ms": 734777
+        },
+        {
+          "rank": 47,
+          "time_ms": 737639
+        },
+        {
+          "rank": 48,
+          "time_ms": 741965
+        },
+        {
+          "rank": 49,
+          "time_ms": 746150
+        },
+        {
+          "rank": 50,
+          "time_ms": 746945
+        },
+        {
+          "rank": 51,
+          "time_ms": 749301
+        },
+        {
+          "rank": 52,
+          "time_ms": 749705
+        },
+        {
+          "rank": 53,
+          "time_ms": 751384
+        },
+        {
+          "rank": 54,
+          "time_ms": 763646
+        },
+        {
+          "rank": 55,
+          "time_ms": 766506
+        },
+        {
+          "rank": 56,
+          "time_ms": 769598
+        },
+        {
+          "rank": 57,
+          "time_ms": 771803
+        },
+        {
+          "rank": 58,
+          "time_ms": 772436
+        },
+        {
+          "rank": 59,
+          "time_ms": 779752
+        },
+        {
+          "rank": 60,
+          "time_ms": 788328
+        },
+        {
+          "rank": 61,
+          "time_ms": 791079
+        },
+        {
+          "rank": 62,
+          "time_ms": 793941
+        },
+        {
+          "rank": 63,
+          "time_ms": 794933
+        },
+        {
+          "rank": 64,
+          "time_ms": 796122
+        },
+        {
+          "rank": 65,
+          "time_ms": 796144
+        },
+        {
+          "rank": 66,
+          "time_ms": 799109
+        },
+        {
+          "rank": 67,
+          "time_ms": 800125
+        },
+        {
+          "rank": 68,
+          "time_ms": 800289
+        },
+        {
+          "rank": 69,
+          "time_ms": 802390
+        },
+        {
+          "rank": 70,
+          "time_ms": 802925
+        },
+        {
+          "rank": 71,
+          "time_ms": 804028
+        },
+        {
+          "rank": 72,
+          "time_ms": 804378
+        },
+        {
+          "rank": 73,
+          "time_ms": 805471
+        },
+        {
+          "rank": 74,
+          "time_ms": 805615
+        },
+        {
+          "rank": 75,
+          "time_ms": 806961
+        },
+        {
+          "rank": 76,
+          "time_ms": 807029
+        },
+        {
+          "rank": 77,
+          "time_ms": 807659
+        },
+        {
+          "rank": 78,
+          "time_ms": 809764
+        },
+        {
+          "rank": 79,
+          "time_ms": 810798
+        },
+        {
+          "rank": 80,
+          "time_ms": 810849
+        },
+        {
+          "rank": 81,
+          "time_ms": 810857
+        },
+        {
+          "rank": 82,
+          "time_ms": 812310
+        },
+        {
+          "rank": 83,
+          "time_ms": 814123
+        },
+        {
+          "rank": 84,
+          "time_ms": 816388
+        },
+        {
+          "rank": 85,
+          "time_ms": 819386
+        },
+        {
+          "rank": 86,
+          "time_ms": 824235
+        },
+        {
+          "rank": 87,
+          "time_ms": 824521
+        },
+        {
+          "rank": 88,
+          "time_ms": 825657
+        },
+        {
+          "rank": 89,
+          "time_ms": 826612
+        },
+        {
+          "rank": 90,
+          "time_ms": 827909
+        },
+        {
+          "rank": 91,
+          "time_ms": 828512
+        },
+        {
+          "rank": 92,
+          "time_ms": 830002
+        },
+        {
+          "rank": 93,
+          "time_ms": 830655
+        },
+        {
+          "rank": 94,
+          "time_ms": 835997
+        },
+        {
+          "rank": 95,
+          "time_ms": 836363
+        },
+        {
+          "rank": 96,
+          "time_ms": 838229
+        },
+        {
+          "rank": 97,
+          "time_ms": 840951
+        },
+        {
+          "rank": 98,
+          "time_ms": 847911
+        },
+        {
+          "rank": 99,
+          "time_ms": 848960
+        },
+        {
+          "rank": 100,
+          "time_ms": 850887
+        }
+      ]
+    },
+    {
+      "script": "lb_fastest_reset",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869903/",
+      "retrieved_at": "2026-10-22T07:36:01.039041+00:00",
+      "total_entries": 4159,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 735173
+        },
+        {
+          "rank": 2,
+          "time_ms": 1323963
+        },
+        {
+          "rank": 3,
+          "time_ms": 1490234
+        },
+        {
+          "rank": 4,
+          "time_ms": 1668860
+        },
+        {
+          "rank": 5,
+          "time_ms": 1762428
+        },
+        {
+          "rank": 6,
+          "time_ms": 1776731
+        },
+        {
+          "rank": 7,
+          "time_ms": 1815607
+        },
+        {
+          "rank": 8,
+          "time_ms": 1936762
+        },
+        {
+          "rank": 9,
+          "time_ms": 1944121
+        },
+        {
+          "rank": 10,
+          "time_ms": 1966927
+        },
+        {
+          "rank": 11,
+          "time_ms": 1971651
+        },
+        {
+          "rank": 12,
+          "time_ms": 1988883
+        },
+        {
+          "rank": 13,
+          "time_ms": 1995175
+        },
+        {
+          "rank": 14,
+          "time_ms": 2062288
+        },
+        {
+          "rank": 15,
+          "time_ms": 2067990
+        },
+        {
+          "rank": 16,
+          "time_ms": 2073073
+        },
+        {
+          "rank": 17,
+          "time_ms": 2087375
+        },
+        {
+          "rank": 18,
+          "time_ms": 2089111
+        },
+        {
+          "rank": 19,
+          "time_ms": 2200580
+        },
+        {
+          "rank": 20,
+          "time_ms": 2233138
+        },
+        {
+          "rank": 21,
+          "time_ms": 2322203
+        },
+        {
+          "rank": 22,
+          "time_ms": 2327590
+        },
+        {
+          "rank": 23,
+          "time_ms": 2413150
+        },
+        {
+          "rank": 24,
+          "time_ms": 2445887
+        },
+        {
+          "rank": 25,
+          "time_ms": 2524654
+        },
+        {
+          "rank": 26,
+          "time_ms": 2542169
+        },
+        {
+          "rank": 27,
+          "time_ms": 2590760
+        },
+        {
+          "rank": 28,
+          "time_ms": 2679816
+        },
+        {
+          "rank": 29,
+          "time_ms": 2719318
+        },
+        {
+          "rank": 30,
+          "time_ms": 2753906
+        },
+        {
+          "rank": 31,
+          "time_ms": 2755298
+        },
+        {
+          "rank": 32,
+          "time_ms": 2804635
+        },
+        {
+          "rank": 33,
+          "time_ms": 2824576
+        },
+        {
+          "rank": 34,
+          "time_ms": 2862898
+        },
+        {
+          "rank": 35,
+          "time_ms": 2896569
+        },
+        {
+          "rank": 36,
+          "time_ms": 2976624
+        },
+        {
+          "rank": 37,
+          "time_ms": 2977270
+        },
+        {
+          "rank": 38,
+          "time_ms": 2977867
+        },
+        {
+          "rank": 39,
+          "time_ms": 2994791
+        },
+        {
+          "rank": 40,
+          "time_ms": 2998350
+        },
+        {
+          "rank": 41,
+          "time_ms": 3007492
+        },
+        {
+          "rank": 42,
+          "time_ms": 3013537
+        },
+        {
+          "rank": 43,
+          "time_ms": 3073747
+        },
+        {
+          "rank": 44,
+          "time_ms": 3088113
+        },
+        {
+          "rank": 45,
+          "time_ms": 3103898
+        },
+        {
+          "rank": 46,
+          "time_ms": 3105742
+        },
+        {
+          "rank": 47,
+          "time_ms": 3169654
+        },
+        {
+          "rank": 48,
+          "time_ms": 3185574
+        },
+        {
+          "rank": 49,
+          "time_ms": 3186920
+        },
+        {
+          "rank": 50,
+          "time_ms": 3193388
+        },
+        {
+          "rank": 51,
+          "time_ms": 3212393
+        },
+        {
+          "rank": 52,
+          "time_ms": 3230542
+        },
+        {
+          "rank": 53,
+          "time_ms": 3246235
+        },
+        {
+          "rank": 54,
+          "time_ms": 3252490
+        },
+        {
+          "rank": 55,
+          "time_ms": 3254085
+        },
+        {
+          "rank": 56,
+          "time_ms": 3287583
+        },
+        {
+          "rank": 57,
+          "time_ms": 3288366
+        },
+        {
+          "rank": 58,
+          "time_ms": 3342602
+        },
+        {
+          "rank": 59,
+          "time_ms": 3343969
+        },
+        {
+          "rank": 60,
+          "time_ms": 3356378
+        },
+        {
+          "rank": 61,
+          "time_ms": 3362467
+        },
+        {
+          "rank": 62,
+          "time_ms": 3371274
+        },
+        {
+          "rank": 63,
+          "time_ms": 3380108
+        },
+        {
+          "rank": 64,
+          "time_ms": 3389127
+        },
+        {
+          "rank": 65,
+          "time_ms": 3405825
+        },
+        {
+          "rank": 66,
+          "time_ms": 3416872
+        },
+        {
+          "rank": 67,
+          "time_ms": 3420674
+        },
+        {
+          "rank": 68,
+          "time_ms": 3430924
+        },
+        {
+          "rank": 69,
+          "time_ms": 3439343
+        },
+        {
+          "rank": 70,
+          "time_ms": 3466678
+        },
+        {
+          "rank": 71,
+          "time_ms": 3494443
+        },
+        {
+          "rank": 72,
+          "time_ms": 3495708
+        },
+        {
+          "rank": 73,
+          "time_ms": 3499179
+        },
+        {
+          "rank": 74,
+          "time_ms": 3504874
+        },
+        {
+          "rank": 75,
+          "time_ms": 3521920
+        },
+        {
+          "rank": 76,
+          "time_ms": 3533723
+        },
+        {
+          "rank": 77,
+          "time_ms": 3555539
+        },
+        {
+          "rank": 78,
+          "time_ms": 3567340
+        },
+        {
+          "rank": 79,
+          "time_ms": 3578415
+        },
+        {
+          "rank": 80,
+          "time_ms": 3583743
+        },
+        {
+          "rank": 81,
+          "time_ms": 3606386
+        },
+        {
+          "rank": 82,
+          "time_ms": 3665276
+        },
+        {
+          "rank": 83,
+          "time_ms": 3683575
+        },
+        {
+          "rank": 84,
+          "time_ms": 3693443
+        },
+        {
+          "rank": 85,
+          "time_ms": 3714121
+        },
+        {
+          "rank": 86,
+          "time_ms": 3722465
+        },
+        {
+          "rank": 87,
+          "time_ms": 3728128
+        },
+        {
+          "rank": 88,
+          "time_ms": 3739422
+        },
+        {
+          "rank": 89,
+          "time_ms": 3752166
+        },
+        {
+          "rank": 90,
+          "time_ms": 3767343
+        },
+        {
+          "rank": 91,
+          "time_ms": 3785049
+        },
+        {
+          "rank": 92,
+          "time_ms": 3811318
+        },
+        {
+          "rank": 93,
+          "time_ms": 3813017
+        },
+        {
+          "rank": 94,
+          "time_ms": 3827939
+        },
+        {
+          "rank": 95,
+          "time_ms": 3907665
+        },
+        {
+          "rank": 96,
+          "time_ms": 3909249
+        },
+        {
+          "rank": 97,
+          "time_ms": 3912760
+        },
+        {
+          "rank": 98,
+          "time_ms": 3922434
+        },
+        {
+          "rank": 99,
+          "time_ms": 3926681
+        },
+        {
+          "rank": 100,
+          "time_ms": 3944355
+        }
+      ]
+    },
+    {
+      "script": "lb_hay",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869890/",
+      "retrieved_at": "2026-10-22T07:36:04.017966+00:00",
+      "total_entries": 1564,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 58262
+        },
+        {
+          "rank": 2,
+          "time_ms": 87694
+        },
+        {
+          "rank": 3,
+          "time_ms": 106678
+        },
+        {
+          "rank": 4,
+          "time_ms": 107035
+        },
+        {
+          "rank": 5,
+          "time_ms": 107142
+        },
+        {
+          "rank": 6,
+          "time_ms": 107406
+        },
+        {
+          "rank": 7,
+          "time_ms": 107590
+        },
+        {
+          "rank": 8,
+          "time_ms": 107725
+        },
+        {
+          "rank": 9,
+          "time_ms": 107733
+        },
+        {
+          "rank": 10,
+          "time_ms": 108018
+        },
+        {
+          "rank": 11,
+          "time_ms": 108134
+        },
+        {
+          "rank": 12,
+          "time_ms": 108147
+        },
+        {
+          "rank": 13,
+          "time_ms": 108498
+        },
+        {
+          "rank": 14,
+          "time_ms": 108524
+        },
+        {
+          "rank": 15,
+          "time_ms": 108626
+        },
+        {
+          "rank": 16,
+          "time_ms": 108665
+        },
+        {
+          "rank": 17,
+          "time_ms": 108674
+        },
+        {
+          "rank": 18,
+          "time_ms": 108743
+        },
+        {
+          "rank": 19,
+          "time_ms": 108800
+        },
+        {
+          "rank": 20,
+          "time_ms": 108897
+        },
+        {
+          "rank": 21,
+          "time_ms": 108909
+        },
+        {
+          "rank": 22,
+          "time_ms": 108984
+        },
+        {
+          "rank": 23,
+          "time_ms": 109265
+        },
+        {
+          "rank": 24,
+          "time_ms": 109358
+        },
+        {
+          "rank": 25,
+          "time_ms": 109394
+        },
+        {
+          "rank": 26,
+          "time_ms": 109687
+        },
+        {
+          "rank": 27,
+          "time_ms": 109870
+        },
+        {
+          "rank": 28,
+          "time_ms": 109872
+        },
+        {
+          "rank": 29,
+          "time_ms": 110097
+        },
+        {
+          "rank": 30,
+          "time_ms": 110145
+        },
+        {
+          "rank": 31,
+          "time_ms": 110159
+        },
+        {
+          "rank": 32,
+          "time_ms": 110163
+        },
+        {
+          "rank": 33,
+          "time_ms": 110180
+        },
+        {
+          "rank": 34,
+          "time_ms": 110326
+        },
+        {
+          "rank": 35,
+          "time_ms": 110362
+        },
+        {
+          "rank": 36,
+          "time_ms": 110367
+        },
+        {
+          "rank": 37,
+          "time_ms": 110415
+        },
+        {
+          "rank": 38,
+          "time_ms": 110556
+        },
+        {
+          "rank": 39,
+          "time_ms": 110586
+        },
+        {
+          "rank": 40,
+          "time_ms": 110602
+        },
+        {
+          "rank": 41,
+          "time_ms": 110623
+        },
+        {
+          "rank": 42,
+          "time_ms": 110743
+        },
+        {
+          "rank": 43,
+          "time_ms": 110746
+        },
+        {
+          "rank": 44,
+          "time_ms": 110749
+        },
+        {
+          "rank": 45,
+          "time_ms": 110760
+        },
+        {
+          "rank": 46,
+          "time_ms": 110880
+        },
+        {
+          "rank": 47,
+          "time_ms": 110972
+        },
+        {
+          "rank": 48,
+          "time_ms": 110997
+        },
+        {
+          "rank": 49,
+          "time_ms": 111224
+        },
+        {
+          "rank": 50,
+          "time_ms": 111260
+        },
+        {
+          "rank": 51,
+          "time_ms": 111263
+        },
+        {
+          "rank": 52,
+          "time_ms": 111295
+        },
+        {
+          "rank": 53,
+          "time_ms": 111350
+        },
+        {
+          "rank": 54,
+          "time_ms": 111363
+        },
+        {
+          "rank": 55,
+          "time_ms": 111386
+        },
+        {
+          "rank": 56,
+          "time_ms": 111430
+        },
+        {
+          "rank": 57,
+          "time_ms": 111620
+        },
+        {
+          "rank": 58,
+          "time_ms": 111713
+        },
+        {
+          "rank": 59,
+          "time_ms": 111731
+        },
+        {
+          "rank": 60,
+          "time_ms": 111751
+        },
+        {
+          "rank": 61,
+          "time_ms": 111754
+        },
+        {
+          "rank": 62,
+          "time_ms": 111810
+        },
+        {
+          "rank": 63,
+          "time_ms": 111828
+        },
+        {
+          "rank": 64,
+          "time_ms": 111857
+        },
+        {
+          "rank": 65,
+          "time_ms": 111950
+        },
+        {
+          "rank": 66,
+          "time_ms": 111963
+        },
+        {
+          "rank": 67,
+          "time_ms": 111970
+        },
+        {
+          "rank": 68,
+          "time_ms": 112254
+        },
+        {
+          "rank": 69,
+          "time_ms": 112289
+        },
+        {
+          "rank": 70,
+          "time_ms": 112387
+        },
+        {
+          "rank": 71,
+          "time_ms": 112404
+        },
+        {
+          "rank": 72,
+          "time_ms": 112439
+        },
+        {
+          "rank": 73,
+          "time_ms": 112594
+        },
+        {
+          "rank": 74,
+          "time_ms": 112868
+        },
+        {
+          "rank": 75,
+          "time_ms": 113048
+        },
+        {
+          "rank": 76,
+          "time_ms": 113059
+        },
+        {
+          "rank": 77,
+          "time_ms": 113732
+        },
+        {
+          "rank": 78,
+          "time_ms": 113740
+        },
+        {
+          "rank": 79,
+          "time_ms": 113781
+        },
+        {
+          "rank": 80,
+          "time_ms": 113801
+        },
+        {
+          "rank": 81,
+          "time_ms": 113899
+        },
+        {
+          "rank": 82,
+          "time_ms": 113952
+        },
+        {
+          "rank": 83,
+          "time_ms": 114659
+        },
+        {
+          "rank": 84,
+          "time_ms": 114737
+        },
+        {
+          "rank": 85,
+          "time_ms": 114833
+        },
+        {
+          "rank": 86,
+          "time_ms": 114965
+        },
+        {
+          "rank": 87,
+          "time_ms": 115021
+        },
+        {
+          "rank": 88,
+          "time_ms": 115281
+        },
+        {
+          "rank": 89,
+          "time_ms": 115600
+        },
+        {
+          "rank": 90,
+          "time_ms": 115770
+        },
+        {
+          "rank": 91,
+          "time_ms": 115873
+        },
+        {
+          "rank": 92,
+          "time_ms": 116130
+        },
+        {
+          "rank": 93,
+          "time_ms": 116343
+        },
+        {
+          "rank": 94,
+          "time_ms": 116477
+        },
+        {
+          "rank": 95,
+          "time_ms": 116871
+        },
+        {
+          "rank": 96,
+          "time_ms": 116872
+        },
+        {
+          "rank": 97,
+          "time_ms": 116875
+        },
+        {
+          "rank": 98,
+          "time_ms": 116964
+        },
+        {
+          "rank": 99,
+          "time_ms": 117155
+        },
+        {
+          "rank": 100,
+          "time_ms": 117212
+        }
+      ]
+    },
+    {
+      "script": "lb_hay_single",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17827401/",
+      "retrieved_at": "2026-10-22T07:36:12.898112+00:00",
+      "total_entries": 1567,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 107096
+        },
+        {
+          "rank": 2,
+          "time_ms": 145433
+        },
+        {
+          "rank": 3,
+          "time_ms": 165557
+        },
+        {
+          "rank": 4,
+          "time_ms": 165969
+        },
+        {
+          "rank": 5,
+          "time_ms": 166338
+        },
+        {
+          "rank": 6,
+          "time_ms": 166396
+        },
+        {
+          "rank": 7,
+          "time_ms": 167136
+        },
+        {
+          "rank": 8,
+          "time_ms": 167474
+        },
+        {
+          "rank": 9,
+          "time_ms": 167612
+        },
+        {
+          "rank": 10,
+          "time_ms": 167919
+        },
+        {
+          "rank": 11,
+          "time_ms": 168260
+        },
+        {
+          "rank": 12,
+          "time_ms": 168337
+        },
+        {
+          "rank": 13,
+          "time_ms": 168581
+        },
+        {
+          "rank": 14,
+          "time_ms": 168591
+        },
+        {
+          "rank": 15,
+          "time_ms": 168680
+        },
+        {
+          "rank": 16,
+          "time_ms": 168725
+        },
+        {
+          "rank": 17,
+          "time_ms": 168969
+        },
+        {
+          "rank": 18,
+          "time_ms": 169118
+        },
+        {
+          "rank": 19,
+          "time_ms": 169179
+        },
+        {
+          "rank": 20,
+          "time_ms": 169188
+        },
+        {
+          "rank": 21,
+          "time_ms": 169318
+        },
+        {
+          "rank": 22,
+          "time_ms": 169332
+        },
+        {
+          "rank": 23,
+          "time_ms": 169370
+        },
+        {
+          "rank": 24,
+          "time_ms": 169389
+        },
+        {
+          "rank": 25,
+          "time_ms": 169395
+        },
+        {
+          "rank": 26,
+          "time_ms": 169445
+        },
+        {
+          "rank": 27,
+          "time_ms": 169519
+        },
+        {
+          "rank": 28,
+          "time_ms": 169589
+        },
+        {
+          "rank": 29,
+          "time_ms": 169638
+        },
+        {
+          "rank": 30,
+          "time_ms": 169781
+        },
+        {
+          "rank": 31,
+          "time_ms": 169809
+        },
+        {
+          "rank": 32,
+          "time_ms": 169883
+        },
+        {
+          "rank": 33,
+          "time_ms": 169981
+        },
+        {
+          "rank": 34,
+          "time_ms": 170022
+        },
+        {
+          "rank": 35,
+          "time_ms": 170050
+        },
+        {
+          "rank": 36,
+          "time_ms": 170098
+        },
+        {
+          "rank": 37,
+          "time_ms": 170115
+        },
+        {
+          "rank": 38,
+          "time_ms": 170274
+        },
+        {
+          "rank": 39,
+          "time_ms": 170338
+        },
+        {
+          "rank": 40,
+          "time_ms": 170338
+        },
+        {
+          "rank": 41,
+          "time_ms": 170419
+        },
+        {
+          "rank": 42,
+          "time_ms": 170419
+        },
+        {
+          "rank": 43,
+          "time_ms": 170451
+        },
+        {
+          "rank": 44,
+          "time_ms": 170461
+        },
+        {
+          "rank": 45,
+          "time_ms": 170476
+        },
+        {
+          "rank": 46,
+          "time_ms": 170489
+        },
+        {
+          "rank": 47,
+          "time_ms": 170555
+        },
+        {
+          "rank": 48,
+          "time_ms": 170588
+        },
+        {
+          "rank": 49,
+          "time_ms": 170621
+        },
+        {
+          "rank": 50,
+          "time_ms": 170706
+        },
+        {
+          "rank": 51,
+          "time_ms": 170874
+        },
+        {
+          "rank": 52,
+          "time_ms": 170902
+        },
+        {
+          "rank": 53,
+          "time_ms": 170914
+        },
+        {
+          "rank": 54,
+          "time_ms": 170918
+        },
+        {
+          "rank": 55,
+          "time_ms": 170942
+        },
+        {
+          "rank": 56,
+          "time_ms": 170959
+        },
+        {
+          "rank": 57,
+          "time_ms": 171004
+        },
+        {
+          "rank": 58,
+          "time_ms": 171208
+        },
+        {
+          "rank": 59,
+          "time_ms": 171237
+        },
+        {
+          "rank": 60,
+          "time_ms": 171240
+        },
+        {
+          "rank": 61,
+          "time_ms": 171310
+        },
+        {
+          "rank": 62,
+          "time_ms": 171343
+        },
+        {
+          "rank": 63,
+          "time_ms": 171363
+        },
+        {
+          "rank": 64,
+          "time_ms": 171415
+        },
+        {
+          "rank": 65,
+          "time_ms": 171468
+        },
+        {
+          "rank": 66,
+          "time_ms": 171535
+        },
+        {
+          "rank": 67,
+          "time_ms": 171582
+        },
+        {
+          "rank": 68,
+          "time_ms": 171691
+        },
+        {
+          "rank": 69,
+          "time_ms": 171843
+        },
+        {
+          "rank": 70,
+          "time_ms": 171964
+        },
+        {
+          "rank": 71,
+          "time_ms": 171993
+        },
+        {
+          "rank": 72,
+          "time_ms": 172137
+        },
+        {
+          "rank": 73,
+          "time_ms": 172171
+        },
+        {
+          "rank": 74,
+          "time_ms": 172217
+        },
+        {
+          "rank": 75,
+          "time_ms": 172253
+        },
+        {
+          "rank": 76,
+          "time_ms": 172427
+        },
+        {
+          "rank": 77,
+          "time_ms": 172460
+        },
+        {
+          "rank": 78,
+          "time_ms": 172538
+        },
+        {
+          "rank": 79,
+          "time_ms": 172854
+        },
+        {
+          "rank": 80,
+          "time_ms": 172881
+        },
+        {
+          "rank": 81,
+          "time_ms": 173081
+        },
+        {
+          "rank": 82,
+          "time_ms": 173158
+        },
+        {
+          "rank": 83,
+          "time_ms": 173188
+        },
+        {
+          "rank": 84,
+          "time_ms": 173453
+        },
+        {
+          "rank": 85,
+          "time_ms": 174061
+        },
+        {
+          "rank": 86,
+          "time_ms": 174107
+        },
+        {
+          "rank": 87,
+          "time_ms": 174196
+        },
+        {
+          "rank": 88,
+          "time_ms": 174324
+        },
+        {
+          "rank": 89,
+          "time_ms": 174528
+        },
+        {
+          "rank": 90,
+          "time_ms": 174786
+        },
+        {
+          "rank": 91,
+          "time_ms": 174890
+        },
+        {
+          "rank": 92,
+          "time_ms": 175015
+        },
+        {
+          "rank": 93,
+          "time_ms": 175374
+        },
+        {
+          "rank": 94,
+          "time_ms": 175870
+        },
+        {
+          "rank": 95,
+          "time_ms": 176170
+        },
+        {
+          "rank": 96,
+          "time_ms": 176358
+        },
+        {
+          "rank": 97,
+          "time_ms": 176643
+        },
+        {
+          "rank": 98,
+          "time_ms": 176816
+        },
+        {
+          "rank": 99,
+          "time_ms": 177121
+        },
+        {
+          "rank": 100,
+          "time_ms": 177230
+        }
+      ]
+    },
+    {
+      "script": "lb_maze",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869891/",
+      "retrieved_at": "2026-10-22T07:36:15.308800+00:00",
+      "total_entries": 1742,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 2222
+        },
+        {
+          "rank": 2,
+          "time_ms": 5056
+        },
+        {
+          "rank": 3,
+          "time_ms": 13381
+        },
+        {
+          "rank": 4,
+          "time_ms": 16137
+        },
+        {
+          "rank": 5,
+          "time_ms": 24831
+        },
+        {
+          "rank": 6,
+          "time_ms": 29511
+        },
+        {
+          "rank": 7,
+          "time_ms": 31562
+        },
+        {
+          "rank": 8,
+          "time_ms": 33901
+        },
+        {
+          "rank": 9,
+          "time_ms": 36409
+        },
+        {
+          "rank": 10,
+          "time_ms": 42777
+        },
+        {
+          "rank": 11,
+          "time_ms": 57855
+        },
+        {
+          "rank": 12,
+          "time_ms": 69927
+        },
+        {
+          "rank": 13,
+          "time_ms": 71880
+        },
+        {
+          "rank": 14,
+          "time_ms": 77599
+        },
+        {
+          "rank": 15,
+          "time_ms": 81900
+        },
+        {
+          "rank": 16,
+          "time_ms": 87883
+        },
+        {
+          "rank": 17,
+          "time_ms": 87910
+        },
+        {
+          "rank": 18,
+          "time_ms": 94156
+        },
+        {
+          "rank": 19,
+          "time_ms": 94709
+        },
+        {
+          "rank": 20,
+          "time_ms": 95181
+        },
+        {
+          "rank": 21,
+          "time_ms": 95560
+        },
+        {
+          "rank": 22,
+          "time_ms": 95698
+        },
+        {
+          "rank": 23,
+          "time_ms": 97702
+        },
+        {
+          "rank": 24,
+          "time_ms": 98517
+        },
+        {
+          "rank": 25,
+          "time_ms": 99205
+        },
+        {
+          "rank": 26,
+          "time_ms": 100385
+        },
+        {
+          "rank": 27,
+          "time_ms": 101878
+        },
+        {
+          "rank": 28,
+          "time_ms": 103201
+        },
+        {
+          "rank": 29,
+          "time_ms": 103223
+        },
+        {
+          "rank": 30,
+          "time_ms": 103550
+        },
+        {
+          "rank": 31,
+          "time_ms": 104242
+        },
+        {
+          "rank": 32,
+          "time_ms": 104367
+        },
+        {
+          "rank": 33,
+          "time_ms": 104923
+        },
+        {
+          "rank": 34,
+          "time_ms": 106621
+        },
+        {
+          "rank": 35,
+          "time_ms": 107445
+        },
+        {
+          "rank": 36,
+          "time_ms": 107471
+        },
+        {
+          "rank": 37,
+          "time_ms": 107917
+        },
+        {
+          "rank": 38,
+          "time_ms": 108001
+        },
+        {
+          "rank": 39,
+          "time_ms": 108038
+        },
+        {
+          "rank": 40,
+          "time_ms": 108100
+        },
+        {
+          "rank": 41,
+          "time_ms": 109052
+        },
+        {
+          "rank": 42,
+          "time_ms": 109955
+        },
+        {
+          "rank": 43,
+          "time_ms": 110442
+        },
+        {
+          "rank": 44,
+          "time_ms": 110467
+        },
+        {
+          "rank": 45,
+          "time_ms": 111467
+        },
+        {
+          "rank": 46,
+          "time_ms": 111642
+        },
+        {
+          "rank": 47,
+          "time_ms": 111772
+        },
+        {
+          "rank": 48,
+          "time_ms": 112535
+        },
+        {
+          "rank": 49,
+          "time_ms": 112877
+        },
+        {
+          "rank": 50,
+          "time_ms": 113158
+        },
+        {
+          "rank": 51,
+          "time_ms": 113404
+        },
+        {
+          "rank": 52,
+          "time_ms": 113476
+        },
+        {
+          "rank": 53,
+          "time_ms": 113895
+        },
+        {
+          "rank": 54,
+          "time_ms": 114154
+        },
+        {
+          "rank": 55,
+          "time_ms": 114881
+        },
+        {
+          "rank": 56,
+          "time_ms": 114939
+        },
+        {
+          "rank": 57,
+          "time_ms": 115482
+        },
+        {
+          "rank": 58,
+          "time_ms": 115571
+        },
+        {
+          "rank": 59,
+          "time_ms": 115688
+        },
+        {
+          "rank": 60,
+          "time_ms": 116770
+        },
+        {
+          "rank": 61,
+          "time_ms": 117245
+        },
+        {
+          "rank": 62,
+          "time_ms": 117441
+        },
+        {
+          "rank": 63,
+          "time_ms": 117568
+        },
+        {
+          "rank": 64,
+          "time_ms": 118005
+        },
+        {
+          "rank": 65,
+          "time_ms": 118187
+        },
+        {
+          "rank": 66,
+          "time_ms": 118468
+        },
+        {
+          "rank": 67,
+          "time_ms": 118564
+        },
+        {
+          "rank": 68,
+          "time_ms": 118657
+        },
+        {
+          "rank": 69,
+          "time_ms": 118667
+        },
+        {
+          "rank": 70,
+          "time_ms": 118926
+        },
+        {
+          "rank": 71,
+          "time_ms": 119102
+        },
+        {
+          "rank": 72,
+          "time_ms": 120018
+        },
+        {
+          "rank": 73,
+          "time_ms": 120769
+        },
+        {
+          "rank": 74,
+          "time_ms": 120917
+        },
+        {
+          "rank": 75,
+          "time_ms": 120973
+        },
+        {
+          "rank": 76,
+          "time_ms": 121051
+        },
+        {
+          "rank": 77,
+          "time_ms": 121260
+        },
+        {
+          "rank": 78,
+          "time_ms": 121358
+        },
+        {
+          "rank": 79,
+          "time_ms": 121428
+        },
+        {
+          "rank": 80,
+          "time_ms": 121510
+        },
+        {
+          "rank": 81,
+          "time_ms": 121589
+        },
+        {
+          "rank": 82,
+          "time_ms": 121669
+        },
+        {
+          "rank": 83,
+          "time_ms": 121805
+        },
+        {
+          "rank": 84,
+          "time_ms": 122857
+        },
+        {
+          "rank": 85,
+          "time_ms": 123133
+        },
+        {
+          "rank": 86,
+          "time_ms": 124562
+        },
+        {
+          "rank": 87,
+          "time_ms": 125539
+        },
+        {
+          "rank": 88,
+          "time_ms": 125618
+        },
+        {
+          "rank": 89,
+          "time_ms": 125963
+        },
+        {
+          "rank": 90,
+          "time_ms": 126596
+        },
+        {
+          "rank": 91,
+          "time_ms": 126820
+        },
+        {
+          "rank": 92,
+          "time_ms": 126921
+        },
+        {
+          "rank": 93,
+          "time_ms": 127082
+        },
+        {
+          "rank": 94,
+          "time_ms": 127156
+        },
+        {
+          "rank": 95,
+          "time_ms": 127160
+        },
+        {
+          "rank": 96,
+          "time_ms": 127216
+        },
+        {
+          "rank": 97,
+          "time_ms": 127217
+        },
+        {
+          "rank": 98,
+          "time_ms": 127228
+        },
+        {
+          "rank": 99,
+          "time_ms": 127267
+        },
+        {
+          "rank": 100,
+          "time_ms": 127388
+        }
+      ]
+    },
+    {
+      "script": "lb_maze_single",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17827402/",
+      "retrieved_at": "2026-10-22T07:36:20.567001+00:00",
+      "total_entries": 771,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 42396
+        },
+        {
+          "rank": 2,
+          "time_ms": 52828
+        },
+        {
+          "rank": 3,
+          "time_ms": 97637
+        },
+        {
+          "rank": 4,
+          "time_ms": 101322
+        },
+        {
+          "rank": 5,
+          "time_ms": 102017
+        },
+        {
+          "rank": 6,
+          "time_ms": 102045
+        },
+        {
+          "rank": 7,
+          "time_ms": 103460
+        },
+        {
+          "rank": 8,
+          "time_ms": 111016
+        },
+        {
+          "rank": 9,
+          "time_ms": 111513
+        },
+        {
+          "rank": 10,
+          "time_ms": 112091
+        },
+        {
+          "rank": 11,
+          "time_ms": 112657
+        },
+        {
+          "rank": 12,
+          "time_ms": 114738
+        },
+        {
+          "rank": 13,
+          "time_ms": 115751
+        },
+        {
+          "rank": 14,
+          "time_ms": 115930
+        },
+        {
+          "rank": 15,
+          "time_ms": 117188
+        },
+        {
+          "rank": 16,
+          "time_ms": 117910
+        },
+        {
+          "rank": 17,
+          "time_ms": 119032
+        },
+        {
+          "rank": 18,
+          "time_ms": 120589
+        },
+        {
+          "rank": 19,
+          "time_ms": 121449
+        },
+        {
+          "rank": 20,
+          "time_ms": 122481
+        },
+        {
+          "rank": 21,
+          "time_ms": 124941
+        },
+        {
+          "rank": 22,
+          "time_ms": 125120
+        },
+        {
+          "rank": 23,
+          "time_ms": 125616
+        },
+        {
+          "rank": 24,
+          "time_ms": 125988
+        },
+        {
+          "rank": 25,
+          "time_ms": 126439
+        },
+        {
+          "rank": 26,
+          "time_ms": 127515
+        },
+        {
+          "rank": 27,
+          "time_ms": 127517
+        },
+        {
+          "rank": 28,
+          "time_ms": 127828
+        },
+        {
+          "rank": 29,
+          "time_ms": 127917
+        },
+        {
+          "rank": 30,
+          "time_ms": 130443
+        },
+        {
+          "rank": 31,
+          "time_ms": 131033
+        },
+        {
+          "rank": 32,
+          "time_ms": 131061
+        },
+        {
+          "rank": 33,
+          "time_ms": 131332
+        },
+        {
+          "rank": 34,
+          "time_ms": 131379
+        },
+        {
+          "rank": 35,
+          "time_ms": 131963
+        },
+        {
+          "rank": 36,
+          "time_ms": 132241
+        },
+        {
+          "rank": 37,
+          "time_ms": 132334
+        },
+        {
+          "rank": 38,
+          "time_ms": 133712
+        },
+        {
+          "rank": 39,
+          "time_ms": 134272
+        },
+        {
+          "rank": 40,
+          "time_ms": 134657
+        },
+        {
+          "rank": 41,
+          "time_ms": 134792
+        },
+        {
+          "rank": 42,
+          "time_ms": 135386
+        },
+        {
+          "rank": 43,
+          "time_ms": 135534
+        },
+        {
+          "rank": 44,
+          "time_ms": 136394
+        },
+        {
+          "rank": 45,
+          "time_ms": 136584
+        },
+        {
+          "rank": 46,
+          "time_ms": 138942
+        },
+        {
+          "rank": 47,
+          "time_ms": 139220
+        },
+        {
+          "rank": 48,
+          "time_ms": 139496
+        },
+        {
+          "rank": 49,
+          "time_ms": 139853
+        },
+        {
+          "rank": 50,
+          "time_ms": 140141
+        },
+        {
+          "rank": 51,
+          "time_ms": 141005
+        },
+        {
+          "rank": 52,
+          "time_ms": 141481
+        },
+        {
+          "rank": 53,
+          "time_ms": 141726
+        },
+        {
+          "rank": 54,
+          "time_ms": 142145
+        },
+        {
+          "rank": 55,
+          "time_ms": 142155
+        },
+        {
+          "rank": 56,
+          "time_ms": 142939
+        },
+        {
+          "rank": 57,
+          "time_ms": 143223
+        },
+        {
+          "rank": 58,
+          "time_ms": 143783
+        },
+        {
+          "rank": 59,
+          "time_ms": 144410
+        },
+        {
+          "rank": 60,
+          "time_ms": 145415
+        },
+        {
+          "rank": 61,
+          "time_ms": 145719
+        },
+        {
+          "rank": 62,
+          "time_ms": 145846
+        },
+        {
+          "rank": 63,
+          "time_ms": 146211
+        },
+        {
+          "rank": 64,
+          "time_ms": 147058
+        },
+        {
+          "rank": 65,
+          "time_ms": 147940
+        },
+        {
+          "rank": 66,
+          "time_ms": 147946
+        },
+        {
+          "rank": 67,
+          "time_ms": 148076
+        },
+        {
+          "rank": 68,
+          "time_ms": 150597
+        },
+        {
+          "rank": 69,
+          "time_ms": 152234
+        },
+        {
+          "rank": 70,
+          "time_ms": 152398
+        },
+        {
+          "rank": 71,
+          "time_ms": 152735
+        },
+        {
+          "rank": 72,
+          "time_ms": 153984
+        },
+        {
+          "rank": 73,
+          "time_ms": 154175
+        },
+        {
+          "rank": 74,
+          "time_ms": 154405
+        },
+        {
+          "rank": 75,
+          "time_ms": 154758
+        },
+        {
+          "rank": 76,
+          "time_ms": 156359
+        },
+        {
+          "rank": 77,
+          "time_ms": 156654
+        },
+        {
+          "rank": 78,
+          "time_ms": 156696
+        },
+        {
+          "rank": 79,
+          "time_ms": 156711
+        },
+        {
+          "rank": 80,
+          "time_ms": 157425
+        },
+        {
+          "rank": 81,
+          "time_ms": 157474
+        },
+        {
+          "rank": 82,
+          "time_ms": 157708
+        },
+        {
+          "rank": 83,
+          "time_ms": 158300
+        },
+        {
+          "rank": 84,
+          "time_ms": 158365
+        },
+        {
+          "rank": 85,
+          "time_ms": 158567
+        },
+        {
+          "rank": 86,
+          "time_ms": 158861
+        },
+        {
+          "rank": 87,
+          "time_ms": 159781
+        },
+        {
+          "rank": 88,
+          "time_ms": 159833
+        },
+        {
+          "rank": 89,
+          "time_ms": 161291
+        },
+        {
+          "rank": 90,
+          "time_ms": 161476
+        },
+        {
+          "rank": 91,
+          "time_ms": 161756
+        },
+        {
+          "rank": 92,
+          "time_ms": 162006
+        },
+        {
+          "rank": 93,
+          "time_ms": 162402
+        },
+        {
+          "rank": 94,
+          "time_ms": 162718
+        },
+        {
+          "rank": 95,
+          "time_ms": 163010
+        },
+        {
+          "rank": 96,
+          "time_ms": 163290
+        },
+        {
+          "rank": 97,
+          "time_ms": 163608
+        },
+        {
+          "rank": 98,
+          "time_ms": 163653
+        },
+        {
+          "rank": 99,
+          "time_ms": 163764
+        },
+        {
+          "rank": 100,
+          "time_ms": 164464
+        }
+      ]
+    },
+    {
+      "script": "lb_pumpkins",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869892/",
+      "retrieved_at": "2026-10-22T07:36:35.911894+00:00",
+      "total_entries": 1391,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 334180
+        },
+        {
+          "rank": 2,
+          "time_ms": 334181
+        },
+        {
+          "rank": 3,
+          "time_ms": 343332
+        },
+        {
+          "rank": 4,
+          "time_ms": 351224
+        },
+        {
+          "rank": 5,
+          "time_ms": 351456
+        },
+        {
+          "rank": 6,
+          "time_ms": 351617
+        },
+        {
+          "rank": 7,
+          "time_ms": 353889
+        },
+        {
+          "rank": 8,
+          "time_ms": 355650
+        },
+        {
+          "rank": 9,
+          "time_ms": 355917
+        },
+        {
+          "rank": 10,
+          "time_ms": 357770
+        },
+        {
+          "rank": 11,
+          "time_ms": 357942
+        },
+        {
+          "rank": 12,
+          "time_ms": 358272
+        },
+        {
+          "rank": 13,
+          "time_ms": 359484
+        },
+        {
+          "rank": 14,
+          "time_ms": 359651
+        },
+        {
+          "rank": 15,
+          "time_ms": 359907
+        },
+        {
+          "rank": 16,
+          "time_ms": 362585
+        },
+        {
+          "rank": 17,
+          "time_ms": 362923
+        },
+        {
+          "rank": 18,
+          "time_ms": 365823
+        },
+        {
+          "rank": 19,
+          "time_ms": 365987
+        },
+        {
+          "rank": 20,
+          "time_ms": 366190
+        },
+        {
+          "rank": 21,
+          "time_ms": 366420
+        },
+        {
+          "rank": 22,
+          "time_ms": 367149
+        },
+        {
+          "rank": 23,
+          "time_ms": 367840
+        },
+        {
+          "rank": 24,
+          "time_ms": 369398
+        },
+        {
+          "rank": 25,
+          "time_ms": 372697
+        },
+        {
+          "rank": 26,
+          "time_ms": 372848
+        },
+        {
+          "rank": 27,
+          "time_ms": 373539
+        },
+        {
+          "rank": 28,
+          "time_ms": 374080
+        },
+        {
+          "rank": 29,
+          "time_ms": 375485
+        },
+        {
+          "rank": 30,
+          "time_ms": 376799
+        },
+        {
+          "rank": 31,
+          "time_ms": 377163
+        },
+        {
+          "rank": 32,
+          "time_ms": 378865
+        },
+        {
+          "rank": 33,
+          "time_ms": 379194
+        },
+        {
+          "rank": 34,
+          "time_ms": 382146
+        },
+        {
+          "rank": 35,
+          "time_ms": 384160
+        },
+        {
+          "rank": 36,
+          "time_ms": 385391
+        },
+        {
+          "rank": 37,
+          "time_ms": 388260
+        },
+        {
+          "rank": 38,
+          "time_ms": 388779
+        },
+        {
+          "rank": 39,
+          "time_ms": 389519
+        },
+        {
+          "rank": 40,
+          "time_ms": 391309
+        },
+        {
+          "rank": 41,
+          "time_ms": 391316
+        },
+        {
+          "rank": 42,
+          "time_ms": 391520
+        },
+        {
+          "rank": 43,
+          "time_ms": 392314
+        },
+        {
+          "rank": 44,
+          "time_ms": 393551
+        },
+        {
+          "rank": 45,
+          "time_ms": 395641
+        },
+        {
+          "rank": 46,
+          "time_ms": 398921
+        },
+        {
+          "rank": 47,
+          "time_ms": 399424
+        },
+        {
+          "rank": 48,
+          "time_ms": 399813
+        },
+        {
+          "rank": 49,
+          "time_ms": 400049
+        },
+        {
+          "rank": 50,
+          "time_ms": 400567
+        },
+        {
+          "rank": 51,
+          "time_ms": 400780
+        },
+        {
+          "rank": 52,
+          "time_ms": 401418
+        },
+        {
+          "rank": 53,
+          "time_ms": 402389
+        },
+        {
+          "rank": 54,
+          "time_ms": 404683
+        },
+        {
+          "rank": 55,
+          "time_ms": 406806
+        },
+        {
+          "rank": 56,
+          "time_ms": 408137
+        },
+        {
+          "rank": 57,
+          "time_ms": 408522
+        },
+        {
+          "rank": 58,
+          "time_ms": 408776
+        },
+        {
+          "rank": 59,
+          "time_ms": 410270
+        },
+        {
+          "rank": 60,
+          "time_ms": 410748
+        },
+        {
+          "rank": 61,
+          "time_ms": 411123
+        },
+        {
+          "rank": 62,
+          "time_ms": 411155
+        },
+        {
+          "rank": 63,
+          "time_ms": 411837
+        },
+        {
+          "rank": 64,
+          "time_ms": 412365
+        },
+        {
+          "rank": 65,
+          "time_ms": 412987
+        },
+        {
+          "rank": 66,
+          "time_ms": 414142
+        },
+        {
+          "rank": 67,
+          "time_ms": 416068
+        },
+        {
+          "rank": 68,
+          "time_ms": 417670
+        },
+        {
+          "rank": 69,
+          "time_ms": 417983
+        },
+        {
+          "rank": 70,
+          "time_ms": 420474
+        },
+        {
+          "rank": 71,
+          "time_ms": 420899
+        },
+        {
+          "rank": 72,
+          "time_ms": 421112
+        },
+        {
+          "rank": 73,
+          "time_ms": 421150
+        },
+        {
+          "rank": 74,
+          "time_ms": 422071
+        },
+        {
+          "rank": 75,
+          "time_ms": 422632
+        },
+        {
+          "rank": 76,
+          "time_ms": 422907
+        },
+        {
+          "rank": 77,
+          "time_ms": 423952
+        },
+        {
+          "rank": 78,
+          "time_ms": 424675
+        },
+        {
+          "rank": 79,
+          "time_ms": 424801
+        },
+        {
+          "rank": 80,
+          "time_ms": 425432
+        },
+        {
+          "rank": 81,
+          "time_ms": 425440
+        },
+        {
+          "rank": 82,
+          "time_ms": 426057
+        },
+        {
+          "rank": 83,
+          "time_ms": 427557
+        },
+        {
+          "rank": 84,
+          "time_ms": 428639
+        },
+        {
+          "rank": 85,
+          "time_ms": 428866
+        },
+        {
+          "rank": 86,
+          "time_ms": 429499
+        },
+        {
+          "rank": 87,
+          "time_ms": 429812
+        },
+        {
+          "rank": 88,
+          "time_ms": 430428
+        },
+        {
+          "rank": 89,
+          "time_ms": 431162
+        },
+        {
+          "rank": 90,
+          "time_ms": 431402
+        },
+        {
+          "rank": 91,
+          "time_ms": 431509
+        },
+        {
+          "rank": 92,
+          "time_ms": 431561
+        },
+        {
+          "rank": 93,
+          "time_ms": 431663
+        },
+        {
+          "rank": 94,
+          "time_ms": 431786
+        },
+        {
+          "rank": 95,
+          "time_ms": 431864
+        },
+        {
+          "rank": 96,
+          "time_ms": 431890
+        },
+        {
+          "rank": 97,
+          "time_ms": 432281
+        },
+        {
+          "rank": 98,
+          "time_ms": 432317
+        },
+        {
+          "rank": 99,
+          "time_ms": 432386
+        },
+        {
+          "rank": 100,
+          "time_ms": 432833
+        }
+      ]
+    },
+    {
+      "script": "lb_pumpkins_single",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17827408/",
+      "retrieved_at": "2026-10-22T07:36:38.928534+00:00",
+      "total_entries": 496,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 236114
+        },
+        {
+          "rank": 2,
+          "time_ms": 239368
+        },
+        {
+          "rank": 3,
+          "time_ms": 333577
+        },
+        {
+          "rank": 4,
+          "time_ms": 373578
+        },
+        {
+          "rank": 5,
+          "time_ms": 375072
+        },
+        {
+          "rank": 6,
+          "time_ms": 379627
+        },
+        {
+          "rank": 7,
+          "time_ms": 383321
+        },
+        {
+          "rank": 8,
+          "time_ms": 388346
+        },
+        {
+          "rank": 9,
+          "time_ms": 389786
+        },
+        {
+          "rank": 10,
+          "time_ms": 393878
+        },
+        {
+          "rank": 11,
+          "time_ms": 397045
+        },
+        {
+          "rank": 12,
+          "time_ms": 400002
+        },
+        {
+          "rank": 13,
+          "time_ms": 400032
+        },
+        {
+          "rank": 14,
+          "time_ms": 404339
+        },
+        {
+          "rank": 15,
+          "time_ms": 410538
+        },
+        {
+          "rank": 16,
+          "time_ms": 413721
+        },
+        {
+          "rank": 17,
+          "time_ms": 415352
+        },
+        {
+          "rank": 18,
+          "time_ms": 418191
+        },
+        {
+          "rank": 19,
+          "time_ms": 418669
+        },
+        {
+          "rank": 20,
+          "time_ms": 424633
+        },
+        {
+          "rank": 21,
+          "time_ms": 426976
+        },
+        {
+          "rank": 22,
+          "time_ms": 427902
+        },
+        {
+          "rank": 23,
+          "time_ms": 428495
+        },
+        {
+          "rank": 24,
+          "time_ms": 428929
+        },
+        {
+          "rank": 25,
+          "time_ms": 431941
+        },
+        {
+          "rank": 26,
+          "time_ms": 432584
+        },
+        {
+          "rank": 27,
+          "time_ms": 433045
+        },
+        {
+          "rank": 28,
+          "time_ms": 433642
+        },
+        {
+          "rank": 29,
+          "time_ms": 434030
+        },
+        {
+          "rank": 30,
+          "time_ms": 435234
+        },
+        {
+          "rank": 31,
+          "time_ms": 436123
+        },
+        {
+          "rank": 32,
+          "time_ms": 438049
+        },
+        {
+          "rank": 33,
+          "time_ms": 442286
+        },
+        {
+          "rank": 34,
+          "time_ms": 444727
+        },
+        {
+          "rank": 35,
+          "time_ms": 445466
+        },
+        {
+          "rank": 36,
+          "time_ms": 445858
+        },
+        {
+          "rank": 37,
+          "time_ms": 447278
+        },
+        {
+          "rank": 38,
+          "time_ms": 449750
+        },
+        {
+          "rank": 39,
+          "time_ms": 450234
+        },
+        {
+          "rank": 40,
+          "time_ms": 451798
+        },
+        {
+          "rank": 41,
+          "time_ms": 453499
+        },
+        {
+          "rank": 42,
+          "time_ms": 454521
+        },
+        {
+          "rank": 43,
+          "time_ms": 457349
+        },
+        {
+          "rank": 44,
+          "time_ms": 457587
+        },
+        {
+          "rank": 45,
+          "time_ms": 458363
+        },
+        {
+          "rank": 46,
+          "time_ms": 458956
+        },
+        {
+          "rank": 47,
+          "time_ms": 458958
+        },
+        {
+          "rank": 48,
+          "time_ms": 460152
+        },
+        {
+          "rank": 49,
+          "time_ms": 463193
+        },
+        {
+          "rank": 50,
+          "time_ms": 464029
+        },
+        {
+          "rank": 51,
+          "time_ms": 464420
+        },
+        {
+          "rank": 52,
+          "time_ms": 464476
+        },
+        {
+          "rank": 53,
+          "time_ms": 465696
+        },
+        {
+          "rank": 54,
+          "time_ms": 466078
+        },
+        {
+          "rank": 55,
+          "time_ms": 468141
+        },
+        {
+          "rank": 56,
+          "time_ms": 468275
+        },
+        {
+          "rank": 57,
+          "time_ms": 468712
+        },
+        {
+          "rank": 58,
+          "time_ms": 469484
+        },
+        {
+          "rank": 59,
+          "time_ms": 470333
+        },
+        {
+          "rank": 60,
+          "time_ms": 470368
+        },
+        {
+          "rank": 61,
+          "time_ms": 470390
+        },
+        {
+          "rank": 62,
+          "time_ms": 470597
+        },
+        {
+          "rank": 63,
+          "time_ms": 472014
+        },
+        {
+          "rank": 64,
+          "time_ms": 472051
+        },
+        {
+          "rank": 65,
+          "time_ms": 472426
+        },
+        {
+          "rank": 66,
+          "time_ms": 472809
+        },
+        {
+          "rank": 67,
+          "time_ms": 473416
+        },
+        {
+          "rank": 68,
+          "time_ms": 473508
+        },
+        {
+          "rank": 69,
+          "time_ms": 474297
+        },
+        {
+          "rank": 70,
+          "time_ms": 474799
+        },
+        {
+          "rank": 71,
+          "time_ms": 475779
+        },
+        {
+          "rank": 72,
+          "time_ms": 476217
+        },
+        {
+          "rank": 73,
+          "time_ms": 476409
+        },
+        {
+          "rank": 74,
+          "time_ms": 477458
+        },
+        {
+          "rank": 75,
+          "time_ms": 478474
+        },
+        {
+          "rank": 76,
+          "time_ms": 478485
+        },
+        {
+          "rank": 77,
+          "time_ms": 479323
+        },
+        {
+          "rank": 78,
+          "time_ms": 479402
+        },
+        {
+          "rank": 79,
+          "time_ms": 479545
+        },
+        {
+          "rank": 80,
+          "time_ms": 480514
+        },
+        {
+          "rank": 81,
+          "time_ms": 481884
+        },
+        {
+          "rank": 82,
+          "time_ms": 481925
+        },
+        {
+          "rank": 83,
+          "time_ms": 482021
+        },
+        {
+          "rank": 84,
+          "time_ms": 482026
+        },
+        {
+          "rank": 85,
+          "time_ms": 482282
+        },
+        {
+          "rank": 86,
+          "time_ms": 482726
+        },
+        {
+          "rank": 87,
+          "time_ms": 483618
+        },
+        {
+          "rank": 88,
+          "time_ms": 486830
+        },
+        {
+          "rank": 89,
+          "time_ms": 486990
+        },
+        {
+          "rank": 90,
+          "time_ms": 487002
+        },
+        {
+          "rank": 91,
+          "time_ms": 487866
+        },
+        {
+          "rank": 92,
+          "time_ms": 488658
+        },
+        {
+          "rank": 93,
+          "time_ms": 489817
+        },
+        {
+          "rank": 94,
+          "time_ms": 491533
+        },
+        {
+          "rank": 95,
+          "time_ms": 493157
+        },
+        {
+          "rank": 96,
+          "time_ms": 493333
+        },
+        {
+          "rank": 97,
+          "time_ms": 493379
+        },
+        {
+          "rank": 98,
+          "time_ms": 493444
+        },
+        {
+          "rank": 99,
+          "time_ms": 493705
+        },
+        {
+          "rank": 100,
+          "time_ms": 494304
+        }
+      ]
+    },
+    {
+      "script": "lb_sunflowers",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869894/",
+      "retrieved_at": "2026-10-22T07:36:40.991399+00:00",
+      "total_entries": 1199,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 127279
+        },
+        {
+          "rank": 2,
+          "time_ms": 129669
+        },
+        {
+          "rank": 3,
+          "time_ms": 130071
+        },
+        {
+          "rank": 4,
+          "time_ms": 134612
+        },
+        {
+          "rank": 5,
+          "time_ms": 135656
+        },
+        {
+          "rank": 6,
+          "time_ms": 137502
+        },
+        {
+          "rank": 7,
+          "time_ms": 142510
+        },
+        {
+          "rank": 8,
+          "time_ms": 142962
+        },
+        {
+          "rank": 9,
+          "time_ms": 143087
+        },
+        {
+          "rank": 10,
+          "time_ms": 148321
+        },
+        {
+          "rank": 11,
+          "time_ms": 163607
+        },
+        {
+          "rank": 12,
+          "time_ms": 168995
+        },
+        {
+          "rank": 13,
+          "time_ms": 172538
+        },
+        {
+          "rank": 14,
+          "time_ms": 174739
+        },
+        {
+          "rank": 15,
+          "time_ms": 175770
+        },
+        {
+          "rank": 16,
+          "time_ms": 178572
+        },
+        {
+          "rank": 17,
+          "time_ms": 181467
+        },
+        {
+          "rank": 18,
+          "time_ms": 181701
+        },
+        {
+          "rank": 19,
+          "time_ms": 182354
+        },
+        {
+          "rank": 20,
+          "time_ms": 184088
+        },
+        {
+          "rank": 21,
+          "time_ms": 185735
+        },
+        {
+          "rank": 22,
+          "time_ms": 192101
+        },
+        {
+          "rank": 23,
+          "time_ms": 192334
+        },
+        {
+          "rank": 24,
+          "time_ms": 193121
+        },
+        {
+          "rank": 25,
+          "time_ms": 193455
+        },
+        {
+          "rank": 26,
+          "time_ms": 196651
+        },
+        {
+          "rank": 27,
+          "time_ms": 198903
+        },
+        {
+          "rank": 28,
+          "time_ms": 199504
+        },
+        {
+          "rank": 29,
+          "time_ms": 201282
+        },
+        {
+          "rank": 30,
+          "time_ms": 201836
+        },
+        {
+          "rank": 31,
+          "time_ms": 203194
+        },
+        {
+          "rank": 32,
+          "time_ms": 205762
+        },
+        {
+          "rank": 33,
+          "time_ms": 208964
+        },
+        {
+          "rank": 34,
+          "time_ms": 209274
+        },
+        {
+          "rank": 35,
+          "time_ms": 209450
+        },
+        {
+          "rank": 36,
+          "time_ms": 215211
+        },
+        {
+          "rank": 37,
+          "time_ms": 218291
+        },
+        {
+          "rank": 38,
+          "time_ms": 219645
+        },
+        {
+          "rank": 39,
+          "time_ms": 221608
+        },
+        {
+          "rank": 40,
+          "time_ms": 221935
+        },
+        {
+          "rank": 41,
+          "time_ms": 222883
+        },
+        {
+          "rank": 42,
+          "time_ms": 223819
+        },
+        {
+          "rank": 43,
+          "time_ms": 223965
+        },
+        {
+          "rank": 44,
+          "time_ms": 225269
+        },
+        {
+          "rank": 45,
+          "time_ms": 225499
+        },
+        {
+          "rank": 46,
+          "time_ms": 225657
+        },
+        {
+          "rank": 47,
+          "time_ms": 226280
+        },
+        {
+          "rank": 48,
+          "time_ms": 228555
+        },
+        {
+          "rank": 49,
+          "time_ms": 230470
+        },
+        {
+          "rank": 50,
+          "time_ms": 230532
+        },
+        {
+          "rank": 51,
+          "time_ms": 230900
+        },
+        {
+          "rank": 52,
+          "time_ms": 231211
+        },
+        {
+          "rank": 53,
+          "time_ms": 231734
+        },
+        {
+          "rank": 54,
+          "time_ms": 232900
+        },
+        {
+          "rank": 55,
+          "time_ms": 233149
+        },
+        {
+          "rank": 56,
+          "time_ms": 233165
+        },
+        {
+          "rank": 57,
+          "time_ms": 233354
+        },
+        {
+          "rank": 58,
+          "time_ms": 233420
+        },
+        {
+          "rank": 59,
+          "time_ms": 233765
+        },
+        {
+          "rank": 60,
+          "time_ms": 233777
+        },
+        {
+          "rank": 61,
+          "time_ms": 233807
+        },
+        {
+          "rank": 62,
+          "time_ms": 233899
+        },
+        {
+          "rank": 63,
+          "time_ms": 233940
+        },
+        {
+          "rank": 64,
+          "time_ms": 233949
+        },
+        {
+          "rank": 65,
+          "time_ms": 234045
+        },
+        {
+          "rank": 66,
+          "time_ms": 234131
+        },
+        {
+          "rank": 67,
+          "time_ms": 234227
+        },
+        {
+          "rank": 68,
+          "time_ms": 234514
+        },
+        {
+          "rank": 69,
+          "time_ms": 234568
+        },
+        {
+          "rank": 70,
+          "time_ms": 234579
+        },
+        {
+          "rank": 71,
+          "time_ms": 234624
+        },
+        {
+          "rank": 72,
+          "time_ms": 234672
+        },
+        {
+          "rank": 73,
+          "time_ms": 234716
+        },
+        {
+          "rank": 74,
+          "time_ms": 234780
+        },
+        {
+          "rank": 75,
+          "time_ms": 234784
+        },
+        {
+          "rank": 76,
+          "time_ms": 234853
+        },
+        {
+          "rank": 77,
+          "time_ms": 234854
+        },
+        {
+          "rank": 78,
+          "time_ms": 234989
+        },
+        {
+          "rank": 79,
+          "time_ms": 235146
+        },
+        {
+          "rank": 80,
+          "time_ms": 235162
+        },
+        {
+          "rank": 81,
+          "time_ms": 235264
+        },
+        {
+          "rank": 82,
+          "time_ms": 235275
+        },
+        {
+          "rank": 83,
+          "time_ms": 235419
+        },
+        {
+          "rank": 84,
+          "time_ms": 235448
+        },
+        {
+          "rank": 85,
+          "time_ms": 235542
+        },
+        {
+          "rank": 86,
+          "time_ms": 235606
+        },
+        {
+          "rank": 87,
+          "time_ms": 235715
+        },
+        {
+          "rank": 88,
+          "time_ms": 235840
+        },
+        {
+          "rank": 89,
+          "time_ms": 235860
+        },
+        {
+          "rank": 90,
+          "time_ms": 236020
+        },
+        {
+          "rank": 91,
+          "time_ms": 236070
+        },
+        {
+          "rank": 92,
+          "time_ms": 236223
+        },
+        {
+          "rank": 93,
+          "time_ms": 236244
+        },
+        {
+          "rank": 94,
+          "time_ms": 236314
+        },
+        {
+          "rank": 95,
+          "time_ms": 236315
+        },
+        {
+          "rank": 96,
+          "time_ms": 236348
+        },
+        {
+          "rank": 97,
+          "time_ms": 236363
+        },
+        {
+          "rank": 98,
+          "time_ms": 236412
+        },
+        {
+          "rank": 99,
+          "time_ms": 236734
+        },
+        {
+          "rank": 100,
+          "time_ms": 236736
+        }
+      ]
+    },
+    {
+      "script": "lb_sunflowers_single",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17827413/",
+      "retrieved_at": "2026-10-22T07:36:56.588809+00:00",
+      "total_entries": 454,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 226934
+        },
+        {
+          "rank": 2,
+          "time_ms": 237423
+        },
+        {
+          "rank": 3,
+          "time_ms": 240108
+        },
+        {
+          "rank": 4,
+          "time_ms": 240160
+        },
+        {
+          "rank": 5,
+          "time_ms": 241339
+        },
+        {
+          "rank": 6,
+          "time_ms": 245245
+        },
+        {
+          "rank": 7,
+          "time_ms": 245467
+        },
+        {
+          "rank": 8,
+          "time_ms": 248453
+        },
+        {
+          "rank": 9,
+          "time_ms": 249432
+        },
+        {
+          "rank": 10,
+          "time_ms": 253958
+        },
+        {
+          "rank": 11,
+          "time_ms": 254777
+        },
+        {
+          "rank": 12,
+          "time_ms": 255558
+        },
+        {
+          "rank": 13,
+          "time_ms": 255881
+        },
+        {
+          "rank": 14,
+          "time_ms": 258234
+        },
+        {
+          "rank": 15,
+          "time_ms": 267028
+        },
+        {
+          "rank": 16,
+          "time_ms": 267392
+        },
+        {
+          "rank": 17,
+          "time_ms": 268349
+        },
+        {
+          "rank": 18,
+          "time_ms": 270383
+        },
+        {
+          "rank": 19,
+          "time_ms": 274576
+        },
+        {
+          "rank": 20,
+          "time_ms": 277912
+        },
+        {
+          "rank": 21,
+          "time_ms": 279049
+        },
+        {
+          "rank": 22,
+          "time_ms": 282373
+        },
+        {
+          "rank": 23,
+          "time_ms": 282768
+        },
+        {
+          "rank": 24,
+          "time_ms": 284049
+        },
+        {
+          "rank": 25,
+          "time_ms": 288915
+        },
+        {
+          "rank": 26,
+          "time_ms": 290144
+        },
+        {
+          "rank": 27,
+          "time_ms": 290431
+        },
+        {
+          "rank": 28,
+          "time_ms": 293107
+        },
+        {
+          "rank": 29,
+          "time_ms": 294635
+        },
+        {
+          "rank": 30,
+          "time_ms": 294861
+        },
+        {
+          "rank": 31,
+          "time_ms": 297162
+        },
+        {
+          "rank": 32,
+          "time_ms": 302606
+        },
+        {
+          "rank": 33,
+          "time_ms": 304396
+        },
+        {
+          "rank": 34,
+          "time_ms": 304509
+        },
+        {
+          "rank": 35,
+          "time_ms": 305183
+        },
+        {
+          "rank": 36,
+          "time_ms": 305235
+        },
+        {
+          "rank": 37,
+          "time_ms": 305406
+        },
+        {
+          "rank": 38,
+          "time_ms": 305532
+        },
+        {
+          "rank": 39,
+          "time_ms": 306299
+        },
+        {
+          "rank": 40,
+          "time_ms": 306649
+        },
+        {
+          "rank": 41,
+          "time_ms": 307273
+        },
+        {
+          "rank": 42,
+          "time_ms": 307299
+        },
+        {
+          "rank": 43,
+          "time_ms": 309035
+        },
+        {
+          "rank": 44,
+          "time_ms": 310772
+        },
+        {
+          "rank": 45,
+          "time_ms": 310918
+        },
+        {
+          "rank": 46,
+          "time_ms": 311796
+        },
+        {
+          "rank": 47,
+          "time_ms": 312471
+        },
+        {
+          "rank": 48,
+          "time_ms": 312741
+        },
+        {
+          "rank": 49,
+          "time_ms": 313071
+        },
+        {
+          "rank": 50,
+          "time_ms": 315571
+        },
+        {
+          "rank": 51,
+          "time_ms": 316355
+        },
+        {
+          "rank": 52,
+          "time_ms": 317034
+        },
+        {
+          "rank": 53,
+          "time_ms": 317336
+        },
+        {
+          "rank": 54,
+          "time_ms": 318873
+        },
+        {
+          "rank": 55,
+          "time_ms": 320219
+        },
+        {
+          "rank": 56,
+          "time_ms": 321194
+        },
+        {
+          "rank": 57,
+          "time_ms": 321840
+        },
+        {
+          "rank": 58,
+          "time_ms": 322031
+        },
+        {
+          "rank": 59,
+          "time_ms": 323024
+        },
+        {
+          "rank": 60,
+          "time_ms": 323909
+        },
+        {
+          "rank": 61,
+          "time_ms": 324161
+        },
+        {
+          "rank": 62,
+          "time_ms": 324990
+        },
+        {
+          "rank": 63,
+          "time_ms": 325510
+        },
+        {
+          "rank": 64,
+          "time_ms": 326189
+        },
+        {
+          "rank": 65,
+          "time_ms": 326259
+        },
+        {
+          "rank": 66,
+          "time_ms": 328041
+        },
+        {
+          "rank": 67,
+          "time_ms": 328324
+        },
+        {
+          "rank": 68,
+          "time_ms": 328859
+        },
+        {
+          "rank": 69,
+          "time_ms": 329982
+        },
+        {
+          "rank": 70,
+          "time_ms": 330103
+        },
+        {
+          "rank": 71,
+          "time_ms": 330410
+        },
+        {
+          "rank": 72,
+          "time_ms": 330543
+        },
+        {
+          "rank": 73,
+          "time_ms": 330598
+        },
+        {
+          "rank": 74,
+          "time_ms": 330753
+        },
+        {
+          "rank": 75,
+          "time_ms": 331203
+        },
+        {
+          "rank": 76,
+          "time_ms": 331588
+        },
+        {
+          "rank": 77,
+          "time_ms": 332188
+        },
+        {
+          "rank": 78,
+          "time_ms": 332447
+        },
+        {
+          "rank": 79,
+          "time_ms": 332989
+        },
+        {
+          "rank": 80,
+          "time_ms": 333198
+        },
+        {
+          "rank": 81,
+          "time_ms": 333749
+        },
+        {
+          "rank": 82,
+          "time_ms": 334841
+        },
+        {
+          "rank": 83,
+          "time_ms": 335425
+        },
+        {
+          "rank": 84,
+          "time_ms": 335514
+        },
+        {
+          "rank": 85,
+          "time_ms": 336133
+        },
+        {
+          "rank": 86,
+          "time_ms": 336298
+        },
+        {
+          "rank": 87,
+          "time_ms": 336470
+        },
+        {
+          "rank": 88,
+          "time_ms": 336789
+        },
+        {
+          "rank": 89,
+          "time_ms": 337316
+        },
+        {
+          "rank": 90,
+          "time_ms": 337701
+        },
+        {
+          "rank": 91,
+          "time_ms": 338039
+        },
+        {
+          "rank": 92,
+          "time_ms": 338092
+        },
+        {
+          "rank": 93,
+          "time_ms": 338659
+        },
+        {
+          "rank": 94,
+          "time_ms": 338888
+        },
+        {
+          "rank": 95,
+          "time_ms": 340279
+        },
+        {
+          "rank": 96,
+          "time_ms": 340734
+        },
+        {
+          "rank": 97,
+          "time_ms": 341132
+        },
+        {
+          "rank": 98,
+          "time_ms": 342344
+        },
+        {
+          "rank": 99,
+          "time_ms": 342451
+        },
+        {
+          "rank": 100,
+          "time_ms": 343159
+        }
+      ]
+    },
+    {
+      "script": "lb_wood",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869895/",
+      "retrieved_at": "2026-10-22T07:36:59.543600+00:00",
+      "total_entries": 871,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 158334
+        },
+        {
+          "rank": 2,
+          "time_ms": 177491
+        },
+        {
+          "rank": 3,
+          "time_ms": 205092
+        },
+        {
+          "rank": 4,
+          "time_ms": 215268
+        },
+        {
+          "rank": 5,
+          "time_ms": 216822
+        },
+        {
+          "rank": 6,
+          "time_ms": 217295
+        },
+        {
+          "rank": 7,
+          "time_ms": 224313
+        },
+        {
+          "rank": 8,
+          "time_ms": 224578
+        },
+        {
+          "rank": 9,
+          "time_ms": 225108
+        },
+        {
+          "rank": 10,
+          "time_ms": 234525
+        },
+        {
+          "rank": 11,
+          "time_ms": 238206
+        },
+        {
+          "rank": 12,
+          "time_ms": 239045
+        },
+        {
+          "rank": 13,
+          "time_ms": 242184
+        },
+        {
+          "rank": 14,
+          "time_ms": 249376
+        },
+        {
+          "rank": 15,
+          "time_ms": 254146
+        },
+        {
+          "rank": 16,
+          "time_ms": 256201
+        },
+        {
+          "rank": 17,
+          "time_ms": 256247
+        },
+        {
+          "rank": 18,
+          "time_ms": 257174
+        },
+        {
+          "rank": 19,
+          "time_ms": 258855
+        },
+        {
+          "rank": 20,
+          "time_ms": 260797
+        },
+        {
+          "rank": 21,
+          "time_ms": 260832
+        },
+        {
+          "rank": 22,
+          "time_ms": 263206
+        },
+        {
+          "rank": 23,
+          "time_ms": 263360
+        },
+        {
+          "rank": 24,
+          "time_ms": 263400
+        },
+        {
+          "rank": 25,
+          "time_ms": 263941
+        },
+        {
+          "rank": 26,
+          "time_ms": 267148
+        },
+        {
+          "rank": 27,
+          "time_ms": 267262
+        },
+        {
+          "rank": 28,
+          "time_ms": 268186
+        },
+        {
+          "rank": 29,
+          "time_ms": 268326
+        },
+        {
+          "rank": 30,
+          "time_ms": 268984
+        },
+        {
+          "rank": 31,
+          "time_ms": 274407
+        },
+        {
+          "rank": 32,
+          "time_ms": 276068
+        },
+        {
+          "rank": 33,
+          "time_ms": 276250
+        },
+        {
+          "rank": 34,
+          "time_ms": 278041
+        },
+        {
+          "rank": 35,
+          "time_ms": 279533
+        },
+        {
+          "rank": 36,
+          "time_ms": 280602
+        },
+        {
+          "rank": 37,
+          "time_ms": 281051
+        },
+        {
+          "rank": 38,
+          "time_ms": 282207
+        },
+        {
+          "rank": 39,
+          "time_ms": 286562
+        },
+        {
+          "rank": 40,
+          "time_ms": 289310
+        },
+        {
+          "rank": 41,
+          "time_ms": 291533
+        },
+        {
+          "rank": 42,
+          "time_ms": 291921
+        },
+        {
+          "rank": 43,
+          "time_ms": 291975
+        },
+        {
+          "rank": 44,
+          "time_ms": 292492
+        },
+        {
+          "rank": 45,
+          "time_ms": 293572
+        },
+        {
+          "rank": 46,
+          "time_ms": 293946
+        },
+        {
+          "rank": 47,
+          "time_ms": 294000
+        },
+        {
+          "rank": 48,
+          "time_ms": 294031
+        },
+        {
+          "rank": 49,
+          "time_ms": 294079
+        },
+        {
+          "rank": 50,
+          "time_ms": 294400
+        },
+        {
+          "rank": 51,
+          "time_ms": 294464
+        },
+        {
+          "rank": 52,
+          "time_ms": 294547
+        },
+        {
+          "rank": 53,
+          "time_ms": 294831
+        },
+        {
+          "rank": 54,
+          "time_ms": 294877
+        },
+        {
+          "rank": 55,
+          "time_ms": 295216
+        },
+        {
+          "rank": 56,
+          "time_ms": 295302
+        },
+        {
+          "rank": 57,
+          "time_ms": 295881
+        },
+        {
+          "rank": 58,
+          "time_ms": 296273
+        },
+        {
+          "rank": 59,
+          "time_ms": 296576
+        },
+        {
+          "rank": 60,
+          "time_ms": 296826
+        },
+        {
+          "rank": 61,
+          "time_ms": 297235
+        },
+        {
+          "rank": 62,
+          "time_ms": 297320
+        },
+        {
+          "rank": 63,
+          "time_ms": 297557
+        },
+        {
+          "rank": 64,
+          "time_ms": 297740
+        },
+        {
+          "rank": 65,
+          "time_ms": 298064
+        },
+        {
+          "rank": 66,
+          "time_ms": 298399
+        },
+        {
+          "rank": 67,
+          "time_ms": 298452
+        },
+        {
+          "rank": 68,
+          "time_ms": 298505
+        },
+        {
+          "rank": 69,
+          "time_ms": 298581
+        },
+        {
+          "rank": 70,
+          "time_ms": 298894
+        },
+        {
+          "rank": 71,
+          "time_ms": 299247
+        },
+        {
+          "rank": 72,
+          "time_ms": 299343
+        },
+        {
+          "rank": 73,
+          "time_ms": 299696
+        },
+        {
+          "rank": 74,
+          "time_ms": 299750
+        },
+        {
+          "rank": 75,
+          "time_ms": 300227
+        },
+        {
+          "rank": 76,
+          "time_ms": 300389
+        },
+        {
+          "rank": 77,
+          "time_ms": 300389
+        },
+        {
+          "rank": 78,
+          "time_ms": 301201
+        },
+        {
+          "rank": 79,
+          "time_ms": 302639
+        },
+        {
+          "rank": 80,
+          "time_ms": 302812
+        },
+        {
+          "rank": 81,
+          "time_ms": 302919
+        },
+        {
+          "rank": 82,
+          "time_ms": 303361
+        },
+        {
+          "rank": 83,
+          "time_ms": 303363
+        },
+        {
+          "rank": 84,
+          "time_ms": 304254
+        },
+        {
+          "rank": 85,
+          "time_ms": 304572
+        },
+        {
+          "rank": 86,
+          "time_ms": 304894
+        },
+        {
+          "rank": 87,
+          "time_ms": 305128
+        },
+        {
+          "rank": 88,
+          "time_ms": 305248
+        },
+        {
+          "rank": 89,
+          "time_ms": 305590
+        },
+        {
+          "rank": 90,
+          "time_ms": 305659
+        },
+        {
+          "rank": 91,
+          "time_ms": 306326
+        },
+        {
+          "rank": 92,
+          "time_ms": 306940
+        },
+        {
+          "rank": 93,
+          "time_ms": 306951
+        },
+        {
+          "rank": 94,
+          "time_ms": 306983
+        },
+        {
+          "rank": 95,
+          "time_ms": 307136
+        },
+        {
+          "rank": 96,
+          "time_ms": 307177
+        },
+        {
+          "rank": 97,
+          "time_ms": 307392
+        },
+        {
+          "rank": 98,
+          "time_ms": 307524
+        },
+        {
+          "rank": 99,
+          "time_ms": 308127
+        },
+        {
+          "rank": 100,
+          "time_ms": 308440
+        }
+      ]
+    },
+    {
+      "script": "lb_wood_single",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17827415/",
+      "retrieved_at": "2026-10-22T07:37:01.986010+00:00",
+      "total_entries": 365,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 207825
+        },
+        {
+          "rank": 2,
+          "time_ms": 225038
+        },
+        {
+          "rank": 3,
+          "time_ms": 237957
+        },
+        {
+          "rank": 4,
+          "time_ms": 243722
+        },
+        {
+          "rank": 5,
+          "time_ms": 245797
+        },
+        {
+          "rank": 6,
+          "time_ms": 246162
+        },
+        {
+          "rank": 7,
+          "time_ms": 253484
+        },
+        {
+          "rank": 8,
+          "time_ms": 257899
+        },
+        {
+          "rank": 9,
+          "time_ms": 264270
+        },
+        {
+          "rank": 10,
+          "time_ms": 267918
+        },
+        {
+          "rank": 11,
+          "time_ms": 269165
+        },
+        {
+          "rank": 12,
+          "time_ms": 270345
+        },
+        {
+          "rank": 13,
+          "time_ms": 273158
+        },
+        {
+          "rank": 14,
+          "time_ms": 276789
+        },
+        {
+          "rank": 15,
+          "time_ms": 277433
+        },
+        {
+          "rank": 16,
+          "time_ms": 278286
+        },
+        {
+          "rank": 17,
+          "time_ms": 293437
+        },
+        {
+          "rank": 18,
+          "time_ms": 295008
+        },
+        {
+          "rank": 19,
+          "time_ms": 295815
+        },
+        {
+          "rank": 20,
+          "time_ms": 296933
+        },
+        {
+          "rank": 21,
+          "time_ms": 308674
+        },
+        {
+          "rank": 22,
+          "time_ms": 313218
+        },
+        {
+          "rank": 23,
+          "time_ms": 313589
+        },
+        {
+          "rank": 24,
+          "time_ms": 314632
+        },
+        {
+          "rank": 25,
+          "time_ms": 318492
+        },
+        {
+          "rank": 26,
+          "time_ms": 319200
+        },
+        {
+          "rank": 27,
+          "time_ms": 319588
+        },
+        {
+          "rank": 28,
+          "time_ms": 320008
+        },
+        {
+          "rank": 29,
+          "time_ms": 327975
+        },
+        {
+          "rank": 30,
+          "time_ms": 329863
+        },
+        {
+          "rank": 31,
+          "time_ms": 334071
+        },
+        {
+          "rank": 32,
+          "time_ms": 336876
+        },
+        {
+          "rank": 33,
+          "time_ms": 339450
+        },
+        {
+          "rank": 34,
+          "time_ms": 358800
+        },
+        {
+          "rank": 35,
+          "time_ms": 358948
+        },
+        {
+          "rank": 36,
+          "time_ms": 359306
+        },
+        {
+          "rank": 37,
+          "time_ms": 360268
+        },
+        {
+          "rank": 38,
+          "time_ms": 360950
+        },
+        {
+          "rank": 39,
+          "time_ms": 361271
+        },
+        {
+          "rank": 40,
+          "time_ms": 364276
+        },
+        {
+          "rank": 41,
+          "time_ms": 366048
+        },
+        {
+          "rank": 42,
+          "time_ms": 366093
+        },
+        {
+          "rank": 43,
+          "time_ms": 369191
+        },
+        {
+          "rank": 44,
+          "time_ms": 369351
+        },
+        {
+          "rank": 45,
+          "time_ms": 369468
+        },
+        {
+          "rank": 46,
+          "time_ms": 375324
+        },
+        {
+          "rank": 47,
+          "time_ms": 377645
+        },
+        {
+          "rank": 48,
+          "time_ms": 381371
+        },
+        {
+          "rank": 49,
+          "time_ms": 382846
+        },
+        {
+          "rank": 50,
+          "time_ms": 383248
+        },
+        {
+          "rank": 51,
+          "time_ms": 383265
+        },
+        {
+          "rank": 52,
+          "time_ms": 383881
+        },
+        {
+          "rank": 53,
+          "time_ms": 385587
+        },
+        {
+          "rank": 54,
+          "time_ms": 387837
+        },
+        {
+          "rank": 55,
+          "time_ms": 395568
+        },
+        {
+          "rank": 56,
+          "time_ms": 396944
+        },
+        {
+          "rank": 57,
+          "time_ms": 399368
+        },
+        {
+          "rank": 58,
+          "time_ms": 402048
+        },
+        {
+          "rank": 59,
+          "time_ms": 404384
+        },
+        {
+          "rank": 60,
+          "time_ms": 404477
+        },
+        {
+          "rank": 61,
+          "time_ms": 404891
+        },
+        {
+          "rank": 62,
+          "time_ms": 413553
+        },
+        {
+          "rank": 63,
+          "time_ms": 415196
+        },
+        {
+          "rank": 64,
+          "time_ms": 417134
+        },
+        {
+          "rank": 65,
+          "time_ms": 417694
+        },
+        {
+          "rank": 66,
+          "time_ms": 417778
+        },
+        {
+          "rank": 67,
+          "time_ms": 419501
+        },
+        {
+          "rank": 68,
+          "time_ms": 426668
+        },
+        {
+          "rank": 69,
+          "time_ms": 428100
+        },
+        {
+          "rank": 70,
+          "time_ms": 428854
+        },
+        {
+          "rank": 71,
+          "time_ms": 432787
+        },
+        {
+          "rank": 72,
+          "time_ms": 433628
+        },
+        {
+          "rank": 73,
+          "time_ms": 437265
+        },
+        {
+          "rank": 74,
+          "time_ms": 440408
+        },
+        {
+          "rank": 75,
+          "time_ms": 440810
+        },
+        {
+          "rank": 76,
+          "time_ms": 446733
+        },
+        {
+          "rank": 77,
+          "time_ms": 450666
+        },
+        {
+          "rank": 78,
+          "time_ms": 451572
+        },
+        {
+          "rank": 79,
+          "time_ms": 452601
+        },
+        {
+          "rank": 80,
+          "time_ms": 455542
+        },
+        {
+          "rank": 81,
+          "time_ms": 455867
+        },
+        {
+          "rank": 82,
+          "time_ms": 456491
+        },
+        {
+          "rank": 83,
+          "time_ms": 456784
+        },
+        {
+          "rank": 84,
+          "time_ms": 457343
+        },
+        {
+          "rank": 85,
+          "time_ms": 457616
+        },
+        {
+          "rank": 86,
+          "time_ms": 458456
+        },
+        {
+          "rank": 87,
+          "time_ms": 459848
+        },
+        {
+          "rank": 88,
+          "time_ms": 465642
+        },
+        {
+          "rank": 89,
+          "time_ms": 465796
+        },
+        {
+          "rank": 90,
+          "time_ms": 468894
+        },
+        {
+          "rank": 91,
+          "time_ms": 471912
+        },
+        {
+          "rank": 92,
+          "time_ms": 478272
+        },
+        {
+          "rank": 93,
+          "time_ms": 483725
+        },
+        {
+          "rank": 94,
+          "time_ms": 484864
+        },
+        {
+          "rank": 95,
+          "time_ms": 490882
+        },
+        {
+          "rank": 96,
+          "time_ms": 500316
+        },
+        {
+          "rank": 97,
+          "time_ms": 500332
+        },
+        {
+          "rank": 98,
+          "time_ms": 502200
+        },
+        {
+          "rank": 99,
+          "time_ms": 503187
+        },
+        {
+          "rank": 100,
+          "time_ms": 503533
+        }
+      ]
+    }
+  ]
+}

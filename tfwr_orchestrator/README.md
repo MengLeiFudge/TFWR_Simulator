@@ -15,6 +15,7 @@
    - 游戏 `output.txt`
    - `BepInEx/LogOutput.log`
    - Unity `Player.log`
+4. 从 Steam 公开榜批量缓存成绩，并与仓库复跑记录比较位置及提升空间
 
 ## 目录约定
 
@@ -32,6 +33,7 @@
 - `src/tfwr_orchestrator/leaderboard_sync.py`
 - `src/tfwr_orchestrator/real_game_runner.py`
 - `src/tfwr_orchestrator/output_capture.py`
+- `src/tfwr_orchestrator/leaderboard_cache.py`
 
 ## 配置输入与路径推导
 
@@ -143,6 +145,32 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --action result --reques
 JSON任务接口的 `--status-lines` 默认每份输出显示最后80行。活动任务按保存的字节游标读取新增完整日志行，并保留未完成行、完成轮和首末库存样本；重复查询不从请求起点重读全部日志。持续等待与状态查询共用增量统计，等待期间不累积完整日志历史；进度展示使用首末库存样本，均值和稳定性使用真实完成轮，官方成功摘要单独保留。终态摘要保留80行尾部，常规JSON查询直接返回摘要；显式要求更多行且输出超过80行时才加载完整归档。旧版文本 `--status-only` 保留原来的日志统计方式。
 
 `output_lines`、`outputs_truncated`标明展示截断，完整终态报告在 `result_path`；新版归档直接保存报告对象，旧版路径仍指向含 `result` 字段的回执。结果同时保留BepInEx与Unity日志。退出码0表示该操作正常结束，仍须检查 `outcome/full_statistics`；忙为3，执行或接口错误为5，参数解析错误为2。`submit`没有持续监控：调用者应及时wait，或自行有界监看并取消、回收。
+
+### 排行榜缓存
+
+```bash
+python3 tfwr_orchestrator/tools/refresh_leaderboard_cache.py
+python3 tfwr_orchestrator/tools/refresh_leaderboard_cache.py --offline
+```
+
+默认向 Steam 官方公开 XML 接口读取 16 个榜各自的前 100 名，每榜一个请求；无需 Steam 登录或 API key。`--limit` 可设 1..1000，超过 100 时每 100 条一页。单次响应上限 2 MiB；网络中断或临时服务错误最多尝试三次，超时由 `--timeout` 指定。
+
+输出位于 `references/leaderboard_scripts/`：
+
+- `leaderboard_cache.json`：每榜来源 URL、UTC 抓取时间、总条目数和连续前 N 名的排名/整数毫秒成绩；不保存玩家名称或 Steam ID。
+- `leaderboard_targets.md`：#1/#10/#30/#100、我们的复跑参考、估计位置、相对 #10 倍数、追平 #10 所需缩短比例。按倍数降序展示，便于优先研究差距大的榜单；#1 仅供参考，不代表可达目标。缺少 #10 时不计算差距，不回退到 #1。
+
+本地成绩来自仓库 `lb_start.py` 的“当前版本复跑”列；详细实测日期、轮数和版本证据见同名策略 `.md`。缺少记录时显示未知，超过缓存范围只显示“#N 之后”，同分显示范围。估计位置不表示该账户已提交成绩。
+
+全部榜读取并校验成功后才原子替换 JSON；网络失败不覆盖旧缓存与报告。JSON 是缓存真源，报告写入失败可用 `--offline` 重建。离线模式使用缓存本身的 limit，保留原抓取时间，并结合最新复跑索引重算；不会把旧数据标为刚抓取。`--cache` / `--report` 可指定输出路径。
+
+需要代理时显式传 `--proxy http://代理地址:端口`，也可使用系统/环境代理。在 WSL 中若代理仅监听 Windows 回环地址，可从仓库根目录运行 Windows Python：
+
+```bash
+py.exe -X utf8 tfwr_orchestrator/tools/refresh_leaderboard_cache.py --proxy http://127.0.0.1:7890
+```
+
+该命令只读取公开成绩并更新仓库缓存，不启动游戏、不修改 Save0、不提交 Steam 成绩。
 
 ### 资源快照与反编译工具
 
