@@ -99,7 +99,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "并在结束后分别读取脚本 output.txt、BepInEx/LogOutput.log 和 Unity Player.log。"
         )
     )
-    parser.add_argument('--action', choices=('run', 'submit', 'status', 'wait', 'cancel', 'result', 'health'),
+    parser.add_argument('--action', choices=('run', 'submit', 'status', 'wait', 'cancel', 'result', 'health', 'prepare', 'quit'),
                         help='AI任务操作；指定后stdout只输出一个JSON对象')
     parser.add_argument('--json', action='store_true', help='使用JSON任务接口；默认执行run')
     parser.add_argument('--request-id', type=int, help='查询、等待、取消或收取的请求ID')
@@ -197,14 +197,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error('action不能与request-only/status-only同时使用')
     if args.request_id is not None and args.action not in ('status', 'wait', 'cancel', 'result'):
         parser.error('request-id只能用于status/wait/cancel/result')
-    if args.idempotency_key and args.action not in (None, 'run', 'submit'):
-        parser.error('idempotency-key只能用于run/submit')
+    if args.idempotency_key and args.action not in (None, 'run', 'submit', 'prepare', 'quit'):
+        parser.error('idempotency-key只能用于run/submit/prepare/quit')
     if args.include_game_output and (args.action or args.json or args.idempotency_key):
         parser.error('JSON任务接口仅在收取终态时读取output.txt，不支持include-game-output')
     if args.idempotency_key and args.status_only:
         parser.error('idempotency-key不能用于status-only')
-    if args.replace and (args.status_only or args.action not in (None, 'run', 'submit')):
-        parser.error('replace只能用于run/submit')
+    if args.replace and (args.status_only or args.action not in (None, 'run', 'submit', 'prepare', 'quit')):
+        parser.error('replace只能用于run/submit/prepare/quit')
     return args
 
 
@@ -236,10 +236,11 @@ def build_requested_state(
     }
 
 
-def build_idle_state(*, request_id: int) -> dict[str, object]:
+def build_idle_state(*, request_id: int, protocol_version: int = 1) -> dict[str, object]:
     return {
         "request_id": request_id,
         "status": "idle",
+        "protocol_version": protocol_version,
         "target_script": None,
         "timeout_seconds": None,
         "started_at": None,
@@ -252,6 +253,8 @@ def build_stop_requested_state(current_state: dict[str, object], message: str) -
     return {
         "request_id": cast(int, current_state["request_id"]),
         "status": "stop_requested",
+        "command": current_state.get("command"),
+        "protocol_version": current_state.get("protocol_version", 1),
         "target_script": normalize_target_script_name(str(current_state.get("target_script") or "")),
         "timeout_seconds": current_state.get("timeout_seconds"),
         "started_at": current_state.get("started_at"),
@@ -433,7 +436,7 @@ def acknowledge_terminal_state(state_path: Path, request_id: int | None = None) 
             return current
         if current["status"] not in {"done", "failed", "superseded"}:
             return current
-        idle_state = build_idle_state(request_id=cast(int, current["request_id"]))
+        idle_state = build_idle_state(request_id=cast(int, current["request_id"]), protocol_version=cast(int, current.get("protocol_version", 1)))
         write_state_file(state_path, idle_state)
         return idle_state
 
@@ -474,10 +477,6 @@ def wait_for_status(
     last_live_progress_line = ""
     while time.monotonic() < deadline:
         loop_now = time.monotonic()
-        if loop_now >= next_process_check_at:
-            if not is_windows_process_running(pid):
-                raise RuntimeError(f"游戏进程已退出: pid={pid}")
-            next_process_check_at = loop_now + 1.0
         current = read_state_file(state_path)
         if current is not None:
             current_request_id = cast(int, current["request_id"])
@@ -548,6 +547,11 @@ def wait_for_status(
                         continue
                     stop_requested_for_stall = True
                     print(f"real_game_runner output_stall request_id={request_id} {message}")
+        # 正常退出可能先于客户端轮询；先收取同一请求的终态，再判断进程是否消失。
+        if loop_now >= next_process_check_at:
+            if not is_windows_process_running(pid):
+                raise RuntimeError(f"游戏进程已退出: pid={pid}")
+            next_process_check_at = loop_now + 1.0
         time.sleep(min(max(0.05, poll_interval), max(0, deadline - time.monotonic())))
     raise TimeoutError(f"等待状态 {sorted(accepted_statuses)} 超时: request_id={request_id} state_path={state_path}")
 
@@ -1090,7 +1094,7 @@ def main(argv: list[str] | None = None) -> int:
             return 4
         # 持锁读取最终输出，阻止新客户端在读取期间启动另一个请求并清空 output.txt。
         outputs = capture_request_outputs(baseline, execution_started=bool(current.get("started_at")))
-        write_state_file(state_path, build_idle_state(request_id=request_id))
+        write_state_file(state_path, build_idle_state(request_id=request_id, protocol_version=cast(int, current.get("protocol_version", 1))))
     print(
         f"real_game_runner result request_id={request_id} status={result.get('status')} "
         f"error={result.get('last_error')}"
@@ -1147,13 +1151,16 @@ def allocate_request_id(state_path: Path, current: dict | None) -> int:
 
 def submit_task(args: argparse.Namespace, state_path: Path) -> int:
     """幂等回执先于投递落盘；重试只读取原ID，模糊投递不会自动再次启动。"""
-    target = normalize_target_script_name(args.target_script)
-    if not target:
+    command = args.action if args.action in ('prepare', 'quit') else 'run'
+    target = normalize_target_script_name(args.target_script) if command == 'run' else None
+    if command == 'run' and not target:
         raise TaskError('invalid_target', 'target-script不能为空')
     baseline = capture_output_baseline(save_root=args.save_root, game_root=args.game_root, bepinex_root=args.bepinex_root)
     paths = serialize_baseline(baseline)
     fingerprint = {'target_script': target, 'timeout_seconds': args.request_timeout,
                    'paths': {key: value for key, value in paths.items() if key.endswith('_path')}}
+    if command != 'run':
+        fingerprint['command'] = command
     key_path = resolve_request_key_path(state_path, args.idempotency_key) if args.idempotency_key else None
     # 两次锁内复核夹住进程预检；不在持锁期间启动进程或等待游戏。
     for phase in (0, 1):
@@ -1166,6 +1173,8 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
                     return int(previous['request_id'])
             current = read_state_file(state_path)
             require_available(current, args.replace)
+            if command != 'run' and cast(int, (current or {}).get('protocol_version', 1)) < 2:
+                raise TaskError('mod_upgrade_required', 'prepare/quit需要支持协议2的模组，请本地更新DLL并重启游戏')
             if phase == 1:
                 request_id = allocate_request_id(state_path, current)
                 baseline = capture_output_baseline(save_root=args.save_root, game_root=args.game_root, bepinex_root=args.bepinex_root)
@@ -1175,8 +1184,11 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
                 write_state_file(resolve_request_record_path(state_path, request_id), receipt)
                 if key_path is not None:
                     write_state_file(key_path, {'request_id': request_id, 'fingerprint': fingerprint})
-                write_state_file(state_path, build_requested_state(
-                    request_id=request_id, target_script=target, timeout_seconds=args.request_timeout))
+                request = build_requested_state(
+                    request_id=request_id, target_script=target or '', timeout_seconds=args.request_timeout)
+                if command != 'run':
+                    request.update(command=command, protocol_version=2)
+                write_state_file(state_path, request)
                 return request_id
         exe = resolve_game_executable(args.game_root)
         ensure_game_running(exe, bepinex_root=resolve_bepinex_root(args.game_root, bepinex_root=args.bepinex_root))
@@ -1315,7 +1327,7 @@ def task_result(state_path: Path, request_id: int, *, collect: bool = False, max
         if receipt and receipt.get('result') is not None:
             result = saved_task_report(receipt, state_path, request_id, max_lines)
             if collect and current and current['request_id'] == request_id and current['status'] in ('done', 'failed'):
-                write_state_file(state_path, build_idle_state(request_id=request_id))
+                write_state_file(state_path, build_idle_state(request_id=request_id, protocol_version=cast(int, current.get("protocol_version", 1))))
             return result
         if current is None:
             raise TaskError('not_connected', '找不到模组状态文件', request_id=request_id)
@@ -1337,7 +1349,7 @@ def task_result(state_path: Path, request_id: int, *, collect: bool = False, max
             baseline = deserialize_baseline(receipt['baseline'])
             monitor = update_task_monitor(receipt, baseline, request_id, terminal=terminal)
             if terminal and collect:
-                outputs = capture_request_outputs(baseline, execution_started=bool(current.get('started_at')))
+                outputs = capture_request_outputs(baseline, execution_started=bool(current.get('started_at')) and current.get('command', 'run') in (None, 'run'))
             else:
                 mod_lines = tuple(monitor['tail'])
                 if max_lines > RESULT_TAIL_LINES:
@@ -1353,7 +1365,7 @@ def task_result(state_path: Path, request_id: int, *, collect: bool = False, max
         if terminal and collect:
             receipt = receipt or {'schema_version': 1, 'request_id': request_id}
             record_path = save_task_result(state_path, request_id, receipt, report)
-            write_state_file(state_path, build_idle_state(request_id=request_id))
+            write_state_file(state_path, build_idle_state(request_id=request_id, protocol_version=cast(int, current.get("protocol_version", 1))))
         elif monitor is not None:
             report['output_lines'] = {key: len(lines) for key, lines in report['outputs'].items()}
             report['output_lines']['mod_output_lines'] = monitor['line_count']
@@ -1385,6 +1397,9 @@ def wait_task(args: argparse.Namespace, state_path: Path, request_id: int, *, ca
     baseline = deserialize_baseline(receipt['baseline'])
     pid = find_game_process_id()
     if pid is None:
+        report = task_result(state_path, request_id, max_lines=args.status_lines)
+        if report['status'] in ('done', 'failed', 'superseded'):
+            return task_result(state_path, request_id, collect=True, max_lines=args.status_lines)
         if cancel_on_timeout:
             request_script_stop(state_path, request_id, 'client game process unavailable')
         raise TaskError('game_not_running', '游戏进程未运行；请检查对应profile', request_id=request_id)
@@ -1431,10 +1446,20 @@ def task_main(args: argparse.Namespace) -> int:
             state_path = resolve_oracle_state_path(args.game_root, bepinex_root=args.bepinex_root)
             if action == 'health':
                 result = task_health(args, state_path)
-            elif action in ('run', 'submit'):
+            elif action in ('run', 'submit', 'prepare', 'quit'):
+                pid = find_game_process_id() if action == 'quit' else None
                 request_id = submit_task(args, state_path)
-                result = (wait_task(args, state_path, request_id, cancel_on_timeout=True) if action == 'run'
+                result = (wait_task(args, state_path, request_id, cancel_on_timeout=True) if action != 'submit'
                           else task_result(state_path, request_id, max_lines=args.status_lines))
+                if action == 'prepare':
+                    result['workspace_ready'] = result.get('outcome') == 'completed'
+                elif action == 'quit' and result.get('outcome') == 'completed':
+                    deadline = time.monotonic() + 10
+                    while pid is not None and is_windows_process_running(pid) and time.monotonic() < deadline:
+                        time.sleep(0.2)
+                    result['game_exited'] = pid is None or not is_windows_process_running(pid)
+                    if not result['game_exited']:
+                        result.update(outcome='failed', reason_code='exit_not_confirmed')
             else:
                 request_id = args.request_id
                 if request_id is None:

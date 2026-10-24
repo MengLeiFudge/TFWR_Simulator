@@ -20,6 +20,13 @@ public sealed class OracleRunnerStateFile
         get => RunnerStateProtocol.ToStatusText(Status);
         set => Status = RunnerStateProtocol.ParseStatusText(value);
     }
+    /// <summary>模组支持的协议版本；版本2支持prepare与quit控制命令。</summary>
+    [DataMember(Name = "protocol_version")]
+    public int ProtocolVersion { get; set; } = 2;
+
+    /// <summary>run执行脚本，prepare准备工作区，quit保存后退出；缺省为run。</summary>
+    [DataMember(Name = "command")]
+    public string? Command { get; set; }
 
     /// <summary>游戏内已有脚本窗口的名称。</summary>
     [DataMember(Name = "target_script")]

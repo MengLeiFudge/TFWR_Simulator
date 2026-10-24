@@ -1,6 +1,6 @@
 {
   "name": "TFWR_Oracle_Runner",
-  "version_number": "0.2.1",
+  "version_number": "0.2.2",
   "website_url": "https://github.com/MengLeiFudge/TFWR_Simulator",
   "description": "从外部工具运行和停止真实游戏脚本，收集 leaderboard 时间与资源快照。",
   "dependencies": [

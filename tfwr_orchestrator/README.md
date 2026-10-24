@@ -113,15 +113,17 @@ AI调用推荐下述JSON接口。旧版文本提交及 Python `request_script_ru
 
 #### AI任务接口
 
-指定 `--action` 后，stdout只返回一个JSON对象，过程日志写入stderr。沿用现有模组文件协议，无需更换DLL。R2模式仍连接用户已启动的profile。
+指定 `--action` 后，stdout只返回一个JSON对象，过程日志写入stderr。R2模式连接已启动的profile；`prepare`和`quit`需要支持协议2的模组DLL。
 
 ```bash
 python3 tfwr_orchestrator/tools/run_real_game_script.py --action health
+python3 tfwr_orchestrator/tools/run_real_game_script.py --action prepare
 python3 tfwr_orchestrator/tools/run_real_game_script.py --action submit --target-script lb_start --request-timeout 60 --idempotency-key cactus-candidate-01
 python3 tfwr_orchestrator/tools/run_real_game_script.py --action status --request-id 123
 python3 tfwr_orchestrator/tools/run_real_game_script.py --action wait --request-id 123 --total-timeout 90
 python3 tfwr_orchestrator/tools/run_real_game_script.py --action cancel --request-id 123
 python3 tfwr_orchestrator/tools/run_real_game_script.py --action result --request-id 123
+python3 tfwr_orchestrator/tools/run_real_game_script.py --action quit
 ```
 
 `123`替换为提交返回的 `request_id`；各操作按需调用。`--json` 等价于默认 `--action run`，提交后持续监控并收取结果；`--request-only --json` 等价于submit。
@@ -135,8 +137,11 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --action result --reques
 | `result` | 终态时读取三份输出，先留存结果再回到idle；已留存结果可重复读取 |
 | `run` | 提交并等待；客户端等待超时或中断会停止自己的请求并有限等待回收 |
 | `health` | 查询进程、状态、路径和有限日志中的模组版本；`workspace_ready=null`，不将文件存在当作工作区已就绪 |
+| `prepare` | 停止当前游戏执行、确认结果页并进入工作区；等待完成并回收，返回 `workspace_ready` |
+| `quit` | 停止、保存并正常退出游戏；等待完成并回收，再确认原进程退出，返回 `game_exited` |
 
-幂等键在同一状态目录内持久有效。相同键、脚本名、请求超时与输出路径复用原ID；参数不同返回 `idempotency_conflict`。更换脚本内容或发起新一轮应使用新键。中断发生在回执写入与状态投递之间时返回 `submission_unknown`，不会自动重复启动。未提供键时，每次提交都是新请求。
+控制操作不运行存档脚本。已有活动外部请求时须显式加 `--replace`；终态须先用result回收。手动执行没有外部请求ID时，prepare/quit直接停止它。保存失败或游戏确认窗口阻塞时返回失败；不默认选择未知弹窗。验收结束且近期不再使用游戏时调用quit。
+幂等键在同一状态目录内持久有效。相同键、命令、脚本名、请求超时与输出路径复用原ID；参数不同返回 `idempotency_conflict`。更换脚本内容或发起新一轮应使用新键。中断发生在回执写入与状态投递之间时返回 `submission_unknown`，不会自动重复启动。未提供键时，每次提交都是新请求。
 
 回执在状态文件旁的 `config/mlj.tfwr.oracle-runner.state.requests/`，不写Save0。`<id>.json`保存输出起点、增量查询游标及终态摘要，`<id>.result.json`保存含三份完整输出的终态报告，`key-<hash>.json`保存幂等索引，`0.json`预留递增ID。新版仍可读取旧版内嵌完整结果的回执。回执随请求累计，当前不自动清理。完整报告及摘要保存后才确认idle；确认失败可用同一ID重试result回收。旧客户端请求缺少起点，或监测到模组日志被替换/截断时，`output_complete=false`。被替换且尚未保存的请求标记 `superseded`，不读取新请求的输出。
 

@@ -84,6 +84,7 @@ public sealed class RunnerStateStore
             {
                 RequestId = state.RequestId,
                 Status = state.Status,
+                Command = state.Command,
                 TargetScript = state.TargetScript,
                 TimeoutSeconds = state.TimeoutSeconds,
                 StartedAt = state.StartedAt,

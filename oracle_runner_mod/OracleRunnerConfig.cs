@@ -20,7 +20,7 @@ internal sealed class OracleRunnerConfig
             "General",
             "AutoPlayMainMenu",
             false,
-            "是否自动进入游戏。无人值守运行可开启；关闭时请手动进入工作区后再请求脚本。");
+            "是否在没有外部请求时自动进入游戏。外部请求会自行进入工作区，不受此项限制。");
         StartupPollIntervalMs = config.Bind(
             "Timing",
             "StartupPollIntervalMs",

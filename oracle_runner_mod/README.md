@@ -4,7 +4,20 @@
 
 模组通过 BepInEx 5 与 Harmony 接入游戏。Thunderstore 依赖为 `BepInEx-BepInExPack-5.4.2305`。它执行存档中已有的脚本窗口，不提供外部 Python 解释器。
 
-0.2.1 包含已在本地 R2 profile 验证的脚本控制、日志与榜单页面修复。客户端和本地模拟器从 GitHub 仓库取得，Thunderstore 包只安装游戏模组。
+客户端和本地模拟器从 GitHub 仓库取得，Thunderstore 包只安装游戏模组。后台控制接口需要支持协议2的DLL。
+
+## 后台控制
+
+`prepare` 结束当前执行、确认已有结果页并进入工作区，返回 `workspace_ready=true`。普通脚本请求也会从主菜单自动进入工作区；已有脚本仍在执行时，普通请求继续等待，不主动中断。
+
+`quit` 先停止执行，再调用游戏保存和退出入口；保存出现确认窗口时保留游戏并报告失败。模组先持久化请求终态再退出，客户端确认进程消失后返回 `game_exited=true`。任务结束且近期不再实机验证时调用它。
+
+```bash
+python3 tfwr_orchestrator/tools/run_real_game_script.py --action prepare
+python3 tfwr_orchestrator/tools/run_real_game_script.py --action quit
+```
+
+有活动外部请求时，须显式加 `--replace`；已有终态须先收取结果。没有外部请求时保留手动游玩的主菜单和排行榜结果页。
 
 ## 0.2.1 更新
 
@@ -14,16 +27,16 @@
 - 补记官方完整统计的最后完成轮，增加 Steam 初始化与榜单下载诊断。
 - 配套客户端提供适合 AI 调用的 JSON 任务接口、幂等提交、增量监控和结果归档。
 
-仓库中的本地模拟器只提供预测。当前49个公开函数及主要作物机制共662条离散观测与游戏一致，但自然成熟、水分、Power和解释器计时仍有近似；这些差异可能累积为数秒或更多，不能保证整轮时间精度。候选策略仍须真实游戏确认，详见[模拟器验收与限制](https://github.com/MengLeiFudge/TFWR_Simulator/blob/master/mechanism_model/local_simulator/validation.md)。
+仓库中的本地模拟器只提供预测，精度与已验证范围见[模拟器验收与限制](https://github.com/MengLeiFudge/TFWR_Simulator/blob/master/mechanism_model/local_simulator/validation.md)。候选策略仍须真实游戏确认。
 
 ## 安装到 R2
 
 1. 在 r2modman 的 TFWR profile 中安装上述 BepInExPack。
 2. 在 R2 的在线模组列表中搜索 `TFWR_Oracle_Runner`，选择作者 `MengLei` 的包并安装。也可导入发布 ZIP。
-3. 通过 R2 的模组启动入口打开游戏，手动进入工作区。
+3. 通过 R2 的模组启动入口打开游戏；外部请求负责进入工作区。
 4. 在 profile 中检查 `BepInEx/config/mlj.tfwr.oracle-runner.cfg` 和 `BepInEx/LogOutput.log`。日志会输出实际 `state_file=` 路径。
 
-新配置默认 `AutoPlayMainMenu=false`。无人值守运行时可在配置中设为 `true`，由模组自动进入游戏。已有配置保留原值。
+新配置默认 `AutoPlayMainMenu=false`，没有外部请求时保留主菜单。设为 `true` 可在启动后直接进入工作区；已有配置保留原值。
 
 手动安装时，使用游戏安装目录下的 `BepInEx` 目录。BepInEx 5 和 6 的插件入口不同，本版本须在 BepInEx 5 下加载；迁移时使用独立的 R2 profile，避免混放两套加载器的 core 文件。客户端与模组须一起更新，以共同遵守文件锁协议。
 
@@ -41,7 +54,7 @@ TFWR_BEPINEX_ROOT=C:\Users\YourName\AppData\Roaming\r2modmanPlus-local\TheFarmer
 
 `TFWR_BEPINEX_ROOT` 指向所选 profile 的 **BepInEx 目录**。可从 R2 打开 profile 文件夹后取得路径；不同安装方式可能使用不同位置。未设置时，客户端使用 `TFWR_GAME_ROOT/BepInEx`。也可通过 CLI 的 `--bepinex-root` 覆盖。WSL 支持上述 Windows 路径写法。
 
-先通过 R2 启动该 profile 的游戏并进入工作区。使用 R2 profile 时，客户端只连接已有游戏进程；不会自行启动缺少 profile 参数的游戏 EXE。
+先通过 R2 启动该 profile 的游戏，再调用 `prepare` 或提交脚本。使用 R2 profile 时，客户端只连接已有游戏进程；不会自行启动缺少 profile 参数的游戏 EXE。
 
 查询状态：
 
@@ -80,7 +93,7 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --target-script my_scrip
 | --- | --- | --- |
 | `Enabled` | `true` | 启用执行器 |
 | `TargetScriptName` | `lb_start` | 请求未指定目标时使用的脚本名 |
-| `AutoPlayMainMenu` | `false` | 自动进入游戏工作区 |
+| `AutoPlayMainMenu` | `false` | 没有外部请求时是否自动进入工作区；请求准备不受此项限制 |
 | `StartupPollIntervalMs` | `250` | 状态文件同步间隔，最小生效值为 50ms |
 | `ScriptReadyTimeoutSeconds` | `30` | 每个请求等待工作区、空闲执行器及脚本窗口的期限 |
 | `DefaultRequestTimeoutSeconds` | `20` | 请求未指定超时时使用的秒数 |
@@ -104,7 +117,8 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --target-script my_scrip
 
 - `request_id` 为递增的非负 32 位整数；分配新 ID 和提交必须在同一次锁内完成。
 - `timeout_seconds` 为非负有限秒数；`0` 表示不限时，`null` 使用模组默认值。
-- 正常流转为 `idle → requested → running → done/failed → idle`。
+- `command` 缺省或为 `run` 时执行脚本；`prepare` 与 `quit` 为独立控制请求，不读取 `target_script`。模组写回 `protocol_version=2` 表示支持这些命令。
+- 脚本正常流转为 `idle → requested → running → done/failed → idle`；快速控制请求可直接从 `requested` 写回带起止时间的终态。
 - `requested` 或 `running` 可写入同一请求的 `stop_requested`；停止完成后进入 `failed`，`last_error` 保存停止原因。
 - 更大的请求 ID 替换旧请求。旧客户端观察到更大 ID 后按 `superseded` 结束，不再确认或清除新请求。
 - 模组的状态修改先排队，在下一次同步时落盘；执行监控和 leaderboard 观察仍逐帧进行。

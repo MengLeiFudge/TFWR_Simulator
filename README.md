@@ -29,7 +29,7 @@ TFWR_BEPINEX_ROOT=C:\Users\YourName\AppData\Roaming\r2modmanPlus-local\TheFarmer
 
 `TFWR_BEPINEX_ROOT` 指向实际 profile 的 BepInEx 目录；手动安装可留空，回退到游戏目录下的 BepInEx。环境变量优先于 `.env`；WSL 支持上述 Windows 路径。
 
-在 R2 安装 `MengLei / TFWR_Oracle_Runner`，通过所选 profile 启动游戏并进入工作区。客户端在 R2 模式只连接已启动的游戏。构建、配置和手动安装见 [模组说明](oracle_runner_mod/README.md)。
+在 R2 安装 `MengLei / TFWR_Oracle_Runner`，通过所选 profile 启动游戏。客户端在 R2 模式只连接已启动的游戏；支持协议2的模组提供 `--action prepare` 准备工作区、`--action quit` 保存并退出，脚本请求也会自动进入工作区。构建、配置和手动安装见 [模组说明](oracle_runner_mod/README.md)。
 
 ```bash
 python3 tfwr_orchestrator/tools/refresh_gamesave_link.py

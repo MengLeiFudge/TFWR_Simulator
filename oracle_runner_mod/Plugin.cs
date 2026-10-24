@@ -16,7 +16,7 @@ public sealed class Plugin : BaseUnityPlugin
 {
     internal const string PluginGuid = "mlj.tfwr.oracle-runner";
     internal const string PluginName = "TFWR Oracle Runner";
-    internal const string PluginVersion = "0.2.1";
+    internal const string PluginVersion = "0.2.2";
 
     private enum StopReason
     {
@@ -51,6 +51,8 @@ public sealed class Plugin : BaseUnityPlugin
     private Harmony? harmony;
     private int startingRequestId = -1;
     private float startingRequestAt;
+    private int quitRequestId = -1;
+    private bool preparationStopInvoked;
     private float stateFailureSince = -1f;
     private float nextStatePollAt;
     private float nextStateWarningAt;
@@ -150,6 +152,18 @@ public sealed class Plugin : BaseUnityPlugin
             }
             OracleRunnerStateFile? current = stateStore.Read();
             stateFailureSince = -1f;
+            // 退出前先确认同一请求的终态已落盘；更新的请求或取消会撤销尚未执行的退出。
+            if (quitRequestId >= 0)
+            {
+                int id = quitRequestId;
+                quitRequestId = -1;
+                if (current?.RequestId == id && current.Status == RunnerRequestStatus.Done)
+                {
+                    Log.LogInfo($"正常退出游戏 request_id={id}");
+                    mainSim.menu.Quit();
+                    return;
+                }
+            }
             EnsureStateFileReady(mainSim, current);
             if (current != null)
             {
@@ -181,6 +195,11 @@ public sealed class Plugin : BaseUnityPlugin
         {
             stateStore.Write(RunnerStateProtocol.CreateIdle(lastHandledRequestId));
             return;
+        }
+        if (current.Status == RunnerRequestStatus.Idle && current.ProtocolVersion < 2)
+        {
+            current.ProtocolVersion = 2;
+            stateStore.Write(current);
         }
 
         if (activeRequest == null &&
@@ -249,7 +268,7 @@ public sealed class Plugin : BaseUnityPlugin
         }
     }
 
-    /// <summary>在单次请求期限内等待工作区、窗口及空闲执行器，再启动目标脚本。</summary>
+    /// <summary>在单次请求期限内进入工作区，等待窗口及空闲执行器，再启动目标脚本。</summary>
     /// <param name="mainSim">真实游戏执行器。</param>
     /// <param name="requestedState">当前仍待启动的请求。</param>
     private void TryStartRequest(MainSim mainSim, OracleRunnerStateFile requestedState)
@@ -258,6 +277,33 @@ public sealed class Plugin : BaseUnityPlugin
         {
             startingRequestId = requestedState.RequestId;
             startingRequestAt = Time.realtimeSinceStartup;
+            preparationStopInvoked = false;
+        }
+        string command = requestedState.Command ?? "run";
+        if (command != "run" && command != "prepare" && command != "quit")
+        {
+            MarkFailedWithOutput(requestedState, $"unknown command: {command}", DateTimeOffset.UtcNow);
+            stateStore.Write(requestedState);
+            lastHandledRequestId = requestedState.RequestId;
+            return;
+        }
+        bool control = command != "run";
+        if (control && mainSim.IsExecuting() && !preparationStopInvoked)
+        {
+            mainSim.StopMainExecution();
+            preparationStopInvoked = true;
+            Log.LogInfo($"准备停止当前执行 command={command} request_id={requestedState.RequestId}");
+        }
+        // 进入工作区属于外部请求准备；没有请求时仍由用户或 AutoPlayMainMenu 决定。
+        if (mainSim.workspace != null &&
+            !mainSim.workspace.gameObject.activeInHierarchy &&
+            mainSim.menu != null &&
+            mainSim.menu.gameObject.activeInHierarchy &&
+            !mainSim.IsExecuting())
+        {
+            mainSim.menu.Play();
+            playInvoked = true;
+            Log.LogInfo($"已调用 Menu.Play() 进入游戏工作区 request_id={requestedState.RequestId}");
         }
         // 外部请求接管前确认已有结果页；手动游玩期间不主动确认。
         CloseLeaderboardResultScreen(mainSim, "request_start");
@@ -266,9 +312,11 @@ public sealed class Plugin : BaseUnityPlugin
             requestedState.TargetScript ?? runnerConfig.TargetScriptName.Value
         );
         CodeWindow? targetWindow = mainSim.workspace == null ? null : FindTargetWindow(mainSim.workspace, targetScriptName);
-        string? waiting = mainSim.workspace == null || !mainSim.workspace.gameObject.activeInHierarchy
+        string? waiting = mainSim.warningPopup != null && mainSim.warningPopup.gameObject.activeInHierarchy
+            ? "game confirmation is pending; resolve the dialog before retrying"
+            : mainSim.workspace == null || !mainSim.workspace.gameObject.activeInHierarchy
             ? "workspace is not active"
-            : targetWindow == null ? $"script window not found: {targetScriptName}"
+            : !control && targetWindow == null ? $"script window not found: {targetScriptName}"
             : mainSim.IsExecuting() ? "another script is still executing" : null;
         if (waiting != null)
         {
@@ -282,6 +330,33 @@ public sealed class Plugin : BaseUnityPlugin
             {
                 MaybeLogProgress($"等待请求启动 request_id={requestedState.RequestId}: {waiting}");
             }
+            return;
+        }
+        if (control)
+        {
+            try
+            {
+                if (command == "quit")
+                {
+                    // 先走游戏保存入口，避免 Quit 弹出保存确认而阻塞无人值守退出。
+                    Saver.Save(mainSim);
+                    if (mainSim.warningPopup != null && mainSim.warningPopup.gameObject.activeInHierarchy)
+                    {
+                        throw new InvalidOperationException("game save was not confirmed; see game dialog and logs");
+                    }
+                    quitRequestId = requestedState.RequestId;
+                }
+                RunnerStateProtocol.MarkRunning(requestedState, DateTimeOffset.UtcNow);
+                RunnerStateProtocol.MarkDone(requestedState, DateTimeOffset.UtcNow);
+                Log.LogInfo($"控制请求完成 command={command} workspace_ready=True request_id={requestedState.RequestId}");
+            }
+            catch (Exception ex)
+            {
+                quitRequestId = -1;
+                MarkFailedWithOutput(requestedState, $"control command failed: {ex.Message}", DateTimeOffset.UtcNow);
+            }
+            stateStore.Write(requestedState);
+            lastHandledRequestId = requestedState.RequestId;
             return;
         }
 
