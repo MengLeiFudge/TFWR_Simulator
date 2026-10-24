@@ -19,8 +19,8 @@ internal sealed class OracleRunnerConfig
         AutoPlayMainMenu = config.Bind(
             "General",
             "AutoPlayMainMenu",
-            true,
-            "检测到主菜单后是否自动调用 Menu.Play() 进入游戏。");
+            false,
+            "是否自动进入游戏。无人值守运行可开启；关闭时请手动进入工作区后再请求脚本。");
         StartupPollIntervalMs = config.Bind(
             "Timing",
             "StartupPollIntervalMs",

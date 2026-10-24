@@ -105,7 +105,7 @@ public static class RunnerStateProtocol
             "done" => RunnerRequestStatus.Done,
             "failed" => RunnerRequestStatus.Failed,
             "superseded" => RunnerRequestStatus.Superseded,
-            _ => RunnerRequestStatus.Idle,
+            _ => throw new System.Runtime.Serialization.SerializationException($"未知请求状态：{text}"),
         };
     }
 }

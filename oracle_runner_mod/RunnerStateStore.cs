@@ -1,79 +1,36 @@
 using System;
-using System.Globalization;
 using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 
 namespace TFWROracleRunner;
 
+/// <summary>
+/// 协调状态文件的原子读改写。两端独占创建同名 .lock 文件；锁内只做文件操作。
+/// 写入先保存独立快照，由下一次 Read 落盘，失败后保留快照等待后续轮询。
+/// </summary>
 public sealed class RunnerStateStore
 {
-    private const int MaxAttempts = 20;
-    private const int RetryDelayMilliseconds = 50;
     private readonly string stateFilePath;
     private readonly object gate = new();
+    private OracleRunnerStateFile? pendingState;
 
+    /// <summary>创建状态存储，不执行文件 I/O。</summary>
+    /// <param name="stateFilePath">当前 BepInEx profile 的状态文件路径。</param>
     public RunnerStateStore(string stateFilePath)
     {
         this.stateFilePath = stateFilePath;
     }
 
+    /// <summary>客户端连接时使用的状态文件路径。</summary>
     public string StateFilePath => stateFilePath;
 
+    /// <summary>
+    /// 尝试一次加锁、读取和刷新待写状态。文件缺失返回 null；锁占用或读取失败抛出异常，
+    /// 调用方应等待下一次轮询，不得把失败当成缺失并重置状态。
+    /// </summary>
+    /// <returns>刷新后的状态；仅文件尚未创建时为 null。</returns>
     public OracleRunnerStateFile? Read()
-    {
-        lock (gate)
-        {
-            if (!File.Exists(stateFilePath))
-            {
-                return null;
-            }
-
-            try
-            {
-                for (int attempt = 0; attempt < MaxAttempts; attempt++)
-                {
-                    try
-                    {
-                        using FileStream stream = new FileStream(
-                            stateFilePath,
-                            FileMode.Open,
-                            FileAccess.Read,
-                            FileShare.ReadWrite | FileShare.Delete
-                        );
-                        using StreamReader reader = new StreamReader(stream, Encoding.UTF8, true);
-                        string json = reader.ReadToEnd();
-                        return new OracleRunnerStateFile
-                        {
-                            RequestId = ReadInt(json, "request_id"),
-                            Status = RunnerStateProtocol.ParseStatusText(ReadString(json, "status")),
-                            TargetScript = ReadString(json, "target_script"),
-                            TimeoutSeconds = ReadNullableDouble(json, "timeout_seconds"),
-                            StartedAt = ReadString(json, "started_at"),
-                            FinishedAt = ReadString(json, "finished_at"),
-                            LastError = ReadString(json, "last_error"),
-                        };
-                    }
-                    catch (IOException) when (attempt + 1 < MaxAttempts)
-                    {
-                        Thread.Sleep(RetryDelayMilliseconds);
-                    }
-                    catch (UnauthorizedAccessException) when (attempt + 1 < MaxAttempts)
-                    {
-                        Thread.Sleep(RetryDelayMilliseconds);
-                    }
-                }
-                return null;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-    }
-
-    public void Write(OracleRunnerStateFile state)
     {
         lock (gate)
         {
@@ -83,153 +40,109 @@ public sealed class RunnerStateStore
                 Directory.CreateDirectory(directory);
             }
 
-            string json = BuildJson(state);
-            string tempPath = $"{stateFilePath}.{Guid.NewGuid():N}.tmp";
-            Exception? lastError = null;
-
+            string lockPath = stateFilePath + ".lock";
+            // CreateNew 与 Python 的 O_EXCL 共用文件系统原子性，适用于 Windows/WSL。
+            using FileStream lease = new FileStream(lockPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
             try
             {
-                for (int attempt = 0; attempt < MaxAttempts; attempt++)
+                OracleRunnerStateFile? current = ReadCurrent();
+                if (pendingState == null)
                 {
-                    try
-                    {
-                        File.WriteAllText(tempPath, json);
-                        if (File.Exists(stateFilePath))
-                        {
-                            File.Replace(tempPath, stateFilePath, null, ignoreMetadataErrors: true);
-                        }
-                        else
-                        {
-                            File.Move(tempPath, stateFilePath);
-                        }
-                        return;
-                    }
-                    catch (IOException ex) when (attempt + 1 < MaxAttempts)
-                    {
-                        lastError = ex;
-                        Thread.Sleep(RetryDelayMilliseconds);
-                    }
-                    catch (UnauthorizedAccessException ex) when (attempt + 1 < MaxAttempts)
-                    {
-                        lastError = ex;
-                        Thread.Sleep(RetryDelayMilliseconds);
-                    }
+                    return current;
                 }
+
+                // 新请求由客户端拥有。旧请求的终态不能覆盖它；同一请求的停止指令
+                // 也不能被较早排队的 running 状态覆盖，但允许正常终态完成该请求。
+                bool canWrite = current == null ||
+                    (current.RequestId == pendingState.RequestId &&
+                     !(pendingState.Status == RunnerRequestStatus.Running &&
+                       current.Status != RunnerRequestStatus.Requested &&
+                       current.Status != RunnerRequestStatus.Running));
+                if (canWrite)
+                {
+                    WriteCurrent(pendingState);
+                    current = pendingState;
+                }
+                pendingState = null;
+                return current;
             }
             finally
             {
-                if (File.Exists(tempPath))
-                {
-                    try
-                    {
-                        File.Delete(tempPath);
-                    }
-                    catch (IOException)
-                    {
-                    }
-                }
+                lease.Dispose();
+                File.Delete(lockPath);
             }
-
-            throw new IOException($"写入状态文件失败: {stateFilePath}", lastError);
         }
     }
 
-    private static string BuildJson(OracleRunnerStateFile state)
+    /// <summary>保存待写快照，不阻塞游戏线程；后续 Read 负责持锁落盘。</summary>
+    /// <param name="state">当前请求的新状态，后续修改原对象不会改变已排队快照。</param>
+    public void Write(OracleRunnerStateFile state)
     {
-        StringBuilder builder = new StringBuilder();
-        builder.AppendLine("{");
-        AppendField(builder, "request_id", state.RequestId.ToString(CultureInfo.InvariantCulture), quote: false, trailingComma: true);
-        AppendField(builder, "status", RunnerStateProtocol.ToStatusText(state.Status), quote: true, trailingComma: true);
-        AppendField(builder, "target_script", state.TargetScript, quote: true, trailingComma: true);
-        AppendField(
-            builder,
-            "timeout_seconds",
-            state.TimeoutSeconds?.ToString(CultureInfo.InvariantCulture),
-            quote: false,
-            trailingComma: true
-        );
-        AppendField(builder, "started_at", state.StartedAt, quote: true, trailingComma: true);
-        AppendField(builder, "finished_at", state.FinishedAt, quote: true, trailingComma: true);
-        AppendField(builder, "last_error", state.LastError, quote: true, trailingComma: false);
-        builder.AppendLine("}");
-        return builder.ToString();
-    }
-
-    private static void AppendField(StringBuilder builder, string key, string? value, bool quote, bool trailingComma)
-    {
-        builder.Append("  \"");
-        builder.Append(key);
-        builder.Append("\": ");
-        if (value == null)
+        lock (gate)
         {
-            builder.Append("null");
+            pendingState = new OracleRunnerStateFile
+            {
+                RequestId = state.RequestId,
+                Status = state.Status,
+                TargetScript = state.TargetScript,
+                TimeoutSeconds = state.TimeoutSeconds,
+                StartedAt = state.StartedAt,
+                FinishedAt = state.FinishedAt,
+                LastError = state.LastError,
+            };
         }
-        else if (quote)
-        {
-            builder.Append('"');
-            builder.Append(EscapeJsonString(value));
-            builder.Append('"');
-        }
-        else
-        {
-            builder.Append(value);
-        }
-
-        if (trailingComma)
-        {
-            builder.Append(',');
-        }
-
-        builder.AppendLine();
     }
 
-    private static string EscapeJsonString(string value)
+    /// <summary>读取锁内状态，使用标准 JSON 序列化器处理 Unicode 和控制字符。</summary>
+    /// <returns>当前状态；文件缺失时为 null。</returns>
+    private OracleRunnerStateFile? ReadCurrent()
     {
-        return value.Replace("\\", "\\\\").Replace("\"", "\\\"");
-    }
-
-    private static int ReadInt(string json, string key)
-    {
-        string? value = ReadRawValue(json, key);
-        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int result) ? result : 0;
-    }
-
-    private static double? ReadNullableDouble(string json, string key)
-    {
-        string? value = ReadRawValue(json, key);
-        if (string.IsNullOrWhiteSpace(value) || value == "null")
+        try
+        {
+            using FileStream stream = new FileStream(
+                stateFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            var serializer = new DataContractJsonSerializer(typeof(OracleRunnerStateFile));
+            var state = serializer.ReadObject(stream) as OracleRunnerStateFile
+                ?? throw new SerializationException("状态文件必须是 JSON 对象。");
+            if (state.RequestId < 0 ||
+                (state.TimeoutSeconds.HasValue &&
+                 (double.IsNaN(state.TimeoutSeconds.Value) || double.IsInfinity(state.TimeoutSeconds.Value) ||
+                  state.TimeoutSeconds.Value < 0)))
+            {
+                throw new SerializationException("request_id 和 timeout_seconds 必须是非负有限数值。");
+            }
+            return state;
+        }
+        catch (FileNotFoundException)
         {
             return null;
         }
-
-        return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result)
-            ? result
-            : null;
     }
 
-    private static string? ReadString(string json, string key)
+    /// <summary>锁内使用同目录临时文件原子替换状态，不重试或等待。</summary>
+    /// <param name="state">要持久化的完整状态。</param>
+    private void WriteCurrent(OracleRunnerStateFile state)
     {
-        string? value = ReadRawValue(json, key);
-        if (string.IsNullOrWhiteSpace(value) || value == "null")
+        string tempPath = $"{stateFilePath}.{Guid.NewGuid():N}.tmp";
+        try
         {
-            return null;
+            using (FileStream stream = new FileStream(tempPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                var serializer = new DataContractJsonSerializer(typeof(OracleRunnerStateFile));
+                serializer.WriteObject(stream, state);
+            }
+            if (File.Exists(stateFilePath))
+            {
+                File.Replace(tempPath, stateFilePath, null, ignoreMetadataErrors: true);
+            }
+            else
+            {
+                File.Move(tempPath, stateFilePath);
+            }
         }
-
-        if (value.Length >= 2 && value[0] == '"' && value[^1] == '"')
+        finally
         {
-            return value[1..^1].Replace("\\\"", "\"").Replace("\\\\", "\\");
+            File.Delete(tempPath);
         }
-
-        return value;
-    }
-
-    private static string? ReadRawValue(string json, string key)
-    {
-        Match match = Regex.Match(
-            json,
-            $"\"{Regex.Escape(key)}\"\\s*:\\s*(null|\"(?:\\\\.|[^\"])*\"|-?[0-9]+(?:\\.[0-9]+)?)",
-            RegexOptions.Multiline
-        );
-        return match.Success ? match.Groups[1].Value : null;
     }
 }

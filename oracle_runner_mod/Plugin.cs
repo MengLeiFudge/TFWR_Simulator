@@ -1,10 +1,10 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 using BepInEx;
 using BepInEx.Logging;
-using BepInEx.Unity.Mono;
 using HarmonyLib;
 using TMPro;
 using UnityEngine;
@@ -16,7 +16,7 @@ public sealed class Plugin : BaseUnityPlugin
 {
     internal const string PluginGuid = "mlj.tfwr.oracle-runner";
     internal const string PluginName = "TFWR Oracle Runner";
-    internal const string PluginVersion = "0.1.0";
+    internal const string PluginVersion = "0.2.1";
 
     private enum StopReason
     {
@@ -29,6 +29,8 @@ public sealed class Plugin : BaseUnityPlugin
     private static Plugin? instance;
     private static readonly AccessTools.FieldRef<MainSim, Simulation> SimRef =
         AccessTools.FieldRefAccess<MainSim, Simulation>("sim");
+    private static readonly AccessTools.FieldRef<MainSim, object> SimulationLockRef =
+        AccessTools.FieldRefAccess<MainSim, object>("lockSimulation");
     private static readonly AccessTools.FieldRef<MainSim, MainSim.LeaderboardStartArgs> PrevLeaderboardStartRef =
         AccessTools.FieldRefAccess<MainSim, MainSim.LeaderboardStartArgs>("prevLeaderboardStart");
     private static readonly AccessTools.FieldRef<LeaderboardManager, GameObject> RunCancelledRef =
@@ -47,7 +49,11 @@ public sealed class Plugin : BaseUnityPlugin
     private OracleRunnerConfig runnerConfig = null!;
     private RunnerStateStore stateStore = null!;
     private Harmony? harmony;
-    private float pluginStartedAt;
+    private int startingRequestId = -1;
+    private float startingRequestAt;
+    private float stateFailureSince = -1f;
+    private float nextStatePollAt;
+    private float nextStateWarningAt;
     private float lastProgressLogAt;
     private float lastItemSnapshotLogAt;
     private float activeRequestStartedAt;
@@ -72,8 +78,7 @@ public sealed class Plugin : BaseUnityPlugin
         instance = this;
         runnerConfig = new OracleRunnerConfig(Config);
         stateStore = new RunnerStateStore(Path.Combine(Paths.ConfigPath, RunnerStateProtocol.StateFileName));
-        pluginStartedAt = Time.realtimeSinceStartup;
-        lastProgressLogAt = pluginStartedAt;
+        lastProgressLogAt = Time.realtimeSinceStartup;
 
         harmony = new Harmony(PluginGuid);
         harmony.PatchAll();
@@ -117,22 +122,61 @@ public sealed class Plugin : BaseUnityPlugin
             Log.LogInfo("已调用 Menu.Play() 进入游戏工作区");
         }
 
-        EnsureStateFileReady(mainSim);
         ObserveLeaderboardTiming(mainSim);
-
-        OracleRunnerStateFile? observedState = stateStore.Read();
-        if (observedState != null)
-        {
-            ObserveStopRequestedState(mainSim, observedState);
-            ObserveRequestedState(mainSim, observedState);
-        }
+        PollState(mainSim);
 
         MonitorExecution(mainSim);
     }
 
-    private void EnsureStateFileReady(MainSim mainSim)
+    /// <summary>按配置间隔同步控制文件；临时 I/O 失败留到下一轮，不执行阻塞重试。</summary>
+    /// <param name="mainSim">当前真实游戏模拟器。</param>
+    private void PollState(MainSim mainSim)
     {
-        OracleRunnerStateFile? current = stateStore.Read();
+        float now = Time.realtimeSinceStartup;
+        if (now < nextStatePollAt)
+        {
+            return;
+        }
+        nextStatePollAt = now + Mathf.Max(0.05f, runnerConfig.StartupPollIntervalMs.Value / 1000f);
+        try
+        {
+            // BepInEx 默认每两秒刷盘；先刷新日志，再发布终态，避免短请求返回空日志。
+            foreach (ILogListener listener in BepInEx.Logging.Logger.Listeners)
+            {
+                if (listener is DiskLogListener disk)
+                {
+                    disk.LogWriter?.Flush();
+                }
+            }
+            OracleRunnerStateFile? current = stateStore.Read();
+            stateFailureSince = -1f;
+            EnsureStateFileReady(mainSim, current);
+            if (current != null)
+            {
+                ObserveStopRequestedState(mainSim, current);
+                ObserveRequestedState(mainSim, current);
+            }
+        }
+        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is SerializationException)
+        {
+            // 正常客户端事务会短暂持锁；连续失败五秒才提示，仍不抢锁或阻塞主线程。
+            if (stateFailureSince < 0f)
+            {
+                stateFailureSince = now;
+            }
+            if (now - stateFailureSince >= 5f && now >= nextStateWarningAt)
+            {
+                nextStateWarningAt = now + 5f;
+                Log.LogWarning($"状态文件同步失败，将在下次轮询重试：{stateStore.StateFilePath}；{ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>只初始化缺失状态或恢复插件重载前遗留的 running 状态。</summary>
+    /// <param name="mainSim">当前真实游戏模拟器。</param>
+    /// <param name="current">本轮唯一一次文件读取的结果。</param>
+    private void EnsureStateFileReady(MainSim mainSim, OracleRunnerStateFile? current)
+    {
         if (current == null)
         {
             stateStore.Write(RunnerStateProtocol.CreateIdle(lastHandledRequestId));
@@ -179,11 +223,18 @@ public sealed class Plugin : BaseUnityPlugin
 
     private void ObserveStopRequestedState(MainSim mainSim, OracleRunnerStateFile observedState)
     {
-        if (activeRequest == null || observedState.Status != RunnerRequestStatus.StopRequested)
+        if (observedState.Status != RunnerRequestStatus.StopRequested)
         {
             return;
         }
 
+        if (activeRequest == null)
+        {
+            MarkFailedWithOutput(observedState, observedState.LastError ?? "stop requested before start", DateTimeOffset.UtcNow);
+            stateStore.Write(observedState);
+            lastHandledRequestId = Math.Max(lastHandledRequestId, observedState.RequestId);
+            return;
+        }
         if (observedState.RequestId != activeRequest.RequestId)
         {
             return;
@@ -198,45 +249,43 @@ public sealed class Plugin : BaseUnityPlugin
         }
     }
 
+    /// <summary>在单次请求期限内等待工作区、窗口及空闲执行器，再启动目标脚本。</summary>
+    /// <param name="mainSim">真实游戏执行器。</param>
+    /// <param name="requestedState">当前仍待启动的请求。</param>
     private void TryStartRequest(MainSim mainSim, OracleRunnerStateFile requestedState)
     {
-        CloseLeaderboardResultScreen(mainSim, "request_start");
-        if (mainSim.workspace == null || !mainSim.workspace.gameObject.activeInHierarchy)
+        if (startingRequestId != requestedState.RequestId)
         {
-            MaybeLogProgress("等待工作区激活");
-            return;
+            startingRequestId = requestedState.RequestId;
+            startingRequestAt = Time.realtimeSinceStartup;
         }
-
+        // 外部请求接管前确认已有结果页；手动游玩期间不主动确认。
+        CloseLeaderboardResultScreen(mainSim, "request_start");
+        leaderboardResultAutoCloseGate.Clear();
         string targetScriptName = RunnerStateProtocol.NormalizeTargetScriptName(
             requestedState.TargetScript ?? runnerConfig.TargetScriptName.Value
         );
-        CodeWindow? targetWindow = FindTargetWindow(mainSim.workspace, targetScriptName);
-        if (targetWindow == null)
+        CodeWindow? targetWindow = mainSim.workspace == null ? null : FindTargetWindow(mainSim.workspace, targetScriptName);
+        string? waiting = mainSim.workspace == null || !mainSim.workspace.gameObject.activeInHierarchy
+            ? "workspace is not active"
+            : targetWindow == null ? $"script window not found: {targetScriptName}"
+            : mainSim.IsExecuting() ? "another script is still executing" : null;
+        if (waiting != null)
         {
-            if (Time.realtimeSinceStartup - pluginStartedAt > runnerConfig.ScriptReadyTimeoutSeconds.Value)
+            if (Time.realtimeSinceStartup - startingRequestAt >= runnerConfig.ScriptReadyTimeoutSeconds.Value)
             {
-                MarkFailedWithOutput(
-                    requestedState,
-                    $"script window not found: {targetScriptName}",
-                    DateTimeOffset.UtcNow
-                );
+                MarkFailedWithOutput(requestedState, waiting, DateTimeOffset.UtcNow);
                 stateStore.Write(requestedState);
                 lastHandledRequestId = Math.Max(lastHandledRequestId, requestedState.RequestId);
             }
             else
             {
-                MaybeLogProgress($"等待脚本窗口 {targetScriptName}");
+                MaybeLogProgress($"等待请求启动 request_id={requestedState.RequestId}: {waiting}");
             }
             return;
         }
 
-        if (mainSim.IsExecuting())
-        {
-            MaybeLogProgress("当前已有执行，等待停止后再启动新请求");
-            return;
-        }
-
-        Node? syntaxTree = targetWindow.Parse();
+        Node? syntaxTree = targetWindow!.Parse();
         if (syntaxTree == null)
         {
             MarkFailedWithOutput(
@@ -254,6 +303,7 @@ public sealed class Plugin : BaseUnityPlugin
         mainSim.StartMainExecution(targetWindow, syntaxTree);
 
         activeRequest = requestedState;
+        pendingRequest = null;
         activeRequestStartedAt = Time.realtimeSinceStartup;
         lastHandledRequestId = Math.Max(lastHandledRequestId, requestedState.RequestId);
         stopReason = StopReason.None;
@@ -323,7 +373,7 @@ public sealed class Plugin : BaseUnityPlugin
     private void MaybeLogProgress(string message)
     {
         float now = Time.realtimeSinceStartup;
-        float minInterval = Mathf.Max(0.05f, runnerConfig.StartupPollIntervalMs.Value / 1000f);
+        const float minInterval = 5f;
         if (now - lastProgressLogAt < minInterval)
         {
             return;
@@ -409,11 +459,7 @@ public sealed class Plugin : BaseUnityPlugin
 
         if (isRunning)
         {
-            if (activeRequest != null)
-            {
-                leaderboardResultAutoCloseGate.MarkExternalLeaderboardObserved();
-            }
-
+            // simulate() 也会打开运行浮层，但结束时没有结果页，不能在此授权自动关闭。
             if (!wasLeaderboardRunning)
             {
                 wasLeaderboardRunning = true;
@@ -441,6 +487,11 @@ public sealed class Plugin : BaseUnityPlugin
             return;
         }
 
+        if (stopReason != StopReason.None)
+        {
+            TryCloseExternalLeaderboardResultScreen(mainSim, "request_stop");
+            return;
+        }
         if (!wasLeaderboardRunning)
         {
             TryCloseExternalLeaderboardResultScreen(mainSim, "external_result_idle");
@@ -570,13 +621,22 @@ public sealed class Plugin : BaseUnityPlugin
     {
         if (activeRequest == null)
         {
+            leaderboardResultAutoCloseGate.Clear();
+            Log.LogInfo($"手动 leaderboard 结束，保留结果页面 leaderboard={leaderboardName}");
             return;
         }
 
+        // 只有外部请求确实产生了结果页，才允许后续 Update 自动确认。
         leaderboardResultAutoCloseGate.MarkExternalLeaderboardObserved();
         string scriptName = string.IsNullOrWhiteSpace(observedLeaderboardScriptName)
             ? ResolveLeaderboardScriptName(mainSim, SimRef(mainSim))
             : observedLeaderboardScriptName;
+        // 最后一轮会在原生方法内清零计数，Update 来不及观察；在清零前记录真实完成轮。
+        if (finished && runCount > observedLeaderboardRuns)
+        {
+            TimeSpan finalRunTime = mainSim.totalLeaderboardTime.ToTimeSpan() - observedLeaderboardTotalTime;
+            LogLeaderboardLine(LeaderboardLogFormatter.FormatRunLine(scriptName, runCount, finalRunTime));
+        }
         int normalizedRunCount = Math.Max(1, runCount);
         string summaryLine = LeaderboardLogFormatter.FormatSummaryLine(
             scriptName,
@@ -586,6 +646,11 @@ public sealed class Plugin : BaseUnityPlugin
         );
         LogLeaderboardLine(summaryLine);
 
+        // 停止流程仍拥有请求，须等结果页关闭并恢复 workspace 后才能发布终态或启动替代请求。
+        if (stopReason != StopReason.None)
+        {
+            return;
+        }
         if (finished)
         {
             RunnerStateProtocol.MarkDone(activeRequest, DateTimeOffset.UtcNow);
@@ -642,18 +707,14 @@ public sealed class Plugin : BaseUnityPlugin
             stateStore.Write(activeRequest);
         }
 
-        OracleRunnerStateFile? nextRequest = pendingRequest;
         activeRequest = null;
         pendingRequest = null;
         stopReason = StopReason.None;
-        if (nextRequest != null)
-        {
-            TryStartRequest(mainSim, nextRequest);
-        }
-        else
-        {
-            EnsureStateFileReady(mainSim);
-        }
+        wasLeaderboardRunning = false;
+        observedLeaderboardRuns = 0;
+        observedLeaderboardTotalTime = TimeSpan.Zero;
+        observedLeaderboardScriptName = string.Empty;
+        // 替代请求必须由下一次 PollState 从文件重读，不能执行可能已经被取消的旧快照。
     }
 
     private void FinishDone()
@@ -703,13 +764,41 @@ public sealed class Plugin : BaseUnityPlugin
         string normalizedMessage = message
             .Replace('\r', ' ')
             .Replace('\n', ' ');
-        global::Logger.Log($"oracle_error request_id={requestId} {normalizedMessage}");
+        Instance?.Log.LogError($"oracle_error request_id={requestId} {normalizedMessage}");
+        WriteGameLog($"oracle_error request_id={requestId} {normalizedMessage}");
     }
 
     private void LogLeaderboardLine(string line)
     {
+        line += $" request_id={activeRequest?.RequestId ?? 0}";
         Log.LogInfo(line);
-        global::Logger.Log(line);
+        WriteGameLog(line);
+    }
+
+    /// <summary>与游戏执行线程同步写入原生输出；执行外打开的写入器在本次写入后关闭。</summary>
+    /// <param name="line">保留在游戏输出中的模组诊断或榜单记录。</param>
+    private static void WriteGameLog(string line)
+    {
+        MainSim? mainSim = MainSim.Inst;
+        if (mainSim == null)
+        {
+            return;
+        }
+        // Logger.Clear 不 Dispose 旧 writer。停止后追加错误必须关闭，否则下一次 Clear 会共享冲突。
+        lock (SimulationLockRef(mainSim))
+        {
+            try
+            {
+                global::Logger.Log(line);
+            }
+            finally
+            {
+                if (!SimRef(mainSim).IsExecuting())
+                {
+                    global::Logger.Close();
+                }
+            }
+        }
     }
 
     private CodeWindow? FindTargetWindow(Workspace workspace, string targetScriptName)
@@ -757,6 +846,58 @@ public sealed class Plugin : BaseUnityPlugin
         private static void Postfix()
         {
             Instance?.MarkMenuPlayed();
+        }
+    }
+
+    [HarmonyPatch(typeof(SteamLeaderboard), nameof(SteamLeaderboard.Load))]
+    private static class SteamLeaderboardLoadPatch
+    {
+        private static void Prefix(string ___leaderboardName)
+        {
+            if (!SteamManager.Initialized)
+            {
+                Instance?.Log.LogWarning($"steam_leaderboard load board={___leaderboardName} initialized=False；Steam 未初始化，游戏不会请求榜单，请检查 Steam 客户端及游戏启动方式。");
+                return;
+            }
+
+            Instance?.Log.LogInfo($"steam_leaderboard load board={___leaderboardName} initialized=True");
+        }
+    }
+
+    [HarmonyPatch(typeof(SteamLeaderboard), "OnLeaderboardFindResult")]
+    private static class SteamLeaderboardFindPatch
+    {
+        private static void Prefix(Steamworks.LeaderboardFindResult_t callback, bool failure, string ___leaderboardName)
+        {
+            Instance?.Log.LogInfo($"steam_leaderboard find board={___leaderboardName} failure={failure} found={callback.m_bLeaderboardFound}");
+        }
+    }
+
+    [HarmonyPatch(typeof(SteamLeaderboard), "OnTopEntriesLoaded")]
+    private static class SteamLeaderboardEntriesPatch
+    {
+        private static void Prefix(Steamworks.LeaderboardScoresDownloaded_t callback, bool failure, string ___leaderboardName)
+        {
+            Instance?.Log.LogInfo($"steam_leaderboard entries board={___leaderboardName} failure={failure} count={callback.m_cEntryCount}");
+        }
+    }
+
+    [HarmonyPatch(typeof(LeaderboardManager), nameof(LeaderboardManager.StartLeaderboardRun))]
+    private static class LeaderboardStartPatch
+    {
+        private static void Postfix()
+        {
+            // 新一轮执行不得继承上一页的关闭权限，包括手动启动和 simulate()。
+            Instance?.leaderboardResultAutoCloseGate.Clear();
+        }
+    }
+
+    [HarmonyPatch(typeof(LeaderboardManager), nameof(LeaderboardManager.OkPressed))]
+    private static class LeaderboardOkPatch
+    {
+        private static void Postfix()
+        {
+            Instance?.leaderboardResultAutoCloseGate.Clear();
         }
     }
 

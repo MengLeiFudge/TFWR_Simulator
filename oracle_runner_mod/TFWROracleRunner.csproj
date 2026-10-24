@@ -3,46 +3,34 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <RestoreAdditionalProjectSources>https://api.nuget.org/v3/index.json;https://nuget.bepinex.dev/v3/index.json</RestoreAdditionalProjectSources>
+    <Version>0.2.1</Version>
+    <TFWRBepInExRoot Condition="'$(TFWRBepInExRoot)' == '' and '$(TFWR_BEPINEX_ROOT)' != ''">$(TFWR_BEPINEX_ROOT)</TFWRBepInExRoot>
+    <RestoreSources>https://api.nuget.org/v3/index.json</RestoreSources>
     <TFWRGameRoot Condition="'$(TFWRGameRoot)' == '' and '$(TFWR_GAME_ROOT)' != ''">$(TFWR_GAME_ROOT)</TFWRGameRoot>
     <TFWRGameRoot Condition="'$(TFWRGameRoot)' == ''">/mnt/d/Steam/steamapps/common/The Farmer Was Replaced</TFWRGameRoot>
     <TFWRManagedDir>$(TFWRGameRoot)/TheFarmerWasReplaced_Data/Managed</TFWRManagedDir>
+    <TFWRBepInExRoot Condition="'$(TFWRBepInExRoot)' == ''">$(TFWRGameRoot)/BepInEx</TFWRBepInExRoot>
   </PropertyGroup>
 
+  <!-- 编译使用目标 BepInEx 5 安装中的程序集，避免混入另一版加载器或 Harmony。 -->
   <ItemGroup>
-    <PackageReference Include="BepInEx.Unity.Mono" Version="6.0.0-be.755" ExcludeAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="BepInEx.Core" Version="6.0.0-be.755" ExcludeAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="HarmonyX" Version="2.10.2" ExcludeAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="MonoMod.Utils" Version="22.7.31.1" ExcludeAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="SemanticVersioning" Version="2.0.2" ExcludeAssets="all" GeneratePathProperty="true" />
+    <Reference Include="BepInEx">
+      <HintPath>$(TFWRBepInExRoot)/core/BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(TFWRBepInExRoot)/core/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>$(TFWRBepInExRoot)/core/MonoMod.Utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="tests/**/*.cs" />
     <None Include="tests/**/*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="BepInEx.Core">
-      <HintPath>$(PkgBepInEx_Core)/lib/netstandard2.0/BepInEx.Core.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="BepInEx.Unity.Mono">
-      <HintPath>$(PkgBepInEx_Unity_Mono)/lib/netstandard2.0/BepInEx.Unity.Mono.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="0Harmony">
-      <HintPath>$(PkgHarmonyX)/lib/netstandard2.0/0Harmony.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="MonoMod.Utils">
-      <HintPath>$(PkgMonoMod_Utils)/lib/netstandard2.0/MonoMod.Utils.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="SemanticVersioning">
-      <HintPath>$(PkgSemanticVersioning)/lib/netstandard2.0/SemanticVersioning.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="Exists('$(TFWRManagedDir)')">
@@ -56,6 +44,10 @@
     </Reference>
     <Reference Include="Utils">
       <HintPath>$(TFWRManagedDir)/Utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="com.rlabrecque.steamworks.net">
+      <HintPath>$(TFWRManagedDir)/com.rlabrecque.steamworks.net.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="FMODUnity">
@@ -97,6 +89,19 @@
   </ItemGroup>
 
   <Target Name="VerifyGameAssemblies" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(TFWRBepInExRoot)/core/BepInEx.dll')" Text="未找到 BepInEx 5：$(TFWRBepInExRoot)。请通过 TFWRBepInExRoot 属性或 TFWR_BEPINEX_ROOT 环境变量指向 R2 profile 的 BepInEx 目录。" />
     <Error Condition="!Exists('$(TFWRManagedDir)')" Text="未找到 TFWR Managed 目录：$(TFWRManagedDir)。请通过 TFWRGameRoot MSBuild 属性或 TFWR_GAME_ROOT 环境变量指向游戏安装目录。" />
+  </Target>
+
+  <Target Name="PackageThunderstore" DependsOnTargets="Build">
+    <PropertyGroup>
+      <ThunderstoreStage>$(IntermediateOutputPath)thunderstore</ThunderstoreStage>
+      <ThunderstoreArchive>$(OutputPath)TFWR_Oracle_Runner-$(Version).zip</ThunderstoreArchive>
+    </PropertyGroup>
+    <MakeDir Directories="$(ThunderstoreStage)/plugins/TFWROracleRunner" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ThunderstoreStage)/plugins/TFWROracleRunner" />
+    <Copy SourceFiles="manifest.json;README.md;icon.png;LICENSE" DestinationFolder="$(ThunderstoreStage)" />
+    <ZipDirectory SourceDirectory="$(ThunderstoreStage)" DestinationFile="$(ThunderstoreArchive)" Overwrite="true" />
+    <Message Importance="high" Text="R2 / Thunderstore 包：$(ThunderstoreArchive)" />
   </Target>
 </Project>
