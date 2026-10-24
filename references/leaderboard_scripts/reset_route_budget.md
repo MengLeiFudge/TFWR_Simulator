@@ -4,7 +4,7 @@
 
 采用6ae88cad的两个完整本地样本作为后续结构预算比较版本，三值仍为8617.892521/null/null；[正式研究记录](lb_fastest_reset.md)与实机成绩保持各自版本。到8机仍约3674.511秒，已超过#10整轮1966.927秒。晚段升级即使有净收益，也不能替代前期路线重设计。备电阈值、固定尾段细调不再作为本轮主线；单项榜结构研究仍优先，成熟方案再迁入Reset。
 
-本次仅阅读Core源码、unlock_snapshot和既有完整报告，并做有限闭式计算，没有新增模拟或实机运行。规则来源为Core DinosaurHat、Cactus.GetDrops及现有解锁快照；报告为`.codex/leaderboard-sol/reset/power-reserve/combined/seed0.json`、`seed1.json`。
+路线预算复用Core源码、unlock_snapshot和既有完整报告；新增有界组件的范围及结果单列于下文，不代表整轮或实机验证。规则来源为Core DinosaurHat、Cactus.GetDrops及现有解锁快照；完整比较报告为`.codex/leaderboard-sol/reset/power-reserve/combined/seed0.json`、`seed1.json`。
 
 ## 科技费与发生时点
 
@@ -99,8 +99,22 @@ B在M4前需10田C2与8田P3，早期Carrot最低缺8456/8722。C在M4前需5田
 
 A的Carrot预算可由已知后期库存承担。原备电后供料到首骨头准备耗425.546974/422.921280秒，叠加少12轮的毛节时敏感性后，新全部供料/升级/控制成本须低于约1120.130/1129.934秒才可能回本。原后24轮块耗电及期末余额给出的新增供料相对原供料额外耗电容限约908.601/899.585；不等于新供料总耗电上限，也不能用墙钟代替全worker消耗。两项均为沿用轮均成本和持续供电的条件账，非严格保证。
 
-下一步仅选择A的最小未知成本：先形成费用感知、有限失败与全部worker回收的私有供料实现，静态成立后顺序观察独立合成场景的一田P3和一田C2，各seed1一次。Cactus保持单机，Pumpkin保留现有8机列分配，不改布局/排序/供水。每项墙钟30秒、30万API、200万检查点、无trace，游戏截止120/180秒；任何异常、警告、不达标或限额停止本批，不重试扩样。具体初态、源码范围及验收见协作#185和`.codex/leaderboard-astra/reset-supply-component.md`。
+协作#185仅准入A的最小未知成本：先形成费用感知、有限失败与全部worker回收的私有供料实现，静态成立后顺序观察独立合成场景的一田P3和一田C2，各seed1一次。Cactus保持单机，Pumpkin保留现有8机列分配，不改布局/排序/供水。每项墙钟30秒、30万API、200万检查点、无trace，游戏截止120/180秒；任何异常、警告、不达标或限额停止本批，不重试扩样。具体初态、源码范围及验收见协作#185和`.codex/leaderboard-astra/reset-supply-component.md`。
 
-组件指标8×T_P3+13×T_C2仅作条件筛选，另列未知购买与整合成本；单seed冷启动重复不能冒充严格上界。新供料总耗电也不能直接与相对增量899.585比较。取得组件证据后再判整合，当前不准入完整Reset。三个新包三类完整时间全null，原组合8617.892521/null/null保持。
+组件指标8×T_P3+13×T_C2仅作条件筛选，另列未知购买与整合成本；单seed冷启动重复不能冒充严格上界。新供料总耗电也不能直接与相对增量899.585比较。组件结果及停止决定见下节，不准入完整Reset。三个新包三类完整时间全null，原组合8617.892521/null/null保持。
 
 静态证据`.codex/leaderboard-sol/reset/supply-chain-budget/`的analysis.json、research-note.md、three-times.json，SHA前缀eb527f64/dd25667c/e44c121c，Astra已核对。
+
+## A包组件结果：当前串行仙人掌供料未过门槛
+
+协作#187的两项独立seed1均完整达标，无警告、负库存或限额命中。P3原8机三阶段耗13.59991359游戏秒，178次种植耗712 Carrot，34次死苗重补后144格合并得3456 Pumpkin，21个子句柄全部回收。C2原单机铺田与排序耗79.99996617秒，耗576 Pumpkin，144格连锁得41472 Cactus；没有借8机数量将其时间除8。
+
+条件筛选8×13.59991359+13×79.99996617=1148.79886893秒，超过1120.130门槛28.668869秒，也超过另一个seed的1129.933661敏感性门槛。按预先约定关闭当前供料协议的A包，不调参、扩seed或进入完整Reset。独立冷启动重复不是连续供料的严格上下界，不能据此否定并行仙人掌或其他倍率供应链；科技、整合与原版同边界成本仍有缺项。
+
+### 等待耗电的源码口径
+
+P3登记API390052t与解释器17068t，折算67.853333 Power；库存实际净降72.401833，多4.5485。Core `Execution.ApplySideEffect`的Terminated分支把等待者OpCount补到GlobalOpCount，但不更新LastConsumedOpCount；`ProgramState.ConsumeOps`随后取二者差，`Execution.Execute`将其计入UsedPower。本地Scheduler.finish/run保留相同行为。因此API与解释器成本之和遗漏等待唤醒补齐，不能将差额直接定性为模型多扣电，更不能在finish同步consumed来消除差额。
+
+库存还受0.2秒结算边界影响。当前无等待补齐总量与精确待结算量，4.5485的逐项定量归因仍未完成；源码核对不等于该并发场景已通过实机对照。C2工作折算80.985833与净降80.806833也分别保留。加权新供料工作折算1595.6425、库存净降1629.7035均不是相对原版增量，不能直接与899.585容限比较。
+
+组件证据`.codex/leaderboard-sol/reset/supply-component/`：analysis.json前缀a76b8fd2、research-note.md前缀29b2978c、source-manifest.json前缀15b87317（协作#190补入等待语义后的记录），原P3/C2报告前缀da14c4f6/e89d5460保持不变；原报告与新包完整三值null保留。计费核对来源为Core.decompiled.cs中的Terminated、ConsumeOps、UsedPower及本地execution.py中的finish/run；本轮只修正文档分析口径，没有改动模型计费行为。
