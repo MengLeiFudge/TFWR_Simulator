@@ -48,6 +48,7 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 | `script_steps` / `step_basis` | 源语句和循环边界的预算检查点数；`step_basis=compiled_checkpoint`，不同于历史CPython事件计数，仅用于执行上限 |
 | `wall_seconds` | 本机计算时间，不是游戏时间；不含 CLI 子进程启动 |
 | `output` / `output_dropped` | 最近1000条脚本输出（每条最多4096字符）及已丢弃的早期输出条数；未丢弃时为0 |
+| `state.grounds` | 最终地面矩阵，按 `[y][x]` 读取，`size`行、`width`列，值为`Grounds.Soil`或`Grounds.Grassland`；只读序列化，不推进模拟时间。旧报告缺少此字段时表示未观测，不从till次数反推。 |
 
 JSONL 每行记录调用序号、无人机、API、参数、返回值、调用时刻的坐标/库存/当前格状态，以及预计可再次运行的 `ready_ns`。与单机按调用完成后记录的旧轨迹不同，它保留并发调用的时间顺序。报告附脚本哈希、seed和八流派生seed；只有开启trace才计算轨迹哈希，否则 `trace_sha256=null`。`warnings` 记录模拟内部启动入口被拒绝等情况。
 

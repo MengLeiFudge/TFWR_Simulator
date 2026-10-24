@@ -754,9 +754,10 @@ class FarmWorld:
         return None, 1000000000 // self.tick_ns
 
     def snapshot(self):
-        """包含全实体和分组状态；board保留原仙人掌数值矩阵以支持历史报告。"""
+        """包含地面、全实体和分组状态；board保留原仙人掌数值矩阵以支持历史报告。"""
         return {'size':self.size, 'width':self.width, 'pos':list(self.pos),
                 'items':{key.value:value for key,value in self.items.items()}, 'unlocks':self.unlocks,
+                'grounds':[[self.grounds[x,y].value for x in range(self.width)] for y in range(self.size)],
                 'water':{str(pos):self.water_at(pos) for pos in self.water},
                 'entities':[{'pos':c.pos,'kind':c.kind.value,'grown':c.grown,'progress':self.growth_progress(c),
                              'number':c.number,'weird':c.weird,'companion':c.companion,'group':c.group}
