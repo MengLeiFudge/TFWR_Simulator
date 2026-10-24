@@ -46,6 +46,7 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 | `estimated_loop_ticks` | 兼容字段，固定为0；循环成本计入 `interpreter_ticks` |
 | `script_steps` / `step_basis` | 源语句和循环边界的预算检查点数；`step_basis=compiled_checkpoint`，不同于历史CPython事件计数，仅用于执行上限 |
 | `wall_seconds` | 本机计算时间，不是游戏时间；不含 CLI 子进程启动 |
+| `output` / `output_dropped` | 最近1000条脚本输出（每条最多4096字符）及已丢弃的早期输出条数；未丢弃时为0 |
 
 JSONL 每行记录调用序号、无人机、API、参数、返回值、调用时刻的坐标/库存/当前格状态，以及预计可再次运行的 `ready_ns`。与单机按调用完成后记录的旧轨迹不同，它保留并发调用的时间顺序。报告附脚本哈希、seed和八流派生seed；只有开启trace才计算轨迹哈希，否则 `trace_sha256=null`。`warnings` 记录模拟内部启动入口被拒绝等情况。
 
@@ -66,6 +67,8 @@ JSONL 每行记录调用序号、无人机、API、参数、返回值、调用�
 ## 执行上限
 
 默认每个seed限制 100000 次 API 调用、2000000 个编译检查点，可用 `--max-api-calls`、`--max-steps` 修改。检查点位于源语句和循环边界，纯计算循环及递归也受限；不再开启 `sys.settrace`。`_budget`等内部执行函数及`_timing_`前缀属于运行器保留名称。检查本身不增加虚拟游戏时间。`--timeout` 默认10秒、最多60秒；批量模式所有seed共享这一墙钟上限。CLI使用独立进程，超时会终止并回收；失败返回非零退出码，已回传的seed报告及已经写出的轨迹可保留。
+
+输出超出保留容量时只丢弃最早的日志，不停止脚本。`quick_print()`仍计0t，`print()`仍按原版计费；无限输出循环由API、检查点和墙钟预算终止。
 
 脚本执行器只用于已审阅的本地策略，不是运行不可信代码的安全沙箱。直接调用 Python `run_script()` 没有 CLI 的进程级兜底，日常筛选使用上述命令。
 

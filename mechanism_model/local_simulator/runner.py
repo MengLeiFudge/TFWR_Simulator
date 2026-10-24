@@ -162,7 +162,8 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         'api_ticks_by_function': {k:v for k,v in world.costs.items() if k != '_ops'},
         'estimated_loop_ticks': 0,
         'state': world.snapshot(), 'harvests': world.harvests,
-        'trace_sha256': trace_hash.hexdigest() if trace_hash else None, 'output': scheduler.outputs,
+        'trace_sha256': trace_hash.hexdigest() if trace_hash else None, 'output': list(scheduler.outputs),
+        'output_dropped': scheduler.output_dropped,
         'warnings': world.warnings,
         'wall_seconds': time.monotonic() - started,
         'limitations': [

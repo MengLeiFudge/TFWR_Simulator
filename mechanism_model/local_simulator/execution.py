@@ -3,6 +3,7 @@
 import ast
 import copy
 from dataclasses import dataclass
+from collections import deque
 from collections.abc import Generator
 import inspect
 import math
@@ -220,7 +221,9 @@ class Scheduler:
         self.active = {}
         self.global_ticks = 0
         self.handle_owner = object()
-        self.outputs = []
+        # 只保留最近1000条诊断；日志容量不能改变脚本的执行和计费。
+        self.outputs = deque(maxlen=1000)
+        self.output_dropped = 0
 
     def run(self, entry):
         """操作计数可领先世界时间；到达定时事件之前结束本批执行。"""
@@ -330,8 +333,8 @@ class Scheduler:
                 raise TypeError('get_tick_count 不接受参数')
             return drone.ticks - drone.start_ticks, 0
         if name in ('quick_print', 'print'):
-            if len(self.outputs) >= 100:
-                raise RuntimeError('输出超过100条，请减少日志')
+            if len(self.outputs) == self.outputs.maxlen:
+                self.output_dropped += 1
             self.outputs.append(' '.join(game_str(v) for v in args)[:4096])
             return None, 0 if name == 'quick_print' else 1000000000 // world.tick_ns
         if name == 'spawn_drone':
