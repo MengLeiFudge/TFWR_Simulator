@@ -1,15 +1,17 @@
-"""在 API 边界协作调度无人机；脚本作用域复制，棋盘共享，动作时间重叠。"""
+"""在脚本操作与 API 边界调度无人机；作用域复制，棋盘与时间共享。"""
 
 import ast
 import copy
 from dataclasses import dataclass
 from collections.abc import Generator
 import inspect
+import math
 import types
 
 from .catalog import Hats, Items, Leaderboards, Unlocks
 from .language import game_str, BUILTINS
 from .randomness import MonoRandom
+from .timing import Timing, operation, builtin_cost, equals, compare
 
 
 @dataclass(frozen=True)
@@ -25,19 +27,22 @@ class Request:
 
 @dataclass(eq=False)
 class Drone:
-    """句柄在任务结束后仍保留返回值；ready 是下一次运行的游戏纳秒。"""
+    """句柄保留终态；ticks、start_ticks、consumed均为执行器的操作计数。"""
     id: int
     task: Generator
     rng: MonoRandom
     pos: tuple = (0, 0)
     hat: Hats = Hats.Straw_Hat
-    ready: int = 0
     result: object = None
     done: bool = False
     cancelled: bool = False
     waiting: object = None
     response: object = None
     owner: object = None
+    ticks: int = 0
+    start_ticks: int = 0
+    consumed: int = 0
+    pending: object = None
 
     def __deepcopy__(self, _memo):
         # 句柄身份可跨作用域传递，任务和完成状态不能被复制成另一个无人机。
@@ -74,7 +79,7 @@ class Calls(ast.NodeTransformer):
 
     def visit_Call(self, node):
         self.generic_visit(node)
-        if isinstance(node.func, ast.Name) and node.func.id == '_budget':
+        if isinstance(node.func, ast.Name) and node.func.id in ('_budget', '_elapsed', '_operation', '_slice'):
             return node
         return ast.copy_location(ast.YieldFrom(ast.Call(
             ast.Name('_dispatch', ast.Load()), [node.func, *node.args], node.keywords)), node)
@@ -84,15 +89,6 @@ class Calls(ast.NodeTransformer):
         node.body.insert(0, ast.If(ast.Constant(False), [ast.Expr(ast.Yield(ast.Constant(None)))], []))
         return node
 
-    def visit_While(self, node):
-        """每次循环给一个近似脚本tick，让无动作的成熟/时钟等待能推进。"""
-        self.generic_visit(node)
-        step = ast.Expr(ast.Yield(ast.Call(ast.Name('_Request', ast.Load()),
-                             [ast.Constant('_step'), ast.Tuple([], ast.Load())], [])))
-        node.body.insert(0, ast.copy_location(step, node))
-        return node
-
-    visit_For = visit_While
 
 def compile_script(tree, path):
     """顶层脚本也是一个可暂停任务；不引入真实线程或墙钟等待。"""
@@ -109,6 +105,7 @@ def compile_script(tree, path):
 
     bindings = Bindings()
     bindings.visit(tree)
+    tree = Timing().visit(tree)
     if bindings.names:
         tree.body.insert(0, ast.Global(sorted(bindings.names)))
     entry = ast.FunctionDef('_entry', ast.arguments(posonlyargs=[], args=[], kwonlyargs=[],
@@ -120,20 +117,56 @@ def compile_script(tree, path):
 
 
 def dispatch(function, *args, **kwargs):
-    """API 交给调度器，用户函数串接协程，纯 Python 内建仍同步执行。"""
+    """API交给调度器；用户函数和容器内建分别收取原版调用成本。"""
     if isinstance(function, Api):
         if kwargs:
             raise TypeError('游戏 API 不接受关键字参数')
         return (yield Request(function.name, args))
+    if inspect.isgeneratorfunction(function):
+        yield Request('_ops', (1,))
+        return (yield from function(*args, **kwargs))
     owner = getattr(function, '__self__', None)
-    name = getattr(function, '__name__', '')
+    name = next((key for key, value in BUILTINS.items() if value is function),
+                getattr(function, '__name__', ''))
     if isinstance(owner, (list, set, dict)) and name in ('append', 'pop', 'insert', 'remove', 'add'):
-        result = BUILTINS[name](owner, *args, **kwargs)
-    else:
-        result = function(*args, **kwargs)
-    if inspect.isgenerator(result):
-        return (yield from result)
-    return result
+        args = (owner, *args)
+        function = BUILTINS[name]
+    before = len(args[0]) if args and isinstance(args[0], (list, set, dict)) else 0
+    counter = [0]
+    if name == 'remove' and args and isinstance(args[0], list):
+        for index, value in enumerate(args[0]):
+            if equals(value, args[1], counter):
+                counter[0] += len(args[0]) - index - 1
+                break
+    elif name in ('min', 'max'):
+        values = args[0] if len(args) == 1 else args
+        iterator = iter(values)
+        try:
+            best = next(iterator)
+        except StopIteration:
+            raise ValueError(f'{name} 需要非空序列') from None
+        # 原版还会将首项与自身比较一次。
+        compare(best, best, counter)
+        for value in iterator:
+            order = compare(value, best, counter)
+            if (order > 0 if name == 'max' else order < 0):
+                best = value
+    result = function(*args, **kwargs)
+    cost = counter[0] if name in ('min', 'max') or (name == 'remove' and isinstance(args[0], list)) else builtin_cost(name, args, result, before)
+    return (yield from elapsed(result, cost))
+
+
+def elapsed(value, ticks):
+    """提交已执行操作的成本，恢复后返回原值。"""
+    if ticks:
+        yield Request('_ops', (ticks,))
+    return value
+
+
+def evaluate(name, *args):
+    """运行原版表达式规则，再向调度器提交操作数。"""
+    value, ticks = operation(name, *args)
+    return (yield from elapsed(value, ticks))
 
 
 def clone_function(function, args):
@@ -175,7 +208,7 @@ def clone_function(function, args):
 
 
 class Scheduler:
-    """按下一次可运行时间排序；wait_for 阻塞调用者，不阻塞其他无人机。"""
+    """按原版199t批次与无人机编号推进；定时事件先于同刻副作用。"""
 
     def __init__(self, world, observe, check):
         self.world = world
@@ -183,48 +216,91 @@ class Scheduler:
         self.check = check
         self.main = None
         self.active = {}
-        self.next_id = 1
+        self.global_ticks = 0
         self.handle_owner = object()
         self.outputs = []
 
     def run(self, entry):
+        """操作计数可领先世界时间；到达定时事件之前结束本批执行。"""
         self.main = Drone(0, entry(), self.world.script_rng, owner=self.handle_owner)
         self.active = {0: self.main}
+        next_time = 0
+        world = self.world
         try:
             while self.active:
-                ready = [d for d in self.active.values() if d.waiting is None]
-                if not ready:
-                    raise RuntimeError('无人机相互等待，无法继续')
-                drone = min(ready, key=lambda d: (d.ready, d.id))
-                self.world.advance_to(max(self.world.now_ns, drone.ready))
-                self.world.current_drone = drone.id
-                self.world.pos, self.world.script_rng = drone.pos, drone.rng
-                try:
-                    request = drone.task.send(drone.response)
-                except StopIteration as end:
-                    self.finish(drone, end.value)
-                    continue
-                if not isinstance(request, Request):
-                    raise TypeError('脚本产生了无效调度请求')
-                if request.name != '_step':
-                    self.check()
-                old_tick = self.world.tick_ns
-                result, ticks = self.invoke(drone, request.name, request.args)
-                self.world.consume_power(ticks)
-                if old_tick != self.world.tick_ns:
-                    for other in self.active.values():
-                        remaining = max(0, other.ready - self.world.now_ns) / old_tick
-                        other.ready = self.world.now_ns + round(remaining * self.world.tick_ns)
-                self.world.calls[request.name] += 1
-                self.world.costs[request.name] += ticks
-                drone.pos, drone.hat = self.world.pos, self.world.hat
-                drone.response = result
-                drone.ready = self.world.now_ns + ticks * self.world.tick_ns
-                if request.name != '_step' and self.observe is not None:
-                    self.observe(drone, request, result, ticks)
+                world.advance_to(next_time)
+                target = math.floor(self.global_ticks + min(199, (world.timers.next_time() - 1 - world.now_ns) / world.tick_ns))
+                while self.active:
+                    previous = self.global_ticks
+                    for drone in sorted(self.active.values(), key=lambda d: d.id):
+                        if drone.pending is None and drone.waiting is None and drone.ticks <= target:
+                            self.resume(drone, target)
+                    runnable = [d for d in self.active.values() if d.waiting is None]
+                    if not runnable:
+                        raise RuntimeError('无人机相互等待，无法继续')
+                    self.global_ticks = min(d.ticks for d in runnable)
+                    reached = min(target, self.global_ticks)
+                    world.advance_to(world.now_ns + int((reached - previous) * world.tick_ns))
+                    used = sum(d.ticks - d.consumed for d in self.active.values())
+                    for drone in self.active.values():
+                        drone.consumed = drone.ticks
+                    if self.global_ticks <= target:
+                        # 副作用可能创建或清除无人机；以当前编号集合的快照逐个处理。
+                        for drone in sorted(list(self.active.values()), key=lambda d: d.id):
+                            if drone.id not in self.active or drone.waiting is not None or drone.ticks > self.global_ticks:
+                                continue
+                            request = drone.pending
+                            if request is None:
+                                continue
+                            drone.pending = None
+                            if request.name == '_finished':
+                                self.finish(drone, request.args[0])
+                            else:
+                                self.perform(drone, request)
+                                used += drone.ticks - drone.consumed
+                                drone.consumed = drone.ticks
+                    world.consume_power(used)
+                    self.global_ticks = min((d.ticks for d in self.active.values() if d.waiting is None), default=target)
+                    next_time = world.now_ns + int((self.global_ticks - reached) * world.tick_ns)
+                    world.advance_to(world.now_ns + int((min(self.global_ticks, target) - reached) * world.tick_ns))
+                    if self.global_ticks > target:
+                        break
         finally:
             for drone in self.active.values():
                 drone.task.close()
+
+    def resume(self, drone, target):
+        """纯操作可以执行到批次边界；世界读写留到共同操作时刻应用。"""
+        while drone.ticks <= target:
+            try:
+                request = drone.task.send(drone.response)
+            except StopIteration as end:
+                drone.pending = Request('_finished', (end.value,))
+                return
+            if not isinstance(request, Request):
+                raise TypeError('脚本产生了无效调度请求')
+            if request.name not in ('_ops', 'get_tick_count', 'quick_print', 'random'):
+                drone.pending = request
+                return
+            self.perform(drone, request)
+
+    def perform(self, drone, request):
+        """应用一个调用并登记计费；动画及print操作按原版排除Power消耗。"""
+        world = self.world
+        world.current_drone = drone.id
+        world.pos, world.script_rng = drone.pos, drone.rng
+        if request.name != '_ops':
+            self.check()
+        result, ticks = self.invoke(drone, request.name, request.args)
+        world.calls[request.name] += 1
+        world.costs[request.name] += ticks
+        drone.pos, drone.hat = world.pos, world.hat
+        drone.response = result
+        drone.ticks += ticks
+        if request.name in ('print', 'do_a_flip', 'pet_the_piggy'):
+            drone.consumed += ticks
+        if request.name != '_ops' and self.observe is not None:
+            self.observe(drone, request, result, ticks)
 
     def finish(self, drone, result):
         drone.done = True
@@ -241,12 +317,16 @@ class Scheduler:
             if waiter.waiting is drone:
                 waiter.waiting = None
                 waiter.response = copy.deepcopy(drone.result)
-                waiter.ready = max(waiter.ready, self.world.now_ns)
+                waiter.ticks = self.global_ticks
 
     def invoke(self, drone, name, args):
         world = self.world
-        if name == '_step':
-            return None, 1
+        if name == '_ops':
+            return None, args[0]
+        if name == 'get_tick_count':
+            if args:
+                raise TypeError('get_tick_count 不接受参数')
+            return drone.ticks - drone.start_ticks, 0
         if name in ('quick_print', 'print'):
             if len(self.outputs) >= 100:
                 raise RuntimeError('输出超过100条，请减少日志')
@@ -259,10 +339,11 @@ class Scheduler:
             if len(self.active) >= 2 ** world.unlocks['megafarm']:
                 return None, 1
             function, params = clone_function(function, tuple(params))
-            child = Drone(self.next_id, function(*params),
+            child_id = next(index for index in range(len(self.active) + 1) if index not in self.active)
+            start = self.global_ticks + 200
+            child = Drone(child_id, function(*params),
                           MonoRandom(world.random_rng.sample_int()), world.pos,
-                          ready=world.now_ns + 200 * world.tick_ns, owner=self.handle_owner)
-            self.next_id += 1
+                          ticks=start, start_ticks=start, consumed=start, owner=self.handle_owner)
             self.active[child.id] = child
             return child, 200
         if name in ('has_finished', 'wait_for'):

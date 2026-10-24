@@ -13,7 +13,7 @@
 | `references/unlocks/` | 游戏科技前置、成本和解锁事实表 |
 | `gamesave/` | 指向本机真实 Save0 的链接，只是部署目标，不进 Git |
 
-本地模拟通过CLI手动运行，尚未自动接在部署命令前。[脚本模拟入口](mechanism_model/local_simulator/README.md) 输出预计游戏时间、库存和轨迹；已适配全部公开作物的主要机制、恐龙和迷宫，性能优化后重新通过49个公开函数及662条离散观测对照，详见[本次验收](mechanism_model/local_simulator/validation.md)。自然成熟随机时刻和完整解释器计时仍有近似，范围见 [全作物机制](mechanism_model/local_simulator/mechanisms.md)。预测用于粗筛，最终成绩仍由真实游戏验证。
+本地模拟通过CLI手动运行，尚未自动接在部署命令前。[脚本模拟入口](mechanism_model/local_simulator/README.md) 读取游戏脚本，输出预计游戏时间、库存和轨迹。目标是单seed执行与时间对齐，验收门槛见[模拟精度与验收](mechanism_model/README.md#模拟精度与验收)。脚本计时和事件改造尚待实机对照，历史662条离散观测不代表新版精度通过，详见[验收记录](mechanism_model/local_simulator/validation.md)。最终成绩仍由真实游戏验证。
 
 ## 首次配置
 

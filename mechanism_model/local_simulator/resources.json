@@ -1,20 +1,20 @@
 {
   "source_sha256": "a465a0e642a5e34687693fee927ef9343f4d2329e75f23a421c03a149d77b6e0",
   "crops": {
-    "Grass": {"seconds":0.5,"deviation":0,"companion":true,"grounds":["Soil","Grassland"],"drop":"Hay","amount":1,"upgrade":"grass","cost":{},"overplant":true},
-    "Bush": {"seconds":4,"deviation":0.20000000298023224,"companion":true,"grounds":["Soil","Grassland"],"drop":"Wood","amount":1,"upgrade":"trees","cost":{}},
-    "Tree": {"seconds":7,"deviation":0.20000000298023224,"companion":true,"grounds":["Soil","Grassland"],"drop":"Wood","amount":5,"upgrade":"trees","cost":{}},
-    "Carrot": {"seconds":6,"deviation":0.20000000298023224,"companion":true,"grounds":["Soil"],"drop":"Carrot","amount":1,"upgrade":"carrots","cost":{"Hay":1,"Wood":1}},
-    "Pumpkin": {"seconds":2,"deviation":0.8999999761581421,"companion":false,"grounds":["Soil"],"drop":"Pumpkin","amount":1,"upgrade":"pumpkins","cost":{"Carrot":1}},
-    "Sunflower": {"seconds":7,"deviation":0.20000000298023224,"companion":false,"grounds":["Soil"],"drop":"Power","amount":1,"upgrade":"","cost":{"Carrot":1}},
-    "Cactus": {"seconds":1,"deviation":0,"companion":false,"grounds":["Soil"],"drop":"Cactus","amount":1,"upgrade":"cactus","cost":{"Pumpkin":2}}
+    "Grass": {"random_rotation":true,"goo_count":3,"seconds":0.5,"deviation":0,"companion":true,"grounds":["Soil","Grassland"],"drop":"Hay","amount":1,"upgrade":"grass","cost":{},"overplant":true},
+    "Bush": {"random_rotation":true,"goo_count":3,"seconds":4,"deviation":0.20000000298023224,"companion":true,"grounds":["Soil","Grassland"],"drop":"Wood","amount":1,"upgrade":"trees","cost":{}},
+    "Tree": {"random_rotation":true,"goo_count":3,"seconds":7,"deviation":0.20000000298023224,"companion":true,"grounds":["Soil","Grassland"],"drop":"Wood","amount":5,"upgrade":"trees","cost":{}},
+    "Carrot": {"random_rotation":true,"goo_count":3,"seconds":6,"deviation":0.20000000298023224,"companion":true,"grounds":["Soil"],"drop":"Carrot","amount":1,"upgrade":"carrots","cost":{"Hay":1,"Wood":1}},
+    "Pumpkin": {"random_rotation":true,"goo_count":1,"seconds":2,"deviation":0.8999999761581421,"companion":false,"grounds":["Soil"],"drop":"Pumpkin","amount":1,"upgrade":"pumpkins","cost":{"Carrot":1}},
+    "Sunflower": {"random_rotation":false,"goo_count":3,"seconds":7,"deviation":0.20000000298023224,"companion":false,"grounds":["Soil"],"drop":"Power","amount":1,"upgrade":"","cost":{"Carrot":1}},
+    "Cactus": {"random_rotation":true,"goo_count":3,"seconds":1,"deviation":0,"companion":false,"grounds":["Soil"],"drop":"Cactus","amount":1,"upgrade":"cactus","cost":{"Pumpkin":2}}
   },
   "special": {
-    "Apple":{"upgrade":"dinosaurs","cost":{"Cactus":2}},
-    "Dinosaur":{"upgrade":"dinosaurs","cost":{}},
-    "Dead_Pumpkin":{"upgrade":"","cost":{},"overplant":true},
-    "Hedge":{"upgrade":"mazes","cost":{"Weird_Substance":1}},
-    "Treasure":{"upgrade":"mazes","cost":{"Weird_Substance":1}}
+    "Apple":{"random_rotation":true,"upgrade":"dinosaurs","cost":{"Cactus":2}},
+    "Dinosaur":{"random_rotation":true,"upgrade":"dinosaurs","cost":{}},
+    "Dead_Pumpkin":{"random_rotation":true,"upgrade":"","cost":{},"overplant":true},
+    "Hedge":{"random_rotation":false,"upgrade":"mazes","cost":{"Weird_Substance":1}},
+    "Treasure":{"random_rotation":false,"upgrade":"mazes","cost":{"Weird_Substance":1}}
   },
   "hats":["Brown_Hat","Cactus_Hat","Carrot_Hat","Dinosaur_Hat","Gold_Hat","Gold_Trophy_Hat","Golden_Cactus_Hat","Golden_Carrot_Hat","Golden_Gold_Hat","Golden_Pumpkin_Hat","Golden_Sunflower_Hat","Golden_Tree_Hat","Gray_Hat","Green_Hat","Pumpkin_Hat","Purple_Hat","Silver_Trophy_Hat","Straw_Hat","Sunflower_Hat","The_Farmers_Remains","Top_Hat","Traffic_Cone","Traffic_Cone_Stack","Tree_Hat","Wizard_Hat","Wood_Trophy_Hat"],
   "items":["Bone","Cactus","Carrot","Fertilizer","Gold","Hay","Piggy","Power","Pumpkin","Water","Weird_Substance","Wood"],

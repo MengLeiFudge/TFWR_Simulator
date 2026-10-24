@@ -13,7 +13,7 @@ import time
 from .world import FarmWorld, UnsupportedMechanism
 from .catalog import Direction, Entities, Grounds, Items, Hats, Unlocks, Leaderboards
 from .language import BUILTINS
-from .execution import Api, Drone, Request, Scheduler, API_NAMES, compile_script, dispatch
+from .execution import Api, Drone, Request, Scheduler, API_NAMES, compile_script, dispatch, elapsed, evaluate
 
 
 class BudgetExceeded(RuntimeError):
@@ -53,11 +53,11 @@ def compile_source(source, filename):
             raise UnsupportedMechanism(f'第 {getattr(node, "lineno", "?")} 行：尚未支持 {type(node).__name__}')
         if isinstance(node, ast.Attribute) and (node.attr.startswith('_') or node.attr not in attributes):
             raise UnsupportedMechanism(f'第 {node.lineno} 行：尚未支持属性 {node.attr}')
-        if ((isinstance(node, ast.Name) and node.id == '_budget')
-                or (isinstance(node, ast.FunctionDef) and node.name == '_budget')
-                or (isinstance(node, ast.arg) and node.arg == '_budget')
-                or (isinstance(node, ast.Global) and '_budget' in node.names)):
-            raise UnsupportedMechanism('_budget 是执行预算保留名称')
+        names = ([node.id] if isinstance(node, ast.Name) else [node.name] if isinstance(node, ast.FunctionDef)
+                 else [node.arg] if isinstance(node, ast.arg) else node.names if isinstance(node, ast.Global) else [])
+        reserved = {'_budget', '_dispatch', '_Request', '_elapsed', '_operation', '_slice', '_missing', '_entry'}
+        if any(name in reserved or name.startswith('_timing_') for name in names):
+            raise UnsupportedMechanism(f'第 {getattr(node, "lineno", "?")} 行：名称与本地执行器保留名称冲突')
         if isinstance(node, ast.Name) and node.id.startswith('__') and node.id != '__name__':
             raise UnsupportedMechanism(f'第 {node.lineno} 行：不支持名称 {node.id}')
         if isinstance(node, ast.FunctionDef) and (node.decorator_list or node.returns):
@@ -86,7 +86,7 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
             raise BudgetExceeded(f'达到墙钟上限 {seconds:g}s')
         calls += 1
 
-    def observe(drone, request, result, ticks):
+    def observe(drone, request, result, _ticks):
         """记录调用时刻及预计返回时刻，避免并行动作被错误地累加到墙钟。"""
         entity = world.entities.get(world.pos)
         row = {'index': calls, 'drone': drone.id, 'api': request.name,
@@ -96,7 +96,7 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
                'number': getattr(entity, 'number', None),
                'grown': getattr(entity, 'grown', None),
                'api_ticks': world.ticks, 'api_time_ns': world.now_ns,
-               'ready_ns': world.now_ns + ticks * world.tick_ns}
+               'ready_ns': world.now_ns + (drone.ticks - scheduler.global_ticks) * world.tick_ns}
         def encode(value):
             if isinstance(value, Drone):
                 return {'drone_id': value.id}
@@ -111,10 +111,11 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         if trace_file:
             trace_file.write(encoded)
 
-    env = {'__builtins__': BUILTINS, '__name__': '__main__',
+    env = {'__builtins__': BUILTINS, '__name__': '__main__', '_missing': object(),
            'Entities': Entities, 'Grounds': Grounds, 'Items': Items,
            'Hats': Hats, 'Unlocks': Unlocks, 'Leaderboards': Leaderboards,
-           '_dispatch': dispatch, '_Request': Request}
+           '_dispatch': dispatch, '_Request': Request,
+           '_elapsed': elapsed, '_operation': evaluate, '_slice': slice}
     env.update({d.value: d for d in Direction})
     for name in dir(world):
         if name.startswith('api_'):
@@ -156,18 +157,18 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         'api_ticks': world.ticks, 'tick_ns': world.tick_ns,
         'predicted_game_seconds': world.now_ns / 1000000000,
         'predicted_api_seconds': world.now_ns / 1000000000,
-        'interpreter_ticks': None, 'script_steps': steps, 'step_basis': 'compiled_checkpoint',
-        'api_calls': {k:v for k,v in world.calls.items() if k != '_step'},
-        'api_ticks_by_function': {k:v for k,v in world.costs.items() if k != '_step'},
-        'estimated_loop_ticks': world.costs.get('_step', 0),
+        'interpreter_ticks': world.costs.get('_ops', 0), 'script_steps': steps, 'step_basis': 'compiled_checkpoint',
+        'api_calls': {k:v for k,v in world.calls.items() if k != '_ops'},
+        'api_ticks_by_function': {k:v for k,v in world.costs.items() if k != '_ops'},
+        'estimated_loop_ticks': 0,
         'state': world.snapshot(), 'harvests': world.harvests,
         'trace_sha256': trace_hash.hexdigest() if trace_hash else None, 'output': scheduler.outputs,
         'warnings': world.warnings,
         'wall_seconds': time.monotonic() - started,
         'limitations': [
             '全作物主要机制采用原版参数；成熟共享随机事件和罕见交互不保证逐次一致。',
-            '每次循环补1t以推进等待；完整解释器耗时未实现，并发在API/循环边界调度。',
-            '水分采用原版随机衰减的期望值；Power 按动作连续扣除，未复刻0.2秒扣款批次。',
+            '脚本操作及199t无人机批次按原版规则实现；语言边界与单seed精度仍需实机对照。',
+            '水分、成熟和Power使用定时事件；长窗口同seed精度尚待真实游戏对照。',
             'simulate/leaderboard_run 只实现模拟内部拒绝递归入口；真实启动仍由协调器负责。',
             '预测不是实测成绩；靠近成熟边界或依赖 get_time/get_tick_count 的策略须实机对照。',
         ],

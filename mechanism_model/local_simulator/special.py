@@ -93,6 +93,7 @@ class Maze:
         self.next_pos = self.treasure
         self.factor = 1
         self.relocate_at = None
+        self.relocate_timer = None
         self.removed = False
         # 先清理重叠旧实体/迷宫，再安装新迷宫，防止新旧对象相互删除。
         for p in self.walls:
@@ -122,6 +123,7 @@ class Maze:
             return False, 200
         self.world.add_item(Items.Gold, self.reward())
         self.relocate_at = self.world.now_ns + 200 * self.world.tick_ns
+        self.relocate_timer = self.world.timers.start(self.relocate_at, self.relocate)
         return True, 200
 
     def relocate(self):
@@ -150,6 +152,8 @@ class Maze:
         if self.removed:
             return
         self.removed = True
+        if self.relocate_timer is not None:
+            self.relocate_timer.stopped = True
         if self in self.world.mazes:
             self.world.mazes.remove(self)
         for pos in sorted(self.walls):
