@@ -64,6 +64,16 @@
 
 证据 `.codex/leaderboard-sol/pumpkins/repair-sweep-budget/{analysis.json,research-note.md}`，SHA前缀0a521ffd/fb5d88df，哈希与汇总算术已复核。原三值399.843616/未取得/未取得保持，交替协议三类时间全null，正式py和Save0未改。
 
+## 2026-10-24：16块8×8方案的跨块合并约束
+
+32×32全覆盖的16个8×8只是worker逻辑分工，没有物理隔离。Astra重读Core的`PumpkinController.AddPumpkin`、`MergeWithOthers`、`LargestSquare`、`HasOverlaps`和`RemovePumpkin`确认：成熟注册会在全图搜索包含新增位置的可合并方阵，已有group不得被部分切开，但没有worker块边界限制。四个相邻8×8均成熟、外部已有group不构成越界重叠时，可以合并为16×16；这是源码允许的情况，不是候选已观察到的错误。
+
+收割会移除真实group的全部格子，因此某块worker持有的成熟/修补记录可能被别块收割失效。不能直接把16份独立8×8的收益、修补成本或尾部时间相加/并行折算，也不能只靠块内两worker的协调覆盖跨块影响。没有物理隔离时，后续协议必须明确跨块收割归属、旧状态失效及重新种植的次序；若用全局完成屏障，也须付最慢尾部、返回等待、唯一收割及下一轮派发成本。共享Python全局变量不能作为免费通信。
+
+这项约束不否定所有全覆盖结构，也不将旧少数大块helper的失败直接外推到16块方案。下一步先去重历史并完成一种可执行的生命周期与费用账，未证明前不写候选或运行。原完整三值399.843616 / null / null保持，新方案三值全null。
+
+证据：`.codex/tests/high-precision/source/Core.decompiled.cs`的AddPumpkin:1570、RemovePumpkin:1631、MergeWithOthers:1673、LargestSquare:1722、HasOverlaps:1739；协作#206及Astra静态复核。外部建议采用边界同步于`.codex/leaderboard-astra/claude-strategy-adoption.md`。
+
 ## 榜单目标
 
 - 目标资源：`Items.Pumpkin`
