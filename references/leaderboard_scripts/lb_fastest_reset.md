@@ -1,6 +1,6 @@
 # lb_fastest_reset
 
-当前阶段：补齐真实 reset 初始基础能力后，当前脚本已在本地推进到 `3999.719s`，因 API 上限停止，尚无完整预测。下一步先校准完整基线，再比较提前解锁向日葵的单一顺序改动；提前购买 `Polyculture 2` 仍待回本预算。旧章节包含历史路线，时间预算以[缓存 #10](leaderboard_targets.md)为准。
+当前阶段（2026-10-24）：正式脚本已完成seed 0/1两次完整本地预测；唯一提前Sunflowers解锁候选的seed 1整轮反而慢172.782秒。seed 123基线仍触有界墙钟，3seed筛选未完成，不进入实机。提前Polyculture 2保持独立，尚无回本结论；新证据与三类时间见文末。历史预算以[缓存#10](leaderboard_targets.md)为准。
 ## 榜单目标
 
 - 目标类型：`fastest_reset`
@@ -648,3 +648,28 @@
 当前 `step2()` 每列先尝试 Speed，再到最后尝试 Sunflowers；当前成本中 Speed 4 与 Sunflowers 1 都需要500 Carrot。可筛选一个局部顺序候选：仅将原有 Sunflowers 解锁及成功标记块移到 Speed 尝试前，保留其余升级、混种、Power 100/1000 阈值和后续路线。Speed 3有Power时动作速率倍率约6.75，高于Speed 4无Power时的5.0625；这只是产电后动作吞吐的理论理由，成熟、种植、补料和推迟速度升级的代价仍须完整计入。
 
 先用当前正式脚本补完整seed 1基线，有限提高API/语句预算、墙钟仍不超过60秒并保持进度；达标后同场景比较候选。只在解锁成功和已有阶段边界输出科技、库存与时间，不逐格输出。至少对照seed 0/1/123的完整时间及step2、Megafarm 3、最终金币/骨头阶段；若前期收益被后续回吐，停止候选，不继续枚举Power阈值。早期骨头购买Polyculture 2另作独立候选，不能与解锁顺序合并后归因。
+
+## 2026-10-24：完整首配对与有界筛选结论
+
+沿用补齐15项基础能力的reset场景，不添加库存或生产科技；正常结束且 `state.unlocks.leaderboard > 0` 才算完成。场景未配置物品goal，故 `goal_reached=null`。原版SHA256为 `270c7b99a2762993fe3b2a91515085f318831ec64685eefe373a029808f335ba`；候选为 `fb90c19851688da14952911c3d148bd335cf0fe12e73ef8d44dae0a3f3dc3dda`，仅把step2原Sunflowers解锁及成功标记块移到Speed之前。
+
+| 样本 | 完整本地游戏秒 | 最终Leaderboard解锁 |
+| --- | ---: | --- |
+| 原版seed 0 | 9899.899869 | 是 |
+| 原版seed 1 | 10114.199878 | 是 |
+| 提前Sunflowers候选seed 1 | 10286.981630 | 是 |
+| 原版seed 123 | 未取得 | 有界停止时否 |
+
+seed 1候选step2累计从1473.272143降到1465.716942秒，只省7.555201秒；step4从2899.004323降到2838.356596秒，省60.647728秒；整轮却慢172.781752秒。不同后续随机轨迹和资源阶段会改变耗时，不能把这一负收益外推为所有seed的严格劣势，也不能混合未配对样本计算收益。3seed筛选未完成，停止该候选实机安排，不继续枚举Power阈值。
+
+各次设置API上限300万、检查点1500万、总墙钟55秒，并每5墙钟秒报告实际API和游戏时间。原版seed 123初次CLI超时只保留99字节摘要；用正式run_script入口补取详细停止报告，55秒时为6501.544529游戏秒、2590308次API、Leaderboard仍为0，停在第二次大批Weird生产。该部分时间不计入完整预测。
+
+Astra修复CLI父子报告截止竞争（0352baa）后，用原55秒场景复核，已收到BudgetExceeded、line 1637、完整state/output/API：5772.367003游戏秒、2297486次API，无BrokenPipe。回传预留使实际工作预算短于总硬预算，游戏机制和计费不变；报告竞争已解除，seed 123完整执行仍未覆盖。
+
+| 时间名称 | 本次候选值（游戏秒） | 依据 |
+| --- | ---: | --- |
+| 本地模拟预估时间 | 10286.981630 | 仅seed 1一次完整完成，配对原版10114.199878，3seed不足 |
+| 短时打榜测试时间 | 未取得 | 首配对无净收益且3seed不齐；实机准备79仍阻塞 |
+| 游戏打榜时间 | 未取得 | 无本候选完整正常结束的官方统计 |
+
+证据位于 `.codex/leaderboard-sol/reset/`：`full-baseline-seed0.json`、`full-baseline-seed1.json`、`early-sunflowers/seed1.json`、`early-sunflowers/comparison.json`、`full-baseline-seed123-bounded-detail.json`、`cli-budget-recheck-seed123.json`及`three-times.json`。游戏指纹见[当前规则](current_game_rules.md)。正式py未改、Save0未部署Reset，未进行本候选实机或同seed精度验收；提前Polyculture 2未与本候选混合。
