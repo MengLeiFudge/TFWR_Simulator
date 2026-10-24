@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 
 namespace TFWRMechanismModel;
 
@@ -34,6 +35,11 @@ internal static class Program
                     return 0;
                 case "companion":
                     RunCompanion(reader);
+                    return 0;
+                case "rng":
+                    RandomSequenceResult sequence = RandomSequenceModel.Generate(
+                        reader.GetInt("seed", 0), reader.GetInt("samples", 16));
+                    Console.WriteLine(JsonSerializer.Serialize(sequence, new JsonSerializerOptions { WriteIndented = true }));
                     return 0;
                 default:
                     Console.Error.WriteLine($"Unknown command: {command}");
@@ -224,6 +230,8 @@ internal static class Program
         Console.WriteLine("  dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- dinosaur --size 32 --runs 50");
         Console.WriteLine("  dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- cactus --size 32 --samples 2000");
         Console.WriteLine("  dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- companion --size 5 --crop grass --accept bush --target 4,3 --blocked 4,4");
+        Console.WriteLine("  dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- rng --seed 123 --samples 16");
+        Console.WriteLine("  rng reproduces initial streams only; samples 1..10000, seed 0..2147483647.");
         Console.WriteLine();
         Console.WriteLine("Common options:");
         Console.WriteLine("  --size <n>       world size");

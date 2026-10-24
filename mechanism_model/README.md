@@ -1,15 +1,33 @@
 # TFWR Mechanism Model
 
-`mechanism_model/` 是正式的本地理论验证动作模型。
+`mechanism_model/` 提供本地策略预测：Python 农场 API 脚本模拟，以及 C# 的 Dinosaur、Cactus、Companion 简化动作模型。
 
 它和真实游戏 oracle workflow 分工不同：
 
-- 这里只验证策略在简化机制下是否跑得通，以及大约需要多少动作。
-- 它不模拟 Python 脚本解释时间、`1t` 判断真实耗时、Unity / BepInEx / leaderboard 停表。
-- 随机种子不需要和真实游戏一致；重点是分布和约束接近真实机制。
+- [农场 API 模拟](local_simulator/README.md) 执行受支持脚本，已适配全部公开作物的主要机制，以及恐龙、迷宫、水肥、科技和无人机调度。性能优化后重新通过49个公开函数与662条离散观测对照；范围和成熟时间近似见 [全作物机制](local_simulator/mechanisms.md)，预计时间不含完整游戏解释器开销。
+- 下文的 C# 模型验证简化机制和动作预算，不执行脚本，也不模拟 Unity / BepInEx / leaderboard 停表。
+- C# 动作模型以分布和约束筛选，不承诺 seed 轨迹一致；`rng` 命令单独用于初始随机序列对照，范围见 [随机数研究](randomness.md)。
 - 真实排名结论仍以 `tfwr_orchestrator/` + `oracle_runner_mod/` 跑出来的游戏结果为准。
 
-## 运行
+## 模拟精度与验收
+
+模拟器是策略研究的辅助工具，应尽量贴近真实游戏，但不要求逐 tick、逐事件或每次随机轨迹完全一致。优先保证影响策略判断的机制、资源收益、失败条件与随机分布；允许可说明、可量化且不影响粗筛的时间误差。
+
+默认按游戏 API/方法逐项检查返回值、状态变化、资源消耗、随机数和时间成本，再检查直接相关的边界与交互；不为验收模拟器逐榜运行完整打榜脚本。方法级覆盖不等于所有作物、所有参数和多无人机组合都已覆盖，未实现接口单独列出。当前清单见 [API 覆盖记录](local_simulator/api-coverage.md)。
+
+已知误差应注明方向、场景和证据，不设未经验证的统一百分比门槛，也不为追求完全一致长期停留在微小计时差异上。候选差距与模型误差接近，或依赖尚未覆盖机制时，改由短程实机比较；最终成绩和策略优劣仍须真实游戏打榜确认。
+
+## 直接运行仙人掌脚本
+
+Python 3.11+，无需启动游戏或安装依赖：
+
+```bash
+python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cactus_single.py --seed 1
+```
+
+输出预测时间、API计数、目标库存和停止原因。可用 `--scenario` 提供初始库存/科技；支持范围、轨迹保存、执行上限与实机误差见 [模拟器说明](local_simulator/README.md)。
+
+## 运行 C# 动作模型
 
 当前项目使用本机可用的 .NET SDK，目标框架为 `net10.0`。
 
@@ -46,13 +64,13 @@ dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- companion --si
 
 ## 打榜筛选口径
 
-使用本工具时，先把目标榜单的 `#1` 时间和当前复跑时间换算成机制预算，再看模型输出是否接近预算。
+使用本工具时，先把 [公开排行榜的 #10 时间](../references/leaderboard_scripts/leaderboard_targets.md) 和当前复跑时间换算成机制预算。默认优先研究相对 #10 差距大的榜单；#1 仅供参考，不代表可达目标，#30/#100 用于理解分布；再看模型输出是否接近预算。模型手动运行，不会被部署或实机 CLI 自动调用。
 
 - 资源榜看每次有效收获周期、companion 命中率、reroll 次数和 support 维护动作。
 - Dinosaur 看吃满 `1023` 个 apple 的总移动预算、分阶段 move/apple、动作 tick 和碰撞率。
 - Cactus 看完成排序所需的 move、swap、measure 以及并行墙钟下界。
-- 本工具默认不把 Python 解释、`1t` 判断、日志和本地搜索成本计入 `action_ticks`；Dinosaur 会额外报告 `can_move()` / `measure()` 计数，并可用 `--check-tick-cost` 折算成诊断预算。
-- 只有动作结构接近 `#1` 预算或候选之间差距很小时，才优先做 `1t` 调用压缩；否则先改策略结构。
+- 下文C#模型默认不把Python解释、`1t`判断、日志和本地搜索成本计入`action_ticks`；Dinosaur可用`--check-tick-cost`计入诊断预算。Python模拟器计入已实现世界API的`1t`成本，按共享时钟处理无人机并行，另标注未实现的解释器时间。
+- 只有动作结构接近目标预算或候选之间差距很小时，才优先做 `1t` 调用压缩；否则先改策略结构。
 
 ## 当前模型
 
