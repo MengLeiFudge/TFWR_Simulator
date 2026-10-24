@@ -1,6 +1,6 @@
 # lb_carrots
 
-当前阶段（2026-10-24）：当前正式脚本完成单seed1完整本地基线，274.345610游戏秒，约为#10的1.290倍。三值274.345610 / 未取得 / 未取得；仅一个样本，不作稳定均值或实测排名。
+当前阶段（2026-10-24）：正式脚本单seed1完整本地基线274.345610秒，约为#10的1.290倍，三值274.345610 / 未取得 / 未取得。该基线含6次普通成熟Carrot，尚不满足成熟生产全伴生要求；两阶段初始化私有候选已静态复核，待单seed有界验证，不沿用旧时间。
 
 ## 2026-10-24：完整单seed基线
 
@@ -9,6 +9,16 @@
 成熟Carrot24442次，其中81920高倍24436次、512普通6次。未成熟收割69628次，含伴生匹配58次；这些计数不混入成熟收益，不表示可免费挽回。主要动作move51423、plant95094、harvest94838、use_item6954、till256、spawn31。没有逐API轨迹，不能用can_harvest次数估计纯等待墙钟。
 
 三值：**274.345610 / 未取得 / 未取得**。证据 `.codex/leaderboard-sol/carrots/baseline/{manifest.json,seed1.json,analysis.json,three-times.json}`。当前#10为212.744秒；后续须按成熟周期和重抽动作预算筛选，旧实机成绩不代填本版。正式py和Save0未改。
+
+## 2026-10-24：全场支撑就绪缺口与两阶段候选
+
+原worker只准备本tile的24个Bush就开始生产，roll却接受全场Bush类型、非锚点坐标。例如早派发(0,0)生产位可以请求晚派发块的(31,31)，没有全场支撑已安装的先行保证。原6次普通成熟512发生在6.611067～8.019964秒，初始化Grass移除仍到9.188859秒；时间窗支持检查这一缺口，但旧报告没有逐株source/target/worker，不能断言六株根因全部已证。证据 `.codex/leaderboard-sol/carrots/initialization-boundary/{analysis.json,research-note.md}`。
+
+私有候选a52abb6057b2c5bc6b01deded46f93fcd12a87bf36000dc2edd77d7ef84fcae2先派发32个support-only任务，检查种植成功并收齐返回，再派发原生产任务。32块覆盖全图768个非锚点，生产阶段只写256个锚点，全局Bush接受条件因此有支撑保证。第一波失败回收已有任务后停止，第二波派发失败clear取消生产。失败路径仅静态核对，尚未故障注入或实机验证。
+
+正常多一波派发，仅150move+31spawn约5.958882秒主机工作当量；失去启动重叠、等待、随机及水反馈仍未知，不能直接加旧成绩，也不声称提速。候选由满伴生正确性要求准入，生产helper及常量保持；它不是解决#10差距的性能结论。
+
+下一步同SHA原场景seed1仅一次45墙钟秒/100万API/500万检查点，无trace；核对目标完成、全部worker退出、正常62spawn/62wait且clear0、768个固定Bush与成熟Carrot全部81920，未成熟移除及初始化Grass另计。观测不足明确列缺项，触限不重试，通过也不自动扩seed或迁真源。候选三值仍为未取得/未取得/未取得，正式py及Save0保持。来源 `.codex/leaderboard-sol/carrots/two-phase-init/`；执行方案 `.codex/leaderboard-astra/carrots-two-phase-validation.md`。
 
 ## 榜单目标
 
