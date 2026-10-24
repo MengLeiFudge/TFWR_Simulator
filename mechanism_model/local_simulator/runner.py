@@ -240,14 +240,14 @@ def main():
     parser.add_argument('--output', type=Path, help='写入 JSON 报告；会覆盖指定文件')
     parser.add_argument('--max-api-calls', type=int, default=100000)
     parser.add_argument('--max-steps', type=int, default=2000000, help='编译后源语句/循环预算检查点上限，不是游戏tick')
-    parser.add_argument('--timeout', type=float, default=10, help='整个工作进程的墙钟上限，默认 10 秒')
+    parser.add_argument('--timeout', type=float, default=10, help='整个工作进程的墙钟上限，默认 10 秒，最多 75 秒')
     args = parser.parse_args()
     seeds = args.seeds or [args.seed]
     if len(seeds) > 100 or len(set(seeds)) != len(seeds) or any(not 0 <= seed <= 2147483647 for seed in seeds):
         parser.error('seeds须为1～100个不同的非负Int32')
-    if not (0 <= args.seed <= 2147483647 and 0 < args.timeout <= 60
+    if not (0 <= args.seed <= 2147483647 and 0 < args.timeout <= 75
             and args.max_api_calls > 0 and args.max_steps > 0):
-        parser.error('seed 须为非负 Int32，timeout 须在 (0, 60] 内，调用/步数上限须为正数')
+        parser.error('seed 须为非负 Int32，timeout 须在 (0, 75] 内，调用/步数上限须为正数')
     paths = [p.resolve() for p in (args.script, args.scenario, args.trace, args.output) if p is not None]
     if args.trace and args.seeds:
         paths.extend(args.trace.with_name(f'{args.trace.stem}.seed-{seed}{args.trace.suffix}').resolve() for seed in seeds)
