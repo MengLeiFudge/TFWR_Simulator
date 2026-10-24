@@ -50,7 +50,7 @@ dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- rng --seed 123
 - Core.dll：`b8ac8d22b614d9e48d3affa9a4de9c77e799b824ed8f50dc2e494cc2dd9f9082`
 - mscorlib.dll：`0e948cbd3c4fd36c10ed5bbbcf5ecab43d1a757a3afda30a662534cce7c6ec0f`
 
-实机对照验证了三台无人机各自的脚本流，以及固定单无人机种植轨迹下的 Cactus/Sunflower 流。尚未验证负 seed 的游戏入口行为、共享随机流的并发种植、生长/浇水/伴生事件、迷宫、苹果生成与多轮 leaderboard 的完整世界轨迹。
+本节初始序列实验验证了三台无人机各自的脚本流，以及固定单无人机种植轨迹下的 Cactus/Sunflower 流。该实验未覆盖负 seed 的游戏入口行为、共享随机流的并发种植、生长/浇水/伴生事件、迷宫、苹果生成与多轮 leaderboard 的完整世界轨迹；后续方法、机制和长程对照的范围见[当前验收](local_simulator/validation.md)。
 
 ## 旧 Python 偏差来自哪里
 
@@ -73,4 +73,4 @@ dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- rng --seed 123
 
 快速优化优先用现有动作模型做分布和预算筛选，成本低于重建完整解释器。若某条策略确实需要 seed 精确回放，应按“初始世界 → 单个 API → 重启/生长事件 → 单无人机 → 多无人机 → 多轮”逐层比较首次分歧，记录流名、调用序号、实体和 tick。
 
-模型通过只表示预测口径成立；真实 leaderboard 完成轮、均值和波动才支持更新最快策略。2026-10-23的后续实现已覆盖全部公开作物的主要机制并通过662条方法/机制观测对照，见[当前验收](local_simulator/validation.md)。脚本计时与共享随机事件随后改为按原版执行规则实现，仍待新鲜单seed实机对照；本文初始随机序列对齐不能推导整轮时间精度。
+模型通过只表示预测口径成立；真实 leaderboard 完成轮、均值和波动才支持更新最快策略。2026-10-23的后续实现已覆盖全部公开作物的主要机制并通过662条方法/机制观测对照，见[当前验收](local_simulator/validation.md)。脚本计时与共享随机事件随后按原版执行规则实现，已通过记录中的单seed长程门槛；本文初始随机序列对齐不能单独推导整轮时间精度。

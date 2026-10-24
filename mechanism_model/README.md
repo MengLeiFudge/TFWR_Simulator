@@ -4,7 +4,7 @@
 
 它和真实游戏 oracle workflow 分工不同：
 
-- [农场 API 模拟](local_simulator/README.md) 执行受支持脚本，已适配全部公开作物的主要机制，以及恐龙、迷宫、水肥、科技和无人机调度。脚本操作计时和离散事件实现正在进行单seed精度对照；历史49个公开函数与662条离散观测不代表新版本验收，状态见 [模拟验收](local_simulator/validation.md)。
+- [农场 API 模拟](local_simulator/README.md) 执行受支持脚本，已适配全部公开作物的主要机制，以及恐龙、迷宫、水肥、科技和无人机调度。脚本操作计时和离散事件实现已通过首个约900游戏秒单seed精度门槛；方法、作物与语言覆盖及剩余差异见 [模拟验收](local_simulator/validation.md)。
 - 下文的 C# 模型验证简化机制和动作预算，不执行脚本，也不模拟 Unity / BepInEx / leaderboard 停表。
 - C# 动作模型以分布和约束筛选，不承诺 seed 轨迹一致；`rng` 命令单独用于初始随机序列对照，范围见 [随机数研究](randomness.md)。
 - 真实排名结论仍以 `tfwr_orchestrator/` + `oracle_runner_mod/` 跑出来的游戏结果为准。

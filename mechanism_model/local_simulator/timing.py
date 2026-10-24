@@ -140,6 +140,11 @@ def builtin_cost(name, args, result, before):
 class Timing(ast.NodeTransformer):
     """在源码树上插入计费点；生成的辅助节点不再递归转换。"""
 
+    def visit(self, node):
+        if getattr(node, '_untimed', False):
+            return node
+        return super().visit(node)
+
     def __init__(self):
         self.serial = 0
 
@@ -281,3 +286,115 @@ class Timing(ast.NodeTransformer):
     def visit_AugAssign(self, node):
         result = self.store(node.target, self.visit(node.value), type(node.op).__name__)
         return [ast.copy_location(part, node) for part in result] if isinstance(result, list) else ast.copy_location(result, node)
+
+
+class StaticBindings(ast.NodeTransformer):
+    """跟踪每个词法绑定的静态标记；别名和重新赋值不继承函数定义的免费调用。"""
+
+    def __init__(self):
+        self.scopes = []
+        self.serial = 0
+        self.conditional = 0
+
+    @staticmethod
+    def native(node):
+        """编译器状态不属于游戏操作，不交给Timing再次计费。"""
+        node._untimed = True
+        return node
+
+    def enter(self, node, parameters=()):
+        """只收集当前作用域的绑定；子函数通过独立字典保存标记。"""
+        names: set[str] = set(parameters)
+        globals_: set[str] = set()
+
+        class Names(ast.NodeVisitor):
+            def visit_Name(self, node):
+                if isinstance(node.ctx, ast.Store):
+                    names.add(node.id)
+
+            def visit_FunctionDef(self, node):
+                names.add(node.name)
+
+            def visit_Global(self, node):
+                globals_.update(node.names)
+
+        for statement in node.body:
+            Names().visit(statement)
+        if not self.scopes:
+            for child in ast.walk(node):
+                if isinstance(child, ast.Global):
+                    names.update(child.names)
+        names.difference_update(globals_)
+        self.serial += 1
+        scope = (names, globals_, f'_timing_bindings_{self.serial}')
+        self.scopes.append(scope)
+        return self.native(ast.Assign([ast.Name(scope[2], ast.Store())],
+            ast.Dict([ast.Constant(name) for name in sorted(names)],
+                     [ast.Constant(False) for _ in names])))
+
+    def flag(self, name, context):
+        """global使用模块字典，其他名称按最近词法作用域解析。"""
+        scopes = self.scopes[:1] if name in self.scopes[-1][1] else self.scopes
+        for names, _, variable in reversed(scopes):
+            if name in names:
+                return ast.Subscript(ast.Name(variable, ast.Load()), ast.Constant(name), context)
+        return ast.Constant(False)
+
+    def set_flag(self, name, value):
+        return self.native(ast.Assign([self.flag(name, ast.Store())], ast.Constant(value)))
+
+    def invalidate(self, targets):
+        """仅名称绑定失去静态性；下标写入不改变容器变量的绑定。"""
+        result = []
+        for target in targets:
+            if isinstance(target, ast.Name):
+                result.append(self.set_flag(target.id, False))
+            elif isinstance(target, (ast.Tuple, ast.List)):
+                result.extend(self.invalidate(target.elts))
+        return result
+
+    def visit_Module(self, node):
+        initial = self.enter(node)
+        self.generic_visit(node)
+        node.body.insert(0, initial)
+        self.scopes.pop()
+        return node
+
+    def visit_FunctionDef(self, node):
+        flag = self.set_flag(node.name, self.conditional == 0)
+        conditional = self.conditional
+        self.conditional = 0
+        initial = self.enter(node, (arg.arg for arg in node.args.args))
+        self.generic_visit(node)
+        node.body.insert(0, initial)
+        self.scopes.pop()
+        self.conditional = conditional
+        return [node, flag]
+
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        node._static_flag = self.flag(node.func.id, ast.Load()) if isinstance(node.func, ast.Name) else ast.Constant(False)
+        return node
+
+    def visit_Assign(self, node):
+        self.generic_visit(node)
+        return [node, *self.invalidate(node.targets)]
+
+    def visit_AugAssign(self, node):
+        self.generic_visit(node)
+        return [node, *self.invalidate([node.target])]
+
+    def visit_For(self, node):
+        self.conditional += 1
+        self.generic_visit(node)
+        self.conditional -= 1
+        node.body[:0] = self.invalidate([node.target])
+        return node
+
+    def visit_If(self, node):
+        self.conditional += 1
+        self.generic_visit(node)
+        self.conditional -= 1
+        return node
+
+    visit_While = visit_If

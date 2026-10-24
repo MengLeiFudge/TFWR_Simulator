@@ -167,8 +167,8 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         'wall_seconds': time.monotonic() - started,
         'limitations': [
             '全作物主要机制采用原版参数；成熟共享随机事件和罕见交互不保证逐次一致。',
-            '脚本操作及199t无人机批次按原版规则实现；语言边界与单seed精度仍需实机对照。',
-            '水分、成熟和Power使用定时事件；长窗口同seed精度尚待真实游戏对照。',
+            '脚本操作及199t无人机批次按原版规则实现；完整语言边界和任意并发组合未全面验证。',
+            '水分、成熟和Power使用定时事件；已验证长窗口范围与剩余计时差异见validation.md。',
             'simulate/leaderboard_run 只实现模拟内部拒绝递归入口；真实启动仍由协调器负责。',
             '预测不是实测成绩；靠近成熟边界或依赖 get_time/get_tick_count 的策略须实机对照。',
         ],

@@ -11,7 +11,7 @@ import types
 from .catalog import Hats, Items, Leaderboards, Unlocks
 from .language import game_str, BUILTINS
 from .randomness import MonoRandom
-from .timing import Timing, operation, builtin_cost, equals, compare
+from .timing import Timing, StaticBindings, operation, builtin_cost, equals, compare
 
 
 @dataclass(frozen=True)
@@ -82,7 +82,8 @@ class Calls(ast.NodeTransformer):
         if isinstance(node.func, ast.Name) and node.func.id in ('_budget', '_elapsed', '_operation', '_slice'):
             return node
         return ast.copy_location(ast.YieldFrom(ast.Call(
-            ast.Name('_dispatch', ast.Load()), [node.func, *node.args], node.keywords)), node)
+            ast.Name('_dispatch', ast.Load()),
+            [node.func, getattr(node, '_static_flag', ast.Constant(False)), *node.args], node.keywords)), node)
 
     def visit_FunctionDef(self, node):
         self.generic_visit(node)
@@ -105,7 +106,7 @@ def compile_script(tree, path):
 
     bindings = Bindings()
     bindings.visit(tree)
-    tree = Timing().visit(tree)
+    tree = Timing().visit(StaticBindings().visit(tree))
     if bindings.names:
         tree.body.insert(0, ast.Global(sorted(bindings.names)))
     entry = ast.FunctionDef('_entry', ast.arguments(posonlyargs=[], args=[], kwonlyargs=[],
@@ -116,14 +117,15 @@ def compile_script(tree, path):
     return compile(ast.fix_missing_locations(tree), str(path), 'exec')
 
 
-def dispatch(function, *args, **kwargs):
+def dispatch(function, is_static, *args, **kwargs):
     """API交给调度器；用户函数和容器内建分别收取原版调用成本。"""
     if isinstance(function, Api):
         if kwargs:
             raise TypeError('游戏 API 不接受关键字参数')
         return (yield Request(function.name, args))
     if inspect.isgeneratorfunction(function):
-        yield Request('_ops', (1,))
+        if not is_static:
+            yield Request('_ops', (1,))
         return (yield from function(*args, **kwargs))
     owner = getattr(function, '__self__', None)
     name = next((key for key, value in BUILTINS.items() if value is function),
