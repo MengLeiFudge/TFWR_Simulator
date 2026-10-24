@@ -42,7 +42,8 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 | `predicted_game_seconds` | 脚本操作、API及定时事件推进的共享游戏秒；旧字段 `predicted_api_seconds` 保留为同值兼容字段 |
 | `interpreter_ticks` | 已执行的脚本表达式、控制流、用户函数和容器操作成本，各无人机相加 |
 | `api_calls` / `api_ticks_by_function` | 按 API 拆分的调用数与动作成本；各无人机成本相加，不等于共享时间 |
-| `state` / `harvests` | 最终全实体/分组、库存和随机抽取次数；harvests记录普通作物收获，恐龙/迷宫收益体现在库存 |
+| `state` / `harvests` | 最终全实体/分组、库存和随机抽取次数；harvests记录成熟普通作物收获，恐龙/迷宫收益体现在库存 |
+| `immature_harvests` / `immature_companion_harvests` | 按实体名统计未成熟harvest调用次数，以及其中收割瞬间伴生支撑类型匹配的次数；只计数，不写逐调用轨迹、不改计费或随机数。前者包含主动重抽，后者也不直接等于可挽回产量 |
 | `estimated_loop_ticks` | 兼容字段，固定为0；循环成本计入 `interpreter_ticks` |
 | `script_steps` / `step_basis` | 源语句和循环边界的预算检查点数；`step_basis=compiled_checkpoint`，不同于历史CPython事件计数，仅用于执行上限 |
 | `wall_seconds` | 本机计算时间，不是游戏时间；不含 CLI 子进程启动 |

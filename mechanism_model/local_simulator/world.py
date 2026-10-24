@@ -100,6 +100,7 @@ class FarmWorld:
         self.snake_counts = Counter()
         self.calls, self.costs = Counter(), Counter()
         self.harvests, self.warnings = [], []
+        self.immature_harvests, self.immature_companion_harvests = Counter(), Counter()
         self.size_limit = 0
         self.width = self.size = 1
         self.reset_grid()
@@ -413,6 +414,12 @@ class FarmWorld:
             crop.maze.remove()
             return True, 200
         if not crop.grown:
+            self.immature_harvests[crop.kind.value] += 1
+            if crop.companion:
+                kind, pos = crop.companion
+                support = self.entities.get(pos)
+                if support is not None and support.kind == kind:
+                    self.immature_companion_harvests[crop.kind.value] += 1
             self.remove(self.pos)
             return True, 200
         factor = self.yield_factor(crop.kind)
