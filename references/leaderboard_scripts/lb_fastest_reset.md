@@ -1138,3 +1138,48 @@ A段结束Weird 170→120的50份差额，在step3支付Mazes 1后两版均为10
 证据在 `.codex/leaderboard-sol/reset/early-speed2/full/`：`source-manifest.json`、`lb_fastest_reset.py`、`seed1.json`、`seed1.progress`、`seed1.client.json`、`comparison.json`及`three-times.json`。A段与4机副本的三值null记录保持历史原样，不用完整候选值覆盖不同SHA的观测版本；骨头尾段9912.481057秒候选也独立保留。
 
 结论限于本次完整seed 1：该候选完整时间更慢，停止扩seed，不将前缀成功作为整轮准入后的成功结果。不继续调参、合并骨头尾段或部署实机；正式py、lb_start和真实Save0均未修改。此记录不是同seed实机精度验收或榜单成绩。
+
+## 正式原版晚段备电：资源受限产电组件通过本地成本门槛
+
+本方向以正式原版270c7b99的1M金币后备电为研究对象，独立于已停止的提前Speed 2分支。本次只验证产电组件，未修改完整Reset。算法来源为已实机确认的Sunflowers Single（SHA556dd19a）；原7个算法函数AST均保持，只把Power目标改为2100、MAX_BATCHES改为8，并用独立入口在生产结束后恢复12×12、执行clear。组件SHA `b99c4e9f506b07176fb78767ebeaec8b7f6ed18b246c27c9b66023126b2cbd2a`。
+
+场景是明确构造的资源受限组件，不是精确1M金币快照，也不声称最坏时间上界。Reset预设保留初始15项基础能力，相关生产等级为Speed 5、Expand 6、Sunflowers 1、Watering 4、Carrots 4，补齐Plant 1前置，Grass 1；Megafarm、Fertilizer及其余生产科技为0。初始Carrot2000，Power/Water/Fertilizer及其他全部生产库存0，允许Watering 4被动供水。完整全部科技、库存和场景哈希写入scenario.json与source-manifest.json，没有借用原版最终库存。
+
+只执行seed 1一次CLI，30秒总墙钟、10万API、200万检查点，不开trace；保留5秒进度、支撑单格256次重抽和单株12秒成熟等待上限。工作0.969秒正常完成，77544次API、94749检查点，无支撑/成熟限额触发。单机且无spawn调用，结束无未完成工作者。
+
+| 组件验收项 | 本次结果 |
+| --- | --- |
+| 全部初始化、支撑、生产、恢复、clear及调度的总游戏时间 | 109.799881934秒，≤250秒 |
+| 支撑准备完成原日志 | 21.002526105秒 |
+| 生产批次数 | 5，≤8；生产目标2100已达到 |
+| 恢复前原日志 | 109.711815584秒，Power2103.345333 |
+| 恢复后原日志 | 109.778153414秒，12×12、Power2103.345333 |
+| 最终地图与清场 | 12×12，144个Grass；clear调用1次 |
+| 无资源透支 | 全部末态库存非负；资源账与API计数吻合 |
+
+总成本使用完整报告predicted_game_seconds，包含脚本定义与入口、所有准备及恢复，不以生产循环片段代替。恢复后原日志与报告收尾相差0.021728520秒，同样纳入总成本；恢复后Power2103.345333，高于2000门槛。
+
+### 实际资源和Power账
+
+| 资源或动作 | 本次结果 |
+| --- | --- |
+| Carrot | 初始2000，种花支付368，结束1632 |
+| Water | 初始0，被动收到87，使用75，结束12 |
+| Fertilizer | 初始、使用、结束均0 |
+| 成熟向日葵收获 | 273次，全部8 Power，共2184毛Power |
+| 支撑重抽的未成熟收割 | 84次，无产电收益 |
+| 支撑与生产的总种植 | 368次，与Carrot支出一致 |
+| Power | 初始0，毛收入2184，结束净2103.345333，已结算支出80.654667 |
+| 其余库存 | Bone/Cactus/Gold/Hay/Piggy/Pumpkin/Weird/Wood均0 |
+
+Watering 4始终不变，补给每1.25游戏秒触发一次，因此总时长内收到87份；使用次数75与use_item计数、库存差一致。Power毛净差只列已结算支出，不把未结算used_power补造进账。九株7瓣支撑、整批降序与延迟重种逻辑及其限额沿用来源版本；全部准备和清场损失已包含在368 Carrot与总时间内。
+
+证据在 `.codex/leaderboard-sol/reset/power-reserve/` 的 `component_power_reserve.py`、`scenario.json`、`source-manifest.json`、`seed1.json`、`seed1.client.json`、`comparison.json`及`three-times.json`。场景与报告均附哈希，来源函数复用以AST核对，未扩大seed或调参重跑。
+
+| 完整Reset时间名称 | 本项值 | 原因 |
+| --- | --- | --- |
+| 本地模拟预估时间 | 未取得/null | 仅产电组件，109.800秒不代填完整Reset |
+| 短时打榜测试时间 | 未取得/null | 未部署实机 |
+| 游戏打榜时间 | 未取得/null | 无本方向完整正常结束的官方统计 |
+
+结论：仅通过本场景、单seed的组件成本门槛。实际1M金币处的资源、田面、Power及计时器相位尚未在此复现；通过后先交Astra核算调用位置、清场损失和整合成本，再决定后续方案，当前不运行完整新候选。正式Reset与Sunflowers Single脚本、lb_start和真实Save0均未修改，原有实机队列不变。
