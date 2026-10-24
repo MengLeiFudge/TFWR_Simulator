@@ -1,6 +1,6 @@
 # lb_wood
 
-当前阶段（2026-10-24）：同SHA seed1在60秒预算下完整达到100亿Wood，本地预测402.915897秒，三值402.915897 / 未取得 / 未取得。此前30秒触限报告保留；提前重抽仍未准入，新增保留Soil、消除反复翻地的唯一候选待本地筛选。
+当前阶段（2026-10-24）：保留Soil候选完成seed1完整本地筛选，402.915897→388.535403秒，净省14.380494秒（3.569%）。三值388.535403 / 未取得 / 未取得；原报告缺少地面矩阵，实际Soil分布保持未知，待新增seed采集。正式py保持，提前重抽未混入。
 
 ## 2026-10-24：有界基线与部分收益账
 
@@ -25,6 +25,18 @@
 Sol完成在途八锚点后仅同场景seed1一次60秒/200万API/500万检查点、无trace。完整达标、无新增警告/透支、till至少减少10000次且净省至少5秒才交跨seed决定；till仍超过1024次则标记并发双翻待查，不宣称一次转土成立。失败不调参重试，不混早重抽。细案 `.codex/leaderboard-astra/wood-soil-budget.md`。
 
 当前三类时间 **402.915897 / 未取得 / 未取得**，为缓存#10（234.525秒）的1.718倍，仅单seed。证据 `.codex/leaderboard-sol/wood/baseline/budget60/{analysis.json,three-times.json,research-note.md}`，旧30秒记录保留；正式py/Save0保持。
+
+## 2026-10-24：保留Soil候选首seed及地面观测补齐
+
+候选SHA256 `f950f77a50f62145ae33ad342cde9e773b651f56cd66280d9b61e22c7d670e42`，AST比较确认仅删除handle_bush_slot的一次restore_bush_ground调用，helper定义和其余语句保持。仅同场景seed1一次，13项运行门槛通过，无错误、警告、透支或预算触发。全部worker结束时间388.535403秒，比基线402.915897秒少14.380494秒（3.569%）；较早host日志387.290293秒不计作完整成绩。
+
+翻地14036→512，少13524次；move增加196、plant增加602、use_item减少371，解释器少81284t。Tree成熟37887次、毛Wood9364760320；Bush31549次、毛Wood657339392。高倍Tree占60.176314%，接近基线60.183549%；最终Wood10018491136。实际节时与约13.914秒的条件动作预算接近，但其他动作、产量和随机流也改变，不能声称完全由删翻地因果分解。
+
+验收缺项：旧snapshot未导出地面，board仅是仙人掌数字矩阵。报告ground_distribution=null、ground_observation_complete=false；512次till不能代填Soil512或证明无双翻。模型提交9dcf621在最终state新增只读grounds[y][x]，不调用游戏API、不推进时间或随机流。Python编译、ty单文件0诊断及静态数据流检查通过；新字段运行观测交后续新seed，seed1不为补字段重跑或回填。
+
+准入同SHA seed0原版→候选各一次，均60秒/200万API/500万检查点、无trace；各自完整达100亿、无新增错误/警告/透支、候选till至少少10000且净省至少5秒、地面矩阵完整且实体种植地面合法，才继续seed123同样一对。全部worker结束计时，失败不重试、不调参。只读取新快照计算地面分布；两版源和seed1报告保持，成功后才合并三seed。
+
+当前三类时间 **388.535403 / 未取得 / 未取得**，约为缓存#10（234.525秒）的1.657倍，仅单seed。证据 `.codex/leaderboard-sol/wood/soil-preserve/{source-manifest.json,seed1.json,analysis.json,three-times.json,research-note.md}`。正式py/Save0保持；不迁真源或进入实机。
 
 ## 榜单目标
 
