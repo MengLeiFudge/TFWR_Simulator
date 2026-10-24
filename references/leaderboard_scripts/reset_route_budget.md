@@ -61,3 +61,20 @@ Core Farm.UnlockOrUpgrade要求直接parent已解锁，不要求parent满级。�
 各行从相同Gold8出发，仅隔离这次购买；不假定地图和科技准备免费。Mazes2另需12000 Cactus，12×12/Mazes3另需扩田和更高科技费用。较小地图中升Mazes2减少重定位次数，但不降低连续Gold/Weird比，整批取整反而略增Weird。6×6/Mazes1较当前后置场景多833次重定位、2616 Weird；路径更短的收益未知，不能沿用12图单次导航时间。若改用每座最后harvest，属于另一个导航/重建边界，必须明确再算。
 
 farm_gold_until的should_farm_gold_multi目前固定False：金币段本身仍串行，多机解锁的直接收益应计实际并行生产函数，不应套到金币导航、恐龙或当前单机仙人掌上。下一最小静态问题是早期Weird/产电的供料与时间账，以及先买8机究竟加速哪些后续调用；缺少这两项时不准入“只提前8机”的完整候选。
+
+## 高等级供料：实施前必须修正的失败边界
+
+协作#182经Astra静态复核成立。Core Drone.Plant按作物yieldUpgradeName等级将基础cost乘2^(level−1)，欠料返回False且不生成实体。资源快照中Cactus基础每株耗2 Pumpkin，Pumpkin每株耗1 Carrot。12×12下，Cactus2/3整田需576/1152 Pumpkin，而farm_sorted_cactus_field和farm_cactus_until小额分支仍只准备288；Pumpkins3/4首铺需576/1152 Carrot，两种plant_pumpkin_field入口却只准备432。
+
+静态反例：进入Cactus2一田前有944 Pumpkin，首田消耗576后余368，超过旧288补给门槛。下一田最多种92株，其他52格为空；plant返回值被忽略，wait_cactus_field只巡查不补种，永远无法达到144成熟格。此为可达输入条件下的源码反例，不是本轮运行结果，也不表示已验证的一级版本报告发生了该故障。
+
+南瓜首铺充足仍不足以保证完成。单机与并行wait的Dead_Pumpkin/空格分支只检查Carrot>0，未检查实际单株费用，也不检查plant成功；死苗重补可耗尽任何预先选定的有限储备，期望死苗率不能当作最坏情况保证。缺料分支应有限退出，不能继续等空格成熟。
+
+后续候选实施必须同时满足：
+
+- 每个生产阶段按实际get_cost(Entities.Cactus/Pumpkin)和拟种株数核算全部原料，在升级后重新取价；生产期间不并发升级该作物。初铺与死苗重补成本分账，查询/检查/准备开销计入预算。
+- 所有必需plant检查返回值；失败从worker、阶段调度器、farm_*直到入口逐层返回非达标状态。不能只return当前helper后让上层继续wait或外层while重试。实际种植成功才计入阶段完成；can_harvest不能替代目标实体就绪条件。
+- 并行缺料时每个worker都有有限的失败/期限出口，父级收齐全部已启动句柄及失败结果；处理spawn失败的串行fallback也必须传播失败。不得让首个失败返回绕过其他worker回收，不假设可变共享停止标记。
+- 不在仍有worker生产时调用farm_carrots_until补料：该函数会遍历并harvest非Carrot实体，可能破坏其他工人的南瓜。若设计供料恢复，先全部停写和回收，再明确清场、重铺成本与有限重试上限；当前静态包先按失败结束，不静默加入恢复路线。
+
+这项缺陷阻止直接加unlock后运行原helper，不否定倍率供应链本身。三个升级包的静态资源/Power账继续；预算通过且上述边界形成可审查实现后，才考虑有界候选验证。正式py、既有SHA与三类时间保持。
