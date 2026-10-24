@@ -1,6 +1,6 @@
 # lb_dinosaur
 
-当前阶段（2026-10-24）：方向串dc8ea709的3seed本地均值881.275959秒保留为历史候选；它的追击失败死循环阻止直接实机准入。失败传播修正67c44db6已完成唯一正常seed1，三值902.2998384 / 未取得 / 未取得；同seed旧版887.96872719秒，新增检查使其慢14.33111121秒。新版本尚未验证追击碰撞与原生提前返回清理，也未迁入正式脚本。追踪参数仍为9/25与15/16，历史实机15:18.164不用于判断本次模型误差。
+当前阶段（2026-10-24）：方向串dc8ea709的3seed本地均值881.275959秒保留为历史候选；它的追击失败死循环阻止直接实机准入。失败传播修正67c44db6已完成唯一正常seed1，三值902.2998384 / 未取得 / 未取得；同seed旧版887.96872719秒，新增检查使其慢14.33111121秒。新版本已验证一条人工边界退出链；自然蛇身碰撞与原生提前返回清理仍未验证，也未迁入正式脚本。追踪参数仍为9/25与15/16，历史实机15:18.164不用于判断本次模型误差。
 
 ## 2026-10-24：方向序列版本的剩余成本与移动下界
 
@@ -52,7 +52,17 @@ Sol静态构造并由Astra对照当前Core的DinosaurHat.OnMove复核：保持�
 
 本次唯一seed1 completed且goal=true，无警告、错误或失败诊断；原报告未重跑，新报告2a3b7e31、比较b5bd226b位于`.codex/leaderboard-sol/dinosaur/failure-exit/normal-seed1/`。该修正承担正确性成本，不减少移动，不解决与#10的结构差距。原父目录三值和队列未改，902.2998384仅为新SHA的一个完整本地样本，短测和官方均null。
 
-接续只做一个独立边界失败诊断：人工控制追击路径及脚本length，触发实际越界move(False)，检查helper→run→入口退出且无尾段clear。人工输入不代表正常蛇身或真实随机碰撞，诊断时间不计成绩；三处布尔消费点仍靠静态复核，原生return清理仍待实机。具体门槛见`.codex/leaderboard-astra/dinosaur-failure-boundary.md`；通过前不解除failure-exit-blocked，不改正式或Save0。
+边界诊断按`.codex/leaderboard-astra/dinosaur-failure-boundary.md`执行一次，结果见下节；人工输入不代表正常蛇身或自然随机碰撞，诊断时间不计成绩，原生return清理仍待实机。
+
+## 2026-10-24：一次真实越界返回的退出链通过
+
+诊断副本5e65a82f只人工设置脚本length=2及path[0][0]=West，再增加前后日志；没有mock move，也没有修改模型。真实位置(0,0)首次向West移动返回False、耗1t。12条trace依次记录ready、原crash、原stopped、returned；六个脚本字段(0,0,21,3,2,0)与实际坐标均不变，失败后仅有诊断读取，没有move、measure、clear或换帽。helper→run普通调用点→原入口的一条退出链成立。
+
+该输入并非合法两格蛇身，只覆盖一处动态失败调用。三处West布尔消费点已再次静态核对，均先排除None再处理原bool；不因此声称13处全部动态验证。诊断completed且goal=false符合预期，Bone0、Cactus999999936，末盘1023Grass和一个(0,0)Apple，其number为[21,3]；报告没有帽子字段，不能由此推断原生退出清理。官方finished=false协议及真实游戏清理仍未验证。
+
+原始报告eb2402fd与2684字节trace fce0b1ed位于`.codex/leaderboard-sol/dinosaur/failure-exit/boundary-stop/`，Astra逐条复核；所有完整三值null，原正常902.2998384样本保持。当前不追加相似故障输入，不解除实机限制或修改正式py/Save0。
+
+后续仅补齐修正版正常路径seed0→123，各一次30秒/20万API/200万检查点、无trace；seed0完整且API/tick/snake/目标与旧同seed配对、新增85441I符合预算后才追加123（新增83677I）。复用旧基线及现有seed1，不重跑；两项都通过才合并新SHA三样本。该工作明确失败保护成本，不替代减少移动的结构研究，细则`.codex/leaderboard-astra/dinosaur-failure-exit-seeds.md`。
 
 ## 榜单目标
 
