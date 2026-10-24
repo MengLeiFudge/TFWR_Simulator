@@ -1,6 +1,6 @@
 # lb_fastest_reset
 
-当前阶段：提前购买 `Polyculture 2` 的本地基线受 reset 初始科技配置阻塞，尚未实施候选。旧章节包含历史路线，时间预算以[缓存 #10](leaderboard_targets.md)为准。
+当前阶段：补齐真实 reset 初始基础能力后，当前脚本已在本地推进到 `3999.719s`，因 API 上限停止，尚无完整预测。下一步先校准完整基线，再比较提前解锁向日葵的单一顺序改动；提前购买 `Polyculture 2` 仍待回本预算。旧章节包含历史路线，时间预算以[缓存 #10](leaderboard_targets.md)为准。
 ## 榜单目标
 
 - 目标类型：`fastest_reset`
@@ -625,4 +625,26 @@
 
 首个可静态定位的分歧在 `step1()` 的 Speed 解锁：其父科技是 `loops`，裸 reset 预设却将其设为零。真实 `Core.decompiled.cs` 的 `BuiltinFunctions.resetUnlocks` 包含 `loops` 等基础能力，排行榜入口使用该集合。此前的 Speed 解锁失败又阻止 Expand 和 Plant，Bush 异常是后续症状。
 
-#10 基准 `1966.927s` 与历史复跑 `10128.299s` 均非本轮实测。按首差停止条件暂停此分支，不修改模拟器，也不部署候选。当前没有可用的 Weird 吞吐、提前骨头投入或回本预算；恢复前须确定匹配真实 reset 初始能力的场景配置。实机和双日志未验证。
+#10 基准 `1966.927s` 与历史复跑 `10128.299s` 均非本轮实测。裸预设首差已通过下述场景配置继续核查；模拟器默认 reset 预设本身未修改。当前没有完整的 Weird 吞吐、提前骨头投入或回本预算；实机和双日志未验证。
+
+## 当前规则下的部分基线与前期预算
+
+补齐真实 `resetUnlocks` 对应的基础能力后，`.codex/leaderboard-sol/reset/scenario.json` 保持 Speed、Plant、Expand 为零、库存为零，只给 loops、debug、debug_2、timing、lists、dictionaries、costs、auto_unlock、operators、variables、senses、utilities、functions、import、simulation 各一级。不能改用满科技模拟 Reset。
+
+报告 `.codex/leaderboard-sol/reset/baseline-with-initial-unlocks-seed1.json` 在 `3999.718561s`、500000 次 API 调用时达到上限，墙钟 `12.6745s`；这是预算停止，不是新的机制异常，也不是完整完成时间。已记录阶段：
+
+| 阶段完成 | 累计本地游戏秒 |
+| --- | ---: |
+| step1 | 146.379194 |
+| step2，Power 1000.077 | 1473.272143 |
+| step3 | 1920.688543 |
+| 早期 Megafarm 2 | 2089.608527 |
+| step4，Polyculture 1 / Dinosaurs 1 | 2899.004323 |
+| Mazes 3 | 3502.565466 |
+| Megafarm 3 | 3743.639371 |
+
+按原报告 `harvests.at_ns` 与阶段时间筛选，step2 净耗 `1326.892950s`，期间向日葵收获676次，其中594次得到1 Power、82次得到8 Power，毛产量1250。首次向日葵收获为 `1170.599476s`，不能把它当作解锁时刻。低倍率确有损失，但前期尚未产电的时间更长；单独优化末尾补电不足以解决与#10的差距。
+
+当前 `step2()` 每列先尝试 Speed，再到最后尝试 Sunflowers；当前成本中 Speed 4 与 Sunflowers 1 都需要500 Carrot。可筛选一个局部顺序候选：仅将原有 Sunflowers 解锁及成功标记块移到 Speed 尝试前，保留其余升级、混种、Power 100/1000 阈值和后续路线。Speed 3有Power时动作速率倍率约6.75，高于Speed 4无Power时的5.0625；这只是产电后动作吞吐的理论理由，成熟、种植、补料和推迟速度升级的代价仍须完整计入。
+
+先用当前正式脚本补完整seed 1基线，有限提高API/语句预算、墙钟仍不超过60秒并保持进度；达标后同场景比较候选。只在解锁成功和已有阶段边界输出科技、库存与时间，不逐格输出。至少对照seed 0/1/123的完整时间及step2、Megafarm 3、最终金币/骨头阶段；若前期收益被后续回吐，停止候选，不继续枚举Power阈值。早期骨头购买Polyculture 2另作独立候选，不能与解锁顺序合并后归因。
