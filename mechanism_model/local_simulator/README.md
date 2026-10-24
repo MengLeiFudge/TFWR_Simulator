@@ -24,7 +24,7 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cactus_single.py --seeds 0 1 123 --timeout 30 --output .codex/cactus-batch.json
 ```
 
-`--seeds` 接受1～100个不重复的非负Int32，与 `--seed` 互斥。在一个隔离进程内依次运行，复用源代码编译结果，各seed重建独立世界。报告为 `kind=prediction_batch`，包含 `reports` 和 `completed_seeds`；每完成一个seed向stderr报告进度。若配置trace，分别写入 `名称.seed-N.扩展名`。
+`--seeds` 接受1～100个不重复的非负Int32，与 `--seed` 互斥。在一个隔离进程内依次运行，复用源代码编译结果，各seed重建独立世界。报告为 `kind=prediction_batch`，包含 `reports` 和 `completed_seeds`；CLI在API检查点每隔至少5墙钟秒向stderr输出当前seed的虚拟游戏秒、API数和目标库存（若配置目标），每完成一个seed再报告批次进度；stdout仍只承载JSON结果。进度不依赖脚本日志，也不增加游戏计费。若配置trace，分别写入 `名称.seed-N.扩展名`。
 
 用 `--scenario scenario.json` 指定初始库存、科技及可选目标。将下列JSON保存为 `scenario.json` 后传入；省略项保留默认值：
 
@@ -70,7 +70,7 @@ JSONL 每行记录调用序号、无人机、API、参数、返回值、调用�
 
 输出超出保留容量时只丢弃最早的日志，不停止脚本。`quick_print()`仍计0t，`print()`仍按原版计费；无限输出循环由API、检查点和墙钟预算终止。
 
-脚本执行器只用于已审阅的本地策略，不是运行不可信代码的安全沙箱。直接调用 Python `run_script()` 没有 CLI 的进程级兜底，日常筛选使用上述命令。
+脚本执行器只用于已审阅的本地策略，不是运行不可信代码的安全沙箱。直接调用 Python `run_script()` 没有 CLI 的进程级兜底，日常筛选使用上述命令。库调用默认不输出进度，需要时传入 `progress=True`。
 
 ## 模拟开销
 

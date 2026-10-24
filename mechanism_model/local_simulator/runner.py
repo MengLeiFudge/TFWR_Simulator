@@ -65,10 +65,11 @@ def compile_source(source, filename):
     return compile_script(tree, path), hashlib.sha256(source.encode()).hexdigest()
 
 
-def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=10.0, trace=None, scenario=None):
-    """返回预测报告；CLI 另用子进程墙钟限制兜住 C 层长操作。"""
+def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=10.0, trace=None, scenario=None, progress=False):
+    """返回预测报告；progress启用限频stderr进度，CLI另用子进程兜住长操作。"""
     started = time.monotonic()
     deadline = started + seconds
+    next_progress = started + 5
     code, source_hash = load_script(path)
     world = FarmWorld(seed, scenario)
     trace_hash = hashlib.sha256() if trace else None
@@ -79,11 +80,20 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
 
     def check():
         """执行副作用之前检查预算，避免上限之外多扣一次资源。"""
-        nonlocal calls
+        nonlocal calls, next_progress
         if calls >= max_calls:
             raise BudgetExceeded(f'达到 API 调用上限 {max_calls}')
-        if time.monotonic() >= deadline:
+        now = time.monotonic()
+        if now >= deadline:
             raise BudgetExceeded(f'达到墙钟上限 {seconds:g}s')
+        if progress and now >= next_progress:
+            goal = ''
+            if world.goal:
+                item, amount = world.goal
+                goal = f' goal_item={item.name} goal_current={world.items[item]:g} goal_target={amount:g}'
+            print(f'local_simulator seed={seed} game_seconds={world.now_ns / 1000000000:.3f}'
+                  f' api_calls={calls} wall_seconds={now - started:.1f}{goal}', file=sys.stderr, flush=True)
+            next_progress = now + 5
         calls += 1
 
     def observe(drone, request, result, _ticks):
@@ -180,7 +190,7 @@ def worker(connection, options, seeds=None):
     """同一隔离进程按seed顺序复用编译缓存；批次共享墙钟上限，不复用世界状态。"""
     try:
         if seeds is None:
-            connection.send(run_script(**options))
+            connection.send(run_script(**options, progress=True))
         else:
             completed = 0
             succeeded = True
@@ -193,7 +203,7 @@ def worker(connection, options, seeds=None):
                 if current.get('trace'):
                     trace = Path(current['trace'])
                     current['trace'] = trace.with_name(f'{trace.stem}.seed-{seed}{trace.suffix}')
-                report = run_script(**current)
+                report = run_script(**current, progress=True)
                 completed += 1
                 succeeded = succeeded and report['status'] == 'completed'
                 connection.send({'seed_report': report})
