@@ -673,3 +673,22 @@ Astra修复CLI父子报告截止竞争（0352baa）后，用原55秒场景复核
 | 游戏打榜时间 | 未取得 | 无本候选完整正常结束的官方统计 |
 
 证据位于 `.codex/leaderboard-sol/reset/`：`full-baseline-seed0.json`、`full-baseline-seed1.json`、`early-sunflowers/seed1.json`、`early-sunflowers/comparison.json`、`full-baseline-seed123-bounded-detail.json`、`cli-budget-recheck-seed123.json`及`three-times.json`。游戏指纹见[当前规则](current_game_rules.md)。正式py未改、Save0未部署Reset，未进行本候选实机或同seed精度验收；提前Polyculture 2未与本候选混合。
+
+## 提前Polyculture 2：按完整报告核算阶段回本
+
+当前源码Growable.GetYield在伴生倍率之后将感染产量的一半转为Weird。原版两次大批Weird生产期间Trees 4、Polyculture 1不变，树的Wood收益40/400分别为普通/伴生成熟收获，20/200分别为感染普通/感染伴生；后两类产生等量Weird。按既有完整报告的harvests.at_ns切阶段求和，所得Weird与阶段库存增量一致，无须重新运行基线。
+
+| seed | 两次大批Weird净耗秒 | Weird增量 | 其中来自伴生 | 伴生产量占比 | 固定收获速率下的节时预算 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 0 | 1319.539994 | 83620 | 66800 | 79.89% | 584.716761秒 |
+| 1 | 1011.016251 | 83680 | 68200 | 81.50% | 453.083531秒 |
+
+每批独立按T×f/(1+f)计算最后一列，f是该批Weird中伴生产量占比；Polyculture 2将命中倍率10→20，只增加原命中部分的产量。这假定收获速率和命中结构不变，不是完整时间预测，也不是严格上界。提前结束Weird会减少顺手产电及被动肥料积累，随后金币或骨头可能变慢；初始化、成熟与改写支撑也不会按比例消失。
+
+当前解锁成本为10000 Bone。已有Dinosaurs 1且12×12时，理论完整143尾的一轮兑现20449 Bone，足够购买；苹果每个2 Cactus，完整一轮143个共286，须按实际库存核对并保留已有补给。DinosaurHat的移动ops从400逐苹果递减，与恐龙科技等级无关；等级影响苹果价格和骨头倍率。现有seed 0/1最终Dinosaurs 3的12×12单轮日志可作成本量级参考，但不能当提前Dinosaurs 1的预测。
+
+独立候选采用正式原版SHA270c7b99，而非提前Sunflowers失败版。在step5完成Mazes 3和Megafarm 3后、farm_gold_until(1000000)前，仅插入一次Polyculture 2准备：读当前等级和实际cost，调用已有farm_bones_until满足Bone成本，再unlock并确认等级达到2。保持世界尺寸、全部Power/Weird阈值、金币批次和最终Dinosaurs 3路线。借用现有完整绕环，允许骨头超额并保留余量计入最终目标，不另写刚好100尾截断算法。原有清场/补给成本必须进入记录。
+
+先跑同seed 1的有界阶段筛选：在额外骨头开始、升级成功、两批Weird结束和1M Gold结束记录时间/库存/科技。只有阶段和后续库存显示可回本，才扩到完整seed 0/1/123；总墙钟仍≤55秒、API≤300万、检查点≤1500万并保留5秒进度。若完整运行触预算，可在两版都以1M Gold为终点做有限阶段对照；该结果不能填入完整预测或送实机。已有完整基线可复用，输入未变且已失败的seed 123预算任务不机械重跑。
+
+预算只支持筛选这个候选，不支持宣称能填平当前约8000秒的#10差距。无净改善则记录停止；不继续枚举骨头数量、Power阈值或Polyculture等级。
