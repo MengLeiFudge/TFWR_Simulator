@@ -1,6 +1,6 @@
 # lb_fastest_reset
 
-当前阶段（2026-10-24）：正式脚本已完成seed 0/1两次完整本地预测；唯一提前Sunflowers解锁候选的seed 1整轮反而慢172.782秒。seed 123基线仍触有界墙钟，3seed筛选未完成，不进入实机。提前Polyculture 2的既有单次诊断也无净收益；整轮预算、产电回吐与三类时间见文末。历史预算以[缓存#10](leaderboard_targets.md)为准。 骨头尾段组件3seed已保持Bone/移动/snake抽样一致并单轮省约3.89秒；25轮条件预算与被动补给限制见末节，尚无完整Reset候选时间。
+当前阶段（2026-10-24）：仅精简骨头固定绕环尾段的完整候选seed 1已正常结束，10021.383165游戏秒，比同seed原版省92.816713秒；首次bone_prep前79条日志完全一致。seed 0触55秒总墙钟预算，仅完成10/25轮骨头，两seed完整确认未齐，不进入实机。早期Sunflowers和Polyculture 2失败记录、整轮账及各版本三类时间分别保留；预算以[缓存#10](leaderboard_targets.md)为准。
 ## 榜单目标
 
 - 目标类型：`fastest_reset`
@@ -805,7 +805,7 @@ Weird从1011.016秒降到71.928秒，但其后可用Power从两批合计2032.838
 | 短时打榜测试时间 | 未取得 | 未部署组件或完整候选 |
 | 游戏打榜时间 | 未取得 | 无本候选完整正常结束的官方统计 |
 
-原始证据在 `.codex/leaderboard-sol/reset/bone-tail/` 的 `source-manifest.json`、`scenario.json`、`baseline/seeds0-1-123.json`、`candidate/seeds0-1-123.json`、`comparison.json`及`three-times.json`。组件收益仅为整轮预算输入；未修改正式py或Save0，未启动完整Reset候选、实机或同seed精度验收。后续是否推进由整轮成本与补给边界决定，不继续围绕尾段枚举参数。
+原始证据在 `.codex/leaderboard-sol/reset/bone-tail/` 的 `source-manifest.json`、`scenario.json`、`baseline/seeds0-1-123.json`、`candidate/seeds0-1-123.json`、`comparison.json`及`three-times.json`。此处组件结果只作预算输入；后续完整本地候选见末节，正式py和Save0仍未修改，未进行实机或同seed精度验收。后续是否推进由整轮成本与补给边界决定，不继续围绕尾段枚举参数。
 
 ### 整轮准入：水肥减少在当前两基线没有后续消费路径
 
@@ -818,3 +818,28 @@ Astra核对正式step5调用链：金币与Dinosaurs 3升级完成后调用farm_
 准入结论：值得进入完整本地对照。由正式原版复制候选，只替换已核对的固定绕环尾段，不增加函数定义、不改变顶部语句或日志，不并入其他候选。先运行seed 0/1，复用同版本已完成的原版；每次仍55秒墙钟、300万API、1500万检查点并输出进度。先核对start、step1～4、Megafarm 3、1M Gold、首轮bone_prep的时间和库存；改动执行前如已分歧，先定位，不将整轮差额归因为尾段。
 
 两seed完整成功且净收益稳定后，再决定额外seed和实机队列。seed 123原版已在同预算停止，不机械重跑；预算停止仍记为未完成。保留全部25轮Bone/Cactus/Power阶段、末态Leaderboard、随机流与三类独立时间；若新增补料或动作路径改变则重新核算。预计约90～100秒仅是约0.9%～1.0%的增量收益，不代表接近#10，完成该项后回到A段资源/科技依赖的结构预算。
+
+## 已验证骨头尾段迁入完整候选：seed 0/1有界配对
+
+候选 `.codex/leaderboard-sol/reset/bone-tail/full/lb_fastest_reset.py` 的SHA256为 `acb8130f570ba12592fb69c534f5ff11796fe2c3dda3263424f38185f3bcb153`。由正式原版270c7b99直接复制，只替换已验证尾段；run_dinosaur_chase_loop的追击前缀及其他全部模块AST节点保持一致，不新增函数、顶部语句或日志，不混入其他候选。场景仍是补齐15项初始基础能力的reset，原版复用既有完整seed 0/1报告，未重跑原版或seed 123。模型570dbb2；每次总墙钟55秒、API上限300万、检查点1500万，保留5秒进度。
+
+| seed | 原版完整游戏秒 | 候选完整游戏秒 | 完整净收益 | 候选骨头完成轮数 |
+| --- | ---: | ---: | ---: | ---: |
+| 0 | 9899.899869 | 未取得 | 未取得 | 10/25，有界停止 |
+| 1 | 10114.199878 | 10021.383165 | 省92.816713秒，0.918% | 25/25，Leaderboard已解锁 |
+
+两seed从start、step1～4、Megafarm 3、1M Gold直到首次bone_prep的79条日志均与各自原版逐条相同，包含时间和库存；没有新增helper定义造成的开局tick或改动前轨迹分歧。两版对照按相同完整脚本场景进行，局部修改生效前的前缀已核对。
+
+seed 1全部25轮每轮产出81796 Bone，bone_prep的Cactus余量恒8760，整轮move均342942次、move动作tick均62277474，can_move/get_pos_x/get_pos_y/plant/use_item/harvest调用数相同。snake抽样均53558，其他非various流计数亦相同；various少133632次，恰对应12×12少经历928次0.1秒水衰减。measure从90192降到45917，解释器tick从8306842降到8069024；没有靠改移动路径或补料取得收益。
+
+seed 1各轮开始时只有第1轮Power为正，两版标记一致，末态Power均0。末态Leaderboard科技一致，Bone44900、Gold200、Cactus8760、Pumpkin496及其余生产库存一致；仅被动Fertilizer从1743降到1706、Water从6883降到6809。没有新增plant/use_item调用，符合骨头后无水肥消费方的准入分析。未逐API采样轮内Power精确归零时刻，不宣称该时刻完全相同。
+
+seed 0工作进程在53.763秒触预算，总命令仍受55秒限制，报告8131.868406游戏秒、Bone817960；完成10轮并正在第11轮。已完成10轮的Bone/Cactus/剩余轮数均与原版一致，第10轮结束累计省38.921587秒；各轮开始时Power为正的仍为第1～3轮。该部分进度不计入完整候选时间，也不与seed 1混成两seed均值。未放宽预算或机械重跑失败样本，issue #56记录完整两seed验证仍受计算预算阻塞。
+
+| 时间名称 | 当前完整尾段候选值（游戏秒） | 依据 |
+| --- | ---: | --- |
+| 本地模拟预估时间 | 10021.383165 | 仅seed 1一次完整正常结束；同seed原版10114.199878，两seed筛选未齐 |
+| 短时打榜测试时间 | 未取得 | 完整两seed确认不足；游戏重开尚待授权 |
+| 游戏打榜时间 | 未取得 | 无本候选完整正常结束的官方统计 |
+
+证据在 `.codex/leaderboard-sol/reset/bone-tail/full/`：`source-manifest.json`、`seed0.json`、`seed1.json`、`comparison.json`和`three-times.json`。组件与完整候选的三类时间分别保存，不互相覆盖。正式py和Save0未修改，未运行实机或同seed模型精度验收；单个完整样本只能支持该次净收益，不宣称两seed稳定刷新或统计置信度。
