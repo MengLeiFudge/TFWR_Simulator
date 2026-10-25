@@ -74,6 +74,20 @@
 
 证据：`.codex/tests/high-precision/source/Core.decompiled.cs`的AddPumpkin:1570、RemovePumpkin:1631、MergeWithOthers:1673、LargestSquare:1722、HasOverlaps:1739；协作#206及Astra静态复核。外部建议采用边界同步于`.codex/leaderboard-astra/claude-strategy-adoption.md`。
 
+## 2026-10-25：全场join后唯一收割的静态生命周期
+
+唯一协议为32个写者各管4×8，主机也生产；首波翻地，之后只种空格/Dead，健康成熟才移出pending，无提前收割或施肥。所有子任务返回并被主机回收后，主机才收割；失败也须回收全部已启动任务。收割后丢弃所有旧状态并重新派发，不依赖跨机共享Python全局变量。
+
+Core的OnFullyGrown只在成熟时进行一次枯死判定；上述条件下已确认健康成熟格保持就绪。最后一格健康成熟时，32×32方阵包含所有旧group，不受部分重叠限制，因而能形成全场group。这是完整全场就绪的条件证明，不是任意局部四块成熟即合并的断言，也未运行验证。
+
+每波1024×6×512=3145728，完整目标需64波、总201326592；31spawn/31join每波，总各1984。主机派发串行合计65.317248秒可与子机生产部分重叠；到位总512move/波，主机修补后回原点0～10move/波，不能用除32后的费用替代串行尾部。所列动作聚合除32为188.577216秒，只是未计完整修补、成熟、Water/I、等待的有利工作账，不填写预测。
+
+独立20%枯死模型中，全1024格最大连续失败次数期望4.164872；这只是次数，不能乘平均生长时间冒充尾部秒数。实际每波关键路径取所有生产者最晚完成，再计join/回原点/检查/唯一收割。#10平均每波仅5.590156秒，最慢区域与每波重派发是下一项必须取得的费用。
+
+静态账没有排除该方向，但不具备完整运行准入。下一阶段仅准备固定四波私有观测脚本：保留原场景，明确补水、失败回收、访问/种植/绝对时间上限及每worker摘要；Astra审具体SHA后才决定唯一seed1组件运行。四波组件不是完整打榜，新增完整三值仍全null，不自动展开64波或调参。
+
+证据`.codex/leaderboard-sol/pumpkins/full-cover-budget/`：analysis6b608853、note71b9c9cf、times0abb7007；Astra核对Core成熟/合并链与收益、派发账。私有准备方案`.codex/leaderboard-astra/pumpkins-full-cover-component.md`。原完整三值399.843616 / null / null保持，正式py、Save0与模型未改。
+
 ## 榜单目标
 
 - 目标资源：`Items.Pumpkin`
