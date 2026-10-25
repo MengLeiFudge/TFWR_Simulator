@@ -291,3 +291,9 @@ seed0保留完整24线费用表：交换S=274，巡航C=414（含最终回位）
 - seed=1：本地 API 时间 21.3601 秒，实机 tick 折算 21.9996 秒；差额含游戏解释器及验证入口开销，不用经验倍率抹平。其他五个 seed 的低估比例也在 2.84%～2.92% 内。
 - 使用：`python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cactus_single.py --seed 1`。支持轨迹与上限，范围见上方说明。
 - 后续先补模拟器机制/计时覆盖，再用其筛选策略。模型预测通过后仍须真实游戏打榜，不能把本次 `simulate` 当作官方完整统计。
+
+## 2026-10-25：种植预分区的重抽缓存约束
+
+静态考虑用种植时的大小区间筛选减少排序，先遇到一项必要机制限制。当前Core的Cactus.OnRestart仅在本格cactusNumbers为−1时抽Next(10)，否则复用已有数字；OnFullyGrown才把当前格缓存置−1。未成熟时harvest会移除植株，但该路径没有清数字缓存。因此同格立即拔掉重种不能视为一次独立新数字，不能用每次成功率1/2给出免费连续重抽预算。
+
+若改为成熟后再移除，必须付成熟/访问费用并处理真实连锁收获：Cactus.Harvest成熟分支调用Pop，符合邻株排序条件时可能连带删除其他成熟株，不能默认只替换一个生产格。这里没有证明所有预分区方案不可能，也没有运行候选；当前不准入基于立即独立重抽的结构。源码依据为Core.decompiled.cs的Harvest、OnFullyGrown、Pop、OnRestart；本地world.py同样保留未成熟数字缓存。这是策略预算约束，不是已确认的模型缺陷。
