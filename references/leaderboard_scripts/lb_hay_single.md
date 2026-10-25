@@ -24,7 +24,19 @@ Core BranchNode.Execute和本地Timing.visit_If/visit_While均表明：while只�
 
 Astra完整读取110行候选及四处差异，11来源与4产物SHA核对通过；Sol双静态编译通过。准入同SHA、原场景seed1唯一一次完整模型筛选：总20墙钟秒/30万API/200万检查点、无trace，沿既有监督保留截止与回收。复用旧seed1的178.8997941秒，不重跑基线。正确性须完整达标、资源非负、生产成熟兑现81920，清场与未成熟重抽分账；净省至少0.30秒才考虑后续跨seed，失败或不足不重试，通过也先交结果。
 
-证据`.codex/leaderboard-sol/hay-single/loop-condition/`的五份静态产物；单次方案`.codex/leaderboard-astra/hay-single-loop-admission.md`。候选尚未执行，完整三值全null；现有正式三seed基线、Save0和实机队列保持。
+证据`.codex/leaderboard-sol/hay-single/loop-condition/`的五份静态产物；单次方案`.codex/leaderboard-astra/hay-single-loop-admission.md`。上述准备阶段三值全null；单次实际结果见下节，原静态产物不回填。
+
+## 2026-10-25：循环改写seed1完整节时0.658605秒
+
+原2ffe8134候选和场景1b75f0e2，唯一seed1完整178.24118949秒，较旧178.8997941省0.65860461秒，超过0.30秒筛选门槛；completed/goal均true，无警告、错误、负库存或派发，21Bush保持。仅该单样本三值为178.24118949 / null / null，不替代正式三seed均值。
+
+两版API次数与tick全部相同，解释器19798→15779t，少4019t。最后目标收割提前4019t；最终报告时钟减已计请求的余量151→169t，多18t，因此完整净省4001t。此项由原报告闭账，未采调度trace，不把较早收割时刻冒充完整时间。
+
+成熟高倍总数1221包含2次开局清场；主循环成熟生产实际1219次，全部81920。另有2次伴生已匹配但未成熟的生产尝试、2797次无效未成熟重抽；这些归属与旧seed1相同。后两项均为零收益，不能把2799次未成熟全称重抽，也不能把1221次总高倍全称生产。当前循环改写未解决这两次提前收割。
+
+Water调用17次相同；期末Water少17、Fertilizer少1、Power多约0.601669，various抽样少150、poly仍22337。时间反馈存在，不承诺所有末态或随机流相同。该正确性与节时结果支持同SHA顺序补seed0、通过后seed123各一次，保留seed1和旧报告；逐次要求完整、伴生生产正确且净省≥0.30秒，不调参或失败重试。
+
+证据`loop-condition/normal-seed1/`：报告c073d16f、comparison697e68ee、noteb0f849bc、times151f9fb8（协作#224更正前缀）。Astra独立核对原报告API/I/时钟/收益算术；15冻结输入保持、执行组617715已回收的证据由Sol交付。原准备五文件、正式py、Save0和实机队列未改。
 
 ## 榜单目标
 
