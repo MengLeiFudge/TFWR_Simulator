@@ -16,6 +16,16 @@
 
 原版已只用harvest重抽，不含多机榜中可删除的重复plant(Grass)动作。保留21株已知有效Bush支撑；本轮未重开补水、删支撑或同机动态改种等失败方向。正式 `.py` 和Save0未改。证据：`.codex/leaderboard-sol/hay-single/baseline/{manifest.json,baseline-seeds0-1-123.json,analysis.json,three-times.json}`。
 
+## 2026-10-25：重抽条件移入while，准入一次本地筛选
+
+私有候选2ffe81343440cfd5b2852b91d42dbf9151a76dbf118da1322a5db4025acda3cf仅替换四处重抽循环：先读取伴生，以原无效条件控制while，失败收割后重读。四处外文本/AST及全部注释保持；原21Bush、铺设路径、补水、成熟判断、目标检查及移动不变。源自deeffa93b，私有文件头保留的历史时间不是候选成绩。
+
+Core BranchNode.Execute和本地Timing.visit_If/visit_While均表明：while只在首次判定收分支1t，if每次进入收1t。冻结相同反馈时，每次伴生读取省1t；旧0/1/123计数3907/4019/3856，折算0.64313127/0.66156759/0.63473616秒，均0.64647834秒。首个分支费与API的相对时刻也会变化，成熟/补水可能反馈，因此这只是预算，不承诺动作或随机流完全一致。
+
+Astra完整读取110行候选及四处差异，11来源与4产物SHA核对通过；Sol双静态编译通过。准入同SHA、原场景seed1唯一一次完整模型筛选：总20墙钟秒/30万API/200万检查点、无trace，沿既有监督保留截止与回收。复用旧seed1的178.8997941秒，不重跑基线。正确性须完整达标、资源非负、生产成熟兑现81920，清场与未成熟重抽分账；净省至少0.30秒才考虑后续跨seed，失败或不足不重试，通过也先交结果。
+
+证据`.codex/leaderboard-sol/hay-single/loop-condition/`的五份静态产物；单次方案`.codex/leaderboard-astra/hay-single-loop-admission.md`。候选尚未执行，完整三值全null；现有正式三seed基线、Save0和实机队列保持。
+
 ## 榜单目标
 
 - 目标资源：`Items.Hay`
