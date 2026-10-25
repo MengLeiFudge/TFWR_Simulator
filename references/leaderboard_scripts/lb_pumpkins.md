@@ -84,7 +84,11 @@ Core的OnFullyGrown只在成熟时进行一次枯死判定；上述条件下已�
 
 独立20%枯死模型中，全1024格最大连续失败次数期望4.164872；这只是次数，不能乘平均生长时间冒充尾部秒数。实际每波关键路径取所有生产者最晚完成，再计join/回原点/检查/唯一收割。#10平均每波仅5.590156秒，最慢区域与每波重派发是下一项必须取得的费用。
 
-静态账没有排除该方向，但不具备完整运行准入。下一阶段仅准备固定四波私有观测脚本：保留原场景，明确补水、失败回收、访问/种植/绝对时间上限及每worker摘要；Astra审具体SHA后才决定唯一seed1组件运行。四波组件不是完整打榜，新增完整三值仍全null，不自动展开64波或调参。
+静态账未排除该方向。固定四波私有脚本312fadd21a0e04c3674b007fba8bee62f9764b43451ee29e2420cf35e37039f6已完成双静态编译；Astra完整读296行，核对参数绑定、32互斥写集合、pending成熟删除、全部handle回收、唯一收割和各层有限失败，未发现静态阻塞。Core ChangeGround:2805会清除翻地格实体，首波草不会阻塞后续空格种植。实际并发与故障分支尚未运行验证。
+
+据此仅准入原场景60695c25、seed1四波一次：30墙钟秒/30万API/200万检查点、无trace；脚本20游戏秒每波、90秒总限额保持。成功须有最终ok=True、四波各3145728、124spawn/124join、1024till、4harvest和总12582912，无warning/error/失败。原场景目标200M，组件goal=false为预期，完整三值仍全null。
+
+计时使用第二/三/四波起点s2/s3/s4与最终报告F，四段为s2、s3−s2、s4−s3、F−s4，包含定义、日志、等待和最终返回。T_screen=第一段+63×后三段最大值，仅作条件筛选，非完整预测或统计上界；超过393.547秒停止，失败/触限不重试，通过也不自动展开64波、扩seed或调参。源码及证据在`.codex/leaderboard-sol/pumpkins/full-cover-component/`，尚未取得组件时间。
 
 证据`.codex/leaderboard-sol/pumpkins/full-cover-budget/`：analysis6b608853、note71b9c9cf、times0abb7007；Astra核对Core成熟/合并链与收益、派发账。私有准备方案`.codex/leaderboard-astra/pumpkins-full-cover-component.md`。原完整三值399.843616 / null / null保持，正式py、Save0与模型未改。
 
