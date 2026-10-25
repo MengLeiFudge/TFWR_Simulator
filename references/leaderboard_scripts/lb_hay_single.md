@@ -67,7 +67,22 @@ Core与本地机制支持：Grass基础成熟0.5游戏秒、随机偏差0，水�
 
 Astra复核13来源SHA、成熟链与预算算术后，仅准入一个固定改动的seed1诊断，用实际等待和完整结果补足未知：两处补水后插入上述截止循环，精确差异及静态编译通过后运行一次20墙钟秒/30万API/200万检查点，无trace或额外计数。正常时以总can_harvest、get_time、Water及num_items计数反推B/N，相互核对；不重复计等待。完整正确且实际净省至少0.05秒才考虑扩样，通过也先交结果。当前2ffe8134及三值175.22811318/null/null保持，不按未验证等待方案替换。
 
-静态证据`.codex/leaderboard-sol/hay-single/maturity-budget/`：analysis3dd3aded、notea9f80d6b、times5cbdcfa3；新方向完整三值全null。唯一诊断细则`.codex/leaderboard-astra/hay-single-maturity-observation.md`，候选与执行结果尚未取得。
+静态证据`.codex/leaderboard-sol/hay-single/maturity-budget/`：analysis3dd3aded、notea9f80d6b、times5cbdcfa3；该静态阶段完整三值全null。唯一诊断细则`.codex/leaderboard-astra/hay-single-maturity-observation.md`，执行结果见下节。
+
+## 2026-10-25：有界成熟等待seed1通过，提前收割降为零
+
+固定候选`e19136e48f97505d21201ad7bede13f8813fbd3aaa6b9040a1919a22b0e64d0b`仅在2ffe8134的两处生产补水后加入0.5秒截止与成熟检查。原场景唯一seed1正常完整177.82242165秒，较2ffe8134的178.24118949秒省0.41876784秒。该版本单样本三值为 **177.82242165 / null / null**，不替换旧版本三seed均值。
+
+主循环成熟生产1219次全部81920；另2次开局成熟清场也是81920，最终Hay100024320。匹配未成熟生产2→0，无效未成熟重抽2797→2787；21Bush保持、库存非负、无警告/错误/派发或截止退出。只证明此输入正常完成，不推定任意seed或实机均已验证。
+
+生产补水B=18−2=16，生产尝试P=1219；N=1293−1219−16=74−16=58。新增检查222t分为API74t与I148t，其中忙等174t/0.02864214秒，已计入总费用。实际API净少2542t、I多110t、报告末批余量169→57t，完整净省2544t，算术闭合；不重复叠加成长等待。
+
+Water多调用1次，various少136、poly少64，含水量与部分末态改变；没有逐条trace，不能将58次失败检查分别归因给旧两次提前收割。源码中保留的旧“浇完必定成熟”注释不作为机制证据。
+
+Astra独立读取完整候选、核对精确两处差异及原报告费用/收益/SHA后，交付同SHA顺序seed0→123各一次方案：每项20墙钟秒/30万API/200万检查点、无trace。逐次须完整、成熟生产全伴生、匹配未成熟生产0且对同seed2ffe8134净省至少0.05秒；seed0门槛落盘并回收后才继续123，失败不重试。保留原seed1，双通过后才合并三seed；正式脚本、实机队列与Save0保持。
+
+证据`maturity-observation/normal-seed1/`：报告5655ff2d、comparison21c453da、note48f812e5、timesf760cb9d；准备manifest5cb08263/staticbae39086。Sol交付60冻结输入未变、组621205回收。后续细则`.codex/leaderboard-astra/hay-single-maturity-paired.md`。
+
 
 ## 榜单目标
 
