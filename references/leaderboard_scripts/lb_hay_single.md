@@ -57,6 +57,18 @@ Water调用17次相同；期末Water少17、Fertilizer少1、Power多约0.601669
 
 证据`.codex/leaderboard-sol/hay-single/loop-condition/paired-seeds/`：报告4b3e1c77/26cdd0e5、comparison571d4a4e、notecfeae8d2、timesd75d6352。Astra独立核对三份原报告均值与API/I/末批费用；39冻结输入与两进程组回收记录由Sol交付，无重试、额外seed或实机运行。
 
+## 2026-10-25：补水后等成熟的静态边界与唯一诊断
+
+历史request476为生产分支双桶水，并不等于本次有界成熟等待；“补水后二次确认”旧标签缺确切实现及完整报告。两次历史搜索10秒超时后，Sol直接读取定位父版4b5b820c的main4/main10，均未找到同协议，未穷尽旧版本。因此既不据标签关闭本方案，也不声明历史从未试过。
+
+Core与本地机制支持：Grass基础成熟0.5游戏秒、随机偏差0，水量只加速生长，变水保留进度；不重置/移除的剩余成熟时间不超过0.5秒。单机固定Bush不被改写，已成熟Grass不会自动失效。只在原生产补水分支内设get_time()+0.5截止并循环检查，超时退出整轮，可保证未确认成熟就不执行生产收割；已成熟快路径与开局/重抽保持。
+
+设生产补水B、额外失败检查N，新增计费为3B+3N t；get_time/not/普通赋值/裸return本身0t，循环仍通过查询及比较分支持续推进时间。现有B=15/15/16，只算固定检查45/45/48t。两次失败的具体时刻/进度未知，不能从末态倒填。冻结收益入账与其余反馈后，扣199t末批余量的可付等待/反馈预算为0.09530919/0.42963210/0.12806658秒；两次剩余成熟最坏总界1秒不能保证正收益，这些条件数不写入预测。
+
+Astra复核13来源SHA、成熟链与预算算术后，仅准入一个固定改动的seed1诊断，用实际等待和完整结果补足未知：两处补水后插入上述截止循环，精确差异及静态编译通过后运行一次20墙钟秒/30万API/200万检查点，无trace或额外计数。正常时以总can_harvest、get_time、Water及num_items计数反推B/N，相互核对；不重复计等待。完整正确且实际净省至少0.05秒才考虑扩样，通过也先交结果。当前2ffe8134及三值175.22811318/null/null保持，不按未验证等待方案替换。
+
+静态证据`.codex/leaderboard-sol/hay-single/maturity-budget/`：analysis3dd3aded、notea9f80d6b、times5cbdcfa3；新方向完整三值全null。唯一诊断细则`.codex/leaderboard-astra/hay-single-maturity-observation.md`，候选与执行结果尚未取得。
+
 ## 榜单目标
 
 - 目标资源：`Items.Hay`
