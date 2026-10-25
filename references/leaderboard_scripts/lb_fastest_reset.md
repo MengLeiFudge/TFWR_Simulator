@@ -1,5 +1,15 @@
 # lb_fastest_reset
 
+## 2026-10-26：固定支撑流水苗圃，两seed完整结果
+
+继路线重建后，私有`6eba370330b054a08c65499006f03a6a7ebe873b3ca19bc8eeda2821a5390715`把伴生供料改为多株巡回：Hay/Carrot使用永久Bush支撑，Tree/Weird使用永久Grass支撑；仅接受指向非生产位的指定伴生，成熟后才收获。Carrot重抽实际消耗Hay/Wood，开田前先按真实种价储备，缺料和128次重抽上限均有限退出。初期Polyculture之前保持前版流程。
+
+完整seed1为4909.399929秒、seed0为4941.399996秒；均正常解锁Leaderboard，无错误、警告、输出丢失或库存透支。同SHA两seed均值为`4925.399962 / null / null`。seed1比上一串行路线5334.560231秒再省425.160303秒；对旧组合相同seed8646.885112秒省43.223%。这里的均值只合并当前SHA两份完整报告，不混入旧版或组件。
+
+两份报告均26田C2各41472、支付科技1034000 Cactus，13轮D4各163592 Bone；供苹果29744 Cactus后余14528，支付Leaderboard后余126696 Bone、64 Gold。苗圃改变随机消耗与其他资源末态，不声明逐步配对。早期到Polyculture仍约1300秒，金币准备与导航仍是主要后续成本。
+
+证据`.codex/leaderboard-astra/reset-directed-development/{lb_reset_nursery.py,nursery-seed1.json,nursery-seed0.json,nursery-analysis.json,nursery-three-times.json,nursery-manifest.json}`。正式py、Save0及请求79保持；尚无本版本实机成绩。
+
 ## 2026-10-25：定向前期与倍率链重建，完整seed1
 
 私有候选`629b2fead16e4b0c62b2be511bf9dae21b310aad1db43a999f2b0b8c0a08ab53`完整完成：5334.560231秒，Leaderboard=1，无错误、警告或库存透支。三类时间为`5334.560231 / null / null`，仅seed1，尚不是跨seed均值。旧组合6ae88cad的同seed为8646.885112秒，本次整轮少3312.324880秒、38.307%。
