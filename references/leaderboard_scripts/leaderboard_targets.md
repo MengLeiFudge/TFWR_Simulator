@@ -11,7 +11,7 @@
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | [Cactus](https://steamcommunity.com/stats/2060160/leaderboards/17869881/) | 0:05.432 | 0:11.209 | 0:31.992 | 0:36.679 | [0:36.577](lb_start.py#L41) | 约 #99 | 3.263× | 69.4% | 100/2261 |
 | [Maze](https://steamcommunity.com/stats/2060160/leaderboards/17869891/) | 0:01.984 | 0:36.409 | 1:41.878 | 2:07.082 | [1:43.336](lb_start.py#L53) | 约 #33 | 2.838× | 64.8% | 100/1764 |
-| [Dinosaur](https://steamcommunity.com/stats/2060160/leaderboards/17869889/) | 3:47.942 | 7:52.494 | 11:56.230 | 14:00.951 | [15:18.164](lb_start.py#L49) | #100 之后 | 1.943× | 48.5% | 100/1726 |
+| [Dinosaur](https://steamcommunity.com/stats/2060160/leaderboards/17869889/) | 3:47.942 | 7:52.494 | 11:56.230 | 14:00.951 | [14:46.835](lb_start.py#L49) | #100 之后 | 1.877× | 46.7% | 100/1726 |
 | [Fastest Reset](https://steamcommunity.com/stats/2060160/leaderboards/17869903/) | 12:15.173 | 32:46.927 | 43:00.774 | 62:47.343 | [52:15.911](lb_start.py#L5) | 约 #57（同分） | 1.594× | 37.3% | 100/4237 |
 | [Sunflowers](https://steamcommunity.com/stats/2060160/leaderboards/17869894/) | 2:07.279 | 2:28.321 | 3:21.282 | 3:56.314 | [3:55.162](lb_start.py#L61) | 约 #85（同分） | 1.585× | 36.9% | 100/1215 |
 | [Cactus Single](https://steamcommunity.com/stats/2060160/leaderboards/17827398/) | 0:08.145 | 0:14.734 | 0:18.211 | 0:22.313 | [0:21.472](lb_start.py#L45) | 约 #82（同分） | 1.457× | 31.4% | 100/532 |

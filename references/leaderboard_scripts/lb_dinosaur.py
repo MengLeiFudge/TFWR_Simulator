@@ -1,6 +1,6 @@
 from __builtins__ import *
 
-# 15:26.484
+# 完整轮时间：14:46.835（官方完整统计9轮）；本地seed1 902.299838秒，短时2轮872.558秒。
 def lb_dinosaur():
     global size
     global path
@@ -42,7 +42,10 @@ def lb_dinosaur():
     mx, my = measure()
     length = 1
     step = 0
-    run_dinosaur_path()
+    if not run_dinosaur_path():
+        quick_print("lb_dinosaur stopped: chase move failed")
+        clear()
+        return
 
 
 def update_and_move(dir):
@@ -55,8 +58,7 @@ def update_and_move(dir):
 
     if not move(dir):
         quick_print("lb_dinosaur crash", dir, x, y, mx, my, length, step, get_time())
-        while True:
-            pass
+        return None
 
     step += 1
 
@@ -104,14 +106,18 @@ def run_dinosaur_path():
     while length < chase_limit:
         step = 0
         while step < length * 15 // 16:
-            update_and_move(path[x][y])
+            if update_and_move(path[x][y]) == None:
+                return False
         while x < mx:
-            update_and_move(East)
+            if update_and_move(East) == None:
+                return False
         while y == 0:
             if x % 2 == 0:
-                update_and_move(East)
+                if update_and_move(East) == None:
+                    return False
             else:
-                update_and_move(North)
+                if update_and_move(North) == None:
+                    return False
         while x >= mx:
             mx_ = mx
             my_ = my
@@ -119,38 +125,69 @@ def run_dinosaur_path():
                 break
             while y < my_:
                 if can_move(North):
-                    update_and_move(North)
+                    if update_and_move(North) == None:
+                        return False
                 else:
-                    if update_and_move(West):
+                    at_left = update_and_move(West)
+                    if at_left == None:
+                        return False
+                    if at_left:
                         break
             if x == 0:
                 break
             while y > my_:
                 if can_move(South):
-                    update_and_move(South)
+                    if update_and_move(South) == None:
+                        return False
                 else:
-                    if update_and_move(West):
+                    at_left = update_and_move(West)
+                    if at_left == None:
+                        return False
+                    if at_left:
                         break
             if x == 0:
                 break
             while x > mx_:
-                if update_and_move(West):
+                at_left = update_and_move(West)
+                if at_left == None:
+                    return False
+                if at_left:
                     break
             if x == 0:
                 break
         while x > 0:
             if can_move(West):
-                update_and_move(West)
+                if update_and_move(West) == None:
+                    return False
             else:
-                update_and_move(path[x][y])
+                if update_and_move(path[x][y]) == None:
+                    return False
         while y > 0:
             if can_move(South):
-                update_and_move(South)
+                if update_and_move(South) == None:
+                    return False
             else:
-                update_and_move(path[x][y])
-    while simple_update_and_move(path[x][y]):
-        pass
-    clear()
+                if update_and_move(path[x][y]) == None:
+                    return False
+    route = []
+    rx = 0
+    ry = 0
+    for _ in range(size * size):
+        direction = path[rx][ry]
+        route.append(direction)
+        if direction == North:
+            ry += 1
+        elif direction == South:
+            ry -= 1
+        elif direction == East:
+            rx += 1
+        else:
+            rx -= 1
+    while True:
+        for direction in route:
+            if not move(direction):
+                clear()
+                return True
 
 
 if __name__ == "__main__":

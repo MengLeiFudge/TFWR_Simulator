@@ -46,7 +46,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Dinosaur, "lb_dinosaur", 10000)
 # 成功条件：num_items(Items.Bone) >= 33_488_928
-# 用时（#1/当前版本复跑）：8:48.834 / 15:18.164
+# 用时（#1/当前版本复跑）：8:48.834 / 14:46.835
 
 # leaderboard_run(Leaderboards.Maze, "lb_maze", 10000)
 # 成功条件：num_items(Items.Gold) >= 9_863_168
