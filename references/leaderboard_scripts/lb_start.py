@@ -18,7 +18,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Wood_Single, "lb_wood_single", 10000)
 # 成功条件：num_items(Items.Wood) >= 500_000_000
-# 用时（#1/当前版本复跑）：4:03.722 / 5:38.652
+# 用时（#1/当前版本复跑）：4:03.722 / 5:37.970
 
 # leaderboard_run(Leaderboards.Carrots, "lb_carrots", 10000)
 # 成功条件：num_items(Items.Carrot) >= 2_000_000_000

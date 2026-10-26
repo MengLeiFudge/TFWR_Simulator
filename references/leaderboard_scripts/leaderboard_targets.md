@@ -20,7 +20,7 @@
 | [Sunflowers Single](https://steamcommunity.com/stats/2060160/leaderboards/17827413/) | 3:46.934 | 4:13.958 | 4:54.635 | 5:42.344 | [5:33.201](lb_start.py#L65) | 约 #83（同分） | 1.312× | 23.8% | 100/461 |
 | [Carrots](https://steamcommunity.com/stats/2060160/leaderboards/17869887/) | 1:58.229 | 3:32.744 | 4:09.746 | 5:01.835 | [4:36.794](lb_start.py#L25) | 约 #59（同分） | 1.301× | 23.1% | 100/628 |
 | [Maze Single](https://steamcommunity.com/stats/2060160/leaderboards/17827402/) | 0:42.396 | 1:52.091 | 2:10.443 | 2:43.764 | [2:25.112](lb_start.py#L57) | 约 #60（同分） | 1.295× | 22.8% | 100/780 |
-| [Wood Single](https://steamcommunity.com/stats/2060160/leaderboards/17827415/) | 3:27.825 | 4:27.918 | 5:29.863 | 8:22.200 | [5:38.652](lb_start.py#L21) | 约 #34 | 1.264× | 20.9% | 100/368 |
+| [Wood Single](https://steamcommunity.com/stats/2060160/leaderboards/17827415/) | 3:27.825 | 4:27.918 | 5:29.863 | 8:22.200 | [5:37.970](lb_start.py#L21) | 约 #34 | 1.261× | 20.7% | 100/368 |
 | [Pumpkins Single](https://steamcommunity.com/stats/2060160/leaderboards/17827408/) | 3:56.114 | 6:33.878 | 7:15.234 | 8:14.304 | [7:38.450](lb_start.py#L37) | 约 #46 | 1.164× | 14.1% | 100/502 |
 | [Pumpkins](https://steamcommunity.com/stats/2060160/leaderboards/17869892/) | 5:34.180 | 5:57.770 | 6:16.799 | 7:12.833 | [6:39.370](lb_start.py#L33) | 约 #48 | 1.116× | 10.4% | 100/1408 |
 | [Hay](https://steamcommunity.com/stats/2060160/leaderboards/17869890/) | 0:58.262 | 1:48.018 | 1:50.145 | 1:56.875 | [1:51.991](lb_start.py#L9) | 约 #69（同分） | 1.037× | 3.5% | 100/1588 |

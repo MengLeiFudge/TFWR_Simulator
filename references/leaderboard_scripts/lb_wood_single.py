@@ -1,258 +1,176 @@
 from __builtins__ import *
+# 完整轮时间：5:37.970（2026-10-26，官方完整22轮，request 109）。
 
-# 5:36.679
 def lb_wood_single():
-    count = 500000000
     set_world_size(8)
-    init_support_soil()
-
-    support_entity = create_entity_grid(8)
-    support_count = create_number_grid(8)
-    tree_companion_entity = create_entity_grid(8)
-    tree_companion_x = create_number_grid(8)
-    tree_companion_y = create_number_grid(8)
-    needs_water = create_number_grid(8)
-    first_cycle = True
-
-    quick_print("lb_wood_single", " init_time=", get_time(), " wood=", num_items(Items.Wood))
-
-    while num_items(Items.Wood) < count:
+    if not bootstrap():
+        return
+    clear()
+    queues = []
+    targets = []
+    requested = []
+    active = []
+    remaining = []
+    support = []
+    for _ in range(64):
+        queues.append([])
+        targets.append(-1)
+        requested.append(None)
+        active.append(False)
+        remaining.append(0)
+        support.append(None)
+    produced = 0
+    rejected = 0
+    batches = 0
+    changes = 0
+    waiting = 0
+    unripe = 0
+    for tour in range(1000):
+        before = produced
         for y in range(8):
-            if y % 2 == 0:
-                start_x = 0
-                end_x = 7
-                step = 1
-                move_dir = East
-            else:
-                start_x = 7
-                end_x = 0
-                step = -1
-                move_dir = West
-
-            x = start_x
-            while True:
-                if is_tree_slot(x, y):
-                    entity = get_entity_type()
-                    if entity == Entities.Tree:
-                        if not can_harvest():
-                            needs_water[x][y] = 1
-                            if x == end_x:
-                                break
-                            move(move_dir)
-                            x = x + step
-                            continue
-                        release_tree_claim(
-                            x,
-                            y,
-                            support_entity,
-                            support_count,
-                            tree_companion_entity,
-                            tree_companion_x,
-                            tree_companion_y,
-                        )
-                        harvest()
-                    elif entity != None:
-                        harvest()
-
-                    plant(Entities.Tree)
-                    if first_cycle:
-                        use_item(Items.Water, 4)
-                    elif needs_water[x][y] > 0:
-                        use_item(Items.Water, 2)
-                        needs_water[x][y] = 0
-
-                    ct, cx, cy = roll_tree_companion(
-                        support_entity,
-                        support_count,
-                    )
-                    tree_companion_entity[x][y] = ct
-                    tree_companion_x[x][y] = cx
-                    tree_companion_y[x][y] = cy
-                    support_entity[cx][cy] = ct
-                    support_count[cx][cy] = support_count[cx][cy] + 1
-                else:
-                    process_support_slot(
-                        x,
-                        y,
-                        support_entity,
-                        support_count,
-                    )
-
-                if x == end_x:
-                    break
-                move(move_dir)
-                x = x + step
-
+            direction = East
+            columns = range(8)
+            if y % 2 == 1:
+                direction = West
+                columns = range(7, -1, -1)
+            for x in columns:
+                if get_time() > 1200:
+                    quick_print("cohort_failed", "time_limit", get_time())
+                    return
+                source = x + 8 * y
+                if tour == 0:
+                    deadline = get_time() + 15
+                    while not can_harvest():
+                        if get_time() > deadline:
+                            quick_print("cohort_failed", "initial_grass_deadline", source)
+                            return
+                    if not harvest():
+                        quick_print("cohort_failed", "initial_grass", source)
+                        return
+                    if (x + y) % 2 == 1:
+                        till()
+                if (x + y) % 2 == 0:
+                    if tour > 0:
+                        water_once()
+                    if active[source]:
+                        if can_harvest():
+                            target = targets[source]
+                            if support[target] != requested[source] or remaining[target] <= 0:
+                                quick_print("cohort_failed", "claim", source, target)
+                                return
+                            if not harvest():
+                                quick_print("cohort_failed", "harvest", source)
+                                return
+                            remaining[target] -= 1
+                            active[source] = False
+                            targets[source] = -1
+                            produced += 1
+                            if num_items(Items.Wood) >= 500000000:
+                                quick_print("cohort_done", get_time(), tour, produced, rejected, batches, changes, waiting, unripe)
+                                return
+                        else:
+                            unripe += 1
+                    elif targets[source] != -1:
+                        waiting += 1
+                    if targets[source] == -1:
+                        rolls = register_tree(source, queues, targets, requested)
+                        if rolls < 0:
+                            return
+                        rejected += rolls
+                        if tour == 0:
+                            water_once()
+                elif tour > 0 and remaining[source] == 0 and len(queues[source]) > 0:
+                    kind = queues[source][0][1]
+                    if support[source] != kind:
+                        cost = get_cost(kind)
+                        for item in cost:
+                            if num_items(item) < cost[item]:
+                                quick_print("cohort_failed", "support_material", source, kind, item, get_time())
+                                return
+                        if support[source] != None:
+                            if not harvest():
+                                quick_print("cohort_failed", "support_harvest", source)
+                                return
+                            changes += 1
+                        if not plant(kind):
+                            quick_print("cohort_failed", "support_plant", source)
+                            return
+                        changes += 1
+                        support[source] = kind
+                    deferred = []
+                    for origin, wanted in queues[source]:
+                        if wanted == kind:
+                            active[origin] = True
+                            remaining[source] += 1
+                        else:
+                            deferred.append((origin, wanted))
+                    queues[source] = deferred
+                    batches += 1
+                if x != 7 and direction == East or x != 0 and direction == West:
+                    move(direction)
             move(North)
-
-        first_cycle = False
-
-    quick_print("lb_wood_single", " done wood=", num_items(Items.Wood), " time=", get_time())
+        quick_print("cohort_tour", tour, get_time(), produced - before, produced, rejected, batches, changes, waiting, unripe)
+    quick_print("cohort_failed", "tour_limit", get_time())
 
 
-TREE_OFF = {
-    (0, 0),
-    (1, 3),
-    (2, 6),
-    (3, 1),
-    (4, 4),
-    (5, 7),
-    (6, 2),
-    (7, 5),
-}
+def register_tree(source, queues, targets, requested):
+    for attempt in range(128):
+        if not plant(Entities.Tree):
+            quick_print("cohort_failed", "tree_plant", source, get_time())
+            return -1
+        companion = get_companion()
+        if companion == None:
+            quick_print("cohort_failed", "companion", source)
+            return -1
+        kind, position = companion
+        x, y = position
+        if (x + y) % 2 == 1:
+            target = x + 8 * y
+            targets[source] = target
+            requested[source] = kind
+            queues[target].append((source, kind))
+            return attempt
+        if can_harvest() or not harvest():
+            quick_print("cohort_failed", "mature_rejection", source)
+            return -1
+    quick_print("cohort_failed", "reroll_limit", source)
+    return -1
 
 
-def create_entity_grid(size):
-    ret = []
-    for _ in range(size):
-        row = []
-        for _ in range(size):
-            row.append(None)
-        ret.append(row)
-    return ret
-
-
-def create_number_grid(size):
-    ret = []
-    for _ in range(size):
-        row = []
-        for _ in range(size):
-            row.append(0)
-        ret.append(row)
-    return ret
-
-
-
-def is_tree_slot(x, y):
-    if (x, y) in TREE_OFF:
+def bootstrap():
+    clear()
+    accepted = False
+    for attempt in range(128):
+        if not plant(Entities.Tree):
+            return False
+        companion = get_companion()
+        if companion != None and companion[0] == Entities.Grass:
+            accepted = True
+            break
+        if can_harvest() or not harvest():
+            return False
+    if not accepted:
+        quick_print("cohort_failed", "bootstrap_reroll")
         return False
-    return (x + y) % 2 == 0
+    deadline = get_time() + 15
+    while not can_harvest():
+        if get_time() > deadline:
+            quick_print("cohort_failed", "bootstrap_deadline")
+            return False
+        water_once()
+    before = num_items(Items.Wood)
+    if not harvest() or num_items(Items.Wood) - before != 409600:
+        quick_print("cohort_failed", "bootstrap_yield")
+        return False
+    quick_print("cohort_bootstrap", get_time(), num_items(Items.Wood))
+    return True
 
 
-
-
-
-def init_support_soil():
-    for y in range(8):
-        if y % 2 == 0:
-            end_x = 7
-            step = 1
-            move_dir = East
-        else:
-            end_x = 0
-            step = -1
-            move_dir = West
-
-        x = get_pos_x()
-        while True:
-            if not is_tree_slot(x, y) and get_ground_type() != Grounds.Soil:
-                till()
-
-            if x == end_x:
-                break
-            move(move_dir)
-            x = x + step
-
-        move(North)
-
-
-
-
-
-def release_tree_claim(
-        x,
-        y,
-        support_entity,
-        support_count,
-        tree_companion_entity,
-        tree_companion_x,
-        tree_companion_y):
-    ct = tree_companion_entity[x][y]
-    if ct == None:
-        return
-
-    cx = tree_companion_x[x][y]
-    cy = tree_companion_y[x][y]
-    support_count[cx][cy] = support_count[cx][cy] - 1
-    if support_count[cx][cy] <= 0:
-        support_count[cx][cy] = 0
-        support_entity[cx][cy] = None
-
-    tree_companion_entity[x][y] = None
-    tree_companion_x[x][y] = 0
-    tree_companion_y[x][y] = 0
-
-
-
-def roll_tree_companion(support_entity, support_count):
-    while True:
-        ct, (cx, cy) = get_companion()
-        if is_tree_slot(cx, cy):
-            harvest()
-            plant(Entities.Tree)
-            continue
-        if support_count[cx][cy] > 0 and support_entity[cx][cy] != ct:
-            harvest()
-            plant(Entities.Tree)
-            continue
-        return ct, cx, cy
-
-
-def process_support_slot(
-        x,
-        y,
-        support_entity,
-        support_count):
-    entity = get_entity_type()
-    if support_count[x][y] <= 0:
-        return
-
-    ct = support_entity[x][y]
-    if entity == ct:
-        return
-
-    if entity != None:
-        harvest()
-
-    plant(ct)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def water_once():
+    if get_water() < 0.9:
+        water = num_items(Items.Water)
+        if water > 0:
+            use_item(Items.Water, min(4, water))
 
 
 if __name__ == "__main__":
