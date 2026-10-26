@@ -1,5 +1,13 @@
 # lb_fastest_reset
 
+## 2026-10-26：已有多机分档补电，两seed完整3958.313秒
+
+父37a4e31a仅修改solar_reserve的多机分支：分区播种并回收全部任务，再按15→7逐档派发收花并全部join。单机仍原流程，所有科技与2000/2200 Power门槛保持；Carrot备料在父调用中实付，未并行或遗漏。普通失败仍全回收并停止，单次补电180游戏秒有限截止。
+
+候选33f1c591515642db8f764b78794e25b80f56300416191711ea740bc90ed2ed60完整seed1为4002.066795秒，比父同seed省307.033158，达到预设150秒门槛后才补seed0；seed0为3914.559139秒。两seed均值`3958.312967 / null / null`，较父4314.688317省356.375350秒/8.259585%。8机后的四次补电调用约18～27秒；旧相邻日志间隔还含备料，不能全部归为种收节时。
+
+两次Leaderboard1、648/644次spawn与wait相等，无错误/警告/失败/丢输出/负库存，终点科技一致，Bone80800/Cactus129328/Gold1600。每份8批共1304花，1232×8+72×1，恰每批最后9株低倍；随机与水肥Power反馈不同，未宣称前缀逐步配对。证据`.codex/leaderboard-astra/reset-parallel-solar/{source-manifest.json,seed1-admission.json,seed0.json,seed1.json,analysis.json,three-times.json}`。正式py、模型、Save0与79保持，尚无实机成绩。
+
 ## 2026-10-26：先双机后伴生，实付速度与供电后单样本4248.380秒
 
 先以Trees4/Fertilizer2的真实感染收获供给Maze1，暂缓Polyculture，私有619107cd前缀1156.899859秒取得双机，比父版早约313秒；此时Poly0/Speed3，不能视为同等科技的整轮领先。首次前缀d4aeaf4d误把感染收益限定20，遇Poly0偶然伴生的100后有限退出，失败报告保留；修正只接受真实20/100，没有提前调用未解锁get_companion。
