@@ -1,6 +1,6 @@
 from __builtins__ import *
+# 完整轮时间：7:39.495（2026-10-26，官方完整16轮，request 120）。
 
-# 7:38.450
 def lb_pumpkins_single():
     count = 10000000
     size = 6

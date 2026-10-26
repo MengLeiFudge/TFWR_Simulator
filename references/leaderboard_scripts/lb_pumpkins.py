@@ -1,6 +1,6 @@
 from __builtins__ import *
+# 完整轮时间：6:41.562（2026-10-26，官方完整18轮，request 122）。
 
-# 6:40.273
 def lb_pumpkins():
     clear()
     reset_pumpkin3_state()

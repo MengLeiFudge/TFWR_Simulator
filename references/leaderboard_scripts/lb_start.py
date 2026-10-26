@@ -30,15 +30,15 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Pumpkins, "lb_pumpkins", 10000)
 # 成功条件：num_items(Items.Pumpkin) >= 200_000_000
-# 用时（#1/当前版本复跑）：5:54.301 / 6:39.370
+# 用时（#1/当前版本复跑）：5:54.301 / 6:41.562
 
 # leaderboard_run(Leaderboards.Pumpkins_Single, "lb_pumpkins_single", 10000)
 # 成功条件：num_items(Items.Pumpkin) >= 10_000_000
-# 用时（#1/当前版本复跑）：6:23.321 / 7:38.450
+# 用时（#1/当前版本复跑）：6:23.321 / 7:39.495
 
 # leaderboard_run(Leaderboards.Cactus, "lb_cactus", 10000)
 # 成功条件：num_items(Items.Cactus) >= 33_554_432
-# 用时（#1/当前版本复跑）：0:18.962 / 0:36.493
+# 用时（#1/当前版本复跑）：0:18.962 / 0:36.577
 
 # leaderboard_run(Leaderboards.Cactus_Single, "lb_cactus_single", 10000)
 # 成功条件：num_items(Items.Cactus) >= 131_072
@@ -58,7 +58,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Sunflowers, "lb_sunflowers", 10000)
 # 成功条件：num_items(Items.Power) >= 100_000
-# 用时（#1/当前版本复跑）：2:22.574 / 3:56.812
+# 用时（#1/当前版本复跑）：2:22.574 / 3:55.162
 
 # leaderboard_run(Leaderboards.Sunflowers_Single, "lb_sunflowers_single", 10000)
 # 成功条件：num_items(Items.Power) >= 10_000

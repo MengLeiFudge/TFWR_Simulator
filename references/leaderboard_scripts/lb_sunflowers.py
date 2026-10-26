@@ -1,6 +1,6 @@
 from __builtins__ import *
+# 完整轮时间：3:55.162（2026-10-26，官方完整31轮，request 118）。
 
-# 3:57.101
 def lb_sunflowers():
     set_world_size(FIELD_SIZE)
     for _ in range(FIELD_SIZE - 1):

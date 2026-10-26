@@ -1,6 +1,6 @@
 from __builtins__ import *
+# 完整轮时间：0:36.577（2026-10-26，官方完整197轮，request 116）。
 
-# 0:36.309
 def lb_cactus():
     goto(0, size - 1)
     while num_items(Items.Cactus) < 33554432:
