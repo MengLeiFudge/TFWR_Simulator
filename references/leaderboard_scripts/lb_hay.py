@@ -1,6 +1,6 @@
 from __builtins__ import *
+# 完整轮时间：1:51.991（2026-10-26，官方完整65轮，request 81）。
 
-# 2:48.124
 def lb_hay():
     set_world_size(FIELD_SIZE)
     pair_count = 0
@@ -8,13 +8,15 @@ def lb_hay():
         for base_x in PAIR_BASE_XS:
             if pair_count >= ACTIVE_PAIR_COUNT:
                 return
-            goto(base_x, base_y)
             pair_count = pair_count + 1
             if pair_count < ACTIVE_PAIR_COUNT:
-                spawn_drone(companion_pair_thread)
+                worker = spawn_drone(start_pair_at, base_x, base_y)
+                if worker == None:
+                    quick_print("lb_hay stopped: dispatch failed", pair_count)
+                    clear()
+                    return
             else:
-                companion_pair_thread()
-
+                start_pair_at(base_x, base_y)
 
 FIELD_SIZE = 32
 GOAL_HAY = 2000000000
@@ -30,6 +32,11 @@ PAIR_SUPPORT_OFFSETS = (
     (-1, 3), (0, 3), (1, 3),
     (0, 4),
 )
+
+
+def start_pair_at(base_x, base_y):
+    goto(base_x, base_y)
+    companion_pair_thread()
 
 
 def goto(tx, ty):
@@ -132,7 +139,6 @@ def roll_bush_companion(blocked_pos):
         if companion_entity == Entities.Bush and companion_pos != blocked_pos:
             break
         harvest()
-        plant(Entities.Grass)
 
 
 if __name__ == "__main__":

@@ -1,572 +1,308 @@
 from __builtins__ import *
+# 完整轮时间：53:43.604（2026-10-26，官方完整3轮，request 94）。
 
-# 168:48.299
 def lb_fastest_reset():
-    quick_print("reset_stage", "start", "time=", get_time())
     step1()
-    quick_print("reset_stage", "step1", "time=", get_time(), "hay=", num_items(Items.Hay), "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot))
-    step2()
-    quick_print("reset_stage", "step2", "time=", get_time(), "power=", num_items(Items.Power), "size=", get_world_size())
-    step3()
-    quick_print("reset_stage", "step3", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "gold=", num_items(Items.Gold))
-    try_unlock_early_megafarm()
-    step4()
-    quick_print("reset_stage", "step4", "time=", get_time(), "size=", get_world_size(), "cactus=", num_items(Items.Cactus))
-    step5()
-    quick_print("reset_stage", "done", "time=", get_time(), "bone=", num_items(Items.Bone), "gold=", num_items(Items.Gold))
+    quick_print("directed", "step1", get_time(), num_items(Items.Hay), num_items(Items.Wood))
+    plan = [Unlocks.Speed, Unlocks.Expand, Unlocks.Trees, Unlocks.Speed,
+            Unlocks.Grass, Unlocks.Trees, Unlocks.Grass, Unlocks.Carrots,
+            Unlocks.Expand, Unlocks.Watering, Unlocks.Fertilizer, Unlocks.Sunflowers]
+    for technology in plan:
+        if not buy(technology):
+            return
+    if not solar_reserve():
+        return
+    for technology in [Unlocks.Trees, Unlocks.Grass, Unlocks.Carrots,
+                       Unlocks.Pumpkins, Unlocks.Speed, Unlocks.Pumpkins, Unlocks.Polyculture]:
+        if not buy(technology):
+            return
+    quick_print("directed", "polyculture", get_time(), num_items(Items.Power),
+                num_items(Items.Fertilizer), num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot))
+    if not first_megafarm() or not eight_drones():
+        return
+    if staged_supply() and finish_gold():
+        finish_bones()
 
 
-STEP2_POWER_TARGET = 1000
-WEIRD_POWER_FLOOR = 1350
-WEIRD_COMPANION_ENABLED = True
-FERTILIZER_UNLOCK_CAP = 3
-
-
-fr_dirs = [North, East, South, West]
-fr_dir_to_pos = {North: (0, 1), East: (1, 0), South: (0, -1), West: (-1, 0)}
-fr_back = {North: South, East: West, South: North, West: East, None: None}
-fr_time_start = 0
-fr_phase = 0
-fr_unlock_dict = {}
-fr_unchecked = []
-
-
-def fr_get_minute_and_second(time):
-    minute = time // 60
-    second = time % 60
-    return minute, second
-
-
-def fr_get_pos():
-    return get_pos_x(), get_pos_y()
-
-
-def fr_pos_move(pos, direction):
-    x, y = pos
-    cx, cy = fr_dir_to_pos[direction]
-    return x + cx, y + cy
-
-
-def fr_relative_dir(pos1, pos2):
-    x1, y1 = pos1
-    x2, y2 = pos2
-    dx = x2 - x1
-    dy = y2 - y1
-    if dx == 0:
-        if dy > 0:
-            return North
-        if dy < 0:
-            return South
-    elif dy == 0:
-        if dx > 0:
-            return East
-        if dx < 0:
-            return West
-    return None
-
-
-def fr_move_to(pos):
-    x, y = pos
-    size = get_world_size()
-    dx = x - get_pos_x()
-    if abs(dx) > size // 2:
-        if dx > 0:
-            for _ in range(size - dx):
-                move(West)
-        else:
-            for _ in range(size + dx):
-                move(East)
-    else:
-        if dx < 0:
-            for _ in range(-dx):
-                move(West)
-        elif dx > 0:
-            for _ in range(dx):
-                move(East)
-    dy = y - get_pos_y()
-    if abs(dy) > size // 2:
-        if dy > 0:
-            for _ in range(size - dy):
-                move(South)
-        else:
-            for _ in range(size + dy):
-                move(North)
-    else:
-        if dy < 0:
-            for _ in range(-dy):
-                move(South)
-        elif dy > 0:
-            for _ in range(dy):
-                move(North)
-
-
-def fr_move_n(direction, count):
-    for _ in range(count):
-        move(direction)
-
-
-def fr_my_unlock(unlock_item):
-    global fr_time_start
-    print_time = get_time()
-    unlocked = unlock(unlock_item)
-    minute, second = fr_get_minute_and_second(get_time() - fr_time_start)
-    if unlocked:
-        if unlock_item not in fr_unlock_dict:
-            fr_unlock_dict[unlock_item] = 1
-            quick_print("在", minute, "分", second, "秒 解锁了", unlock_item)
-        else:
-            fr_unlock_dict[unlock_item] = fr_unlock_dict[unlock_item] + 1
-            quick_print("在", minute, "分", second, "秒 第", fr_unlock_dict[unlock_item], "次解锁了", unlock_item)
-    fr_time_start = fr_time_start + get_time() - print_time
-    return unlocked
-
-
-def fr_can_unlock(unlock_item):
-    cost = get_cost(unlock_item)
-    if cost == None or cost == {}:
-        return False
+def affordable(cost):
     for item in cost:
         if num_items(item) < cost[item]:
             return False
     return True
 
 
-def fr_try_unlock(unlock_item):
-    if fr_can_unlock(unlock_item):
-        return fr_my_unlock(unlock_item)
-    return False
+def missing(cost, item):
+    if item in cost:
+        return max(0, cost[item] - num_items(item))
+    return 0
 
 
-def fr_hay():
-    if can_harvest():
+def tick_cell(cost):
+    if get_time() > 7000:
+        return False
+    entity = get_entity_type()
+    if entity != None and can_harvest():
         harvest()
-
-
-def fr_bush():
-    if can_harvest():
-        harvest()
-    plant(Entities.Bush)
-
-
-def fr_water():
-    if get_water() < num_items(Items.Water) / 100:
-        use_item(Items.Water)
-
-
-def fr_tree():
-    if can_harvest():
-        harvest()
-    plant(Entities.Tree)
-    fr_water()
-
-
-def fr_carrot():
-    if get_ground_type() != Grounds.Soil:
-        till()
-    if can_harvest():
-        harvest()
-    cost = get_cost(Entities.Carrot)
-    if num_items(Items.Hay) >= cost[Items.Hay] and num_items(Items.Wood) >= cost[Items.Wood]:
-        plant(Entities.Carrot)
-        fr_water()
-
-
-def fr_bush_plant(amount):
-    while num_items(Items.Wood) < amount:
-        fr_bush()
-        move(North)
-
-
-def fr_carrot_mix(amount):
-    while num_items(Items.Carrot) < amount:
-        fr_hay()
-        move(North)
-        fr_bush()
-        move(North)
-        fr_carrot()
-        move(North)
-        move(East)
-
-
-def fr_bush_water(amount):
-    while num_items(Items.Wood) < amount:
-        fr_bush()
-        fr_water()
-        move(East)
-
-
-def fr_tree_mix(hay_amount, wood_amount):
-    while num_items(Items.Hay) < hay_amount or num_items(Items.Wood) < wood_amount:
-        for _ in range(3):
-            for _ in range(3):
+        entity = None
+    if entity != None and entity != Entities.Grass:
+        return True
+    wood = missing(cost, Items.Wood)
+    hay = missing(cost, Items.Hay)
+    carrot = missing(cost, Items.Carrot)
+    desired = Entities.Grass
+    if wood > 0:
+        if num_unlocked(Unlocks.Trees) > 0:
+            if (get_pos_x() + get_pos_y()) % 2 == 0:
+                desired = Entities.Tree
+        elif hay == 0:
+            desired = Entities.Bush
+    if desired == Entities.Grass and hay == 0 and carrot > 0:
+        if affordable(get_cost(Entities.Carrot)):
+            desired = Entities.Carrot
+        elif num_items(Items.Wood) < get_cost(Entities.Carrot)[Items.Wood]:
+            if num_unlocked(Unlocks.Trees) > 0:
                 if (get_pos_x() + get_pos_y()) % 2 == 0:
-                    fr_tree()
-                else:
-                    fr_hay()
+                    desired = Entities.Tree
+            else:
+                desired = Entities.Bush
+    if desired == Entities.Grass:
+        if get_ground_type() != Grounds.Grassland:
+            till()
+    else:
+        if desired == Entities.Carrot and get_ground_type() != Grounds.Soil:
+            till()
+        if not plant(desired):
+            quick_print("directed_failed", "plant", desired, get_time())
+            return False
+    return True
+
+
+def basic(cost):
+    if num_unlocked(Unlocks.Polyculture) > 0:
+        return boost_stock(cost)
+    passes = 0
+    while not affordable(cost):
+        if get_time() > 7000 or passes >= 1500:
+            quick_print("directed_failed", "basic_limit", get_time(), cost)
+            return False
+        size = get_world_size()
+        for x in range(size):
+            for y in range(size):
+                if not tick_cell(cost):
+                    return False
+                if affordable(cost):
+                    return True
                 move(North)
             move(East)
+        passes += 1
+        if passes % 40 == 0:
+            quick_print("directed_progress", get_time(), cost, num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot))
+    return True
 
 
-def fr_explore_maze(grid, front):
-    pos = fr_get_pos()
-    back = fr_back[front]
-    grid[pos] = []
-    for direction in fr_dirs:
-        if can_move(direction):
-            moved = fr_pos_move(pos, direction)
-            grid[pos].append(moved)
-    for direction in fr_dirs:
-        if direction == back or not can_move(direction):
-            continue
-        move(direction)
-        fr_explore_maze(grid, direction)
-        move(fr_back[direction])
-    return grid
+def origin():
+    size = get_world_size()
+    for _ in range((size - get_pos_x()) % size):
+        move(East)
+    for _ in range((size - get_pos_y()) % size):
+        move(North)
 
 
-def fr_find_all_path(grid):
-    pos = fr_get_pos()
-    paths = {pos: {}}
-    visited = set()
-    nodes = [pos]
-    for node in nodes:
-        paths[node][node] = []
-        for next_node in grid[node]:
-            if next_node not in visited:
-                node_to_next = fr_relative_dir(node, next_node)
-                next_to_node = fr_back[node_to_next]
-                paths[next_node] = {}
-                for other in paths:
-                    if other != next_node:
-                        paths[next_node][other] = [next_to_node]
-                        for direction in paths[node][other]:
-                            paths[next_node][other].append(direction)
-                        path_back = paths[other][node][:]
-                        path_back.append(node_to_next)
-                        paths[other][next_node] = path_back
-                nodes.append(next_node)
-                visited.add(node)
-    return paths
-
-
-def fr_path_36(func):
-    dir_list = [
-        East, East, North, West, North, East, North, West, North, East,
-        North, West, West, South, South, South, South, South,
-    ]
-    for direction in dir_list:
-        func()
-        move(direction)
-
-
-def fr_path_66(func):
-    dir_list = [
-        East, East, North, North, East, South, South, East, East, North,
-        West, North, East, North, West, North, East, North, West, West,
-        South, South, West, North, North, West, West, South, East, South,
-        West, South, East, South, West, South,
-    ]
-    for direction in dir_list:
-        func()
-        move(direction)
-
-
-def fr_plant_pumpkin():
-    while get_water() + 0.25 <= num_items(Items.Water) / 100:
-        use_item(Items.Water)
-    plant(Entities.Pumpkin)
-
-
-def fr_find_dead_pumpkin():
-    if not can_harvest():
-        fr_unchecked.append(fr_get_pos())
-    plant(Entities.Pumpkin)
-
-
-def fr_pumpkin_task_with_exit(path, height, final_check, exit_condition):
-    def _task():
-        global fr_unchecked
-        pos_o = fr_get_pos()
-        fixed_y = get_pos_y()
-        if get_ground_type() != Grounds.Soil:
-            path(till)
-        while not exit_condition():
-            path(fr_plant_pumpkin)
-            path(fr_find_dead_pumpkin)
-            while fr_unchecked:
-                to_remove = []
-                for pos in fr_unchecked:
-                    fr_move_to(pos)
+def pumpkin_stock(target):
+    if num_items(Items.Pumpkin) < target:
+        size = get_world_size()
+        gain = size * size * min(6, size) * 2 ** (num_unlocked(Unlocks.Pumpkins) - 1)
+        fields = (target - num_items(Items.Pumpkin) + gain - 1) // gain
+        seeds = (fields * size * size * 3 + 1) // 2
+        price = get_cost(Entities.Pumpkin)[Items.Carrot]
+        if not basic({Items.Carrot: seeds * price}):
+            return False
+    if max_drones() > 1:
+        return parallel_pumpkin_stock(target)
+    size = get_world_size()
+    while num_items(Items.Pumpkin) < target:
+        if get_time() > 7000:
+            return False
+        # 预备一田和额外一田重补料，每株仍逐次核价。
+        cost = get_cost(Entities.Pumpkin)
+        if not basic({Items.Carrot: cost[Items.Carrot] * size * size * 2}):
+            return False
+        origin()
+        ready = 0
+        rounds = 0
+        while ready < size * size:
+            if get_time() > 7000 or rounds >= 300:
+                return False
+            ready = 0
+            for x in range(size):
+                for y in range(size):
+                    kind = get_entity_type()
+                    if kind != Entities.Pumpkin and kind != Entities.Dead_Pumpkin:
+                        if kind != None:
+                            harvest()
+                    if get_ground_type() != Grounds.Soil:
+                        till()
+                    if get_entity_type() != Entities.Pumpkin:
+                        if not affordable(get_cost(Entities.Pumpkin)):
+                            quick_print("directed_failed", "pumpkin_material", get_time())
+                            return False
+                        if not plant(Entities.Pumpkin):
+                            return False
                     if can_harvest():
-                        to_remove.append(pos)
-                        continue
-                    fr_plant_pumpkin()
-                    while len(fr_unchecked) <= 5 and get_water() < 0.9 and num_items(Items.Water) > 10:
-                        use_item(Items.Water)
-                for pos in to_remove:
-                    fr_unchecked.remove(pos)
-                if len(fr_unchecked) == 1 and num_items(Items.Fertilizer) > 10:
-                    fr_move_to(fr_unchecked[0])
-                    while not can_harvest():
-                        fr_plant_pumpkin()
-                        use_item(Items.Fertilizer)
-                    break
-            if not final_check:
+                        ready += 1
+                    move(North)
+                move(East)
+            rounds += 1
+        before = num_items(Items.Pumpkin)
+        harvest()
+        quick_print("directed_pumpkin", get_time(), num_items(Items.Pumpkin) - before)
+    return True
+
+
+def buy(technology):
+    cost = get_cost(technology)
+    if Items.Pumpkin in cost:
+        if not pumpkin_stock(cost[Items.Pumpkin]):
+            return False
+    if Items.Cactus in cost:
+        if not cactus_stock(cost[Items.Cactus]):
+            return False
+    basic_cost = {}
+    for item in cost:
+        if item != Items.Pumpkin and item != Items.Cactus:
+            basic_cost[item] = cost[item]
+    if not basic(basic_cost):
+        return False
+    if not unlock(technology):
+        quick_print("directed_failed", "unlock", technology, get_time())
+        return False
+    quick_print("directed_upgrade", technology, num_unlocked(technology), get_time(), num_items(Items.Power))
+    return True
+
+
+def solar_reserve():
+    size = get_world_size()
+    if not basic({Items.Carrot: size * size}):
+        return False
+    if max_drones() > 1:
+        return parallel_solar_reserve(size)
+    origin()
+    buckets = {}
+    for petals in range(7, 16):
+        buckets[petals] = []
+    for x in range(size):
+        for y in range(size):
+            if get_entity_type() != None:
                 harvest()
-                fr_move_to(pos_o)
-                continue
-            pos_a = (get_pos_x(), fixed_y + 1)
-            pos_b = (get_pos_x(), fixed_y + height - 2)
-            fr_move_to(pos_a)
-            a = measure(South)
-            fr_move_to(pos_b)
-            b = measure(North)
-            c = measure()
-            while a != b and a and b and c:
-                fr_move_to(pos_a)
-                a = measure(South)
-                fr_move_to(pos_b)
-                b = measure(North)
-                c = measure()
-            if a or b:
-                harvest()
-            fr_move_to(pos_o)
-    return _task
-
-
-def fr_pumpkin_task(path, height, final_check=False, end_value=200000000):
-    def exit_condition():
-        return num_items(Items.Pumpkin) >= end_value
-    return fr_pumpkin_task_with_exit(path, height, final_check, exit_condition)
-
-
-def fr_phase1():
-    clear()
-    for _ in range(20):
-        harvest()
-    fr_my_unlock(Unlocks.Speed)
-
-    for _ in range(30):
-        while not can_harvest():
-            pass
-        harvest()
-    fr_my_unlock(Unlocks.Expand)
-
-    for _ in range(50):
-        move(North)
-        harvest()
-    fr_my_unlock(Unlocks.Plant)
-
-    while num_items(Items.Wood) < 20:
-        fr_bush()
-        while not can_harvest():
-            if get_pos_y() > 0:
+            if get_ground_type() != Grounds.Soil:
+                till()
+            if not plant(Entities.Sunflower):
+                return False
+            buckets[measure()].append((x, y))
+            move(North)
+        move(East)
+    for petals in range(15, 6, -1):
+        for x, y in buckets[petals]:
+            for _ in range((x - get_pos_x()) % size):
+                move(East)
+            for _ in range((y - get_pos_y()) % size):
                 move(North)
-            else:
-                move(South)
-    fr_my_unlock(Unlocks.Expand)
-
-    fr_bush_plant(20)
-    fr_my_unlock(Unlocks.Speed)
-
-    fr_bush_plant(50)
-    fr_my_unlock(Unlocks.Watering)
-
-    fr_bush_plant(50)
-    fr_my_unlock(Unlocks.Carrots)
-
-    for _ in range(3):
-        till()
-        move(East)
-    move(North)
-
-    fr_carrot_mix(50)
-    move(North)
-    fr_bush_water(50)
-    fr_my_unlock(Unlocks.Speed)
-
-    move(South)
-    fr_carrot_mix(90)
-    move(North)
-    fr_bush_water(50)
-    fr_my_unlock(Unlocks.Trees)
-
-    clear()
-    fr_tree_mix(300, 550)
-    fr_my_unlock(Unlocks.Grass)
-    fr_my_unlock(Unlocks.Watering)
-    fr_my_unlock(Unlocks.Carrots)
-
-    fr_tree_mix(300, 830)
-    fr_my_unlock(Unlocks.Trees)
-    fr_my_unlock(Unlocks.Watering)
-    fr_my_unlock(Unlocks.Expand)
-
-    for _ in range(2):
-        for _ in range(4):
-            till()
-            move(East)
-        move(North)
-
-    while num_items(Items.Carrot) < 50 or num_items(Items.Wood) < 100:
-        for _ in range(2):
-            if (get_pos_x() + get_pos_y()) % 2 == 0:
-                fr_tree()
-            else:
-                fr_hay()
-            move(North)
-        for _ in range(2):
-            fr_carrot()
-            move(North)
-        move(East)
-    fr_my_unlock(Unlocks.Expand)
-
-    for _ in range(3):
-        for _ in range(6):
-            till()
-            move(East)
-        move(North)
-    unlock_list = [Unlocks.Mazes, Unlocks.Pumpkins, Unlocks.Sunflowers, Unlocks.Carrots, Unlocks.Trees, Unlocks.Speed, Unlocks.Fertilizer, Unlocks.Speed, Unlocks.Grass]
-    while unlock_list or num_items(Items.Carrot) < 300 or num_items(Items.Weird_Substance) < 670:
-        fr_hay()
-        move(North)
-        for _ in range(2):
-            if (get_pos_x() + get_pos_y()) % 2 == 0:
-                fr_tree()
-                if num_items(Items.Fertilizer):
-                    use_item(Items.Fertilizer)
-                elif num_items(Items.Weird_Substance) and not (num_unlocked(Unlocks.Mazes) or num_items(Items.Weird_Substance) > 1500):
-                    use_item(Items.Weird_Substance)
-            else:
-                fr_hay()
-            move(North)
-        for _ in range(3):
-            fr_carrot()
-            move(North)
-        move(East)
-        while unlock_list and fr_try_unlock(unlock_list[-1]):
-            unlock_list.pop()
-
-
-def fr_phase2():
-    clear()
-    power = []
-    for _ in range(16):
-        power.append([])
-    for _ in range(6):
-        for _ in range(6):
-            till()
-            plant(Entities.Sunflower)
-            power[measure()].append(fr_get_pos())
-            fr_water()
-            move(East)
-        move(North)
-
-    for i in range(len(power) - 1, 6, -1):
-        for pos in power[i]:
-            fr_move_to(pos)
             while not can_harvest():
-                fr_water()
-            harvest()
-    fr_move_to((0, 0))
-    plant(Entities.Bush)
-    use_item(Items.Weird_Substance, 3)
-    grid = fr_explore_maze({}, None)
-    paths = fr_find_all_path(grid)
-    pos = fr_get_pos()
-    treasure = measure()
-    for direction in paths[pos][treasure]:
-        move(direction)
-    pos = measure()
-    for _ in range(222):
-        use_item(Items.Weird_Substance, 3)
-        treasure = measure()
-        if treasure == None:
-            break
-        for direction in paths[pos][treasure]:
-            move(direction)
-        pos = measure()
-    harvest()
-    fr_my_unlock(Unlocks.Megafarm)
-
-    clear()
-    drone = spawn_drone(fr_pumpkin_task(fr_path_36, 6, True, 1000))
-    fr_move_n(East, 3)
-    fr_pumpkin_task(fr_path_36, 6, True, 1000)()
-    wait_for(drone)
-    fr_my_unlock(Unlocks.Expand)
-
-    unlock_list = [Unlocks.Expand, Unlocks.Trees, Unlocks.Pumpkins, Unlocks.Grass]
-
-    def unlock_task():
-        def farm_line(direction):
-            for _ in range(3):
-                fr_hay()
-                move(direction)
-                fr_carrot()
-                move(direction)
-            fr_tree()
-            move(direction)
-
-        fr_move_to((0, 0))
-        while unlock_list:
-            farm_line(North)
-            farm_line(East)
-            farm_line(South)
-            farm_line(West)
-            while unlock_list and fr_try_unlock(unlock_list[-1]):
-                unlock_list.pop()
-        return fr_unlock_dict
-
-    drone = spawn_drone(unlock_task)
-    done = False
-    tail_start = get_time()
-
-    def exit_condition():
-        if has_finished(drone):
-            return True
-        return num_items(Items.Power) < 50
-
-    while not done:
-        if has_finished(drone):
-            result = wait_for(drone)
-            for key in result:
-                fr_unlock_dict[key] = result[key]
-            done = True
-            break
-        if get_time() - tail_start > 5000:
-            quick_print("reset_stage", "save0_fastreset_phase2_tail_timeout", "time=", get_time(), "unlocks=", fr_unlock_dict, "power=", num_items(Items.Power))
-            break
-        fr_move_to((1, 1))
-        if num_items(Items.Power) < 50:
-            power = []
-            for _ in range(16):
-                power.append([])
-
-            def sunflower():
-                if get_ground_type() != Grounds.Soil:
-                    till()
-                if not num_items(Items.Carrot):
-                    return
-                plant(Entities.Sunflower)
-                power[measure()].append(fr_get_pos())
-                while get_water() < num_items(Items.Water) / 100:
+                if get_time() > 7000:
+                    return False
+                if get_water() < 0.5 and num_items(Items.Water) > 0:
                     use_item(Items.Water)
-
-            fr_path_66(sunflower)
-            for i in range(len(power) - 1, 6, -1):
-                for pos in power[i]:
-                    fr_move_to(pos)
-                    while not can_harvest():
-                        if get_water() < num_items(Items.Water) / 100:
-                            use_item(Items.Water)
-                    harvest()
-        fr_move_to((1, 1))
-        fr_pumpkin_task_with_exit(fr_path_66, 6, False, exit_condition)()
-    quick_print("reset_stage", "save0_fastreset_phase2_tail", "time=", get_time(), "done=", done, "size=", get_world_size(), "pumpkin=", num_items(Items.Pumpkin), "power=", num_items(Items.Power), "unlocks=", fr_unlock_dict)
+            harvest()
+    quick_print("directed_solar", get_time(), num_items(Items.Power))
+    return True
 
 
-# 最开始的状态，点一些前期的东西直至解锁胡萝卜
+def solar_plant_strip(worker, workers, size, deadline):
+    buckets = {}
+    for petals in range(7, 16):
+        buckets[petals] = []
+    first = worker * size // workers
+    last = (worker + 1) * size // workers
+    for y in range(first, last):
+        for x in range(size):
+            if get_time() > deadline:
+                return None
+            go(x, y)
+            if get_entity_type() != None:
+                harvest()
+            if get_ground_type() != Grounds.Soil:
+                till()
+            if not plant(Entities.Sunflower):
+                return None
+            buckets[measure()].append((x, y))
+    return buckets
+
+
+def solar_harvest_rank(points, deadline):
+    for x, y in points:
+        if get_time() > deadline:
+            return False
+        go(x, y)
+        while not can_harvest():
+            if get_time() > deadline:
+                return False
+            if get_water() < 0.5 and num_items(Items.Water) > 0:
+                use_item(Items.Water)
+        if not harvest():
+            return False
+    return True
+
+
+def parallel_solar_reserve(size):
+    started = get_time()
+    deadline = min(7000, started + 180)
+    workers = min(size, max_drones())
+    handles = []
+    passed = True
+    batches = []
+    for worker in range(1, workers):
+        handle = spawn_drone(solar_plant_strip, worker, workers, size, deadline)
+        if handle == None:
+            passed = False
+            break
+        handles.append(handle)
+    if passed:
+        own = solar_plant_strip(0, workers, size, deadline)
+        if own == None:
+            passed = False
+        else:
+            batches.append(own)
+    for handle in handles:
+        result = wait_for(handle)
+        if result == None:
+            passed = False
+        else:
+            batches.append(result)
+    if not passed or len(batches) != workers:
+        quick_print("directed_failed", "solar_plant_workers", get_time())
+        return False
+    for petals in range(15, 6, -1):
+        handles = []
+        passed = True
+        for worker in range(1, workers):
+            if len(batches[worker][petals]) > 0:
+                handle = spawn_drone(solar_harvest_rank, batches[worker][petals], deadline)
+                if handle == None:
+                    passed = False
+                    break
+                handles.append(handle)
+        if passed:
+            passed = solar_harvest_rank(batches[0][petals], deadline)
+        for handle in handles:
+            if not wait_for(handle):
+                passed = False
+        if not passed:
+            quick_print("directed_failed", "solar_rank_workers", petals, get_time())
+            return False
+    quick_print("directed_parallel_solar", get_time(), workers, get_time() - started, num_items(Items.Power))
+    return True
+
+
 def step1():
     # 速度1 20草
     while num_items(Items.Hay) < 20:
@@ -621,931 +357,319 @@ def step1():
         move(East)
     unlock(Unlocks.Carrots)
 
-
-# 草、灌木、（树）、胡萝卜、（向日葵） 混种，速度升满，直至有1000能量
-def step2():
-    can_plant_tree = False
-    can_use_water = False
-    can_use_fertilizer = False
-    can_plant_sunflower = False
-    while num_items(Items.Power) < STEP2_POWER_TARGET:
-        for _ in range(get_world_size()):
-            if get_ground_type() == Grounds.Grassland:
-                till()
-            if can_use_water:
-                water_needed = (min(0.75, num_items(Items.Water) / 100) - get_water()) // 0.25
-                if water_needed > 0:
-                    use_item(Items.Water, water_needed)
-            if not can_harvest() and get_entity_type() != None:
-                if can_use_fertilizer and get_entity_type() == Entities.Tree:
-                    while not can_harvest() and num_items(Items.Fertilizer) > 0:
-                        if not use_item(Items.Fertilizer):
-                            break
-                    if not can_harvest():
-                        move(North)
-                        continue
-                else:
-                    move(North)
-                    continue
-            harvest()
-            if can_plant_sunflower:
-                if num_unlocked(Unlocks.Speed) < 5:
-                    if num_items(Items.Power) < 100 and plant_if_affordable(Entities.Sunflower):
-                        move(North)
-                        continue
-                else:
-                    if can_plant_sunflower and plant_if_affordable(Entities.Sunflower):
-                        move(North)
-                        continue
-            rand = random()
-            if can_plant_tree:
-                if rand < 0.25 and plant(Entities.Grass):
-                    move(North)
-                    continue
-                if rand < 0.5 and plant(Entities.Bush):
-                    move(North)
-                    continue
-                if rand < 0.75 and plant(Entities.Tree) and ((get_pos_x() + get_pos_y()) % 2 == 0):
-                    move(North)
-                    continue
-                if plant_if_affordable(Entities.Carrot):
-                    move(North)
-                    continue
-            else:
-                if rand < 0.33 and plant(Entities.Grass):
-                    move(North)
-                    continue
-                if rand < 0.66 and plant(Entities.Bush):
-                    move(North)
-                    continue
-                if plant_if_affordable(Entities.Carrot):
-                    move(North)
-                    continue
-            # 种最缺的
-            hay = num_items(Items.Hay)
-            wood = num_items(Items.Wood)
-            carrot = num_items(Items.Carrot)
-            if hay < wood and hay < carrot:
-                if plant(Entities.Grass):
-                    move(North)
-                    continue
-            elif wood < hay and wood < carrot:
-                if can_plant_tree and ((get_pos_x() + get_pos_y()) % 2 == 0):
-                    if plant(Entities.Tree):
-                        move(North)
-                        continue
-                else:
-                    if plant(Entities.Bush):
-                        move(North)
-                        continue
-            else:
-                if plant_if_affordable(Entities.Carrot):
-                    move(North)
-                    continue
-            plant(Entities.Grass)
-            move(North)
-        move(East)
-        unlock(Unlocks.Grass)
-        unlock(Unlocks.Speed)
-        unlock(Unlocks.Expand)
-        unlock(Unlocks.Carrots)
-        if unlock(Unlocks.Trees):
-            can_plant_tree = True
-        if unlock(Unlocks.Watering):
-            can_use_water = True
-        if num_unlocked(Unlocks.Fertilizer) < FERTILIZER_UNLOCK_CAP and unlock(Unlocks.Fertilizer):
-            can_use_fertilizer = True
-        if unlock(Unlocks.Sunflowers):
-            can_plant_sunflower = True
-
-
-# 无人机数目升级刷到最大（5级）
-def step3():
-    # 刷奇异物质到1200，解锁迷宫
-    while num_items(Items.Weird_Substance) < 2000:
-        for _ in range(get_world_size()):
-            if (get_pos_x() + get_pos_y()) % 2 == 0:
-                # 种树并用一次奇异物质
-                if can_harvest():
-                    harvest()
-                    plant(Entities.Tree)
-                    if num_items(Items.Fertilizer) > 0:
-                        use_item(Items.Fertilizer)
-                elif get_entity_type() == None:
-                    plant(Entities.Tree)
-                    if num_items(Items.Fertilizer) > 0:
-                        use_item(Items.Fertilizer)
-                move(North)
-            else:
-                # 种最缺的
-                if not can_harvest():
-                    plant(Entities.Grass)
-                    move(North)
-                    continue
-                harvest()
-                hay = num_items(Items.Hay)
-                wood = num_items(Items.Wood)
-                carrot = num_items(Items.Carrot)
-                if hay < wood and hay < carrot:
-                    plant(Entities.Grass)
-                elif wood < hay and wood < carrot:
-                    plant(Entities.Bush)
-                else:
-                    plant_if_affordable(Entities.Carrot)
-        move(East)
-        unlock(Unlocks.Grass)
-        unlock(Unlocks.Trees)
-        unlock(Unlocks.Carrots)
-        unlock(Unlocks.Watering)
-        if num_unlocked(Unlocks.Fertilizer) < FERTILIZER_UNLOCK_CAP:
-            unlock(Unlocks.Fertilizer)
-    unlock(Unlocks.Mazes)
-    # 刷奇异物质-刷金币-解锁更多无人机（能量不够要刷能量）
-    # 下面这个不对，会因为没有奇异物质而死循环
-    # idx = 0
-    # directions = [North, East, South, West]
-    # while num_items(Items.Gold) < 2000:
-    #     if get_entity_type() == Entities.Treasure:
-    #         harvest()
-    #     elif get_entity_type() == Entities.Hedge:
-    #         idx = (idx - 1) % 4
-    #         while not can_move(directions[idx]):
-    #             idx = (idx + 1) % 4
-    #         move(directions[idx])
-    #     else:
-    #         harvest()
-    #         plant(Entities.Bush)
-    #         use_item(Items.Weird_Substance, get_world_size() * 2 ** (num_unlocked(Unlocks.Mazes) - 1))
-    # unlock(Unlocks.Megafarm)
-
-
-def try_unlock_early_megafarm():
-    if num_unlocked(Unlocks.Mazes) < 1:
-        return
-    while num_unlocked(Unlocks.Megafarm) < 2:
-        cost = get_cost(Unlocks.Megafarm)
-        if cost == None or cost == {} or cost_amount(cost, Items.Bone) > 0:
-            return
-        farm_for_cost(cost)
-        if not unlock(Unlocks.Megafarm):
-            return
-        quick_print("reset_stage", "early_megafarm", num_unlocked(Unlocks.Megafarm), "time=", get_time(), "gold=", num_items(Items.Gold), "max_drones=", max_drones())
-
-
-# 扩张升到最大（9级）
-def step4():
-    if num_unlocked(Unlocks.Pumpkins) < 1:
-        farm_basic_for_cost(get_cost(Unlocks.Pumpkins))
-        unlock(Unlocks.Pumpkins)
-
-    # Expand 7 需要 64k 南瓜，短窗口验证显示会吞掉 reset 节奏。
-    # 先在 Expand 6 切到恐龙/金币阶段，避免为了更大棋盘过度刷南瓜。
-    while num_unlocked(Unlocks.Expand) < 6:
-        cost = get_cost(Unlocks.Expand)
-        if cost == None or cost == {}:
-            break
-        farm_for_cost(cost)
-        if not unlock(Unlocks.Expand):
-            break
-        quick_print("reset_stage", "expand", num_unlocked(Unlocks.Expand), "time=", get_time(), "pumpkin=", num_items(Items.Pumpkin))
-
-    farm_pumpkins_until(8000)
-    unlock(Unlocks.Cactus)
-    unlock(Unlocks.Polyculture)
-    quick_print("reset_stage", "polyculture", num_unlocked(Unlocks.Polyculture), "time=", get_time(), "pumpkin=", num_items(Items.Pumpkin))
-    farm_cactus_until(2000)
-    unlock(Unlocks.Dinosaurs)
-
-
-# 解锁排行榜
-def step5():
-    upgrade_mazes_for_gold()
-    upgrade_megafarm_for_final_push(3)
-    farm_gold_until(1000000)
-    upgrade_dinosaurs_for_bones()
-    farm_bones_until(2000000)
-    unlock(Unlocks.Leaderboard)
-
-
-def plant_if_affordable(entity):
-    if not can_pay_cost(get_cost(entity)):
-        return False
-    return plant(entity)
-
-
-def can_pay_cost(cost):
-    if cost == None:
+def nursery_stock(item, target, weird=False):
+    if max_drones() > 1:
+        return parallel_nursery_stock(item, target, weird)
+    if num_items(item) >= target:
         return True
-    items = [
-        Items.Hay,
-        Items.Wood,
-        Items.Carrot,
-        Items.Pumpkin,
-        Items.Power,
-        Items.Cactus,
-        Items.Gold,
-        Items.Bone,
-        Items.Weird_Substance,
-    ]
-    for item in items:
-        if num_items(item) < cost_amount(cost, item):
+    crop = Entities.Tree
+    support = Entities.Grass
+    if item == Items.Hay:
+        crop = Entities.Grass
+        support = Entities.Bush
+    elif item == Items.Carrot:
+        crop = Entities.Carrot
+        support = Entities.Bush
+        gain = 2 ** (num_unlocked(Unlocks.Carrots) - 1) * (5 * 2 ** num_unlocked(Unlocks.Polyculture))
+        count = (target - num_items(item) + gain - 1) // gain
+        seed = get_cost(Entities.Carrot)
+        reserve = count * 6 + 64
+        if not nursery_stock(Items.Hay, reserve * seed[Items.Hay]):
             return False
-    return True
-
-
-def cost_amount(cost, item):
-    if cost == None:
-        return 0
-    if item in cost:
-        return cost[item]
-    return 0
-
-
-def farm_for_cost(cost):
-    farm_basic_for_cost(cost)
-    weird_need = cost_amount(cost, Items.Weird_Substance)
-    if weird_need > 0:
-        farm_weird_substance_until(weird_need)
-    pumpkin_need = cost_amount(cost, Items.Pumpkin)
-    if pumpkin_need > 0:
-        farm_pumpkins_until(pumpkin_need)
-    cactus_need = cost_amount(cost, Items.Cactus)
-    if cactus_need > 0:
-        farm_cactus_until(cactus_need)
-    gold_need = cost_amount(cost, Items.Gold)
-    if gold_need > 0:
-        farm_gold_until(gold_need)
-    bone_need = cost_amount(cost, Items.Bone)
-    if bone_need > 0:
-        farm_bones_until(bone_need)
-
-
-def farm_scaled_cost_for_current_inventory(cost, multiplier):
-    if cost == None:
-        return
-    hay_need = cost_amount(cost, Items.Hay) * multiplier
-    if num_items(Items.Hay) < hay_need:
-        farm_hay_until(hay_need)
-    wood_need = cost_amount(cost, Items.Wood) * multiplier
-    if num_items(Items.Wood) < wood_need:
-        farm_wood_until(wood_need)
-    carrot_need = cost_amount(cost, Items.Carrot) * multiplier
-    if num_items(Items.Carrot) < carrot_need:
-        farm_carrots_until(carrot_need)
-    pumpkin_need = cost_amount(cost, Items.Pumpkin) * multiplier
-    if num_items(Items.Pumpkin) < pumpkin_need:
-        farm_pumpkins_until(pumpkin_need)
-    cactus_need = cost_amount(cost, Items.Cactus) * multiplier
-    if num_items(Items.Cactus) < cactus_need:
-        farm_cactus_until(cactus_need)
-    gold_need = cost_amount(cost, Items.Gold) * multiplier
-    if num_items(Items.Gold) < gold_need:
-        farm_gold_until(gold_need)
-
-
-def farm_basic_for_cost(cost):
-    if cost == None:
-        return
-    farm_hay_until(cost_amount(cost, Items.Hay))
-    farm_wood_until(cost_amount(cost, Items.Wood))
-    farm_carrots_until(cost_amount(cost, Items.Carrot))
-
-
-def upgrade_mazes_for_gold():
-    while num_unlocked(Unlocks.Mazes) < 3:
-        cost = get_cost(Unlocks.Mazes)
-        if cost == None or cost == {}:
-            return
-        if cost_amount(cost, Items.Gold) > 0 or cost_amount(cost, Items.Bone) > 0:
-            return
-        farm_for_cost(cost)
-        if not unlock(Unlocks.Mazes):
-            return
-        quick_print("reset_stage", "mazes", num_unlocked(Unlocks.Mazes), "time=", get_time(), "weird=", num_items(Items.Weird_Substance))
-
-
-def upgrade_megafarm_for_final_push(target_level):
-    while num_unlocked(Unlocks.Megafarm) < target_level:
-        cost = get_cost(Unlocks.Megafarm)
-        if cost == None or cost == {}:
-            return
-        if cost_amount(cost, Items.Bone) > 0:
-            return
-        farm_for_cost(cost)
-        if not unlock(Unlocks.Megafarm):
-            return
-        quick_print("reset_stage", "megafarm", num_unlocked(Unlocks.Megafarm), "time=", get_time(), "gold=", num_items(Items.Gold), "max_drones=", max_drones())
-
-
-def upgrade_dinosaurs_for_bones(target_level=3):
-    while num_unlocked(Unlocks.Dinosaurs) < target_level:
-        cost = get_cost(Unlocks.Dinosaurs)
-        if cost == None or cost == {}:
-            return
-        if cost_amount(cost, Items.Gold) > 0 or cost_amount(cost, Items.Bone) > 0:
-            return
-        farm_for_cost(cost)
-        if not unlock(Unlocks.Dinosaurs):
-            return
-        quick_print("reset_stage", "dinosaurs", num_unlocked(Unlocks.Dinosaurs), "time=", get_time(), "cactus=", num_items(Items.Cactus))
-
-
-def farm_hay_until(target):
-    while num_items(Items.Hay) < target:
-        entity = get_entity_type()
-        if entity != None and entity != Entities.Grass:
-            harvest()
-            entity = None
-        if entity == Entities.Grass and can_harvest():
-            harvest()
-            entity = None
-        if entity == None:
-            if get_ground_type() != Grounds.Grassland:
-                till()
-            plant(Entities.Grass)
-        move(North)
-
-
-def farm_wood_until(target):
-    while num_items(Items.Wood) < target:
-        entity = get_entity_type()
-        if entity != None and entity != Entities.Bush and entity != Entities.Tree:
-            harvest()
-            entity = None
-        if entity != None and can_harvest():
-            harvest()
-            entity = None
-        if entity == None:
-            if get_ground_type() != Grounds.Grassland:
-                till()
-            plant(Entities.Bush)
-        move(North)
-
-
-def farm_carrots_until(target):
-    while num_items(Items.Carrot) < target:
-        size = get_world_size()
-        farm_hay_until(num_items(Items.Hay) + size * size)
-        farm_wood_until(num_items(Items.Wood) + size * size)
-        for _ in range(size):
-            for _ in range(size):
-                entity = get_entity_type()
-                if entity != None and entity != Entities.Carrot:
-                    harvest()
-                    entity = None
-                if entity == Entities.Carrot and can_harvest():
-                    harvest()
-                    entity = None
-                if get_ground_type() == Grounds.Grassland:
-                    till()
-                if entity == None:
-                    plant_if_affordable(Entities.Carrot)
-                move(North)
-            move(East)
-        quick_print("reset_stage", "carrots", "time=", get_time(), "carrot=", num_items(Items.Carrot), "target=", target, "hay=", num_items(Items.Hay), "wood=", num_items(Items.Wood), "size=", size)
-
-
-def farm_pumpkins_until(target):
-    while num_items(Items.Pumpkin) < target:
-        if should_parallel_farm_pumpkins(target):
-            plant_pumpkin_field_parallel()
-            wait_pumpkin_field_parallel()
-            harvest_field_parallel()
-        else:
-            plant_pumpkin_field()
-            wait_pumpkin_field()
-            harvest_field()
-        quick_print("reset_stage", "pumpkins", "time=", get_time(), "pumpkin=", num_items(Items.Pumpkin), "target=", target, "size=", get_world_size())
-
-
-def should_parallel_farm_pumpkins(target):
+        if not nursery_stock(Items.Wood, reserve * seed[Items.Wood]):
+            return False
     size = get_world_size()
-    return max_drones() > 1 and size >= 6 and target - num_items(Items.Pumpkin) > size * size
-
-
-def parallel_pumpkin_worker(start_x, step_x, mode):
-    size = get_world_size()
-    if mode == 0:
-        x = start_x
-        while x < size:
-            goto_wrap(x, 0)
-            for _ in range(size):
-                entity = get_entity_type()
-                if entity != Entities.Pumpkin:
-                    if entity != None:
-                        harvest()
-                    if get_ground_type() == Grounds.Grassland:
-                        till()
-                    plant(Entities.Pumpkin)
-                move(North)
-            x = x + step_x
-        return
-    if mode == 1:
-        while True:
-            ready = 0
-            total = 0
-            x = start_x
-            while x < size:
-                goto_wrap(x, 0)
-                for _ in range(size):
-                    total = total + 1
-                    entity = get_entity_type()
-                    if entity == Entities.Dead_Pumpkin:
-                        harvest()
-                        if get_ground_type() == Grounds.Grassland:
-                            till()
-                        if num_items(Items.Carrot) > 0:
-                            plant(Entities.Pumpkin)
-                    elif entity == None:
-                        if get_ground_type() == Grounds.Grassland:
-                            till()
-                        if num_items(Items.Carrot) > 0:
-                            plant(Entities.Pumpkin)
-                    elif can_harvest():
-                        ready = ready + 1
-                    move(North)
-                x = x + step_x
-            if ready >= total:
-                return
-    x = start_x
-    while x < size:
-        goto_wrap(x, 0)
-        for _ in range(size):
-            if can_harvest():
-                harvest()
-            move(North)
-        x = x + step_x
-
-
-def run_parallel_pumpkin_mode(mode):
-    size = get_world_size()
-    worker_count = max_drones()
-    if worker_count > size:
-        worker_count = size
-    handles = []
-    worker_index = 1
-    while worker_index < worker_count:
-        handle = spawn_drone(parallel_pumpkin_worker, worker_index, worker_count, mode)
-        if handle != None:
-            handles.append(handle)
-        else:
-            parallel_pumpkin_worker(worker_index, worker_count, mode)
-        worker_index = worker_index + 1
-    parallel_pumpkin_worker(0, worker_count, mode)
-    for handle in handles:
-        wait_for(handle)
-
-
-def plant_pumpkin_field_parallel():
-    size = get_world_size()
-    farm_carrots_until(size * size * 3)
-    run_parallel_pumpkin_mode(0)
-
-
-def wait_pumpkin_field_parallel():
-    run_parallel_pumpkin_mode(1)
-
-
-def harvest_field_parallel():
-    run_parallel_pumpkin_mode(2)
-
-
-def plant_pumpkin_field():
-    size = get_world_size()
-    farm_carrots_until(size * size * 3)
-    for _ in range(size):
-        for _ in range(size):
-            entity = get_entity_type()
-            if entity != Entities.Pumpkin:
-                if entity != None:
-                    harvest()
-                if get_ground_type() == Grounds.Grassland:
-                    till()
-                plant(Entities.Pumpkin)
-            move(North)
-        move(East)
-
-
-def wait_pumpkin_field():
-    size = get_world_size()
-    while True:
-        ready = 0
-        for _ in range(size):
-            for _ in range(size):
-                entity = get_entity_type()
-                if entity == Entities.Dead_Pumpkin:
-                    harvest()
-                    if get_ground_type() == Grounds.Grassland:
-                        till()
-                    if num_items(Items.Carrot) > 0:
-                        plant(Entities.Pumpkin)
-                elif entity == None:
-                    if get_ground_type() == Grounds.Grassland:
-                        till()
-                    if num_items(Items.Carrot) > 0:
-                        plant(Entities.Pumpkin)
-                elif can_harvest():
-                    ready = ready + 1
-                move(North)
-            move(East)
-        if ready >= size * size:
-            return
-
-
-def harvest_field():
-    size = get_world_size()
-    for _ in range(size):
-        for _ in range(size):
-            if can_harvest():
-                harvest()
-            move(North)
-        move(East)
-
-
-def farm_cactus_until(target):
-    while num_items(Items.Cactus) < target:
-        size = get_world_size()
-        if size >= 8 and target - num_items(Items.Cactus) > size * size * 4:
-            farm_sorted_cactus_field()
-            continue
-        if num_items(Items.Pumpkin) < size * size * 2:
-            farm_pumpkins_until(size * size * 2)
-        for _ in range(size):
-            for _ in range(size):
-                if can_harvest():
-                    harvest()
-                if get_entity_type() == None:
-                    if get_ground_type() == Grounds.Grassland:
-                        till()
-                    plant(Entities.Cactus)
-                move(North)
-            move(East)
-        quick_print("reset_stage", "cactus", "time=", get_time(), "cactus=", num_items(Items.Cactus), "target=", target)
-
-
-def farm_sorted_cactus_field():
-    size = get_world_size()
-    if num_items(Items.Pumpkin) < size * size * 2:
-        farm_pumpkins_until(size * size * 2)
-    for _ in range(size):
-        for _ in range(size):
-            if get_entity_type() != None:
-                harvest()
-            if get_ground_type() == Grounds.Grassland:
-                till()
-            plant(Entities.Cactus)
-            move(North)
-        move(East)
-    wait_cactus_field()
-    for x in range(size):
-        goto_wrap(x, 0)
-        sort_cactus_line(North, South)
-    for y in range(size):
-        goto_wrap(0, y)
-        sort_cactus_line(East, West)
-    goto_wrap(0, 0)
-    harvest()
-    quick_print("reset_stage", "cactus_sorted", "time=", get_time(), "cactus=", num_items(Items.Cactus), "size=", size)
-
-
-def wait_cactus_field():
-    size = get_world_size()
-    while True:
-        ready = 0
-        for _ in range(size):
-            for _ in range(size):
-                if can_harvest():
-                    ready = ready + 1
-                move(North)
-            move(East)
-        if ready >= size * size:
-            return
-
-
-def sort_cactus_line(forward, backward):
-    size = get_world_size()
-    bound_low = 0
-    bound_high = size - 1
-    while True:
-        swap_pos_last = -1
-        move_cactus_line_to(forward, backward, bound_low)
-        i = bound_low
-        while i < bound_high - 1:
-            move(forward)
-            i = i + 1
-            a = measure(backward)
-            b = measure()
-            c = measure(forward)
-            if a > b:
-                swap(backward)
-                swap_pos_last = max(swap_pos_last, i)
-                a, b = b, a
-            if b > c:
-                swap(forward)
-                swap_pos_last = max(swap_pos_last, i + 1)
-                b, c = c, b
-                if a > b:
-                    swap(backward)
-        if swap_pos_last == -1:
-            break
-        bound_high = swap_pos_last - 2
-        if bound_low >= bound_high:
-            break
-        swap_pos_first = size
-        move_cactus_line_to(forward, backward, bound_high)
-        i = bound_high
-        while i > bound_low + 1:
-            move(backward)
-            i = i - 1
-            a = measure(backward)
-            b = measure()
-            c = measure(forward)
-            if b > c:
-                swap(forward)
-                swap_pos_first = min(swap_pos_first, i)
-                b, c = c, b
-            if a > b:
-                swap(backward)
-                swap_pos_first = min(swap_pos_first, i - 1)
-                a, b = b, a
-                if b > c:
-                    swap(forward)
-        if swap_pos_first == size:
-            break
-        bound_low = swap_pos_first + 2
-        if bound_low >= bound_high:
-            break
-    if bound_low + 1 == bound_high:
-        move_cactus_line_to(forward, backward, bound_low)
-        if measure() > measure(forward):
-            swap(forward)
-
-
-def move_cactus_line_to(forward, backward, target):
-    size = get_world_size()
-    if forward == North:
-        current = get_pos_y()
-    else:
-        current = get_pos_x()
-    delta = (target - current) % size
-    if delta <= size // 2:
-        for _ in range(delta):
-            move(forward)
-    else:
-        for _ in range(size - delta):
-            move(backward)
-
-
-def farm_weird_substance_until(target):
-    if num_items(Items.Weird_Substance) < target:
-        size = get_world_size()
-        if num_items(Items.Wood) < size * size:
-            farm_wood_until(size * size)
-        clear()
-    if should_parallel_farm_weird(target):
-        farm_weird_substance_parallel_until(target)
-        return
-    while num_items(Items.Weird_Substance) < target:
-        farm_weird_substance_worker(0, 1, target)
-        quick_print("reset_stage", "weird", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target, "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot), "fert=", num_items(Items.Fertilizer), "power=", num_items(Items.Power))
-
-
-def should_parallel_farm_weird(target):
-    size = get_world_size()
-    return max_drones() > 1 and size >= 4 and target - num_items(Items.Weird_Substance) > size * size * 2
-
-
-def farm_weird_substance_parallel_until(target):
-    size = get_world_size()
-    worker_count = max_drones()
-    if worker_count > size:
-        worker_count = size
-    quick_print("reset_stage", "weird_parallel_start", "time=", get_time(), "weird=", num_items(Items.Weird_Substance), "target=", target, "drones=", worker_count, "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot), "fert=", num_items(Items.Fertilizer), "power=", num_items(Items.Power))
-    worker_index = 1
-    while worker_index < worker_count:
-        spawn_drone(farm_weird_substance_worker, worker_index, worker_count, target)
-        worker_index = worker_index + 1
-    next_report = num_items(Items.Weird_Substance) + 4096
-    while num_items(Items.Weird_Substance) < target:
-        farm_weird_substance_worker(0, worker_count, target)
-        current_weird = num_items(Items.Weird_Substance)
-        if current_weird >= target or current_weird >= next_report:
-            quick_print("reset_stage", "weird_parallel", "time=", get_time(), "weird=", current_weird, "target=", target, "drones=", worker_count, "wood=", num_items(Items.Wood), "carrot=", num_items(Items.Carrot), "fert=", num_items(Items.Fertilizer), "power=", num_items(Items.Power))
-            next_report = current_weird + 4096
-
-
-def farm_weird_substance_worker(start_x, step_x, target):
-    size = get_world_size()
-    while num_items(Items.Weird_Substance) < target:
-        x = start_x
-        while x < size and num_items(Items.Weird_Substance) < target:
-            goto_wrap(x, 0)
+    anchors = []
+    anchor_set = set()
+    for y in range(0, min(size, 6), 2):
+        for x in range(0, min(size, 6), 2):
+            anchors.append((x, y))
+            anchor_set.add((x, y))
+    clear()
+    if support == Entities.Bush:
+        for x in range(size):
             for y in range(size):
-                if num_items(Items.Weird_Substance) >= target:
-                    return
-                if (x + y) % 2 == 0:
-                    if can_harvest():
-                        harvest()
-                    plant(Entities.Tree)
-                    if get_entity_type() == Entities.Tree and num_items(Items.Fertilizer) > step_x:
-                        use_item(Items.Fertilizer)
-                    maybe_add_weird_tree_companion()
-                else:
-                    maybe_collect_power_in_weird_slot()
+                if (x, y) not in anchor_set:
+                    if not plant(Entities.Bush):
+                        return False
                 move(North)
-            x = x + step_x
-
-
-def maybe_add_weird_tree_companion():
-    if not WEIRD_COMPANION_ENABLED:
-        return
-    if num_unlocked(Unlocks.Polyculture) < 1:
-        return
-    if get_entity_type() != Entities.Tree:
-        return
-    companion = get_companion()
-    if companion == None:
-        return
-    companion_entity = companion[0]
-    companion_pos = companion[1]
-    if companion_entity == None:
-        return
-    size = get_world_size()
-    companion_x = companion_pos[0]
-    companion_y = companion_pos[1]
-    if (companion_x + companion_y) % 2 == 0:
-        return
-    origin_x = get_pos_x()
-    origin_y = get_pos_y()
-    goto_wrap(companion_x, companion_y)
-    entity = get_entity_type()
-    if entity != companion_entity:
-        if entity != None:
+            move(East)
+    accepted = []
+    for _ in anchors:
+        accepted.append(False)
+    beginning = get_time()
+    initial = num_items(item)
+    produced = 0
+    rejected = 0
+    unready = 0
+    for visit in range(20000):
+        if get_time() > 7000 or get_time() > beginning + 700:
+            quick_print("directed_failed", "nursery_limit", item, get_time())
+            return False
+        index = visit % len(anchors)
+        x, y = anchors[index]
+        go(x, y)
+        if accepted[index]:
             if can_harvest():
                 harvest()
+                accepted[index] = False
+                produced += 1
+                if num_items(item) >= target:
+                    quick_print("directed_nursery", item, beginning, get_time(), produced, rejected, unready, num_items(item) - initial)
+                    return True
             else:
-                goto_wrap(origin_x, origin_y)
-                return
-        if get_ground_type() == Grounds.Grassland and companion_entity == Entities.Carrot:
+                unready += 1
+                if get_water() < 0.5 and num_items(Items.Water) >= 2:
+                    use_item(Items.Water, 2)
+                continue
+        if crop == Entities.Carrot and get_ground_type() != Grounds.Soil:
             till()
-        plant_if_affordable(companion_entity)
-    goto_wrap(origin_x, origin_y)
-
-
-def maybe_collect_power_in_weird_slot():
-    if num_items(Items.Power) >= WEIRD_POWER_FLOOR:
-        if can_harvest():
+        matched = False
+        for attempt in range(128):
+            if not affordable(get_cost(crop)) or not plant(crop):
+                quick_print("directed_failed", "nursery_material", item, get_time())
+                return False
+            companion = get_companion()
+            if companion == None:
+                return False
+            kind, position = companion
+            if kind == support and position not in anchor_set:
+                matched = True
+                break
             harvest()
-        return
-    entity = get_entity_type()
-    if entity == Entities.Sunflower:
-        if can_harvest():
-            harvest()
-            if num_items(Items.Power) < WEIRD_POWER_FLOOR:
-                plant_if_affordable(Entities.Sunflower)
-        return
-    if entity != None:
-        if can_harvest():
-            harvest()
-        return
-    if get_ground_type() == Grounds.Grassland:
-        till()
-    plant_if_affordable(Entities.Sunflower)
-
-
-def farm_gold_until(target):
-    while num_items(Items.Gold) < target:
-        if should_farm_gold_multi(target):
-            farm_gold_multi_until(target)
-        else:
-            farm_gold_single_cycle(target)
-        quick_print("reset_stage", "gold", "time=", get_time(), "gold=", num_items(Items.Gold), "target=", target, "weird=", num_items(Items.Weird_Substance), "power=", num_items(Items.Power))
-
-
-def should_farm_gold_multi(target):
+            rejected += 1
+        if not matched:
+            quick_print("directed_failed", "nursery_reroll", item, get_time())
+            return False
+        if weird:
+            if num_items(Items.Fertilizer) < 1 or not use_item(Items.Fertilizer):
+                quick_print("directed_failed", "nursery_fertilizer", get_time())
+                return False
+        if get_water() < 0.5 and num_items(Items.Water) >= 2:
+            use_item(Items.Water, 2)
+        accepted[index] = True
+    quick_print("directed_failed", "nursery_visits", item, get_time())
     return False
 
 
-def farm_gold_single_cycle(target):
-    maze_size = get_world_size()
-    set_world_size(maze_size)
-    maze_multiplier = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
-    substance = maze_size * maze_multiplier
-    gold_needed = target - num_items(Items.Gold)
-    gold_per_paid_move = maze_size * maze_size * maze_multiplier
-    total_paid_move_count = (gold_needed + gold_per_paid_move - 1) // gold_per_paid_move
-    if total_paid_move_count < 0:
-        total_paid_move_count = 0
-    batch_paid_move_count = total_paid_move_count
-    if batch_paid_move_count > 900:
-        batch_paid_move_count = 900
-    cycle_count = (batch_paid_move_count + 299) // 300
-    if cycle_count < 1:
-        cycle_count = 1
-    farm_weird_substance_until(substance * (batch_paid_move_count + cycle_count))
-    remaining_paid_move_count = batch_paid_move_count
-    while remaining_paid_move_count > 0 and num_items(Items.Gold) < target:
-        paid_move_count = remaining_paid_move_count
-        if paid_move_count > 300:
-            paid_move_count = 300
-        clear()
-        plant(Entities.Bush)
-        use_item(Items.Weird_Substance, substance)
-        maze_graph = build_maze_graph(maze_size)
-        for _ in range(paid_move_count):
-            if not use_treasure_once(substance, maze_graph):
-                return
-            if num_items(Items.Gold) >= target:
-                reset_world_after_maze(maze_size)
-                return
-        if num_items(Items.Gold) >= target:
-            reset_world_after_maze(maze_size)
-            return
-        remaining_paid_move_count = remaining_paid_move_count - paid_move_count
-        if remaining_paid_move_count <= 0:
-            return
-        if paid_move_count < 300:
-            return
+def nursery_support_strip(worker, workers, size, support, deadline):
+    first = worker * size // workers
+    last = (worker + 1) * size // workers
+    for y in range(first, last):
+        for x in range(size):
+            if get_time() > deadline:
+                return False
+            if x % 2 != 0 or y % 2 != 0:
+                go(x, y)
+                if not plant(support):
+                    return False
+    return True
 
 
-def farm_gold_multi_until(target):
-    drone_limit = max_drones()
-    if drone_limit < 4:
-        farm_gold_single_cycle(target)
-        return
-    original_size = get_world_size()
-    maze_size = original_size
-    set_world_size(maze_size)
-    substance = maze_size * (2 ** (num_unlocked(Unlocks.Mazes) - 1))
-    worker_count = drone_limit
-    if worker_count > maze_size * maze_size:
-        worker_count = maze_size * maze_size
-    batch_uses = 40
-    while num_items(Items.Gold) < target:
-        before_gold = num_items(Items.Gold)
-        farm_weird_substance_until(num_items(Items.Weird_Substance) + substance * worker_count * batch_uses)
-        set_world_size(maze_size)
-        clear()
-        handles = []
-        spawned = 1
-        for x in range(maze_size):
-            for y in range(maze_size):
-                if x != 0 or y != 0:
-                    if spawned < worker_count:
-                        handle = spawn_drone(gold_worker_at, x, y, target, substance, batch_uses, False)
-                        if handle != None:
-                            handles.append(handle)
-                            spawned = spawned + 1
-        gold_worker_at(0, 0, target, substance, batch_uses, True)
-        for handle in handles:
-            wait_for(handle)
-        if num_items(Items.Gold) >= target:
-            reset_world_after_maze(original_size)
-            return
-        quick_print("reset_stage", "gold_multi", "time=", get_time(), "gold=", num_items(Items.Gold), "target=", target, "workers=", worker_count, "weird=", num_items(Items.Weird_Substance))
-        if num_items(Items.Gold) <= before_gold:
-            break
-    reset_world_after_maze(original_size)
+def nursery_produce_strip(worker, workers, size, crop, support, item, target, weird, deadline):
+    anchors = []
+    for y in range(0, size, 2):
+        if (y // 2) % workers == worker:
+            for x in range(0, size, 2):
+                anchors.append((x, y))
+    accepted = []
+    for _ in anchors:
+        accepted.append(False)
+    if len(anchors) == 0:
+        return (True, 0, 0, 0)
+    produced = 0
+    rejected = 0
+    unready = 0
+    for visit in range(20000):
+        if num_items(item) >= target:
+            return (True, produced, rejected, unready)
+        if get_time() > deadline:
+            return (False, produced, rejected, unready)
+        index = visit % len(anchors)
+        x, y = anchors[index]
+        go(x, y)
+        if accepted[index]:
+            if can_harvest():
+                if weird and not use_item(Items.Fertilizer):
+                    return (False, produced, rejected, unready)
+                if not harvest():
+                    return (False, produced, rejected, unready)
+                accepted[index] = False
+                produced += 1
+                if num_items(item) >= target:
+                    return (True, produced, rejected, unready)
+            else:
+                unready += 1
+                if get_water() < 0.5 and num_items(Items.Water) >= 2:
+                    use_item(Items.Water, 2)
+                continue
+        if crop == Entities.Carrot and get_ground_type() != Grounds.Soil:
+            till()
+        matched = False
+        for attempt in range(128):
+            if get_time() > deadline or not affordable(get_cost(crop)) or not plant(crop):
+                return (False, produced, rejected, unready)
+            companion = get_companion()
+            if companion == None:
+                return (False, produced, rejected, unready)
+            kind, position = companion
+            px, py = position
+            if kind == support and (px % 2 != 0 or py % 2 != 0):
+                matched = True
+                break
+            harvest()
+            rejected += 1
+        if not matched:
+            return (False, produced, rejected, unready)
+        if get_water() < 0.5 and num_items(Items.Water) >= 2:
+            use_item(Items.Water, 2)
+        accepted[index] = True
+    return (False, produced, rejected, unready)
 
 
-def reset_world_after_maze(size):
-    set_world_size(size)
-    clear()
-
-
-def gold_worker_at(x, y, target, substance, max_uses, create_maze):
-    for _ in range(x):
-        move(East)
-    for _ in range(y):
-        move(North)
-    if create_maze:
-        plant(Entities.Bush)
-        use_item(Items.Weird_Substance, substance)
-    else:
-        while measure() == None and num_items(Items.Gold) < target:
-            pass
-    maze_graph = build_maze_graph(get_world_size())
-    uses = 0
-    while num_items(Items.Gold) < target and uses < max_uses and num_items(Items.Weird_Substance) >= substance:
-        if not use_treasure_once(substance, maze_graph):
-            return
-        uses = uses + 1
-
-
-def use_treasure_once(substance, maze_graph=None):
+def parallel_nursery_stock(item, target, weird=False):
+    if num_items(item) >= target:
+        return True
+    beginning = get_time()
+    initial = num_items(item)
     size = get_world_size()
-    pos = measure()
-    if pos != None:
-        if maze_graph != None and goto_treasure_with_graph(pos[0], pos[1], size, maze_graph):
-            return use_item(Items.Weird_Substance, substance)
-        if maze_graph == None and goto_treasure_in_maze(pos[0], pos[1], size):
-            return use_item(Items.Weird_Substance, substance)
-    for _ in range(size):
-        for _ in range(size):
-            if get_entity_type() == Entities.Treasure:
-                return use_item(Items.Weird_Substance, substance)
+    workers = min(max_drones(), size // 2)
+    crop = Entities.Tree
+    support = Entities.Grass
+    if item == Items.Hay:
+        crop = Entities.Grass
+        support = Entities.Bush
+    elif item == Items.Carrot:
+        crop = Entities.Carrot
+        support = Entities.Bush
+        gain = 2 ** (num_unlocked(Unlocks.Carrots) - 1) * (5 * 2 ** num_unlocked(Unlocks.Polyculture))
+        count = (target - num_items(item) + gain - 1) // gain
+        seed = get_cost(Entities.Carrot)
+        reserve = count * 6 + 4 * ((size // 2) ** 2)
+        if not nursery_stock(Items.Hay, reserve * seed[Items.Hay]):
+            return False
+        if not nursery_stock(Items.Wood, reserve * seed[Items.Wood]):
+            return False
+    deadline = min(7000, get_time() + 700)
+    if weird:
+        gain = 5 * 2 ** (num_unlocked(Unlocks.Trees) - 1) * (5 * 2 ** num_unlocked(Unlocks.Polyculture)) // 2
+        required = (target - num_items(item) + gain - 1) // gain + workers
+        while num_items(Items.Fertilizer) < required:
+            if get_time() > deadline:
+                quick_print("directed_failed", "nursery_fertilizer_reserve", get_time(), required)
+                return False
+            do_a_flip()
+    clear()
+    if support == Entities.Bush:
+        handles = []
+        passed = True
+        for worker in range(1, workers):
+            handle = spawn_drone(nursery_support_strip, worker, workers, size, support, deadline)
+            if handle == None:
+                passed = False
+                break
+            handles.append(handle)
+        if passed:
+            passed = nursery_support_strip(0, workers, size, support, deadline)
+        for handle in handles:
+            if not wait_for(handle):
+                passed = False
+        if not passed:
+            quick_print("directed_failed", "nursery_support_workers", get_time())
+            return False
+    handles = []
+    passed = True
+    results = []
+    for worker in range(1, workers):
+        handle = spawn_drone(nursery_produce_strip, worker, workers, size, crop, support, item, target, weird, deadline)
+        if handle == None:
+            passed = False
+            break
+        handles.append(handle)
+    if passed:
+        results.append(nursery_produce_strip(0, workers, size, crop, support, item, target, weird, deadline))
+    for handle in handles:
+        results.append(wait_for(handle))
+    produced = 0
+    rejected = 0
+    unready = 0
+    for result in results:
+        if result == None:
+            passed = False
+        else:
+            if not result[0]:
+                passed = False
+            produced += result[1]
+            rejected += result[2]
+            unready += result[3]
+    if not passed or num_items(item) < target:
+        quick_print("directed_failed", "nursery_production_workers", item, get_time(), num_items(item), target)
+        return False
+    quick_print("directed_parallel_nursery", item, beginning, get_time(), workers, produced, rejected, unready, num_items(item) - initial)
+    return True
+
+
+def boost_stock(cost, weird=False):
+    if weird:
+        return nursery_stock(Items.Weird_Substance, cost[Items.Weird_Substance], True)
+    for cycle in range(5):
+        if affordable(cost):
+            return True
+        for item in [Items.Carrot, Items.Hay, Items.Wood]:
+            if item in cost and not nursery_stock(item, cost[item]):
+                return False
+    return affordable(cost)
+
+
+def go(x, y):
+    size = get_world_size()
+    dx = (x - get_pos_x()) % size
+    dy = (y - get_pos_y()) % size
+    if dx > size // 2:
+        for _ in range(size - dx):
+            move(West)
+    else:
+        for _ in range(dx):
+            move(East)
+    if dy > size // 2:
+        for _ in range(size - dy):
+            move(South)
+    else:
+        for _ in range(dy):
             move(North)
-        move(East)
+
+
+def first_megafarm():
+    while num_unlocked(Unlocks.Speed) < 5:
+        if not buy(Unlocks.Speed):
+            return False
+    if not solar_reserve():
+        return False
+    if not boost_stock({Items.Weird_Substance: 1400}, True):
+        return False
+    if not unlock(Unlocks.Mazes):
+        return False
+    clear()
+    if not plant(Entities.Bush):
+        return False
+    size = get_world_size()
+    if not use_item(Items.Weird_Substance, size):
+        return False
+    graph = build_maze_graph(size)
+    for _ in range(60):
+        if get_time() > 7000:
+            return False
+        target = measure()
+        if target == None or not goto_treasure_with_graph(target[0], target[1], size, graph):
+            return False
+        if not use_item(Items.Weird_Substance, size):
+            return False
+        if num_items(Items.Gold) >= 2000:
+            clear()
+            if not unlock(Unlocks.Megafarm):
+                return False
+            quick_print("directed_megafarm", get_time(), max_drones(), num_items(Items.Power), num_items(Items.Fertilizer), num_items(Items.Weird_Substance))
+            return True
     return False
 
 
@@ -1584,13 +708,11 @@ def build_maze_graph(size):
             return graph
         move(backtrack.pop())
 
-
 def add_maze_edge(graph, source, target, direction):
     for edge in graph[source]:
         if edge[0] == target:
             return
     graph[source].append([target, direction])
-
 
 def goto_treasure_with_graph(tx, ty, size, graph):
     target = tx + ty * size
@@ -1600,24 +722,6 @@ def goto_treasure_with_graph(tx, ty, size, graph):
         if not move_with_graph_path(target, size, graph):
             return False
     return True
-
-
-def refresh_maze_edges(graph, size):
-    directions = [North, East, South, West]
-    backs = [South, West, North, East]
-    dx = [0, 1, 0, -1]
-    dy = [1, 0, -1, 0]
-    current = get_pos_x() + get_pos_y() * size
-    for idx in range(4):
-        nx = get_pos_x() + dx[idx]
-        ny = get_pos_y() + dy[idx]
-        if nx < 0 or ny < 0 or nx >= size or ny >= size:
-            continue
-        if can_move(directions[idx]):
-            neighbor = nx + ny * size
-            add_maze_edge(graph, current, neighbor, directions[idx])
-            add_maze_edge(graph, neighbor, current, backs[idx])
-
 
 def move_direct_toward_treasure(tx, ty, size, graph):
     current = get_pos_x() + get_pos_y() * size
@@ -1646,7 +750,6 @@ def move_direct_toward_treasure(tx, ty, size, graph):
         move(South)
         return True
     return False
-
 
 def move_with_graph_path(target, size, graph):
     start = get_pos_x() + get_pos_y() * size
@@ -1682,132 +785,535 @@ def move_with_graph_path(target, size, graph):
         move(path.pop())
     return True
 
+def pumpkin_strip(start, stride, size):
+    rounds = 0
+    expected = 0
+    for x in range(start, size, stride):
+        expected += size
+    while rounds < 300 and get_time() < 7000:
+        ready = 0
+        for x in range(start, size, stride):
+            go(x, 0)
+            for y in range(size):
+                kind = get_entity_type()
+                if kind != None and kind != Entities.Grass and kind != Entities.Pumpkin and kind != Entities.Dead_Pumpkin:
+                    harvest()
+                if get_ground_type() != Grounds.Soil:
+                    till()
+                if get_entity_type() != Entities.Pumpkin:
+                    if not affordable(get_cost(Entities.Pumpkin)) or not plant(Entities.Pumpkin):
+                        return False
+                if can_harvest():
+                    ready += 1
+                elif get_water() < 0.5 and num_items(Items.Water) >= 2:
+                    use_item(Items.Water, 2)
+                move(North)
+        if ready == expected:
+            return True
+        rounds += 1
+    return False
 
-def goto_treasure_in_maze(tx, ty, size):
+
+def parallel_pumpkin_stock(target):
+    size = get_world_size()
+    workers = min(size, max_drones())
+    while num_items(Items.Pumpkin) < target:
+        if get_time() > 7000:
+            return False
+        price = get_cost(Entities.Pumpkin)[Items.Carrot]
+        if not boost_stock({Items.Carrot: price * size * size * 2}):
+            return False
+        handles = []
+        success = True
+        for worker in range(1, workers):
+            handle = spawn_drone(pumpkin_strip, worker, workers, size)
+            if handle == None:
+                success = False
+                break
+            handles.append(handle)
+        if success:
+            success = pumpkin_strip(0, workers, size)
+        for handle in handles:
+            if not wait_for(handle):
+                success = False
+        if not success:
+            quick_print("directed_failed", "pumpkin_workers", get_time())
+            return False
+        origin()
+        before = num_items(Items.Pumpkin)
+        if not harvest():
+            return False
+        expected = size * size * min(6, size) * 2 ** (num_unlocked(Unlocks.Pumpkins) - 1)
+        if num_items(Items.Pumpkin) - before != expected:
+            quick_print("directed_failed", "pumpkin_group", get_time(), expected, num_items(Items.Pumpkin) - before)
+            return False
+        quick_print("directed_parallel_pumpkin", get_time(), workers, num_items(Items.Pumpkin) - before, num_items(Items.Power))
+    return True
+
+
+def next_megafarm():
+    size = get_world_size()
+    factor = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
+    unit = size * factor
+    gain = size * size * factor
+    target_gold = get_cost(Unlocks.Megafarm)[Items.Gold]
+    count = (max(0, target_gold - num_items(Items.Gold)) + gain - 1) // gain
+    if count > 299:
+        return False
+    if not boost_stock({Items.Weird_Substance: unit * (count + 1)}, True):
+        return False
+    clear()
+    if not plant(Entities.Bush) or not use_item(Items.Weird_Substance, unit):
+        return False
+    graph = build_maze_graph(size)
+    if not maze_team(graph, size, min(max_drones(), 8), target_gold, unit, min(7000, get_time() + 800)):
+        quick_print("directed_failed", "early_station_gold", get_time(), num_items(Items.Gold))
+        return False
+    clear()
+    if not unlock(Unlocks.Megafarm):
+        return False
+    quick_print("directed_megafarm", get_time(), max_drones(), num_items(Items.Power), num_items(Items.Fertilizer), num_items(Items.Weird_Substance))
+    return True
+
+
+def eight_drones():
+    if not buy(Unlocks.Fertilizer):
+        return False
+    if num_unlocked(Unlocks.Pumpkins) < 2:
+        if not buy(Unlocks.Pumpkins):
+            return False
+    if not buy(Unlocks.Expand):
+        return False
+    if not solar_reserve():
+        return False
+    if not next_megafarm():
+        return False
+    if not buy(Unlocks.Carrots):
+        return False
+    if not buy(Unlocks.Pumpkins) or not buy(Unlocks.Expand):
+        return False
+    if not solar_reserve():
+        return False
+    # 先用一田C1实付Maze2，再筹32000 Gold；不提前读取下一宝藏。
+    if not buy(Unlocks.Cactus) or not buy(Unlocks.Mazes):
+        return False
+    quick_print("early_maze2", get_time(), num_items(Items.Cactus), num_items(Items.Power))
+    return next_megafarm()
+
+
+def cactus_worker_supply(start, stride, phase, deadline):
+    size = get_world_size()
+    for line in range(start, size, stride):
+        if get_time() > deadline:
+            return False
+        if phase == 0:
+            go(line, 0)
+            for _ in range(size):
+                if get_ground_type() != Grounds.Soil:
+                    till()
+                if not affordable(get_cost(Entities.Cactus)) or not plant(Entities.Cactus):
+                    return False
+                if not move(North):
+                    return False
+            # 每轮真实闭合巡回；四轮已超过已核对的一秒成熟上界。
+            mature = False
+            for _ in range(4):
+                ready = 0
+                for _ in range(size):
+                    if can_harvest():
+                        ready += 1
+                    if not move(North):
+                        return False
+                if ready == size:
+                    mature = True
+                    break
+            if not mature or not sort_cactus_line(North, South, deadline):
+                return False
+        else:
+            go(0, line)
+            if not sort_cactus_line(East, West, deadline):
+                return False
+    return True
+
+
+def cactus_stock(target):
+    size = get_world_size()
+    workers = min(size, max_drones())
+    while num_items(Items.Cactus) < target:
+        if not ensure_power(300):
+            return False
+        price = get_cost(Entities.Cactus)[Items.Pumpkin]
+        if not pumpkin_stock(price * size * size):
+            return False
+        clear()
+        for phase in range(2):
+            deadline = get_time() + 120
+            handles = []
+            passed = True
+            for worker in range(1, workers):
+                handle = spawn_drone(cactus_worker_supply, worker, workers, phase, deadline)
+                if handle == None:
+                    passed = False
+                    break
+                handles.append(handle)
+            if passed:
+                passed = cactus_worker_supply(0, workers, phase, deadline)
+            for handle in handles:
+                if not wait_for(handle):
+                    passed = False
+            if not passed:
+                quick_print("directed_failed", "cactus_workers", get_time(), phase)
+                return False
+        origin()
+        expected = size * size * size * size * 2 ** (num_unlocked(Unlocks.Cactus) - 1)
+        before = num_items(Items.Cactus)
+        if not can_harvest() or not harvest() or num_items(Items.Cactus) - before != expected:
+            quick_print("directed_failed", "cactus_gain", get_time(), expected, num_items(Items.Cactus) - before)
+            return False
+        quick_print("directed_cactus", get_time(), num_items(Items.Cactus), num_items(Items.Power))
+    return True
+
+
+def ensure_power(target):
+    attempts = 0
+    while num_items(Items.Power) < target:
+        if attempts >= 5 or get_time() > 7000 or not solar_reserve():
+            return False
+        attempts += 1
+    return True
+
+
+def staged_supply():
+    # 提高每单位肥料的Weird兑现；费用全部走满当前伴生的生产。
+    for technology in [Unlocks.Trees, Unlocks.Trees, Unlocks.Watering,
+                       Unlocks.Watering, Unlocks.Watering, Unlocks.Watering]:
+        if not buy(technology):
+            return False
+    # 用实际16000 Carrot购买P4，再支付Expand7与Cactus科技的整田供料。
+    if not buy(Unlocks.Pumpkins):
+        return False
+    # Expand7的64000 Pumpkin走原真实供料，不借后期库存。
+    if not buy(Unlocks.Expand):
+        return False
+    quick_print("directed_expand16", get_time(), get_world_size(), num_items(Items.Power), num_items(Items.Pumpkin))
+    if not ensure_power(1200):
+        return False
+    while num_unlocked(Unlocks.Cactus) < 2:
+        if not buy(Unlocks.Cactus):
+            return False
+    # M2→4=504000；D0→4=518000；保留30000苹果与告警储备。
+    if not cactus_stock(1052000):
+        return False
+    while num_unlocked(Unlocks.Mazes) < 4:
+        if not buy(Unlocks.Mazes):
+            return False
+    while num_unlocked(Unlocks.Dinosaurs) < 4:
+        if not buy(Unlocks.Dinosaurs):
+            return False
+    quick_print("directed_supply", get_time(), num_items(Items.Cactus), num_items(Items.Power), num_items(Items.Fertilizer))
+    return True
+
+
+# 驻点服务：仅由预分配owner兑现；所有worker实际回程并观察新开墙。
+def maze_team(graph, size, workers, target_gold, unit, deadline):
     directions = [North, East, South, West]
-    backs = [South, West, North, East]
+    reverse = {North: South, East: West, South: North, West: East}
     dx = [0, 1, 0, -1]
     dy = [1, 0, -1, 0]
-    visited = []
-    backtrack = []
-    while True:
-        if get_pos_x() == tx and get_pos_y() == ty:
-            return True
-        current = get_pos_x() + get_pos_y() * size
-        if current not in visited:
-            visited.append(current)
-        moved = False
-        for idx in range(4):
-            nx = get_pos_x() + dx[idx]
-            ny = get_pos_y() + dy[idx]
-            if nx < 0 or ny < 0 or nx >= size or ny >= size:
+
+    def distances(center):
+        dist = []
+        parent = []
+        incoming = []
+        for _ in range(size * size):
+            dist.append(size * size)
+            parent.append(-1)
+            incoming.append(None)
+        dist[center] = 0
+        parent[center] = center
+        queue = [center]
+        for current in queue:
+            for edge in graph[current]:
+                if parent[edge[0]] == -1:
+                    parent[edge[0]] = current
+                    incoming[edge[0]] = edge[1]
+                    dist[edge[0]] = dist[current] + 1
+                    queue.append(edge[0])
+        return dist, parent, incoming
+
+    centers = [0]
+    tables = []
+    closest = []
+    for _ in range(size * size):
+        closest.append(size * size)
+    for worker in range(workers):
+        table = distances(centers[worker])
+        tables.append(table)
+        for node in range(size * size):
+            closest[node] = min(closest[node], table[0][node])
+        if worker + 1 < workers:
+            farthest = 0
+            for node in range(size * size):
+                if closest[node] > closest[farthest]:
+                    farthest = node
+            centers.append(farthest)
+    owners = []
+    for node in range(size * size):
+        owner = 0
+        for worker in range(1, workers):
+            if tables[worker][0][node] < tables[owner][0][node]:
+                owner = worker
+        owners.append(owner)
+
+    def serve(worker):
+        center = centers[worker]
+        dist, parent, incoming = tables[worker]
+        route = []
+        node = center
+        while node != 0:
+            route.append(tables[0][2][node])
+            node = tables[0][1][node]
+        for i in range(len(route) - 1, -1, -1):
+            if not move(route[i]):
+                return False
+        hits = 0
+        outbound = 0
+        discoveries = 0
+        while num_items(Items.Gold) < target_gold:
+            if get_time() >= deadline:
+                return False
+            treasure = measure()
+            if treasure == None:
+                return False
+            target = treasure[0] + treasure[1] * size
+            if owners[target] != worker:
+                # 原开边永久保留；闭合往返后仍在center。每次实际付400t移动和约0.066秒响应间隔。
+                idle_direction = graph[center][0][1]
+                if not move(idle_direction) or not move(reverse[idle_direction]):
+                    return False
                 continue
-            encoded = nx + ny * size
-            if encoded not in visited and can_move(directions[idx]):
-                move(directions[idx])
-                backtrack.append(backs[idx])
-                moved = True
-                break
-        if moved:
-            continue
-        if len(backtrack) <= 0:
+            route = []
+            node = target
+            while node != center:
+                route.append(incoming[node])
+                node = parent[node]
+            walked = []
+            for i in range(len(route) - 1, -1, -1):
+                if measure() != treasure or num_items(Items.Gold) >= target_gold:
+                    break
+                if not move(route[i]):
+                    return False
+                walked.append(route[i])
+                outbound += 1
+            if len(walked) == len(route) and num_items(Items.Gold) < target_gold and measure() == treasure:
+                if not use_item(Items.Weird_Substance, unit):
+                    return False
+                hits += 1
+            if num_items(Items.Gold) >= target_gold:
+                quick_print("station_worker", worker, hits, outbound, discoveries, get_time())
+                return True
+            # 返回路径仍使用本次出发的不可变方向列；新边只修改下一次出发的父指针。
+            new_edges = []
+            for i in range(len(walked) - 1, -2, -1):
+                x = get_pos_x()
+                y = get_pos_y()
+                current = x + y * size
+                for j in range(4):
+                    nx = x + dx[j]
+                    ny = y + dy[j]
+                    if 0 <= nx < size and 0 <= ny < size and can_move(directions[j]):
+                        neighbor = nx + ny * size
+                        known = False
+                        for edge in graph[current]:
+                            if edge[0] == neighbor:
+                                known = True
+                                break
+                        if not known:
+                            add_maze_edge(graph, current, neighbor, directions[j])
+                            add_maze_edge(graph, neighbor, current, reverse[directions[j]])
+                            new_edges.append(current)
+                            new_edges.append(neighbor)
+                            discoveries += 1
+                if i >= 0 and not move(reverse[walked[i]]):
+                    return False
+            for current in new_edges:
+                for edge in graph[current]:
+                    neighbor = edge[0]
+                    if dist[neighbor] > dist[current] + 1:
+                        dist[neighbor] = dist[current] + 1
+                        parent[neighbor] = current
+                        incoming[neighbor] = edge[1]
+                        new_edges.append(neighbor)
+        quick_print("station_worker", worker, hits, outbound, discoveries, get_time())
+        return True
+
+    handles = []
+    passed = True
+    for worker in range(1, workers):
+        handle = spawn_drone(serve, worker)
+        if handle == None:
+            passed = False
+            break
+        handles.append(handle)
+    if passed:
+        passed = serve(0)
+    for handle in handles:
+        if not wait_for(handle):
+            passed = False
+    return passed and num_items(Items.Gold) >= target_gold
+
+
+def finish_gold():
+    size = get_world_size()
+    multiplier = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
+    unit = size * multiplier
+    gain = size * size * multiplier
+    while num_items(Items.Gold) < 1000000:
+        if not ensure_power(2000):
             return False
-        move(backtrack.pop())
+        count = min(299, (1000000 - num_items(Items.Gold) + gain - 1) // gain)
+        target_gold = num_items(Items.Gold) + count * gain
+        if not boost_stock({Items.Weird_Substance: unit * (count + 1)}, True):
+            return False
+        clear()
+        if not plant(Entities.Bush) or not use_item(Items.Weird_Substance, unit):
+            return False
+        graph = build_maze_graph(size)
+        if not maze_team(graph, size, min(max_drones(), 8), target_gold, unit, min(7000, get_time() + 800)):
+            quick_print("directed_failed", "station_gold", get_time(), num_items(Items.Gold))
+            return False
+        clear()
+        quick_print("directed_gold", get_time(), num_items(Items.Gold), num_items(Items.Power), num_items(Items.Fertilizer))
+    return True
 
 
-def harvest_treasure_once(maze_graph=None):
-    size = get_world_size()
-    pos = measure()
-    if pos != None:
-        if maze_graph != None and goto_treasure_with_graph(pos[0], pos[1], size, maze_graph) and get_entity_type() == Entities.Treasure:
-            harvest()
-            return
-        if maze_graph == None and goto_treasure_in_maze(pos[0], pos[1], size) and get_entity_type() == Entities.Treasure:
-            harvest()
-            return
-    for _ in range(size):
-        for _ in range(size):
-            if get_entity_type() == Entities.Treasure:
-                harvest()
-                return
-            move(North)
-        move(East)
 
 
-def farm_bones_until(target):
-    set_world_size(get_world_size())
+
+def finish_bones():
+    if not ensure_power(2200):
+        return False
     clear()
-    while num_items(Items.Bone) < target:
-        goto_wrap(0, 0)
-        size = get_world_size()
-        target_tail = size * size - 2
-        remaining_cycles = estimate_dinosaur_cycles(target, size, target_tail)
-        farm_dinosaur_apple_cost(target_tail * remaining_cycles)
-        quick_print("reset_stage", "bone_prep", "time=", get_time(), "cycles=", remaining_cycles, "cactus=", num_items(Items.Cactus), "pumpkin=", num_items(Items.Pumpkin))
+    for cycle in range(15):
+        if num_items(Items.Bone) >= 2000000:
+            if not unlock(Unlocks.Leaderboard):
+                return False
+            quick_print("directed_done", get_time(), num_items(Items.Bone), num_items(Items.Gold))
+            return True
+        if get_time() > 7000 or num_items(Items.Cactus) < get_world_size() * get_world_size() * get_cost(Entities.Apple)[Items.Cactus]:
+            return False
+        origin()
+        before = num_items(Items.Bone)
         change_hat(Hats.Dinosaur_Hat)
-        run_dinosaur_chase_loop(size)
+        run_dinosaur_chase_loop(get_world_size())
         change_hat(Hats.Straw_Hat)
-        quick_print("reset_stage", "bones", "time=", get_time(), "bone=", num_items(Items.Bone), "target=", target)
+        if num_items(Items.Bone) <= before:
+            quick_print("directed_failed", "bone_no_gain", get_time(), cycle)
+            return False
+        quick_print("directed_bone", get_time(), num_items(Items.Bone) - before, num_items(Items.Cactus), num_items(Items.Power))
+        clear()
+    return False
 
 
-def estimate_dinosaur_cycles(target, size, target_tail):
-    level = num_unlocked(Unlocks.Dinosaurs)
-    if level < 1:
-        level = 1
-    multiplier = 2 ** (level - 1)
-    bone_per_cycle = target_tail * target_tail * multiplier
-    if bone_per_cycle <= 0:
-        return 1
-    remaining = target - num_items(Items.Bone)
-    cycles = (remaining + bone_per_cycle - 1) // bone_per_cycle
-    if cycles < 1:
-        return 1
-    return cycles
-
-
-def farm_dinosaur_apple_cost(apple_count):
-    cost = get_cost(Entities.Apple)
-    quick_print(
-        "reset_stage",
-        "apple_prep_start",
-        "time=",
-        get_time(),
-        "apples=",
-        apple_count,
-        "hay_need=",
-        cost_amount(cost, Items.Hay) * apple_count,
-        "wood_need=",
-        cost_amount(cost, Items.Wood) * apple_count,
-        "carrot_need=",
-        cost_amount(cost, Items.Carrot) * apple_count,
-        "pumpkin_need=",
-        cost_amount(cost, Items.Pumpkin) * apple_count,
-        "cactus_need=",
-        cost_amount(cost, Items.Cactus) * apple_count,
-        "power=",
-        num_items(Items.Power),
-    )
-    farm_scaled_cost_for_current_inventory(cost, apple_count)
-
-
-def goto_wrap(tx, ty):
+def sort_cactus_line(forward, backward, deadline):
     size = get_world_size()
-    half = size // 2
-    dx = (tx - get_pos_x()) % size
-    if dx <= half:
-        for _ in range(dx):
-            move(East)
-    else:
-        for _ in range(size - dx):
-            move(West)
-    dy = (ty - get_pos_y()) % size
-    if dy <= half:
-        for _ in range(dy):
-            move(North)
-    else:
-        for _ in range(size - dy):
-            move(South)
+    bound_low = 0
+    bound_high = size - 1
+    while True:
+        if get_time() >= deadline:
+            return False
+        swap_pos_last = -1
+        if not move_cactus_line_to(forward, backward, bound_low, deadline):
+            return False
+        i = bound_low
+        while i < bound_high - 1:
+            if get_time() >= deadline:
+                return False
+            if not move(forward):
+                return False
+            i = i + 1
+            a = measure(backward)
+            b = measure()
+            c = measure(forward)
+            if a > b:
+                if not swap(backward):
+                    return False
+                swap_pos_last = max(swap_pos_last, i)
+                a, b = b, a
+            if b > c:
+                if not swap(forward):
+                    return False
+                swap_pos_last = max(swap_pos_last, i + 1)
+                b, c = c, b
+                if a > b:
+                    if not swap(backward):
+                        return False
+        if swap_pos_last == -1:
+            break
+        bound_high = swap_pos_last - 2
+        if bound_low >= bound_high:
+            break
+        swap_pos_first = size
+        if not move_cactus_line_to(forward, backward, bound_high, deadline):
+            return False
+        i = bound_high
+        while i > bound_low + 1:
+            if get_time() >= deadline:
+                return False
+            if not move(backward):
+                return False
+            i = i - 1
+            a = measure(backward)
+            b = measure()
+            c = measure(forward)
+            if b > c:
+                if not swap(forward):
+                    return False
+                swap_pos_first = min(swap_pos_first, i)
+                b, c = c, b
+            if a > b:
+                if not swap(backward):
+                    return False
+                swap_pos_first = min(swap_pos_first, i - 1)
+                a, b = b, a
+                if b > c:
+                    if not swap(forward):
+                        return False
+        if swap_pos_first == size:
+            break
+        bound_low = swap_pos_first + 2
+        if bound_low >= bound_high:
+            break
+    if bound_low + 1 == bound_high:
+        if not move_cactus_line_to(forward, backward, bound_low, deadline):
+            return False
+        if get_time() >= deadline:
+            return False
+        if measure() > measure(forward):
+            if not swap(forward):
+                return False
+    return get_time() < deadline
 
+def move_cactus_line_to(forward, backward, target, deadline):
+    size = get_world_size()
+    if forward == North:
+        current = get_pos_y()
+    else:
+        current = get_pos_x()
+    delta = (target - current) % size
+    if delta <= size // 2:
+        for _ in range(delta):
+            if get_time() >= deadline:
+                return False
+            if not move(forward):
+                return False
+    else:
+        for _ in range(size - delta):
+            if get_time() >= deadline:
+                return False
+            if not move(backward):
+                return False
+    return get_time() < deadline
 
 def build_dinosaur_path(size):
     # 构造安全兜底路径：前期追苹果失败或尾巴变长后，沿这条路径继续吃满。
@@ -1833,7 +1339,6 @@ def build_dinosaur_path(size):
         line = line - 1
     path[0][1] = South
     return path
-
 
 def run_dinosaur_chase_loop(size):
     # 复用恐龙榜策略：先按 measure() 追苹果，尽早触发 3% 移动降本，再切回安全路径。
@@ -1916,9 +1421,13 @@ def run_dinosaur_chase_loop(size):
             if not update_and_move(South):
                 return
 
-    while update_and_move(path[state[0]][state[1]]):
-        pass
-
+    while True:
+        direction = path[state[0]][state[1]]
+        if direction == None or not can_move(direction):
+            return
+        move(direction)
+        state[0] = get_pos_x()
+        state[1] = get_pos_y()
 
 if __name__ == "__main__":
     lb_fastest_reset()

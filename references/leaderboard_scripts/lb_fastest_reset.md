@@ -1,5 +1,19 @@
 # lb_fastest_reset
 
+## 2026-10-26：伴生前生产升级正式版上榜53:43.604
+
+当前正式版迁入本地首选：在首次Polyculture准备前买Speed4和Pumpkins2，提前支付种子与1500 Carrot成本，将3000 Pumpkin准备由14片田降到7片；保留早期驻点、分档供料、金币和骨头链。只做预期机制优化，不采用迷宫重复领取或模块缓存漏洞。
+
+候选源`b396db3ab1f49a3c7e9918415511292f6b8754740aa58a68692f79e0928bdb9b`首次实机request 87完整3轮3256.249/3324.699/3246.176秒，官方均值3275.708秒。迁入时把入口及末尾调用由`lb_reset_directed`统一改名为`lb_fastest_reset`，其余执行AST不变；重新完整打榜request 94取得3214.586/3244.163/3212.063秒，官方均值3223.604秒。两个独立批次分别保存，不把改名当作提速原因。
+
+Steam账号成绩查询在17:45 UTC确认第61名、3223604ms。当前正式版53:43.604比旧历史实测168:48.299少115:04.695。三类时间：原入口本地两seed均值3237.950217819秒；无独立短时统计；正式入口官方完整3223.604秒。本地成绩与入口改名版本关系明确保留，不伪造新的本地运行。
+
+request 94执行源SHA256为`15f748661e541f4e843b1190e9a5e5a59e1c24019e9ae1ac321ee2c5b44f3df9`。结束后只更新文件头时间注释并核对AST相同；执行原文存于`.codex/leaderboard-astra/real-20261026/executed-sources/lb_fastest_reset.py`，最终源哈希及注释差异存于`closeout-manifest.json`。
+
+两次完整统计分别有18和13条水数量不足警告，均正常达到结束目标。BepInEx与Unity请求日志未见异常错误。`request87-full.json`、`request94-full.json`保存完整输出与双日志；`public-confirmation-last-two.json`保存公开成绩与时间。全部请求回到idle后恢复8份临时存档覆盖，request 95正常保存退出，health确认游戏进程消失。
+
+## 此前研究记录
+
 ## 2026-10-26：伴生前生产升级，两seed完整3237.950秒
 
 当前本地首选b396db3a：第一次产电及Trees3/Grass4/Carrots3/Pumpkins1后，提前购买Speed4、Pumpkins2，再筹3000 Pumpkin解锁伴生。后续只补Speed至5和Pumpkins至2，保持最终科技；未并入上一补电候选。Poly前南瓜从14田降到7田，种子价格翻倍，提前1500 Carrot、Power和成熟反馈全部实付。

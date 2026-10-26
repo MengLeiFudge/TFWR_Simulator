@@ -1,6 +1,6 @@
 from __builtins__ import *
+# 完整轮时间：2:25.112（2026-10-26，官方完整50轮，request 84）。
 
-# 2:43.788
 def lb_maze_single():
     clear()
     size = get_world_size()
@@ -34,18 +34,26 @@ def lb_maze_single():
 
 
     def refresh_current_edges(graph):
-        x = get_pos_x()
-        y = get_pos_y()
-        source = maze_index(x, y)
-        for direction in directions:
-            nx = x + dx[direction]
-            ny = y + dy[direction]
-            if not in_maze(nx, ny):
+        source = maze_index(get_pos_x(), get_pos_y())
+        pending = closed_edges[source]
+        i = 0
+        while i < len(pending):
+            edge = pending[i]
+            direction = edge[1]
+            if not can_move(direction):
+                i += 1
                 continue
-            if can_move(direction):
-                target = maze_index(nx, ny)
-                add_edge(graph, source, target, direction)
-                add_edge(graph, target, source, backs[direction])
+            target = edge[0]
+            graph[source].append([target, direction])
+            graph[target].append([source, backs[direction]])
+            pending.pop(i)
+            other = closed_edges[target]
+            j = 0
+            while j < len(other):
+                if other[j][0] == source:
+                    other.pop(j)
+                    break
+                j += 1
 
 
     def explore_maze(graph, visited, entered_from):
@@ -205,6 +213,26 @@ def lb_maze_single():
     explore_maze(graph, visited, None)
     explore_done_time = get_time()
     quick_print("maze_single_dfs", "explore_time=", explore_done_time - start_time)
+
+    closed_edges = []
+    for y in range(size):
+        for x in range(size):
+            pending = []
+            source = maze_index(x, y)
+            for direction in directions:
+                nx = x + dx[direction]
+                ny = y + dy[direction]
+                if not in_maze(nx, ny):
+                    continue
+                target = maze_index(nx, ny)
+                known = False
+                for edge in graph[source]:
+                    if edge[0] == target:
+                        known = True
+                        break
+                if not known:
+                    pending.append([target, direction])
+            closed_edges.append(pending)
 
     while True:
         if goto_treasure(graph):

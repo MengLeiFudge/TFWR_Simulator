@@ -1,38 +1,42 @@
 from __builtins__ import *
-# 5:38.927（2026-10-24，完整22轮；迁真源后复验）
-
+# 完整轮时间：5:33.201（2026-10-26，官方完整22轮，request 83）。
 
 def lb_sunflowers_single():
+    quick_print("sunflower_reserve", "start", "time=", get_time(), "power=", num_items(Items.Power))
     set_world_size(FIELD_SIZE)
-    positions = prepare_field(FIELD_SIZE)
-    if len(positions) == 0:
-        return
-    quick_print("sunflower_stage", "support_ready", "size=", FIELD_SIZE, "time=", get_time(), "power=", num_items(Items.Power))
+    positions, buckets = prepare_field(FIELD_SIZE)
+    quick_print("sunflower_reserve", "initialized", "time=", get_time(), "power=", num_items(Items.Power))
+    support = []
     batch = 0
     while num_items(Items.Power) < POWER_GOAL and batch < MAX_BATCHES:
-        buckets = plant_batch(positions, FIELD_SIZE)
-        quick_print("sunflower_stage", "planted", "batch=", batch, "time=", get_time(), "power=", num_items(Items.Power))
+        support = reserve_lowest(buckets, support)
+        if len(support) != SUPPORT_COUNT:
+            quick_print("sunflower_reserve", "support_limit", "batch=", batch, "time=", get_time())
+            return
         if not harvest_batch(buckets, FIELD_SIZE):
             return
         batch = batch + 1
-        quick_print("sunflower_stage", "harvested", "batch=", batch, "time=", get_time(), "power=", num_items(Items.Power))
-    quick_print("sunflower_stage", "done", "batches=", batch, "time=", get_time(), "power=", num_items(Items.Power), "goal=", num_items(Items.Power) >= POWER_GOAL)
+        quick_print("sunflower_reserve", "harvested", "batch=", batch, "time=", get_time(), "power=", num_items(Items.Power))
+        if num_items(Items.Power) >= POWER_GOAL:
+            break
+        buckets = plant_batch(positions, support, FIELD_SIZE)
+    quick_print("sunflower_reserve", "done", "batches=", batch, "time=", get_time(), "power=", num_items(Items.Power), "goal=", num_items(Items.Power) >= POWER_GOAL)
 
 
-# 单机榜使用8x8，左下3x3为永久最低花瓣支撑。
 FIELD_SIZE = 8
 POWER_GOAL = 10000
-SUPPORT_SIDE = 3
+SUPPORT_COUNT = 9
 SUPPORT_PETALS = 7
-# 执行上限；到界只输出未达标结果，不把部分进度当作成绩。
 MAX_BATCHES = 80
-MAX_SUPPORT_ATTEMPTS = 256
 MAX_MATURITY_SECONDS = 12
 
 
 def prepare_field(size):
-    # 准备土壤与九株7瓣支撑，返回其余格子的固定蛇形种植顺序。
+    # 首次清草翻地并种满全场，固定蛇形坐标也用于后续补种。
     positions = []
+    buckets = []
+    for petals in range(9):
+        buckets.append([])
     for y in range(size):
         if y % 2 == 0:
             columns = range(size)
@@ -44,29 +48,44 @@ def prepare_field(size):
                 till()
             if get_entity_type() != None:
                 harvest()
-            if x < SUPPORT_SIDE and y < SUPPORT_SIDE:
-                petals = 0
-                for attempt in range(MAX_SUPPORT_ATTEMPTS):
-                    plant(Entities.Sunflower)
-                    petals = measure()
-                    if petals == SUPPORT_PETALS:
-                        break
-                    harvest()
-                if petals != SUPPORT_PETALS:
-                    quick_print("sunflower_stage", "support_limit", "x=", x, "y=", y, "time=", get_time())
-                    return []
-                water_if_available(size)
-            else:
-                positions.append((x, y))
-    return positions
+            plant(Entities.Sunflower)
+            water_if_available(size)
+            pos = (x, y)
+            positions.append(pos)
+            buckets[measure() - SUPPORT_PETALS].append(pos)
+    return positions, buckets
 
 
-def plant_batch(positions, size):
-    # 整批种完并记录九个花瓣桶；收割期间不向这些空位重种。
+def reserve_lowest(buckets, previous):
+    # 全场只保留最低九株；同瓣先保留旧支撑，再从新株补足。
+    support = []
+    for petals in range(9):
+        bucket = buckets[petals]
+        for old in previous:
+            if old[1] == petals:
+                bucket.remove(old[0])
+                support.append(old)
+                if len(support) == SUPPORT_COUNT:
+                    return support
+        while len(bucket) > 0 and len(support) < SUPPORT_COUNT:
+            support.append((bucket.pop(), petals))
+        if len(support) == SUPPORT_COUNT:
+            return support
+    return support
+
+
+def plant_batch(positions, support, size):
+    # 保留株不重种或重测；其余55株仍按全图蛇形过滤后的顺序补齐。
     buckets = []
     for petals in range(9):
         buckets.append([])
+    retained = set()
+    for old in support:
+        retained.add(old[0])
+        buckets[old[1]].append(old[0])
     for pos in positions:
+        if pos in retained:
+            continue
         goto_wrap(pos[0], pos[1], size)
         plant(Entities.Sunflower)
         water_if_available(size)
@@ -75,7 +94,7 @@ def plant_batch(positions, size):
 
 
 def harvest_batch(buckets, size):
-    # 降序收完全部生产位；同瓣按环绕最近邻选择，并限制单株成熟等待。
+    # 九株支撑已从桶移出；其余降序收完后全场恰好剩九株。
     for petals in range(8, -1, -1):
         bucket = buckets[petals]
         while len(bucket) > 0:
@@ -85,7 +104,7 @@ def harvest_batch(buckets, size):
             while not can_harvest():
                 water_if_available(size)
                 if get_time() >= deadline:
-                    quick_print("sunflower_stage", "maturity_limit", "x=", pos[0], "y=", pos[1], "time=", get_time())
+                    quick_print("sunflower_reserve", "maturity_limit", "x=", pos[0], "y=", pos[1], "time=", get_time())
                     return False
             harvest()
             if num_items(Items.Power) >= POWER_GOAL:

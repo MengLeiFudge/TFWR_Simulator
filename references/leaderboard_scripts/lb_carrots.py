@@ -1,19 +1,55 @@
 from __builtins__ import *
+# 完整轮时间：4:36.794（2026-10-26，官方完整27轮，request 86）。
 
-# 4:32.943
 def lb_carrots():
     set_world_size(FIELD_SIZE)
+    workers = []
+    support_ready = True
     tile_count = 0
     for base_y in TILE_BASE_YS:
         for base_x in TILE_BASE_XS:
-            if tile_count >= ACTIVE_TILE_COUNT:
-                return
             goto(base_x, base_y)
             tile_count = tile_count + 1
             if tile_count < ACTIVE_TILE_COUNT:
-                spawn_drone(companion_carrot_tile_thread)
+                worker = spawn_drone(initialize_tile_support_worker)
+                if worker == None:
+                    quick_print("carrots_init stopped: support dispatch failed", tile_count)
+                    support_ready = False
+                    break
+                workers.append(worker)
+            else:
+                support_ready = initialize_tile_support_worker()
+        if not support_ready:
+            break
+    for worker in workers:
+        if not wait_for(worker):
+            support_ready = False
+    if not support_ready:
+        quick_print("carrots_init stopped: support preparation failed")
+        return
+
+    # 收齐全部支撑结果后才种生产锚点；生产期间不再改写支撑。
+    workers = []
+    tile_count = 0
+    for base_y in TILE_BASE_YS:
+        for base_x in TILE_BASE_XS:
+            goto(base_x, base_y)
+            tile_count = tile_count + 1
+            if tile_count < ACTIVE_TILE_COUNT:
+                worker = spawn_drone(companion_carrot_tile_thread)
+                if worker == None:
+                    quick_print("carrots_init stopped: production dispatch failed", tile_count)
+                    clear()
+                    return
+                workers.append(worker)
             else:
                 companion_carrot_tile_thread()
+    for worker in workers:
+        wait_for(worker)
+
+
+def initialize_tile_support_worker():
+    return init_tile_support(get_pos_x(), get_pos_y())
 
 
 FIELD_SIZE = 32
@@ -66,7 +102,6 @@ def companion_carrot_tile_thread():
     base_x = get_pos_x()
     base_y = get_pos_y()
 
-    init_tile_support(base_x, base_y)
     init_tile_anchors(base_x, base_y)
 
     while num_items(Items.Carrot) < GOAL_CARROTS:
@@ -94,7 +129,10 @@ def init_tile_support(base_x, base_y):
             if entity != Entities.Bush:
                 if entity != None:
                     harvest()
-                plant(Entities.Bush)
+                if not plant(Entities.Bush):
+                    quick_print("carrots_init stopped: support plant failed", x, y)
+                    return False
+    return True
 
 
 def init_tile_anchors(base_x, base_y):
