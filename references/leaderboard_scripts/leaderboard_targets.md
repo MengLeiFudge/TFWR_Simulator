@@ -12,7 +12,6 @@
 | [Cactus](https://steamcommunity.com/stats/2060160/leaderboards/17869881/) | 0:05.432 | 0:11.209 | 0:31.992 | 0:36.679 | [0:36.493](lb_start.py#L41) | 约 #97 | 3.256× | 69.3% | 100/2261 |
 | [Maze](https://steamcommunity.com/stats/2060160/leaderboards/17869891/) | 0:01.984 | 0:36.409 | 1:41.878 | 2:07.082 | [1:43.336](lb_start.py#L53) | 约 #33 | 2.838× | 64.8% | 100/1764 |
 | [Dinosaur](https://steamcommunity.com/stats/2060160/leaderboards/17869889/) | 3:47.942 | 7:52.494 | 11:56.230 | 14:00.951 | [15:18.164](lb_start.py#L49) | #100 之后 | 1.943× | 48.5% | 100/1726 |
-| [Wood](https://steamcommunity.com/stats/2060160/leaderboards/17869895/) | 2:38.334 | 3:54.525 | 4:27.262 | 5:07.177 | [6:40.410](lb_start.py#L17) | #100 之后 | 1.707× | 41.4% | 100/885 |
 | [Sunflowers](https://steamcommunity.com/stats/2060160/leaderboards/17869894/) | 2:07.279 | 2:28.321 | 3:21.282 | 3:56.314 | [3:56.812](lb_start.py#L61) | #100 之后 | 1.597× | 37.4% | 100/1215 |
 | [Fastest Reset](https://steamcommunity.com/stats/2060160/leaderboards/17869903/) | 12:15.173 | 32:46.927 | 43:00.774 | 62:47.343 | [52:15.911](lb_start.py#L5) | 约 #57（同分） | 1.594× | 37.3% | 100/4237 |
 | [Cactus Single](https://steamcommunity.com/stats/2060160/leaderboards/17827398/) | 0:08.145 | 0:14.734 | 0:18.211 | 0:22.313 | [0:21.472](lb_start.py#L45) | 约 #82（同分） | 1.457× | 31.4% | 100/532 |
@@ -21,6 +20,7 @@
 | [Carrots](https://steamcommunity.com/stats/2060160/leaderboards/17869887/) | 1:58.229 | 3:32.744 | 4:09.746 | 5:01.835 | [4:36.794](lb_start.py#L25) | 约 #59（同分） | 1.301× | 23.1% | 100/628 |
 | [Maze Single](https://steamcommunity.com/stats/2060160/leaderboards/17827402/) | 0:42.396 | 1:52.091 | 2:10.443 | 2:43.764 | [2:25.112](lb_start.py#L57) | 约 #60（同分） | 1.295× | 22.8% | 100/780 |
 | [Wood Single](https://steamcommunity.com/stats/2060160/leaderboards/17827415/) | 3:27.825 | 4:27.918 | 5:29.863 | 8:22.200 | [5:37.970](lb_start.py#L21) | 约 #34 | 1.261× | 20.7% | 100/368 |
+| [Wood](https://steamcommunity.com/stats/2060160/leaderboards/17869895/) | 2:38.334 | 3:54.525 | 4:27.262 | 5:07.177 | [4:43.895](lb_start.py#L17) | 约 #42 | 1.211× | 17.4% | 100/885 |
 | [Pumpkins Single](https://steamcommunity.com/stats/2060160/leaderboards/17827408/) | 3:56.114 | 6:33.878 | 7:15.234 | 8:14.304 | [7:38.450](lb_start.py#L37) | 约 #46 | 1.164× | 14.1% | 100/502 |
 | [Pumpkins](https://steamcommunity.com/stats/2060160/leaderboards/17869892/) | 5:34.180 | 5:57.770 | 6:16.799 | 7:12.833 | [6:39.370](lb_start.py#L33) | 约 #48 | 1.116× | 10.4% | 100/1408 |
 | [Hay](https://steamcommunity.com/stats/2060160/leaderboards/17869890/) | 0:58.262 | 1:48.018 | 1:50.145 | 1:56.875 | [1:51.991](lb_start.py#L9) | 约 #69（同分） | 1.037× | 3.5% | 100/1588 |
