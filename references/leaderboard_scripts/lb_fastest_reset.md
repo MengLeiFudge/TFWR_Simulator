@@ -1,5 +1,15 @@
 # lb_fastest_reset
 
+## 2026-10-26：Expand7全链路16×16，两seed完整结果
+
+私有`ee2146459e29d4c800e1cc6a1049581d4dff02b849e212b4ea93347082b299e5`在流水苗圃路线的8机后实际支付64000 Pumpkin升级Expand7，后续Cactus、Gold和Bone都维持16×16；苹果库存保护同步按真实田面面积。其余helper函数AST保持，不把闭式产量直接换算为时间。
+
+seed0/1完整4743.299982/4679.099849秒，正常Leaderboard1；同SHA两seed均值`4711.199915 / null / null`，较12×12苗圃版4925.399962省214.200047秒/4.349%。均无错误、警告、失败、输出丢失或负库存，spawn/wait次数相等。每份9田C2各131072，科技支付1034000、苹果支付16320后余129328 Cactus；4轮D4各520200 Bone，终点付款后余80800 Bone、1600 Gold。
+
+额外南瓜期间Power耗尽按实际计时，扩田和供应边界反而晚于父版；整轮收益主要由13轮骨头降到4轮兑现，金币仍有约880秒的准备/导航主路径。证据`.codex/leaderboard-astra/reset-expand16/{lb_reset_expand16.py,source-manifest.json,seed0.json,seed1.json,analysis.json,three-times.json}`。正式py、模型、Save0与请求79保持；本版尚无实机成绩。
+
+另一次固定“先伴生后供电”前缀a4e7b045把中间作物与Sunflower科技延后，1396.467050秒才拿Poly1，比父版晚76.878859秒；1800秒苗圃上限触发仍未双机，关闭此固定顺序，完整三值全null。证据`.codex/leaderboard-astra/reset-early-polyculture/`。runner有限返回completed不代表该策略达到双机或完整目标。
+
 ## 2026-10-26：固定支撑流水苗圃，两seed完整结果
 
 继路线重建后，私有`6eba370330b054a08c65499006f03a6a7ebe873b3ca19bc8eeda2821a5390715`把伴生供料改为多株巡回：Hay/Carrot使用永久Bush支撑，Tree/Weird使用永久Grass支撑；仅接受指向非生产位的指定伴生，成熟后才收获。Carrot重抽实际消耗Hay/Wood，开田前先按真实种价储备，缺料和128次重抽上限均有限退出。初期Polyculture之前保持前版流程。
