@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：53:43.604（2026-10-26，官方完整3轮，request 94）。
+# 完整轮时间：52:15.911（2026-10-26，官方完整3轮，request 98）。
 
 def lb_fastest_reset():
     step1()
@@ -128,31 +128,8 @@ def pumpkin_stock(target):
         if not basic({Items.Carrot: cost[Items.Carrot] * size * size * 2}):
             return False
         origin()
-        ready = 0
-        rounds = 0
-        while ready < size * size:
-            if get_time() > 7000 or rounds >= 300:
-                return False
-            ready = 0
-            for x in range(size):
-                for y in range(size):
-                    kind = get_entity_type()
-                    if kind != Entities.Pumpkin and kind != Entities.Dead_Pumpkin:
-                        if kind != None:
-                            harvest()
-                    if get_ground_type() != Grounds.Soil:
-                        till()
-                    if get_entity_type() != Entities.Pumpkin:
-                        if not affordable(get_cost(Entities.Pumpkin)):
-                            quick_print("directed_failed", "pumpkin_material", get_time())
-                            return False
-                        if not plant(Entities.Pumpkin):
-                            return False
-                    if can_harvest():
-                        ready += 1
-                    move(North)
-                move(East)
-            rounds += 1
+        if not pumpkin_strip(0, 1, size):
+            return False
         before = num_items(Items.Pumpkin)
         harvest()
         quick_print("directed_pumpkin", get_time(), num_items(Items.Pumpkin) - before)
@@ -786,32 +763,36 @@ def move_with_graph_path(target, size, graph):
     return True
 
 def pumpkin_strip(start, stride, size):
-    rounds = 0
-    expected = 0
+    # 各列只有一个写者；健康成熟格在整田收割前不会再枯死。
+    pending = []
     for x in range(start, size, stride):
-        expected += size
-    while rounds < 300 and get_time() < 7000:
-        ready = 0
-        for x in range(start, size, stride):
-            go(x, 0)
-            for y in range(size):
-                kind = get_entity_type()
-                if kind != None and kind != Entities.Grass and kind != Entities.Pumpkin and kind != Entities.Dead_Pumpkin:
+        for y in range(size):
+            pending.append((x, y))
+    watering = max_drones() > 1
+    deadline = min(7000, get_time() + 120)
+    while pending and get_time() < deadline:
+        remaining = []
+        for x, y in pending:
+            if get_time() >= deadline:
+                quick_print("directed_failed", "pumpkin_pending_deadline", get_time(), start, len(pending))
+                return False
+            go(x, y)
+            kind = get_entity_type()
+            if kind != None and kind != Entities.Pumpkin and kind != Entities.Dead_Pumpkin:
+                # 单机原流程收草；多机原流程直接翻地，保留各自准备费用。
+                if kind != Entities.Grass or not watering:
                     harvest()
-                if get_ground_type() != Grounds.Soil:
-                    till()
-                if get_entity_type() != Entities.Pumpkin:
-                    if not affordable(get_cost(Entities.Pumpkin)) or not plant(Entities.Pumpkin):
-                        return False
-                if can_harvest():
-                    ready += 1
-                elif get_water() < 0.5 and num_items(Items.Water) >= 2:
+            if get_ground_type() != Grounds.Soil:
+                till()
+            if get_entity_type() != Entities.Pumpkin:
+                if not affordable(get_cost(Entities.Pumpkin)) or not plant(Entities.Pumpkin):
+                    return False
+            if not can_harvest():
+                if watering and get_water() < 0.5 and num_items(Items.Water) >= 2:
                     use_item(Items.Water, 2)
-                move(North)
-        if ready == expected:
-            return True
-        rounds += 1
-    return False
+                remaining.append((x, y))
+        pending = remaining
+    return not pending
 
 
 def parallel_pumpkin_stock(target):
