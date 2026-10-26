@@ -1,5 +1,13 @@
 # lb_fastest_reset
 
+## 2026-10-26：先双机后伴生，实付速度与供电后单样本4248.380秒
+
+先以Trees4/Fertilizer2的真实感染收获供给Maze1，暂缓Polyculture，私有619107cd前缀1156.899859秒取得双机，比父版早约313秒；此时Poly0/Speed3，不能视为同等科技的整轮领先。首次前缀d4aeaf4d误把感染收益限定20，遇Poly0偶然伴生的100后有限退出，失败报告保留；修正只接受真实20/100，没有提前调用未解锁get_companion。
+
+直接接回完整路线62017bdc得4396.291945秒，比父版同seed4309.099953慢87.191992秒。双机南瓜后半及后续速度付款无电，前缀领先被回吐。仅将入口改为双机后先实付Speed4并实际补电，再生产Pumpkin/解锁Poly、购买Speed5，ff0af0d660161fb2c1219a3ac258f332cd3e621d2cf59d3190db35c4c69fee24完整seed1为4248.379847秒，省60.720106秒；未达预设100秒扩样门槛，保留单样本并停止此分支调参。没有把未扩样的单样本替换驻点版两seed均值4314.688317。
+
+两次完整运行均Leaderboard1、347次spawn/wait，终点Bone80800/Cactus129328/Gold1600，无错误、警告、丢输出或负库存。当前候选三值`4248.379847 / null / null`；前缀不是完整Reset时间。证据`.codex/leaderboard-astra/reset-megafarm-before-poly/`的四份来源manifest、各原报告、analysis.json和research-note.md。正式py、模型、Save0与请求79保持。
+
 ## 2026-10-26：16×16金币驻点服务，两seed完整结果
 
 私有37a4e31a79e946d32c82649bb1b84bf96ca28e5e779bba325052b1a03f079dba继承Expand7路线，把晚段单机追宝改为一次建图、8个固定图距离覆盖中心及唯一owner响应。服务机按缓存路径出去兑现后返回驻点，沿路补新开墙并更新后续路线；每张迷宫前实际补到2000 Power，全部worker回收后才换图。原生spawn复制、所有等待和返程均计费。
