@@ -40,7 +40,7 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --action quit
 
 1. 在 r2modman 的 TFWR profile 中安装上述 BepInExPack。
 2. 在 R2 的在线模组列表中搜索 `TFWR_Oracle_Runner`，选择作者 `MengLei` 的包并安装。也可导入发布 ZIP。
-3. 通过 R2 的模组启动入口打开游戏；外部请求负责进入工作区。
+3. 通过 R2 的模组启动入口打开游戏，或按下述 INI 配置经 Steam 启动；外部请求负责进入工作区。
 4. 在 profile 中检查 `BepInEx/config/mlj.tfwr.oracle-runner.cfg` 和 `BepInEx/LogOutput.log`。日志会输出实际 `state_file=` 路径。
 
 新配置默认 `AutoPlayMainMenu=false`，没有外部请求时保留主菜单。设为 `true` 可在启动后直接进入工作区；已有配置保留原值。
@@ -61,7 +61,15 @@ TFWR_BEPINEX_ROOT=C:\Users\YourName\AppData\Roaming\r2modmanPlus-local\TheFarmer
 
 `TFWR_BEPINEX_ROOT` 指向所选 profile 的 **BepInEx 目录**。可从 R2 打开 profile 文件夹后取得路径；不同安装方式可能使用不同位置。未设置时，客户端使用 `TFWR_GAME_ROOT/BepInEx`。也可通过 CLI 的 `--bepinex-root` 覆盖。WSL 支持上述 Windows 路径写法。
 
-先通过 R2 启动该 profile 的游戏，再调用 `prepare` 或提交脚本。使用 R2 profile 时，客户端只连接已有游戏进程；不会自行启动缺少 profile 参数的游戏 EXE。
+先加载该 profile 的游戏，再调用 `prepare` 或提交脚本。使用 R2 profile 时，Python 客户端只连接已有游戏进程；代理可按实机任务授权执行以下启动步骤。
+
+经 Steam 使用 R2 已安装的模组时：
+
+1. 在游戏关闭时备份游戏目录的 `doorstop_config.ini`。
+2. 保持 `enabled = true`，将 `target_assembly` 改为所选 `TFWR_BEPINEX_ROOT` 下 `core\BepInEx.Preloader.dll` 的 Windows 绝对路径，并确认 DLL 存在。目标是 BepInEx Preloader，不是 Oracle 插件 DLL。
+3. 通过 Steam 库启动游戏，或打开 `steam://rungameid/2060160`。
+4. 检查所选 profile 的新 `LogOutput.log`，确认 Oracle 已加载、`state_file` 路径正确；榜单运行后另核对 Steam 初始化与提交结果。
+5. 任务结束使用 `--action quit` 保存并正常退出。云存档冲突由用户选择，不代选。
 
 查询状态：
 
