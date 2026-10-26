@@ -1,5 +1,14 @@
 # lb_fastest_reset
 
+## 2026-10-26：16×16金币驻点服务，两seed完整结果
+
+私有37a4e31a79e946d32c82649bb1b84bf96ca28e5e779bba325052b1a03f079dba继承Expand7路线，把晚段单机追宝改为一次建图、8个固定图距离覆盖中心及唯一owner响应。服务机按缓存路径出去兑现后返回驻点，沿路补新开墙并更新后续路线；每张迷宫前实际补到2000 Power，全部worker回收后才换图。原生spawn复制、所有等待和返程均计费。
+
+seed0/1完整4320.276681/4309.099953秒；同SHA两seed均值`4314.688317 / null / null`，较16×16串行金币版4711.199915省396.511598秒/8.416%。两次正常解锁Leaderboard，无错误、警告、失败、输出丢失或负库存，各333次spawn/wait相等。两个迷宫合计489次成功重定位，终点仍余80800 Bone、1600 Gold、129328 Cactus；供应和前缀时间受新增解释器及随机反馈影响，不宣称前缀逐字相同。
+
+先前v1使用1t忙等且仅补1200电，seed1在200万API上限退出，Gold915584、Power0，完整三值null；未覆盖失败报告。v2改为付费的相邻边往返等待，并在每图前重新备电，供电成本包含在完整结果中。证据`.codex/leaderboard-astra/maze-station-team/{lb_reset_stations_v2.py,v2-manifest.json,v2-seed0.json,v2-seed1.json,analysis.json,three-times.json}`。这是本地候选，尚无实机结果；正式py、模型、Save0和请求79保持。
+
+
 ## 2026-10-26：Expand7全链路16×16，两seed完整结果
 
 私有`ee2146459e29d4c800e1cc6a1049581d4dff02b849e212b4ea93347082b299e5`在流水苗圃路线的8机后实际支付64000 Pumpkin升级Expand7，后续Cactus、Gold和Bone都维持16×16；苹果库存保护同步按真实田面面积。其余helper函数AST保持，不把闭式产量直接换算为时间。
