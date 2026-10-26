@@ -1,5 +1,13 @@
 # lb_fastest_reset
 
+## 2026-10-26：八机供料先升南瓜四级，两seed完整3394.650秒
+
+在4c2876ce并行苗圃版上只改staged_supply：先真实支付16000 Carrot购买Pumpkins4，再支付Expand7与Cactus科技供料。12×12整田产量3456→6912，使64000 Pumpkin扩田由19田减至10田；种植成本同步随等级升高，原动态备料/失败出口保持，没有借后期库存或免费补Power。
+
+同SHAa2b67effa29ab4253e247ecaf1323fe8bac1ab05d4e786f3d1805a6bd95d8058的seed1完整3419.059773秒，比父省132.538771，过事前80秒门槛后才跑seed0；seed0为3370.239943秒、省139.505543。均值`3394.649858073 / null / null`，比父3530.672015省136.022157秒/3.852585%。两组到Water5的84/87条日志逐字同，八机时刻不变；供料结束提前138.754263/132.188152秒，整轮收益没有回吐。
+
+两次Leaderboard1，终态只多一级Pumpkins，其余科技及Bone80800/Cactus129328/Gold1600同父。全部worker回收，无错误/警告/失败/负库存/丢输出；多机苗圃成熟收益按实际科技和生产日志核对通过。证据`.codex/leaderboard-astra/reset-pumpkin-multiplier/`的source-manifest、两份原报告、analysis-seed0/1及three-times。模型、正式py、Save0和79保持；尚无该版本实机成绩。
+
 ## 2026-10-26：自循环感染提前双机，完整偿付只省3秒
 
 非Bush成熟Tree可消耗正数1 Weird切换感染；Trees3普通感染收益10、净增9，棋盘Tree四邻均Grass而不互相取消感染。实际一次肥料启动可供给Maze1与首双机，单独前缀958.699588秒完成。该机制核对Core与模型一致，不用零数量调用；前缀尚欠Power、伴生和Speed4/5，不能算同等科技领先。
