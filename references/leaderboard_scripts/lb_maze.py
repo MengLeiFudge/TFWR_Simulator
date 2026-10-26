@@ -1,7 +1,8 @@
 from __builtins__ import *
 
-# 1:43.336
+# 完整轮时间：2:07.169（官方完整统计57轮）；本地seed1 122.617166秒，短时2轮124.6955秒。
 def lb_maze():
+    run_deadline = get_time() + 180
     clear()
     set_world_size(32)
     size = get_world_size()
@@ -210,79 +211,152 @@ def lb_maze():
         return 14
 
     def solve_maze_in_area(center, area, radius, owned_set):
-        owner_wait = 0.2
-        path = {center: []}
-        reverse_path = {center: []}
+        parent = {center: None}
         nodes = [center]
         for node in nodes:
             x, y = node
             for neighbor in maze_map[x][y]:
-                if neighbor in area and neighbor not in path:
-                    path[neighbor] = []
-                    for direction in path[node]:
-                        path[neighbor].append(direction)
-                    path[neighbor].append(relative_dir(node, neighbor))
-                    reverse_path[neighbor] = [relative_dir(neighbor, node)]
-                    for direction in reverse_path[node]:
-                        reverse_path[neighbor].append(direction)
+                if neighbor in area and neighbor not in parent:
+                    parent[neighbor] = node
                     nodes.append(neighbor)
+        path = {}
+        reverse_path = {}
+        # 路由图可包含途经别区的节点，只有互斥负责集合内的目标需要缓存路线。
+        for target in owned_set:
+            outward = []
+            backward = []
+            node = target
+            while parent[node] != None:
+                previous = parent[node]
+                outward.append(relative_dir(previous, node))
+                backward.append(relative_dir(node, previous))
+                node = previous
+            path[target] = []
+            for i in range(len(outward) - 1, -1, -1):
+                path[target].append(outward[i])
+            reverse_path[target] = backward
 
-        while num_items(Items.Gold) < target_gold_count:
+        hits = 0
+        while get_time() < run_deadline:
             treasure = measure()
-            wait_start = get_time()
-            while treasure not in area or (treasure not in owned_set and get_time() - wait_start <= owner_wait):
+            while treasure not in owned_set:
                 if treasure == None or num_items(Items.Gold) >= target_gold_count:
-                    return
-                if get_time() - wait_start > 1000:
-                    return
+                    quick_print("maze_owner done", center, hits, get_time())
+                    return True
+                if get_time() >= run_deadline:
+                    quick_print("maze_owner failed", "wait_deadline", center)
+                    return False
+                # 支付正常换帽的200tick再查询，降低闲机空转；不改实体或负责权。
+                change_hat(Hats.Straw_Hat)
                 treasure = measure()
-
-            new_paths = []
+            # 负责集合互斥；只有本机可以修改这个宝藏，路线期间它不会被别人推进。
             for direction in path[treasure]:
-                move(direction)
-
-            use_item(Items.Weird_Substance, maze_substance)
-            if treasure == measure():
-                harvest()
-                return
-
+                if not move(direction):
+                    quick_print("maze_owner failed", "outbound", center, treasure)
+                    return False
+            if measure() != treasure or get_entity_type() != Entities.Treasure:
+                quick_print("maze_owner failed", "ownership", center, treasure)
+                return False
+            # 300次标准重定位后，唯一负责机只执行一次最终收割并返回。
+            if num_items(Items.Gold) == target_gold_count - 32768:
+                if not harvest():
+                    quick_print("maze_owner failed", "final_harvest", center)
+                    return False
+                quick_print("maze_owner final", center, hits, get_time())
+                return True
+            if not use_item(Items.Weird_Substance, maze_substance):
+                quick_print("maze_owner failed", "reuse", center, num_items(Items.Gold))
+                return False
+            hits += 1
             for direction in reverse_path[treasure]:
-                move(direction)
+                if not move(direction):
+                    quick_print("maze_owner failed", "return", center)
+                    return False
+        quick_print("maze_owner failed", "deadline", center)
+        return False
 
-            if measure() in owned_set:
-                continue
-
-            for pos, moved_pos in new_paths:
-                if measure() == None:
-                    return
-                x, y = pos
-                moved_x, moved_y = moved_pos
-                if 0 <= x < size and 0 <= y < size and 0 <= moved_x < size and 0 <= moved_y < size:
-                    maze_map[x][y].add(moved_pos)
-                    maze_map[moved_x][moved_y].add(pos)
-
-            for pos, moved_pos in new_paths:
-                if moved_pos not in area or pos not in path or moved_pos not in path:
+    def complete_map(center):
+        # 已知边双向化；只有实际走到边界并通过can_move/move才补入未知区域。
+        for x in range(size):
+            for y in range(size):
+                for nx, ny in list(maze_map[x][y]):
+                    maze_map[nx][ny].add((x, y))
+        start = current_pos()
+        parent = {start: None}
+        incoming = {}
+        nodes = [start]
+        for node in nodes:
+            x, y = node
+            for neighbor in maze_map[x][y]:
+                if neighbor not in parent:
+                    parent[neighbor] = node
+                    incoming[neighbor] = relative_dir(node, neighbor)
+                    nodes.append(neighbor)
+        repaired = 0
+        if len(nodes) < size * size:
+            # 标记通向所有未知边界的已知树枝，一次遍历它们；撞墙后不重算全图BFS。
+            needed = set()
+            for node in nodes:
+                frontier = False
+                for direction in local_dirs:
+                    nx, ny = pos_move(node, direction)
+                    if 0 <= nx < size and 0 <= ny < size and (nx, ny) not in parent:
+                        frontier = True
+                        break
+                if frontier:
+                    previous = node
+                    while previous != None and previous not in needed:
+                        needed.add(previous)
+                        previous = parent[previous]
+            stack = [(start, None, 0)]
+            while stack:
+                if get_time() >= run_deadline:
+                    quick_print("maze_owner failed", "repair_deadline")
+                    return False
+                node, back, index = stack[-1]
+                if index == len(local_dirs):
+                    stack.pop()
+                    if back != None and not move(back):
+                        quick_print("maze_owner failed", "repair_backtrack")
+                        return False
                     continue
-                if abs(len(path[pos]) - len(path[moved_pos])) < 2:
+                stack[-1] = (node, back, index + 1)
+                direction = local_dirs[index]
+                neighbor = pos_move(node, direction)
+                nx, ny = neighbor
+                if not (0 <= nx < size and 0 <= ny < size):
                     continue
-                if len(path[pos]) > len(path[moved_pos]):
-                    pos = moved_pos
-                queue = [pos]
-                for node in queue:
+                if neighbor in parent:
+                    if parent[neighbor] != node or neighbor not in needed:
+                        continue
+                else:
+                    if not can_move(direction):
+                        continue
                     x, y = node
-                    for neighbor in maze_map[x][y]:
-                        if neighbor not in area and len(path[node]) < radius:
-                            area.add(neighbor)
-                        if neighbor in area and (neighbor not in path or len(path[neighbor]) > len(path[node]) + 1):
-                            path[neighbor] = []
-                            for direction in path[node]:
-                                path[neighbor].append(direction)
-                            path[neighbor].append(relative_dir(node, neighbor))
-                            reverse_path[neighbor] = [relative_dir(neighbor, node)]
-                            for direction in reverse_path[node]:
-                                reverse_path[neighbor].append(direction)
-                            queue.append(neighbor)
+                    maze_map[x][y].add(neighbor)
+                    maze_map[nx][ny].add(node)
+                    parent[neighbor] = node
+                    incoming[neighbor] = direction
+                    needed.add(neighbor)
+                    repaired += 1
+                if not move(direction):
+                    quick_print("maze_owner failed", "repair_move")
+                    return False
+                stack.append((neighbor, back_dir[direction], 0))
+        if len(parent) != size * size:
+            quick_print("maze_owner failed", "repair_incomplete", len(parent))
+            return False
+        route = []
+        node = center
+        while parent[node] != None:
+            route.append(incoming[node])
+            node = parent[node]
+        for i in range(len(route) - 1, -1, -1):
+            if not move(route[i]):
+                quick_print("maze_owner failed", "repair_return")
+                return False
+        quick_print("maze_owner map_complete", len(parent), repaired, get_time())
+        return True
 
     def maze_chunking(root, radius):
         node_parent = {root: None}
@@ -303,11 +377,12 @@ def lb_maze():
                     node = node_parent[node]
                 for i in range(len(path_to_center) - 1, -1, -1):
                     move(path_to_center[i])
-                solve_maze_in_area(center, area, radius, owned_set)
+                return solve_maze_in_area(center, area, radius, owned_set)
             return _task
 
         covered = set()
         solver_drones = []
+        root_owned = set()
         for i in range(len(nodes) - 1, -1, -1):
             node = nodes[i]
             if node in covered:
@@ -339,17 +414,24 @@ def lb_maze():
             if drone:
                 solver_drones.append(drone)
             else:
-                task(center, node_set, owned_set)()
+                for position in owned_set:
+                    root_owned.add(position)
 
         quick_print("maze_multi nodes=", len(nodes))
+        quick_print("maze_owner assigned", len(covered), len(solver_drones), len(root_owned))
         solve_start_time = get_time()
+        # 分区必须全部分配后才处理主机任务；容量不足不能阻塞剩余区域的负责权分配。
+        if root_owned:
+            if not solve_maze_in_area(root, set(nodes), radius, root_owned):
+                quick_print("maze_owner failed", "root_worker")
         last_gold = num_items(Items.Gold)
         last_progress_time = get_time()
         while solver_drones and num_items(Items.Gold) < target_gold_count:
             active = []
             for drone in solver_drones:
                 if has_finished(drone):
-                    wait_for(drone)
+                    if not wait_for(drone):
+                        quick_print("maze_owner failed", "worker")
                 else:
                     active.append(drone)
             solver_drones = active
@@ -361,6 +443,10 @@ def lb_maze():
             if get_time() - last_progress_time > 1000:
                 quick_print("maze_multi solve_stall gold=", current_gold, "active=", len(solver_drones))
                 break
+            change_hat(Hats.Straw_Hat)
+        for drone in solver_drones:
+            if not wait_for(drone):
+                quick_print("maze_owner failed", "final_worker")
         quick_print("maze_multi solve_done gold=", num_items(Items.Gold), "time=", get_time(), "solve_time=", get_time() - solve_start_time)
 
     center = (size_half, size_half)
@@ -369,6 +455,8 @@ def lb_maze():
         (0, size_half), (size_max, size_half),
         (0, 0), (size_half, 0), (size_max, 0),
     ])
+    if not complete_map(center):
+        return
     radius = k_center_on_tree(center)
     maze_chunking(center, radius)
 
