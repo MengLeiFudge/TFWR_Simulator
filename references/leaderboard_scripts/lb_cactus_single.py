@@ -1,6 +1,6 @@
 from __builtins__ import *
+# 完整轮时间：0:21.472（2026-10-26，官方完整336轮，request 101）。
 
-# 0:21.199
 def lb_cactus_single():
     set_world_size(8)
     goal = 131072
