@@ -4,10 +4,12 @@ import ast
 import copy
 from dataclasses import dataclass
 from collections import deque
+from enum import EnumType
 from collections.abc import Generator
 import inspect
 import math
 import types
+from typing import Any
 
 from .catalog import Hats, Items, Leaderboards, Unlocks
 from .language import game_str, BUILTINS
@@ -18,6 +20,39 @@ from .timing import Timing, StaticBindings, operation, builtin_cost, equals, com
 @dataclass(frozen=True)
 class Api:
     name: str
+
+
+@dataclass(frozen=True)
+class BoundFunction:
+    """游戏点运算绑定首参；不借用Python对象的方法查找。"""
+    function: object
+    receiver: object
+
+
+@dataclass
+class Module:
+    """一个无人机内共享的模块环境与导出绑定标记。"""
+    env: dict
+
+    def export(self, name):
+        if name not in self.env:
+            raise NameError(f'模块未定义名称 {name}')
+        return self.env[name], self.env.get('_timing_bindings_1', {}).get(name, True)
+
+
+def attribute(owner, owner_static, name, fallback):
+    """命名空间访问继承静态标记；普通值点函数只绑定首参。"""
+    if isinstance(owner, Module):
+        value, static = owner.export(name)
+        return (yield from elapsed((value, owner_static and static), 0))
+    if isinstance(owner, EnumType):
+        return (yield from elapsed((getattr(owner, name), owner_static), 0))
+    function, static = fallback()
+    if isinstance(function, BoundFunction):
+        function = function.function
+    if not isinstance(function, (Api, BoundFunction)) and not callable(function):
+        raise TypeError('点运算右侧必须是函数')
+    return BoundFunction(function, owner), static
 
 
 @dataclass
@@ -80,7 +115,7 @@ class Calls(ast.NodeTransformer):
 
     def visit_Call(self, node):
         self.generic_visit(node)
-        if isinstance(node.func, ast.Name) and node.func.id in ('_budget', '_elapsed', '_operation', '_slice'):
+        if isinstance(node.func, ast.Name) and node.func.id in ('_budget', '_elapsed', '_operation', '_slice', '_attribute', '_import', '_export', '_iterate'):
             return node
         return ast.copy_location(ast.YieldFrom(ast.Call(
             ast.Name('_dispatch', ast.Load()),
@@ -102,6 +137,11 @@ def compile_script(tree, path):
             if isinstance(node.ctx, ast.Store):
                 self.names.add(node.id)
 
+        def visit_Import(self, node):
+            self.names.update(alias.name for alias in node.names)
+
+        visit_ImportFrom = visit_Import
+
         def visit_FunctionDef(self, node):
             self.names.add(node.name)
 
@@ -120,6 +160,9 @@ def compile_script(tree, path):
 
 def dispatch(function, is_static, *args, **kwargs):
     """API交给调度器；用户函数和容器内建分别收取原版调用成本。"""
+    while isinstance(function, BoundFunction):
+        args = (function.receiver, *args)
+        function = function.function
     if isinstance(function, Api):
         if kwargs:
             raise TypeError('游戏 API 不接受关键字参数')
@@ -174,7 +217,8 @@ def evaluate(name, *args):
 
 def clone_function(function, args):
     """复制函数闭包及可变参数，保留同一副本内的别名和递归函数关系。"""
-    memo = {}
+    # 原版新ProgramState的导入缓存为空；已捕获的模块环境仍随闭包复制。
+    memo: dict[int, Any] = {id(function.__globals__['_modules']): {}}
 
     def clone(value):
         if id(value) in memo:
@@ -189,7 +233,22 @@ def clone_function(function, args):
             memo[id(value)] = result
             result.extend(clone(v) for v in value)
             return result
-        if isinstance(value, types.FunctionType) and value.__code__.co_filename == function.__code__.co_filename:
+        if isinstance(value, Module):
+            result = Module({})
+            memo[id(value)] = result
+            result.env = clone(value.env)
+            return result
+        if isinstance(value, BoundFunction):
+            result = object.__new__(BoundFunction)
+            memo[id(value)] = result
+            object.__setattr__(result, 'function', clone(value.function))
+            object.__setattr__(result, 'receiver', clone(value.receiver))
+            return result
+        if isinstance(value, tuple):
+            items = tuple(clone(item) for item in value)
+            # 递归容器可能已经在内层创建了同一元组副本。
+            return memo.setdefault(id(value), items)
+        if isinstance(value, types.FunctionType) and value.__globals__.get('_game_script'):
             # 同一无人机内的兄弟闭包须共享复制后的绑定，尤其是global写入的标量。
             cells = tuple(memo.setdefault(id(cell), types.CellType()) for cell in (value.__closure__ or ()))
             global_env = memo.get(id(value.__globals__))

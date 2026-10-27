@@ -8,13 +8,14 @@ from functools import lru_cache
 import json
 import multiprocessing
 from pathlib import Path
+from typing import Any
 import sys
 import time
 
 from .world import FarmWorld, UnsupportedMechanism
 from .catalog import Direction, Entities, Grounds, Items, Hats, Unlocks, Leaderboards
-from .language import BUILTINS
-from .execution import Api, Drone, Request, Scheduler, API_NAMES, compile_script, dispatch, elapsed, evaluate
+from .language import BUILTINS, game_iter
+from .execution import Api, Drone, Request, Scheduler, API_NAMES, Module, attribute, compile_script, dispatch, elapsed, evaluate
 
 
 class BudgetExceeded(RuntimeError):
@@ -23,6 +24,7 @@ class BudgetExceeded(RuntimeError):
 
 ALLOWED_NODES = (
     ast.Module, ast.Global, ast.FunctionDef, ast.arguments, ast.arg, ast.Return, ast.Assign,
+    ast.Import, ast.ImportFrom, ast.alias,
     ast.AugAssign, ast.Expr, ast.If, ast.For, ast.While, ast.Break, ast.Continue,
     ast.Pass, ast.Name, ast.Constant, ast.Load, ast.Store, ast.Call, ast.keyword,
     ast.Attribute, ast.List, ast.Tuple, ast.Dict, ast.Set, ast.Subscript, ast.Slice,
@@ -45,22 +47,29 @@ def compile_source(source, filename):
     path = Path(filename)
     tree = ast.parse(source, filename=filename)
     tree.body = [node for node in tree.body if not (
-        isinstance(node, ast.ImportFrom) and node.module == '__builtins__'
-        and node.level == 0 and len(node.names) == 1 and node.names[0].name == '*')]
-    attributes = {value.name for enum in (Entities, Grounds, Items, Hats, Unlocks, Leaderboards) for value in enum}
-    attributes.update(('append', 'pop', 'add', 'insert', 'remove'))
+        isinstance(node, ast.ImportFrom) and node.module in ('__builtins__', 'builtins'))]
     for node in ast.walk(tree):
         if not isinstance(node, ALLOWED_NODES):
             raise UnsupportedMechanism(f'第 {getattr(node, "lineno", "?")} 行：尚未支持 {type(node).__name__}')
-        if isinstance(node, ast.Attribute) and (node.attr.startswith('_') or node.attr not in attributes):
+        if isinstance(node, ast.Attribute) and node.attr.startswith('_'):
             raise UnsupportedMechanism(f'第 {node.lineno} 行：尚未支持属性 {node.attr}')
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            if isinstance(node, ast.ImportFrom) and (node.level or not node.module or not node.module.isidentifier()):
+                raise UnsupportedMechanism(f'第 {node.lineno} 行：仅支持同目录游戏模块')
+            if any(alias.asname or not alias.name.isidentifier() or alias.name.startswith('_') for alias in node.names):
+                raise UnsupportedMechanism(f'第 {node.lineno} 行：模块导入暂不支持通配、别名或私有名称')
         names = ([node.id] if isinstance(node, ast.Name) else [node.name] if isinstance(node, ast.FunctionDef)
                  else [node.arg] if isinstance(node, ast.arg) else node.names if isinstance(node, ast.Global) else [])
-        reserved = {'_budget', '_dispatch', '_Request', '_elapsed', '_operation', '_slice', '_missing', '_entry'}
+        reserved = {'_budget', '_dispatch', '_Request', '_elapsed', '_operation', '_slice', '_missing', '_entry',
+                    '_modules', '_import', '_export', '_attribute', '_game_script', '_iterate'}
         if any(name in reserved or name.startswith('_timing_') for name in names):
             raise UnsupportedMechanism(f'第 {getattr(node, "lineno", "?")} 行：名称与本地执行器保留名称冲突')
         if isinstance(node, ast.Name) and node.id.startswith('__') and node.id != '__name__':
             raise UnsupportedMechanism(f'第 {node.lineno} 行：不支持名称 {node.id}')
+        if isinstance(node, ast.Global) and len(node.names) != 1:
+            raise UnsupportedMechanism(f'第 {node.lineno} 行：游戏每条global只接受一个名称')
+        if isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Store):
+            raise UnsupportedMechanism(f'第 {node.lineno} 行：尚未支持模块属性赋值')
         if isinstance(node, ast.FunctionDef) and (node.decorator_list or node.returns):
             raise UnsupportedMechanism(f'第 {node.lineno} 行：不支持装饰器或返回类型注解')
     return compile_script(tree, path), hashlib.sha256(source.encode()).hexdigest()
@@ -122,11 +131,12 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         if trace_file:
             trace_file.write(encoded)
 
-    env = {'__builtins__': BUILTINS, '__name__': '__main__', '_missing': object(),
+    env: dict[str, Any] = {'__builtins__': BUILTINS, '__name__': '__main__', '_missing': object(),
            'Entities': Entities, 'Grounds': Grounds, 'Items': Items,
            'Hats': Hats, 'Unlocks': Unlocks, 'Leaderboards': Leaderboards,
            '_dispatch': dispatch, '_Request': Request,
-           '_elapsed': elapsed, '_operation': evaluate, '_slice': slice}
+           '_elapsed': elapsed, '_operation': evaluate, '_slice': slice, '_iterate': game_iter,
+           '_attribute': attribute, '_export': Module.export, '_modules': {}, '_game_script': True}
     env.update({d.value: d for d in Direction})
     for name in dir(world):
         if name.startswith('api_'):
@@ -146,7 +156,26 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         return True
 
     env['_budget'] = budget
+    dependencies = {}
 
+    def import_module(cache, name):
+        """模块首次导入执行一次；只读取入口同目录文件，报告记录每个依赖哈希。"""
+        if name in cache:
+            return cache[name]
+        dependency = path.resolve().parent / (name + '.py')
+        if dependency.is_symlink() or dependency.resolve().parent != path.resolve().parent:
+            raise UnsupportedMechanism('游戏模块必须位于入口同目录且不能是符号链接')
+        module_code, module_hash = load_script(dependency)
+        dependencies[name] = {'path': str(dependency), 'sha256': module_hash}
+        module_env = dict(template, __name__=name, _modules=cache)
+        module = Module(module_env)
+        cache[name] = module
+        exec(module_code, module_env)
+        yield from module_env['_entry']()
+        return module
+
+    env['_import'] = import_module
+    template = dict(env)
     status = 'completed'
     error = None
     try:
@@ -164,6 +193,7 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         'kind': 'prediction', 'status': status, 'error': error,
         'scenario': scenario or 'max_unlocks', 'script': str(path),
         'script_sha256': source_hash, 'seed': seed, 'stream_seeds': world.seeds,
+        'module_dependencies': dependencies,
         'goal_reached': world.items[world.goal[0]] >= world.goal[1] if world.goal else None,
         'api_ticks': world.ticks, 'tick_ns': world.tick_ns,
         'predicted_game_seconds': world.now_ns / 1000000000,

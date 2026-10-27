@@ -4,6 +4,7 @@ import ast
 import math
 import operator
 
+from .language import game_len, game_iter, string_units, join_units
 
 ARITHMETIC = {'Add': operator.add, 'Sub': operator.sub, 'Mult': operator.mul,
               'Div': operator.truediv, 'FloorDiv': operator.floordiv,
@@ -11,7 +12,9 @@ ARITHMETIC = {'Add': operator.add, 'Sub': operator.sub, 'Mult': operator.mul,
 
 
 def size(value):
-    """原版哈希键大小：元组递归计数，字符串按一个对象计数。"""
+    """原版哈希键大小：容器递归计数，字符串每8个UTF-16单元计1t。"""
+    if isinstance(value, str):
+        return max(1, game_len(value) // 8)
     if isinstance(value, (tuple, list, set, dict)):
         return sum(size(item) for item in value)
     return 1
@@ -22,6 +25,8 @@ def equals(left, right, counter):
     if counter[0] > 1000:
         raise ValueError('容器比较超过原版深度上限')
     counter[0] += 1
+    if isinstance(left, str) and isinstance(right, str):
+        return left.encode('utf-16-le', 'surrogatepass') == right.encode('utf-16-le', 'surrogatepass')
     if isinstance(left, (list, tuple)) and isinstance(right, (list, tuple, range)):
         return len(left) == len(right) and all(equals(a, b, counter) for a, b in zip(left, right))
     if isinstance(left, dict) and isinstance(right, dict):
@@ -45,7 +50,12 @@ def compare(left, right, counter):
 
 
 def contains(value, collection, counter):
-    """序列按检查项计费，哈希容器按键大小计费。"""
+    """字符串按全长计费；序列按检查项，哈希容器按键大小。"""
+    if isinstance(collection, str):
+        if not isinstance(value, str):
+            raise TypeError('字符串包含判断需要字符串')
+        counter[0] += game_len(collection)
+        return ''.join(string_units(value)) in ''.join(string_units(collection))
     if isinstance(collection, (dict, set)):
         counter[0] += size(value)
         return value in collection
@@ -63,8 +73,8 @@ def index_value(collection, index):
     if isinstance(collection, dict) or isinstance(index, slice):
         return index
     if index < 0:
-        index += len(collection)
-    if not 0 <= index < len(collection):
+        index += game_len(collection)
+    if not 0 <= index < game_len(collection):
         raise IndexError('序列索引越界')
     return int(index)
 
@@ -77,11 +87,11 @@ def operation(name, *args):
         left, right = args
         if op == 'Add' and isinstance(left, (list, tuple, str)):
             if augmented and isinstance(left, list):
-                cost = len(right)
-                left.extend(right)
+                cost = game_len(right)
+                left.extend(game_iter(right))
                 return left, cost
-            result = ARITHMETIC[op](left, right)
-            return result, len(result) if augmented else max(1, len(result))
+            result = join_units((left, right)) if isinstance(left, str) else ARITHMETIC[op](left, right)
+            return result, game_len(result) if augmented else max(1, game_len(result))
         return ARITHMETIC[op](*args), 1
     if name == 'compare':
         ops, *values = args
@@ -108,8 +118,11 @@ def operation(name, *args):
         return value, cost
     if name == 'get':
         collection, index = args
-        result = collection[index_value(collection, index)]
-        cost = max(1, size(index)) if isinstance(collection, dict) else max(1, len(result)) if isinstance(index, slice) else 1
+        source = string_units(collection) if isinstance(collection, str) else collection
+        result = source[index_value(collection, index)]
+        if isinstance(collection, str) and isinstance(index, slice):
+            result = join_units(result)
+        cost = max(1, size(index)) if isinstance(collection, dict) else max(1, game_len(result)) if isinstance(index, slice) else 1
         return result, cost
     if name == 'set':
         value, collection, index, op = args
@@ -166,6 +179,15 @@ class Timing(ast.NodeTransformer):
         """由运行时根据操作数类型计算成本。"""
         return self.call('_operation', [ast.Constant(name), *args])
 
+    def visit_Attribute(self, node):
+        owner = self.visit(node.value)
+        fallback = ast.Lambda(ast.arguments(posonlyargs=[], args=[], kwonlyargs=[],
+                             kw_defaults=[], defaults=[]),
+                              ast.Tuple([ast.Name(node.attr, ast.Load()), node._member_flag], ast.Load()))
+        resolved = self.call('_attribute', [owner, node._owner_flag, ast.Constant(node.attr), fallback])
+        pair = ast.NamedExpr(ast.Name(node._reference_name, ast.Store()), resolved)
+        return ast.copy_location(ast.Subscript(pair, ast.Constant(0), ast.Load()), node)
+
     def visit_BinOp(self, node):
         self.generic_visit(node)
         return ast.copy_location(self.op(type(node.op).__name__, node.left, node.right), node)
@@ -206,7 +228,7 @@ class Timing(ast.NodeTransformer):
         self.generic_visit(node)
         assignment = self.store(target, ast.Name(node.target.id, ast.Load()))
         node.body[:0] = assignment if isinstance(assignment, list) else [assignment]
-        node.iter = self.elapsed(node.iter)
+        node.iter = self.elapsed(ast.Call(ast.Name('_iterate', ast.Load()), [node.iter], []))
         return node
 
     def visit_Pass(self, node):
@@ -260,7 +282,7 @@ class Timing(ast.NodeTransformer):
         if isinstance(target, (ast.Tuple, ast.List)):
             names = [self.temporary() for _ in target.elts]
             unpack = ast.Tuple([ast.Name(name, ast.Store()) for name in names], ast.Store())
-            result = [ast.Assign([unpack], value)]
+            result = [ast.Assign([unpack], ast.Call(ast.Name('_iterate', ast.Load()), [value], []))]
             for part, name in zip(target.elts, names):
                 statement = self.store(part, ast.Name(name, ast.Load()))
                 result.extend(statement if isinstance(statement, list) else [statement])
@@ -295,6 +317,7 @@ class StaticBindings(ast.NodeTransformer):
         self.scopes = []
         self.serial = 0
         self.conditional = 0
+        self.references = 0
 
     @staticmethod
     def native(node):
@@ -314,6 +337,11 @@ class StaticBindings(ast.NodeTransformer):
 
             def visit_FunctionDef(self, node):
                 names.add(node.name)
+
+            def visit_Import(self, node):
+                names.update(alias.name for alias in node.names)
+
+            visit_ImportFrom = visit_Import
 
             def visit_Global(self, node):
                 globals_.update(node.names)
@@ -339,7 +367,7 @@ class StaticBindings(ast.NodeTransformer):
         for names, _, variable in reversed(scopes):
             if name in names:
                 return ast.Subscript(ast.Name(variable, ast.Load()), ast.Constant(name), context)
-        return ast.Constant(False)
+        return ast.Constant(True)
 
     def visit_Global(self, node):
         # 游戏global可写外层函数；Python需要用nonlocal表达该绑定。
@@ -372,6 +400,7 @@ class StaticBindings(ast.NodeTransformer):
         initial = self.enter(node)
         self.generic_visit(node)
         node.body.insert(0, initial)
+        node.body.insert(0, ast.Global(['_timing_bindings_1']))
         self.scopes.pop()
         return node
 
@@ -386,9 +415,43 @@ class StaticBindings(ast.NodeTransformer):
         self.conditional = conditional
         return [node, flag]
 
+    def expression_flag(self, node):
+        if isinstance(node, ast.Name):
+            return self.flag(node.id, ast.Load())
+        if isinstance(node, ast.Attribute):
+            return ast.Subscript(ast.Name(node._reference_name, ast.Load()), ast.Constant(1), ast.Load())
+        return ast.Constant(False)
+
+    def visit_Attribute(self, node):
+        self.generic_visit(node)
+        self.references += 1
+        node._reference_name = f'_timing_reference_{self.references}'
+        node._owner_flag = self.expression_flag(node.value)
+        node._member_flag = self.flag(node.attr, ast.Load())
+        return node
+
+    def visit_Import(self, node):
+        result = []
+        for alias in node.names:
+            load = Timing.call('_import', [ast.Name('_modules', ast.Load()), ast.Constant(alias.name)])
+            result.append(self.native(ast.Assign([ast.Name(alias.name, ast.Store())], load)))
+            result.append(self.set_flag(alias.name, self.conditional == 0))
+        return [ast.copy_location(item, node) for item in result]
+
+    def visit_ImportFrom(self, node):
+        self.references += 1
+        temporary = f'_timing_import_{self.references}'
+        load = Timing.call('_import', [ast.Name('_modules', ast.Load()), ast.Constant(node.module)])
+        result = [self.native(ast.Assign([ast.Name(temporary, ast.Store())], load))]
+        for alias in node.names:
+            value = ast.Call(ast.Name('_export', ast.Load()), [ast.Name(temporary, ast.Load()), ast.Constant(alias.name)], [])
+            target = ast.Tuple([ast.Name(alias.name, ast.Store()), self.flag(alias.name, ast.Store())], ast.Store())
+            result.append(self.native(ast.Assign([target], value)))
+        return [ast.copy_location(item, node) for item in result]
+
     def visit_Call(self, node):
         self.generic_visit(node)
-        node._static_flag = self.flag(node.func.id, ast.Load()) if isinstance(node.func, ast.Name) else ast.Constant(False)
+        node._static_flag = self.expression_flag(node.func)
         return node
 
     def visit_Assign(self, node):

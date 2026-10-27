@@ -50,7 +50,7 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 | `output` / `output_dropped` | 最近1000条脚本输出（每条最多4096字符）及已丢弃的早期输出条数；未丢弃时为0 |
 | `state.grounds` | 最终地面矩阵，按 `[y][x]` 读取，`size`行、`width`列，值为`Grounds.Soil`或`Grounds.Grassland`；只读序列化，不推进模拟时间。旧报告缺少此字段时表示未观测，不从till次数反推。 |
 
-JSONL 每行记录调用序号、无人机、API、参数、返回值、调用时刻的坐标/库存/当前格状态，以及预计可再次运行的 `ready_ns`。与单机按调用完成后记录的旧轨迹不同，它保留并发调用的时间顺序。报告附脚本哈希、seed和八流派生seed；只有开启trace才计算轨迹哈希，否则 `trace_sha256=null`。`warnings` 记录模拟内部启动入口被拒绝等情况。
+JSONL 每行记录调用序号、无人机、API、参数、返回值、调用时刻的坐标/库存/当前格状态，以及预计可再次运行的 `ready_ns`。与单机按调用完成后记录的旧轨迹不同，它保留并发调用的时间顺序。报告附脚本哈希、seed和八流派生seed；`module_dependencies`记录实际加载模块的路径与源码SHA256，没有导入时为空。只有开启trace才计算轨迹哈希，否则 `trace_sha256=null`。`warnings` 记录模拟内部启动入口被拒绝等情况。
 
 ## 机制与执行边界
 
@@ -62,7 +62,9 @@ JSONL 每行记录调用序号、无人机、API、参数、返回值、调用�
 
 游戏的 `global` 跳过当前函数，在最近的父作用域查找已有绑定；外层函数没有该名称时才落到模块。本地编译器据此转换闭包写入，并保持函数调用静态标记与同一无人机内共享闭包绑定一致。依据为当前Core源码 `Parser.Statement`、`Scope.SetVar/Evaluate`；此边界在2026-10-24因单机迷宫 `bfs_stamp` 被Python模块global误解析而修正，实机同seed对照尚待补充。
 
-尚未全面对齐非整数range、所有类型/解锁门槛和完整游戏语言语义。不支持的语法或非法参数会停止，不返回固定成功值。`simulate` / `leaderboard_run`只复现模拟内部禁止递归启动的行为；外部游戏启动使用真实协调器。
+字符串键按`max(1, UTF16长度 // 8)`计费，`str`本身1t，包含判断按全串长度计费；索引、切片、迭代和解包按UTF-16单元。普通值的点运算支持函数绑参。支持同目录显式`import helper` / `from helper import f`，首次导入执行模块初始化，后续导入保留导出静态标记；无人机复制相关作用域，新无人机首次导入仍执行初始化。139条专项实机观测已逐项对齐，具体写法与限制见[解释器计费指南](../../references/leaderboard_scripts/interpreter_cost_notes.md)。
+
+尚未全面对齐非整数range、所有类型/解锁门槛、完整浮点字符串格式化、地区相关字符串排序和完整游戏语言语义。通配导入（builtins类型提示导入除外）、模块属性赋值、多名称global等不支持的语法会拒绝，不按0t跳过。非法参数会停止，不返回固定成功值。`simulate` / `leaderboard_run`只复现模拟内部禁止递归启动的行为；外部游戏启动使用真实协调器。
 
 成熟使用纳秒定时事件，作物随机倍率保留Single精度；水分每0.1秒逐格抽取，包括干地，Power每0.2秒结算执行批次累计的消耗。实体外观和感染切换也消耗共享various随机流。同刻事件保留原版四叉堆顺序。已验证的长场景达到单seed时间门槛；整段结束时间仍有毫秒级差异，具体场景和剩余边界见[验收记录](validation.md)。
 

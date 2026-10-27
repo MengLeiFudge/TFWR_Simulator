@@ -4,15 +4,54 @@ import math
 from enum import Enum
 
 
-def game_str(value=''):
-    """输出游戏枚举和容器表示；不包含完整原版浮点格式化器。"""
+def game_len(value):
+    """字符串长度使用游戏的UTF-16代码单元；容器仍按元素计数。"""
+    return len(value.encode('utf-16-le', 'surrogatepass')) // 2 if isinstance(value, str) else len(value)
+
+
+def string_units(value):
+    """按.NET char拆分字符串，保留代理项以供索引和切片。"""
+    encoded = value.encode('utf-16-le', 'surrogatepass')
+    return [encoded[i:i + 2].decode('utf-16-le', 'surrogatepass') for i in range(0, len(encoded), 2)]
+
+
+def game_iter(value):
+    return string_units(value) if isinstance(value, str) else value
+
+
+def game_list(value=()):
+    return list(game_iter(value))
+
+
+def game_set(value=()):
+    return set(game_iter(value))
+
+
+def join_units(values):
+    return ''.join(values).encode('utf-16-le', 'surrogatepass').decode('utf-16-le', 'surrogatepass')
+
+
+def game_str(value='', depth=0, seen=None, sequence_element=False):
+    """容器字符串遵循ToNiceString的引号、重复引用及深度规则。"""
+    if depth > 100:
+        return ''
+    if seen is not None and id(value) in seen:
+        return '...'
+    if isinstance(value, (list, dict)):
+        if seen is None:
+            seen = set()
+        seen.add(id(value))
+    def nested(item):
+        return game_str(item, depth + 1, seen, True)
     if isinstance(value, Enum):
         return value.value
     if isinstance(value, (list, tuple, set)):
         left, right = ('[', ']') if isinstance(value, list) else ('(', ')') if isinstance(value, tuple) else ('{', '}')
-        return left + ','.join(game_str(v) for v in value) + right
+        return left + ','.join(nested(v) for v in value) + right
     if isinstance(value, dict):
-        return '{' + ','.join(game_str(k) + ':' + game_str(v) for k, v in value.items()) + '}'
+        return '{' + ','.join(nested(k) + ':' + nested(v) for k, v in value.items()) + '}'
+    if isinstance(value, str) and sequence_element:
+        return "'" + value + "'"
     if isinstance(value, float) and value.is_integer():
         return str(int(value))
     return str(value)
@@ -57,6 +96,6 @@ def remove(values, value):
     values.remove(value)
 
 
-BUILTINS = {'range': range, 'min': min, 'max': max, 'len': len, 'abs': abs,
-            'str': game_str, 'list': list, 'dict': dict, 'set': set,
+BUILTINS = {'range': range, 'min': min, 'max': max, 'len': game_len, 'abs': abs,
+            'str': game_str, 'list': game_list, 'dict': dict, 'set': game_set,
             'append': append, 'insert': insert, 'pop': pop, 'remove': remove, 'add': add}
