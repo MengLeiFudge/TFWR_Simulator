@@ -1,5 +1,7 @@
 from __builtins__ import *
-# 完整轮时间：52:15.911（2026-10-26，官方完整3轮，request 98）。
+# 完整轮时间：51:46.851（2026-10-28，官方完整3轮，request 182）。
+# 恐龙路径Copyright (c) 2026 enihsyou，MIT许可见enihsyou_LICENSE.txt。
+
 
 def lb_fastest_reset():
     step1()
@@ -1296,119 +1298,88 @@ def move_cactus_line_to(forward, backward, target, deadline):
                 return False
     return get_time() < deadline
 
-def build_dinosaur_path(size):
-    # 构造安全兜底路径：前期追苹果失败或尾巴变长后，沿这条路径继续吃满。
-    path = []
-    for _ in range(size):
-        path.append([])
-        for _ in range(size):
-            path[-1].append(None)
-
-    for x in range(size - 1):
-        path[x][0] = East
-    path[-1][0] = North
-
-    line = size - 1
-    for _ in range(size // 2):
-        for y in range(1, size - 1):
-            path[line][y] = North
-        path[line][-1] = West
-        line = line - 1
-        for y in range(2, size):
-            path[line][y] = South
-        path[line][1] = West
-        line = line - 1
-    path[0][1] = South
-    return path
-
 def run_dinosaur_chase_loop(size):
-    # 复用恐龙榜策略：先按 measure() 追苹果，尽早触发 3% 移动降本，再切回安全路径。
-    path = build_dinosaur_path(size)
-    state = [get_pos_x(), get_pos_y(), 0, 0, 1, 0]
-    measured = measure()
-    if measured:
-        state[2] = measured[0]
-        state[3] = measured[1]
+    # https://www.reddit.com/r/TheFarmerWasReplaced/comments/1o90hxs/my_sna_i_mean_dinosaur_algorithm/
+    s = get_world_size()
+    m = s - 1
+    l = s * s // 2  # 苹果观测次数阈值；直段可能经过苹果，因此不等于精确尾长。
 
-    def update_and_move(direction):
-        if direction == None:
-            return False
-        if not can_move(direction):
-            return False
-        move(direction)
-        state[5] = state[5] + 1
-        measured_pos = measure()
-        if measured_pos:
-            state[2] = measured_pos[0]
-            state[3] = measured_pos[1]
-            state[4] = state[4] + 1
-        state[0] = get_pos_x()
-        state[1] = get_pos_y()
-        return True
-
-    while state[4] < size * size / 3:
-        state[5] = 0
-        while state[5] < state[4]:
-            if not update_and_move(path[state[0]][state[1]]):
-                return
-        while state[0] < state[2]:
-            if not update_and_move(East):
-                return
-        while state[1] == 0:
-            if state[0] % 2 == 0:
-                if not update_and_move(East):
-                    return
-            else:
-                if not update_and_move(North):
-                    return
-        while state[0] >= state[2]:
-            target_x = state[2]
-            target_y = state[3]
-            if target_y == 0:
-                break
-            while state[1] < target_y:
-                if can_move(North):
-                    if not update_and_move(North):
-                        return
-                else:
-                    if not update_and_move(West):
-                        return
-                    if state[0] == 0:
-                        break
-            if state[0] == 0:
-                break
-            while state[1] > target_y:
-                if can_move(South):
-                    if not update_and_move(South):
-                        return
-                else:
-                    if not update_and_move(West):
-                        return
-                    if state[0] == 0:
-                        break
-            if state[0] == 0:
-                break
-            while state[0] > target_x:
-                if not update_and_move(West):
-                    return
-                if state[0] == 0:
-                    break
-            if state[0] == 0:
-                break
-        while state[0] > 0:
-            if not update_and_move(West):
-                return
-        while state[1] > 0:
-            if not update_and_move(South):
-                return
-
+    dir = East
+    snake = 0
     while True:
-        direction = path[state[0]][state[1]]
-        if direction == None or not can_move(direction):
-            return
-        move(direction)
-        state[0] = get_pos_x()
-        state[1] = get_pos_y()
+        x, y = get_pos_x(), get_pos_y()
+        if get_entity_type() == Entities.Apple:
+            snake += 1
+            wx, wy = measure()  # ty: ignore
+
+        # 后期优先填满成对列间的空隙，缩小苹果可生成的区域。
+        if snake > l:
+            if y == 0 and can_move(North) and x % 2 == 1:
+                for _ in range(m - 1):  # 避开最北的一行
+                    # 碰尾只结束这段直走，下一轮仍按当前位置选路。
+                    if not move(North):
+                        break
+                continue
+
+        # 访问中心区域的果子
+        if x != 0 and x != m:  # 不在左右两侧
+            if (x == wx or x + 1 == wx) and x % 2 == 1:
+                if can_move(North) and wy > y and wy != m:  # 向北可以到达苹果
+                    for _ in range(wy - y):
+                        move(North)
+                    continue
+            if (x == wx or x - 1 == wx) and x % 2 == 0:
+                if can_move(South) and y > wy and wy != 0:  # 向南可以前往苹果
+                    for _ in range(y - wy):
+                        move(South)
+                    continue
+
+        # 围着操场逆时针转圈
+        if dir == East:
+            if y != 0 and can_move(South):
+                while move(South) and get_entity_type() != Entities.Apple:
+                    continue  # 回归边线
+                continue
+            if x == m:
+                dir = North  # 在边界转向, 下面直接 move 节约一个循环
+            if not (move(dir) or move(North)):  # 碰到边界或尾巴，向有空间的方向前进
+                break
+            continue
+        if dir == West:
+            if y == m and can_move(dir) and x > wx + 1:
+                for _ in range(x - wx - 1 - 1):  # 考虑到奇偶性，多减 1
+                    move(dir)  # 快速移过最北边, 因为那是回程的线
+            if y != m and can_move(North):
+                while move(North) and get_entity_type() != Entities.Apple:
+                    continue  # 回归边线
+                continue
+            if x == 0:
+                dir = South  # 在边界转向
+            if not (move(dir) or move(South)):  # 碰到边界或尾巴，向有空间的方向前进
+                break
+            continue
+        if dir == South:
+            if x != 0 and can_move(West):
+                move(West)  # 回归边线
+                continue
+            if x == 0 and y != 0:
+                while move(dir) and get_entity_type() != Entities.Apple:
+                    continue  # 边界上走直线，避免循环顶层大 while
+                if not (can_move(dir) or can_move(East)):
+                    break  # 碰到尾巴
+            dir = East  # 在边界转向
+            continue
+        if dir == North:
+            if x != m and can_move(East):
+                move(East)  # 回归边线
+                continue
+            if x == m and y != m:
+                while move(dir) and get_entity_type() != Entities.Apple:
+                    continue  # 边界上走直线，避免循环顶层大 while
+                if not can_move(dir) and not can_move(West):
+                    break  # 碰到尾巴
+            dir = West  # 在边界转向
+            continue
 
 if __name__ == "__main__":
     lb_fastest_reset()
