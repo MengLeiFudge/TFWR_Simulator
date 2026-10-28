@@ -64,7 +64,7 @@ dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- companion --si
 
 ## 打榜筛选口径
 
-使用本工具时，先把 [公开排行榜的 #10 时间](../references/leaderboard_scripts/leaderboard_targets.md) 和当前复跑时间换算成机制预算。默认优先研究相对 #10 差距大的榜单；#1 仅供参考，不代表可达目标，#30/#100 用于理解分布；再看模型输出是否接近预算。模型手动运行，不会被部署或实机 CLI 自动调用。
+使用本工具时，先把同版本当前复跑时间与可实现的阶段目标换算成机制预算。[公开排行榜](../references/leaderboard_scripts/leaderboard_targets.md) 的 #1/#10/#30/#100 只作参考，不能证明常规玩法可达；可选择更靠后的合理参考，不设固定排名或统一提速比例的准入线。研究优先级综合收益、证据可信度与实现/验证成本，大差距只是发现算法机会的线索。模型须计入完整费用并与同版本基线比较，接近模型误差时交给实机判定。模型手动运行，不会被部署或实机 CLI 自动调用。
 
 - 资源榜看每次有效收获周期、companion 命中率、reroll 次数和 support 维护动作。
 - Dinosaur 看吃满 `1023` 个 apple 的总移动预算、分阶段 move/apple、动作 tick 和碰撞率。

@@ -1,468 +1,385 @@
 from __builtins__ import *
+# 完整轮时间：1:27.674（官方完整统计83轮）；本地seed1 87.650051秒，短时2轮89.290秒。
+# 算法来源：zzlg-git/TheFarmerWasReplaced_Maze_1min28s，commit e5d5e2d9c8df5c22fee0c1c591d70bd69d4a6629。
+# 保留32座小迷宫、出发点探墙与增量全点对路由，仅整理入口；许可信息见同名文档。
 
-# 完整轮时间：2:07.169（官方完整统计57轮）；本地seed1 122.617166秒，短时2轮124.6955秒。
+WORLD = 32
+TARGET_GOLD = 9863168
+DRONES = 32
+REUSE_LIMIT = 300
+
+# 方向编号：0北、1东、2南、3西；BACK给出反向编号。
+DIRS = [North, East, South, West]
+BACK = [2, 3, 0, 1]
+MULT = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
+
+
+# ---------- 1. 开放地面移动与固定排布 ----------
+
 def lb_maze():
-    run_deadline = get_time() + 180
-    clear()
-    set_world_size(32)
-    size = get_world_size()
-    size_max = size - 1
-    size_half = size_max // 2
-    size_31 = size_max // 3
-    size_32 = size_max - size_31
-    maze_substance = size * 2 ** (num_unlocked(Unlocks.Mazes) - 1)
-    maze_map = []
-    explore_visited = set()
+	# 已达标直接退出。
+	if num_items(Items.Gold) >= TARGET_GOLD:
+		return
+	jobs = make_jobs()
+	stock = num_items(Items.Weird_Substance)
+	set_world_size(WORLD)
+	clear()
+	set_execution_speed(0)
+	t0 = get_time()
+	records = deploy(jobs, stock)
+	elapsed = get_time() - t0
 
-    local_dirs = [North, East, South, West]
-    dir_to_pos = {North: (0, 1), East: (1, 0), South: (0, -1), West: (-1, 0)}
-    back_dir = {North: South, East: West, South: North, West: East, None: None}
-
-    def current_pos():
-        return get_pos_x(), get_pos_y()
-
-    def pos_move(pos, direction):
-        x, y = pos
-        dx, dy = dir_to_pos[direction]
-        return x + dx, y + dy
-
-    def relative_dir(pos1, pos2):
-        x1, y1 = pos1
-        x2, y2 = pos2
-        if x1 == x2:
-            if y2 > y1:
-                return North
-            if y2 < y1:
-                return South
-        if y1 == y2:
-            if x2 > x1:
-                return East
-            if x2 < x1:
-                return West
-        return None
-
-    def move_to(pos):
-        x, y = pos
-        dx = x - get_pos_x()
-        if abs(dx) > size // 2:
-            if dx > 0:
-                for _ in range(size - dx):
-                    move(West)
-            else:
-                for _ in range(size + dx):
-                    move(East)
-        elif dx < 0:
-            for _ in range(-dx):
-                move(West)
-        elif dx > 0:
-            for _ in range(dx):
-                move(East)
-
-        dy = y - get_pos_y()
-        if abs(dy) > size // 2:
-            if dy > 0:
-                for _ in range(size - dy):
-                    move(South)
-            else:
-                for _ in range(size + dy):
-                    move(North)
-        elif dy < 0:
-            for _ in range(-dy):
-                move(South)
-        elif dy > 0:
-            for _ in range(dy):
-                move(North)
-
-    def wait_spawn(task, label):
-        drone = spawn_drone(task)
-        tries = 0
-        while not drone and tries < 200:
-            tries += 1
-            drone = spawn_drone(task)
-        if not drone:
-            quick_print("maze_multi spawn_failed", label)
-        return drone
-
-    def check_new_path(paths):
-        pos = current_pos()
-        for direction in local_dirs:
-            if can_move(direction):
-                moved_pos = pos_move(pos, direction)
-                edge = (pos, moved_pos)
-                if edge not in paths:
-                    paths.add(edge)
-
-    def explore_maze(start_pos, sub_drone_pos):
-        def _explore_maze(curr_dir):
-            pos = current_pos()
-            explore_visited.add(pos)
-            x, y = pos
-            back = back_dir[curr_dir]
-            paths = []
-            sub_drones = []
-            while get_ground_type() == Grounds.Grassland:
-                first_dir = None
-                other_dirs = []
-                for direction in local_dirs:
-                    moved_pos = pos_move(pos, direction)
-                    if can_move(direction):
-                        paths.append((pos, moved_pos))
-                    if direction == back:
-                        continue
-                    if can_move(direction) and moved_pos not in explore_visited:
-                        if first_dir == None:
-                            first_dir = direction
-                        else:
-                            other_dirs.append(direction)
-                if first_dir == None:
-                    break
-
-                for branch_dir in other_dirs:
-                    def make_branch_task(direction, branch_x, branch_y):
-                        def branch_task():
-                            if branch_x == size_31 or branch_x == size_32 or branch_y == size_31 or branch_y == size_32:
-                                till()
-                            move(direction)
-                            return _explore_maze(direction)
-                        return branch_task
-
-                    drone = wait_spawn(make_branch_task(branch_dir, x, y), "explore_branch")
-                    if drone:
-                        sub_drones.append(drone)
-
-                if x == size_31 or x == size_32 or y == size_31 or y == size_32:
-                    till()
-                move(first_dir)
-                back = back_dir[first_dir]
-                pos = current_pos()
-                x, y = pos
-                explore_visited.add(pos)
-
-            active_drones = []
-            for drone in sub_drones:
-                if has_finished(drone):
-                    data, sub_sub_drones = wait_for(drone)
-                    for path in data:
-                        paths.append(path)
-                    for sub_drone in sub_sub_drones:
-                        active_drones.append(sub_drone)
-                else:
-                    active_drones.append(drone)
-            return paths, active_drones
-
-        def sub_task(pos):
-            def _sub_task():
-                move_to(pos)
-                wait_start = get_time()
-                while get_entity_type() == Entities.Grass:
-                    if get_time() - wait_start > 1000:
-                        quick_print("maze_multi wait_maze_timeout", pos)
-                        return [], []
-                return _explore_maze(None)
-            return _sub_task
-
-        def root_task():
-            return _explore_maze(None)
-
-        sub_drones = set()
-        for pos in sub_drone_pos:
-            drone = wait_spawn(sub_task(pos), "explore_seed")
-            if drone:
-                sub_drones.add(drone)
-
-        move_to(start_pos)
-        plant(Entities.Bush)
-        use_item(Items.Weird_Substance, maze_substance)
-        drone = wait_spawn(root_task, "explore_root")
-        if drone:
-            sub_drones.add(drone)
-
-        for _ in range(size):
-            maze_map.append([])
-            for _ in range(size):
-                maze_map[-1].append(set())
-
-        last_progress_time = get_time()
-        while sub_drones:
-            to_add = set()
-            to_remove = set()
-            for drone in sub_drones:
-                if has_finished(drone):
-                    paths, sub_sub_drones = wait_for(drone)
-                    for path in paths:
-                        (x, y), neighbor = path
-                        if 0 <= x < size and 0 <= y < size:
-                            maze_map[x][y].add(neighbor)
-                    to_remove.add(drone)
-                    for sub_drone in sub_sub_drones:
-                        to_add.add(sub_drone)
-            if to_remove or to_add:
-                last_progress_time = get_time()
-            for drone in to_remove:
-                sub_drones.remove(drone)
-            for drone in to_add:
-                sub_drones.add(drone)
-            if get_time() - last_progress_time > 1000:
-                quick_print("maze_multi explore_stall active=", len(sub_drones))
-                break
-        quick_print("maze_multi explore_done time=", get_time())
-
-    def k_center_on_tree(root, k=32):
-        return 14
-
-    def solve_maze_in_area(center, area, radius, owned_set):
-        parent = {center: None}
-        nodes = [center]
-        for node in nodes:
-            x, y = node
-            for neighbor in maze_map[x][y]:
-                if neighbor in area and neighbor not in parent:
-                    parent[neighbor] = node
-                    nodes.append(neighbor)
-        path = {}
-        reverse_path = {}
-        # 路由图可包含途经别区的节点，只有互斥负责集合内的目标需要缓存路线。
-        for target in owned_set:
-            outward = []
-            backward = []
-            node = target
-            while parent[node] != None:
-                previous = parent[node]
-                outward.append(relative_dir(previous, node))
-                backward.append(relative_dir(node, previous))
-                node = previous
-            path[target] = []
-            for i in range(len(outward) - 1, -1, -1):
-                path[target].append(outward[i])
-            reverse_path[target] = backward
-
-        hits = 0
-        while get_time() < run_deadline:
-            treasure = measure()
-            while treasure not in owned_set:
-                if treasure == None or num_items(Items.Gold) >= target_gold_count:
-                    quick_print("maze_owner done", center, hits, get_time())
-                    return True
-                if get_time() >= run_deadline:
-                    quick_print("maze_owner failed", "wait_deadline", center)
-                    return False
-                # 支付正常换帽的200tick再查询，降低闲机空转；不改实体或负责权。
-                change_hat(Hats.Straw_Hat)
-                treasure = measure()
-            # 负责集合互斥；只有本机可以修改这个宝藏，路线期间它不会被别人推进。
-            for direction in path[treasure]:
-                if not move(direction):
-                    quick_print("maze_owner failed", "outbound", center, treasure)
-                    return False
-            if measure() != treasure or get_entity_type() != Entities.Treasure:
-                quick_print("maze_owner failed", "ownership", center, treasure)
-                return False
-            # 300次标准重定位后，唯一负责机只执行一次最终收割并返回。
-            if num_items(Items.Gold) == target_gold_count - 32768:
-                if not harvest():
-                    quick_print("maze_owner failed", "final_harvest", center)
-                    return False
-                quick_print("maze_owner final", center, hits, get_time())
-                return True
-            if not use_item(Items.Weird_Substance, maze_substance):
-                quick_print("maze_owner failed", "reuse", center, num_items(Items.Gold))
-                return False
-            hits += 1
-            for direction in reverse_path[treasure]:
-                if not move(direction):
-                    quick_print("maze_owner failed", "return", center)
-                    return False
-        quick_print("maze_owner failed", "deadline", center)
-        return False
-
-    def complete_map(center):
-        # 已知边双向化；只有实际走到边界并通过can_move/move才补入未知区域。
-        for x in range(size):
-            for y in range(size):
-                for nx, ny in list(maze_map[x][y]):
-                    maze_map[nx][ny].add((x, y))
-        start = current_pos()
-        parent = {start: None}
-        incoming = {}
-        nodes = [start]
-        for node in nodes:
-            x, y = node
-            for neighbor in maze_map[x][y]:
-                if neighbor not in parent:
-                    parent[neighbor] = node
-                    incoming[neighbor] = relative_dir(node, neighbor)
-                    nodes.append(neighbor)
-        repaired = 0
-        if len(nodes) < size * size:
-            # 标记通向所有未知边界的已知树枝，一次遍历它们；撞墙后不重算全图BFS。
-            needed = set()
-            for node in nodes:
-                frontier = False
-                for direction in local_dirs:
-                    nx, ny = pos_move(node, direction)
-                    if 0 <= nx < size and 0 <= ny < size and (nx, ny) not in parent:
-                        frontier = True
-                        break
-                if frontier:
-                    previous = node
-                    while previous != None and previous not in needed:
-                        needed.add(previous)
-                        previous = parent[previous]
-            stack = [(start, None, 0)]
-            while stack:
-                if get_time() >= run_deadline:
-                    quick_print("maze_owner failed", "repair_deadline")
-                    return False
-                node, back, index = stack[-1]
-                if index == len(local_dirs):
-                    stack.pop()
-                    if back != None and not move(back):
-                        quick_print("maze_owner failed", "repair_backtrack")
-                        return False
-                    continue
-                stack[-1] = (node, back, index + 1)
-                direction = local_dirs[index]
-                neighbor = pos_move(node, direction)
-                nx, ny = neighbor
-                if not (0 <= nx < size and 0 <= ny < size):
-                    continue
-                if neighbor in parent:
-                    if parent[neighbor] != node or neighbor not in needed:
-                        continue
-                else:
-                    if not can_move(direction):
-                        continue
-                    x, y = node
-                    maze_map[x][y].add(neighbor)
-                    maze_map[nx][ny].add(node)
-                    parent[neighbor] = node
-                    incoming[neighbor] = direction
-                    needed.add(neighbor)
-                    repaired += 1
-                if not move(direction):
-                    quick_print("maze_owner failed", "repair_move")
-                    return False
-                stack.append((neighbor, back_dir[direction], 0))
-        if len(parent) != size * size:
-            quick_print("maze_owner failed", "repair_incomplete", len(parent))
-            return False
-        route = []
-        node = center
-        while parent[node] != None:
-            route.append(incoming[node])
-            node = parent[node]
-        for i in range(len(route) - 1, -1, -1):
-            if not move(route[i]):
-                quick_print("maze_owner failed", "repair_return")
-                return False
-        quick_print("maze_owner map_complete", len(parent), repaired, get_time())
-        return True
-
-    def maze_chunking(root, radius):
-        node_parent = {root: None}
-        nodes = [root]
-        for node in nodes:
-            x, y = node
-            for neighbor in maze_map[x][y]:
-                if neighbor not in node_parent:
-                    nodes.append(neighbor)
-                    node_parent[neighbor] = node
-
-        def task(center, area, owned_set):
-            def _task():
-                path_to_center = []
-                node = center
-                while node_parent[node]:
-                    path_to_center.append(relative_dir(node_parent[node], node))
-                    node = node_parent[node]
-                for i in range(len(path_to_center) - 1, -1, -1):
-                    move(path_to_center[i])
-                return solve_maze_in_area(center, area, radius, owned_set)
-            return _task
-
-        covered = set()
-        solver_drones = []
-        root_owned = set()
-        for i in range(len(nodes) - 1, -1, -1):
-            node = nodes[i]
-            if node in covered:
-                continue
-            for _ in range(radius):
-                if node_parent[node] == None:
-                    break
-                node = node_parent[node]
-            center = node
-            node_set = set()
-            node_set.add(node)
-            owned_set = set()
-            node_dist = {node: 0}
-            node_queue = [node]
-            for current in node_queue:
-                if current not in covered:
-                    owned_set.add(current)
-                covered.add(current)
-                node_set.add(current)
-                x, y = current
-                if node_dist[current] < radius:
-                    for neighbor in maze_map[x][y]:
-                        if neighbor not in node_dist:
-                            node_dist[neighbor] = node_dist[current] + 1
-                            node_queue.append(neighbor)
-            if not owned_set:
-                continue
-            drone = spawn_drone(task(center, node_set, owned_set))
-            if drone:
-                solver_drones.append(drone)
-            else:
-                for position in owned_set:
-                    root_owned.add(position)
-
-        quick_print("maze_multi nodes=", len(nodes))
-        quick_print("maze_owner assigned", len(covered), len(solver_drones), len(root_owned))
-        solve_start_time = get_time()
-        # 分区必须全部分配后才处理主机任务；容量不足不能阻塞剩余区域的负责权分配。
-        if root_owned:
-            if not solve_maze_in_area(root, set(nodes), radius, root_owned):
-                quick_print("maze_owner failed", "root_worker")
-        last_gold = num_items(Items.Gold)
-        last_progress_time = get_time()
-        while solver_drones and num_items(Items.Gold) < target_gold_count:
-            active = []
-            for drone in solver_drones:
-                if has_finished(drone):
-                    if not wait_for(drone):
-                        quick_print("maze_owner failed", "worker")
-                else:
-                    active.append(drone)
-            solver_drones = active
-            current_gold = num_items(Items.Gold)
-            if current_gold != last_gold:
-                last_gold = current_gold
-                last_progress_time = get_time()
-                quick_print("maze_multi gold=", current_gold, "time=", get_time())
-            if get_time() - last_progress_time > 1000:
-                quick_print("maze_multi solve_stall gold=", current_gold, "active=", len(solver_drones))
-                break
-            change_hat(Hats.Straw_Hat)
-        for drone in solver_drones:
-            if not wait_for(drone):
-                quick_print("maze_owner failed", "final_worker")
-        quick_print("maze_multi solve_done gold=", num_items(Items.Gold), "time=", get_time(), "solve_time=", get_time() - solve_start_time)
-
-    center = (size_half, size_half)
-    explore_maze(center, [
-        (0, size_max), (size_half, size_max), (size_max, size_max),
-        (0, size_half), (size_max, size_half),
-        (0, 0), (size_half, 0), (size_max, 0),
-    ])
-    if not complete_map(center):
-        return
-    radius = k_center_on_tree(center)
-    maze_chunking(center, radius)
+	# 全场结束后统计，可删除。
+	generations = 0
+	total_boxes = 0
+	for n, count, boxes in records:
+		generations += count
+		total_boxes += boxes
+	quick_print("结束，秒:", elapsed, "黄金:", num_items(Items.Gold), "版本: V7-clean")
+	quick_print("无人机结果数:", len(records), "建图代数:", generations, "宝箱总数:", total_boxes)
+	for side in [5, 6, 7]:
+		count = 0
+		boxes = 0
+		for n, gen, b in records:
+			if n == side:
+				count += 1
+				boxes += b
+		quick_print("边长:", side, "台数:", count, "宝箱:", boxes,
+					"每机黄金:", boxes * side * side * MULT / count)
 
 
-target_gold_count = 9863168
+def go_empty(tx, ty):
+	# 仅用于所有迷宫生成前。利用32x32农场环绕，分别走较短的横、纵位移。
+	dx = (tx - get_pos_x()) % WORLD
+	if dx <= WORLD // 2:
+		for _ in range(dx):
+			move(East)
+	else:
+		for _ in range(WORLD - dx):
+			move(West)
+	dy = (ty - get_pos_y()) % WORLD
+	if dy <= WORLD // 2:
+		for _ in range(dy):
+			move(North)
+	else:
+		for _ in range(WORLD - dy):
+			move(South)
+
+
+def go_home(cx, cy):
+	# 仅在本宫已经harvest消失后调用；路线留在原方块内部，不环绕穿过邻宫。
+	while get_pos_x() < cx:
+		move(East)
+	while get_pos_x() > cx:
+		move(West)
+	while get_pos_y() < cy:
+		move(North)
+	while get_pos_y() > cy:
+		move(South)
+
+
+def make_jobs():
+	# 记录格式：(边长, 固定生成中心x, 固定生成中心y)。
+	# 20座5x5 + 6座6x6 + 6座7x7。覆盖1010格；不一定是全局最优布局。
+	jobs = []
+	for y in range(2):
+		for x in range(5):
+			jobs.append((5, 2 + 5 * x, 2 + 5 * y))
+			jobs.append((5, 9 + 5 * x, 24 + 5 * y))
+	for y in range(2):
+		for x in range(3):
+			jobs.append((6, 10 + 6 * x, 13 + 6 * y))
+	for y in range(3):
+		jobs.append((7, 3, 14 + 7 * y))
+		jobs.append((7, 28, 4 + 7 * y))
+	return jobs
+
+
+# ---------- 2. 几何邻接与每代一次的DFS建图 ----------
+
+def geometry(n):
+	# 本地格号 p=y*n+x；grid[p][方向]是几何邻居，-1表示本宫边界。
+	# 几何表。
+	grid = []
+	for y in range(n):
+		for x in range(n):
+			p = y * n + x
+			row = [-1, -1, -1, -1]
+			if y < n - 1:
+				row[0] = p + n
+			if x < n - 1:
+				row[1] = p + 1
+			if y > 0:
+				row[2] = p - n
+			if x > 0:
+				row[3] = p - 1
+			grid.append(row)
+	return grid
+
+
+def explore(n, grid, home):
+	# links记录实测通路；graph供DFS选择未访问的邻居，建图后不再返回。
+	# walls记录当时仍有墙的方向；以后可能从两端之一发现该墙已经消失。
+	count = n * n
+	links = []
+	graph = []
+	walls = []
+	seen = []
+	parent = []
+	up_hop = []
+	down_hop = []
+	for _ in range(count):
+		links.append([-1, -1, -1, -1])
+		graph.append([])
+		walls.append([])
+		seen.append(False)
+		parent.append(-1)
+		up_hop.append(None)
+		down_hop.append(None)
+
+	# order是父节点先于子节点的顺序；trail记录真正走过的DFS回退方向。
+	order = []
+	trail = []
+	p = home
+	visited = 0
+	while True:
+		if not seen[p]:
+			# 正常取消条件：其它机可能已凑够黄金，没必要继续建这张图。
+			if num_items(Items.Gold) >= TARGET_GOLD:
+				return None
+			seen[p] = True
+			visited += 1
+			order.append(p)
+			for d in range(4):
+				q = grid[p][d]
+				# 边界不能跨；已从另一端记下的通路不用重复探测。
+				if q == -1 or links[p][d] != -1:
+					continue
+				if can_move(DIRS[d]):
+					back = BACK[d]
+					links[p][d] = q
+					links[q][back] = p
+					graph[p].append((q, d))
+					graph[q].append((p, back))
+				else:
+					walls[p].append(d)
+			if visited == count:
+				break
+
+		choice = -1
+		next_p = -1
+		for q, d in graph[p]:
+			if not seen[q]:
+				choice = d
+				next_p = q
+				break
+		if choice != -1:
+			move(DIRS[choice])
+			parent[next_p] = p
+			up_hop[next_p] = (p, DIRS[BACK[choice]])
+			down_hop[next_p] = (next_p, DIRS[choice])
+			trail.append(BACK[choice])
+			p = next_p
+		else:
+			# 连通树、尚有未访问节点：必然还有可以回退的祖先。
+			d = trail.pop()
+			move(DIRS[d])
+			p = grid[p][d]
+
+	# 初始根parent=-1；up_hop是往父节点走的指令，down_hop是相反指令。
+	tree = (parent, up_hop, down_hop, order)
+	return (p, links, walls, tree)
+
+
+# ---------- 3. 全点对路由初始化与单条新边的增量更新 ----------
+
+def build_all_routes(tree, blank):
+	# rows[目标][0][起点] = 最短距离。
+	# rows[目标][1][起点] = (下一格, 游戏方向对象)。注意第一维是“目标”。
+	parent, up_hop, down_hop, order = tree
+	rows = []
+	for goal in range(len(blank)):
+		dist = list(blank)
+		hop = list(up_hop)
+		p = goal
+		depth = 0
+		# 默认都往原根走；对goal到原根这一条链，反转指向并填写距离。
+		while p != -1:
+			dist[p] = depth
+			par = parent[p]
+			if par != -1:
+				hop[par] = down_hop[p]
+			p = par
+			depth += 1
+		hop[goal] = None
+		# 其它节点按父先子后填表；其路径仍是先到父节点再去目标。
+		for p in order:
+			if dist[p] == -1:
+				dist[p] = dist[parent[p]] + 1
+		rows.append([dist, hop])
+	return rows
+
+
+def add_route_edge(rows, a, b, hop_ab, hop_ba):
+	# 已知图刚新增一条无向单位边a--b。
+	# 新最短路只能是：旧路、经a->b、经b->a。无需重新跑BFS。
+	da, ha = rows[a]
+	db, hb = rows[b]
+	left = []
+	right = []
+
+	# 必须先冻结两侧距离与首步，再开始修改rows。
+	# left: D(u,a)+1 < D(u,b)；right: D(v,b)+1 < D(v,a)。
+	# 只有左右两组之间的点对可能变短；快照里仅一侧加1，代表新边长度。
+	for u in range(len(rows)):
+		x = da[u]
+		y = db[u]
+		if x + 1 < y:
+			next_hop = ha[u]
+			if u == a:
+				next_hop = hop_ab
+			left.append((u, x + 1, next_hop, rows[u]))
+		elif y + 1 < x:
+			next_hop = hb[u]
+			if u == b:
+				next_hop = hop_ba
+			right.append((u, y, next_hop, rows[u]))
+
+	# 把较小集合放外层；x+y仍然只包含一次新边长度，互换不改变计算。
+	if len(left) > len(right):
+		left, right = right, left
+	for u, x, hop_u, row_u in left:
+		dist_u, toward_u = row_u
+		for v, y, hop_v, row_v in right:
+			candidate = x + y
+			# 这是算法条件：只更新严格更短的路线，等长时保留原首步。
+			if candidate < dist_u[v]:
+				dist_u[v] = candidate
+				# row_u的目标是u，因此起点v应采用hop_v，而不是hop_u。
+				toward_u[v] = hop_v
+				dist_v, toward_v = row_v
+				dist_v[u] = candidate
+				toward_v[u] = hop_u
+
+
+# ---------- 4. 出发点探墙与单宫收割 ----------
+
+def scan_departure(p, links, walls, grid, routes):
+	# 固定原SENSOR_MODE=1：只在上一箱位置、下一次出发前检查原来的墙。
+	# 发现一条边便完整更新路由表。
+	remaining = []
+	for side in walls[p]:
+		# 同一条墙可能早已从另一端发现，必须去重。
+		if links[p][side] != -1:
+			continue
+		if can_move(DIRS[side]):
+			q = grid[p][side]
+			back = BACK[side]
+			links[p][side] = q
+			links[q][back] = p
+			add_route_edge(routes, p, q, (q, DIRS[side]), (p, DIRS[back]))
+		else:
+			remaining.append(side)
+	walls[p] = remaining
+
+
+def solve_one(n, bx, by, grid, mapped, blank):
+	p, links, walls, tree = mapped
+	cost = n * MULT
+	routes = build_all_routes(tree, blank)
+	relocations = 0
+	while num_items(Items.Gold) < TARGET_GOLD:
+		# 一机一宫；measure一定返回本宫当前宝箱坐标。
+		t = measure()
+		goal = (t[1] - by) * n + t[0] - bx  # ty: ignore[not-subscriptable]  本机始终处于独占迷宫，measure返回坐标。
+		if p != goal:
+			# 第一次搬箱前还没有开新墙，不重复扫描刚建图时测过的墙。
+			if relocations > 0 and len(walls[p]) > 0:
+				scan_departure(p, links, walls, grid, routes)
+			dist, hop = routes[goal]
+			# 沿已确认的路线移动；不查实体、不重复核对坐标、不检查move返回值。
+			for _ in range(dist[p]):
+				p, direction = hop[p]
+				move(direction)
+
+		# 正常终止条件：行走期间其它宫可能已达到目标，不再多收/多搬一箱。
+		if num_items(Items.Gold) >= TARGET_GOLD:
+			return relocations
+		if relocations >= REUSE_LIMIT:
+			# 300次成功搬迁之后，走到最后一个箱子并harvest，本宫才会消失。
+			harvest()
+			return relocations + 1
+		use_item(Items.Weird_Substance, cost)
+		relocations += 1
+	return relocations
+
+
+# ---------- 5. 每台机的生命周期与全场部署屏障 ----------
+
+def worker(job, start_stock):
+	n, cx, cy = job
+	generations = 0
+	boxes = 0
+	go_empty(cx, cy)
+	grid = geometry(n)
+	blank = []
+	for _ in range(n * n):
+		blank.append(-1)
+	half = n // 2
+	home = half * n + half
+	bx = cx - half
+	by = cy - half
+
+	# 正常初始化：中心若尚无自动生长的草，就主动种一株作为登记载体。
+	if get_entity_type() == None:
+		plant(Entities.Grass)
+	# 32台各用两次WS：感染再恢复。全场合计消耗64，构成到位计数。
+	for _ in range(2):
+		use_item(Items.Weird_Substance, 1)
+	while num_items(Items.Weird_Substance) > start_stock - 2 * DRONES:
+		change_hat(Hats.Straw_Hat)
+
+	while num_items(Items.Gold) < TARGET_GOLD:
+		go_home(cx, cy)
+		# 普通场地清理：有草才收，没有植物就直接种灌木。
+		if get_entity_type() != None:
+			harvest()
+		plant(Entities.Bush)
+		use_item(Items.Weird_Substance, n * MULT)
+		mapped = explore(n, grid, home)
+		generations += 1
+		if mapped == None:
+			# explore只有一种None含义：其它机已经达到黄金目标，正常取消。
+			break
+		boxes += solve_one(n, bx, by, grid, mapped, blank)
+		# 完整收掉本宫后才进入下一代；下次go_home仍然回同一个固定中心。
+	return (n, generations, boxes)
+
+
+def deploy(jobs, start_stock):
+	# 二叉分发：每个参与分发的无人机最终也负责一个任务。
+	# 32个任务恰好需要31次spawn。
+	handles = []
+	while len(jobs) > 1:
+		middle = len(jobs) // 2
+		left = []
+		right = []
+		for i in range(middle):
+			left.append(jobs[i])
+		for i in range(middle, len(jobs)):
+			right.append(jobs[i])
+		h = spawn_drone(deploy, right, start_stock)  # ty: ignore[invalid-argument-type]  游戏支持转交args，类型桩仅声明无参Callable。
+		handles.append(h)
+		jobs = left
+	records = [worker(jobs[0], start_stock)]
+	# 主机完成本宫任务后仍要等后代退出，不让旧无人机残留到下一次运行。
+	for h in handles:
+		batch = wait_for(h)
+		for rec in batch:  # ty: ignore[not-iterable]  本句柄对应deploy，返回记录列表。
+			records.append(rec)
+	return records
+
 
 
 if __name__ == "__main__":
-    lb_maze()
+	lb_maze()

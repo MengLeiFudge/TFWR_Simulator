@@ -1,6 +1,6 @@
 # TFWR Oracle Workflow Workspace
 
-工作流是：本地模型粗筛策略 → 真实游戏验证候选 → 按完整轮成绩更新策略记录。时间比较和效率预算以第十名为基准，默认优先研究相对 #10 差距大的榜单。第一名仅供参考，不代表可达目标。模拟器按同脚本、初始条件与单seed对齐执行和计时，记录误差与覆盖范围，具体见 [模拟精度与验收](mechanism_model/README.md#模拟精度与验收)。模型结果和轮内 ETA 都是预测，排名结论以真实游戏结算为准。
+工作流是：本地模型粗筛策略 → 真实游戏验证候选 → 按完整轮成绩更新策略记录。优先推进预期收益明确、成功把握高且实现与验证成本合理的方向。排行榜只作参考，阶段目标依据当前合规基线动态调整；#10 不保证常规或可达，也不是候选准入线。模拟器按同脚本、初始条件与单seed对齐执行和计时，记录误差与覆盖范围，具体见 [模拟精度与验收](mechanism_model/README.md#模拟精度与验收)。模型结果和轮内 ETA 都是预测，排名结论以真实游戏结算为准。
 
 ## 仓库分工
 
@@ -40,7 +40,7 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --status-only
 
 ## 日常优化流程
 
-1. 阅读 [共用策略说明](references/leaderboard_scripts/README.md) 和目标榜单的同名 `.md`。刷新公开榜单后，按 [成绩与提升空间](references/leaderboard_scripts/leaderboard_targets.md) 中相对 #10 的差距选择研究对象并反推动作预算：
+1. 阅读 [共用策略说明](references/leaderboard_scripts/README.md) 和目标榜单的同名 `.md`。刷新公开榜单，结合 [成绩与提升空间](references/leaderboard_scripts/leaderboard_targets.md)、当前瓶颈和可用算法选择研究对象；用同版本基线和阶段目标反推动作预算：
 
    ```bash
    python3 tfwr_orchestrator/tools/refresh_leaderboard_cache.py
@@ -69,7 +69,7 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --status-only
    python3 tfwr_orchestrator/tools/run_real_game_script.py --status-only --status-lines 20
    ```
 
-   `estimated_total_game_seconds` 是本轮预计总游戏时间；`eta_game_seconds` 是预计剩余时间。应以前者比较基线和 #10 参考时间。库存线性增长才能估算；Cactus/Dinosaur 等批量结算前可能长期 0%，需结合阶段日志，不能直接判为卡住。Fastest Reset 不使用资源比例估算。
+   `estimated_total_game_seconds` 是本轮预计总游戏时间；`eta_game_seconds` 是预计剩余时间。应以前者比较同版本基线和阶段目标，公开排名时间仅供参考。库存线性增长才能估算；Cactus/Dinosaur 等批量结算前可能长期 0%，需结合阶段日志，不能直接判为卡住。Fastest Reset 不使用资源比例估算。
 5. 把预测、实测轮数/均值/波动、失败原因和下一步写回同名 `.md`；[Cactus 记录样本](references/leaderboard_scripts/lb_cactus.md#2026-10-22-研究记录样本) 展示完整口径。`.py` 只保留当前确认最快的实现。
 
 `--request-only` 只投递请求，默认拒绝覆盖活动请求；明确替换须加 `--replace`，终态须先回收；它不负责持续监测或自动回收终态。长流程使用它时必须自行监看日志、按请求 ID 停止和确认终态，接口见 [协调器说明](tfwr_orchestrator/README.md)。常规等待命令会在超时或中断时请求停止当前任务。

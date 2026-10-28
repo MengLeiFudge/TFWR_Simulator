@@ -163,7 +163,7 @@ python3 tfwr_orchestrator/tools/refresh_leaderboard_cache.py --offline
 输出位于 `references/leaderboard_scripts/`：
 
 - `leaderboard_cache.json`：每榜来源 URL、UTC 抓取时间、总条目数和连续前 N 名的排名/整数毫秒成绩；不保存玩家名称或 Steam ID。
-- `leaderboard_targets.md`：#1/#10/#30/#100、我们的复跑参考、估计位置、相对 #10 倍数、追平 #10 所需缩短比例。按倍数降序展示，便于优先研究差距大的榜单；#1 仅供参考，不代表可达目标。缺少 #10 时不计算差距，不回退到 #1。
+- `leaderboard_targets.md`：#1/#10/#30/#100、我们的复跑参考、估计位置、相对 #10 倍数、追平 #10 所需缩短比例。按倍数降序只便于比较，不代表研究优先级或准入线；各排名都不保证常规机制可达。阶段目标依据当前合规基线调整，结合预期收益、成功把握与成本选择下一项。缺少 #10 时不计算该列差距，不回退到 #1。
 
 本地成绩来自仓库 `lb_start.py` 的“当前版本复跑”列；详细实测日期、轮数和版本证据见同名策略 `.md`。缺少记录时显示未知，超过缓存范围只显示“#N 之后”，同分显示范围。估计位置不表示该账户已提交成绩。
 
@@ -201,7 +201,7 @@ python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format markdown --o
 等待模式每 5 秒输出进度；`--status-only` 也能查看。首轮的 `progress_percent` 是当前库存/目标量，`prediction=true basis=inventory_linear` 明确标识线性预测：
 
 - `eta_game_seconds` / `eta_game_time`：预计剩余游戏时间。
-- `estimated_total_game_seconds` / `estimated_total_game_time`：当前游戏时间加剩余预测；与整轮基线和 #10 参考时间比较用这一项。
+- `estimated_total_game_seconds` / `estimated_total_game_time`：当前游戏时间加剩余预测；与同版本整轮基线和阶段目标比较用这一项，公开排名时间仅供参考。
 - `eta_real_seconds`：按当前实际加速率估算电脑占用时间，不用来比较策略。
 
 估算只使用同一请求、同一轮的快照；缺采样、无正增长或 Fastest Reset 解锁目标时说明不可估算。批量收获前库存为零不能说明卡住，须看阶段日志。首轮完成后切换完成轮均值；`finished=false` 的取消摘要不计入成绩，也不把总均值复制成单轮样本来判定稳定。
