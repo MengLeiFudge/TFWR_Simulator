@@ -15,8 +15,8 @@
 | [Fastest Reset](https://steamcommunity.com/stats/2060160/leaderboards/17869903/) | 12:15.173 | 32:46.927 | 43:00.774 | 62:47.343 | [52:15.911](lb_start.py#L5) | 约 #57（同分） | 1.594× | 37.3% | 100/4237 |
 | [Sunflowers](https://steamcommunity.com/stats/2060160/leaderboards/17869894/) | 2:07.279 | 2:28.321 | 3:21.282 | 3:56.314 | [3:55.162](lb_start.py#L61) | 约 #85（同分） | 1.585× | 36.9% | 100/1215 |
 | [Cactus Single](https://steamcommunity.com/stats/2060160/leaderboards/17827398/) | 0:08.145 | 0:14.734 | 0:18.211 | 0:22.313 | [0:21.472](lb_start.py#L45) | 约 #82（同分） | 1.457× | 31.4% | 100/532 |
-| [Sunflowers Single](https://steamcommunity.com/stats/2060160/leaderboards/17827413/) | 3:46.934 | 4:13.958 | 4:54.635 | 5:42.344 | [5:33.201](lb_start.py#L65) | 约 #83（同分） | 1.312× | 23.8% | 100/461 |
 | [Wood](https://steamcommunity.com/stats/2060160/leaderboards/17869895/) | 2:38.334 | 3:54.525 | 4:27.262 | 5:07.177 | [4:43.895](lb_start.py#L17) | 约 #42 | 1.211× | 17.4% | 100/885 |
+| [Sunflowers Single](https://steamcommunity.com/stats/2060160/leaderboards/17827413/) | 3:46.934 | 4:13.958 | 4:54.635 | 5:42.344 | [5:06.334](lb_start.py#L65) | 约 #42 | 1.206× | 17.1% | 100/461 |
 | [Wood Single](https://steamcommunity.com/stats/2060160/leaderboards/17827415/) | 3:27.825 | 4:27.918 | 5:29.863 | 8:22.200 | [5:21.148](lb_start.py#L21) | 约 #29 | 1.199× | 16.6% | 100/368 |
 | [Pumpkins Single](https://steamcommunity.com/stats/2060160/leaderboards/17827408/) | 3:56.114 | 6:33.878 | 7:15.234 | 8:14.304 | [7:39.495](lb_start.py#L37) | 约 #48 | 1.167× | 14.3% | 100/502 |
 | [Maze Single](https://steamcommunity.com/stats/2060160/leaderboards/17827402/) | 0:42.396 | 1:52.091 | 2:10.443 | 2:43.764 | [2:06.703](lb_start.py#L57) | 约 #26 | 1.130× | 11.5% | 100/780 |

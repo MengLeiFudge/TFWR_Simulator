@@ -1,156 +1,187 @@
 from __builtins__ import *
-# 完整轮时间：5:33.201（2026-10-26，官方完整22轮，request 83）。
+# 完整轮时间：5:06.334（官方完整24轮，request168）；本地三seed306.495105秒，短时11轮306.156秒。
+# Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
+# 来源：enihsyou/The-Farmer-Was-Replaced，blob 209990a4977f011e0f8e7861530cf3045c6a3a2f。
 
 def lb_sunflowers_single():
-    quick_print("sunflower_reserve", "start", "time=", get_time(), "power=", num_items(Items.Power))
-    set_world_size(FIELD_SIZE)
-    positions, buckets = prepare_field(FIELD_SIZE)
-    quick_print("sunflower_reserve", "initialized", "time=", get_time(), "power=", num_items(Items.Power))
-    support = []
-    batch = 0
-    while num_items(Items.Power) < POWER_GOAL and batch < MAX_BATCHES:
-        support = reserve_lowest(buckets, support)
-        if len(support) != SUPPORT_COUNT:
-            quick_print("sunflower_reserve", "support_limit", "batch=", batch, "time=", get_time())
-            return
-        if not harvest_batch(buckets, FIELD_SIZE):
-            return
-        batch = batch + 1
-        quick_print("sunflower_reserve", "harvested", "batch=", batch, "time=", get_time(), "power=", num_items(Items.Power))
-        if num_items(Items.Power) >= POWER_GOAL:
-            break
-        buckets = plant_batch(positions, support, FIELD_SIZE)
-    quick_print("sunflower_reserve", "done", "batches=", batch, "time=", get_time(), "power=", num_items(Items.Power), "goal=", num_items(Items.Power) >= POWER_GOAL)
+    global s
+    global m
+    global FULL_GROUND
+    global sunflower_dict
+    set_world_size(8)
+    clear()
+    s = get_world_size()
+    m = s - 1
+    FULL_GROUND = s * s
+    sunflower_dict = {}
+    for petals in range(7, 16):
+        sunflower_dict[petals] = []
+    traverse_topdown_no_if(plant_a_sunflower_first)
+    for _ in range(23):
+        trip_round()
+    while num_items(Items.Power) < 10000:
+        last_trip_round()
+
+W = 0.72
+MAX_PETALS = 15
+MIN_PETALS = 7
+MIN_PETALS_S1 = 6
+OCTUPLE_BASE = 10
+OCTUPLE_BASE_S1 = 9
 
 
-FIELD_SIZE = 8
-POWER_GOAL = 10000
-SUPPORT_COUNT = 9
-SUPPORT_PETALS = 7
-MAX_BATCHES = 80
-MAX_MATURITY_SECONDS = 12
-
-
-def prepare_field(size):
-    # 首次清草翻地并种满全场，固定蛇形坐标也用于后续补种。
-    positions = []
-    buckets = []
-    for petals in range(9):
-        buckets.append([])
-    for y in range(size):
-        if y % 2 == 0:
-            columns = range(size)
-        else:
-            columns = range(size - 1, -1, -1)
-        for x in columns:
-            goto_wrap(x, y, size)
-            if get_ground_type() != Grounds.Soil:
-                till()
-            if get_entity_type() != None:
-                harvest()
-            plant(Entities.Sunflower)
-            water_if_available(size)
-            pos = (x, y)
-            positions.append(pos)
-            buckets[measure() - SUPPORT_PETALS].append(pos)
-    return positions, buckets
-
-
-def reserve_lowest(buckets, previous):
-    # 全场只保留最低九株；同瓣先保留旧支撑，再从新株补足。
-    support = []
-    for petals in range(9):
-        bucket = buckets[petals]
-        for old in previous:
-            if old[1] == petals:
-                bucket.remove(old[0])
-                support.append(old)
-                if len(support) == SUPPORT_COUNT:
-                    return support
-        while len(bucket) > 0 and len(support) < SUPPORT_COUNT:
-            support.append((bucket.pop(), petals))
-        if len(support) == SUPPORT_COUNT:
-            return support
-    return support
-
-
-def plant_batch(positions, support, size):
-    # 保留株不重种或重测；其余55株仍按全图蛇形过滤后的顺序补齐。
-    buckets = []
-    for petals in range(9):
-        buckets.append([])
-    retained = set()
-    for old in support:
-        retained.add(old[0])
-        buckets[old[1]].append(old[0])
-    for pos in positions:
-        if pos in retained:
-            continue
-        goto_wrap(pos[0], pos[1], size)
-        plant(Entities.Sunflower)
-        water_if_available(size)
-        buckets[measure() - SUPPORT_PETALS].append(pos)
-    return buckets
-
-
-def harvest_batch(buckets, size):
-    # 九株支撑已从桶移出；其余降序收完后全场恰好剩九株。
-    for petals in range(8, -1, -1):
-        bucket = buckets[petals]
-        while len(bucket) > 0:
-            pos = bucket.pop(nearest_index(bucket, size))
-            goto_wrap(pos[0], pos[1], size)
-            deadline = get_time() + MAX_MATURITY_SECONDS
-            while not can_harvest():
-                water_if_available(size)
-                if get_time() >= deadline:
-                    quick_print("sunflower_reserve", "maturity_limit", "x=", pos[0], "y=", pos[1], "time=", get_time())
-                    return False
-            harvest()
-            if num_items(Items.Power) >= POWER_GOAL:
-                return True
-    return True
-
-
-def nearest_index(bucket, size):
-    # 只在当前花瓣桶选择最近格子，不搜索路径排列。
-    x = get_pos_x()
-    y = get_pos_y()
-    best = 0
-    distance = size * 2
-    for index in range(len(bucket)):
-        pos = bucket[index]
-        dx = abs(pos[0] - x)
-        dy = abs(pos[1] - y)
-        steps = min(dx, size - dx) + min(dy, size - dy)
-        if steps < distance:
-            distance = steps
-            best = index
-    return best
-
-
-def goto_wrap(tx, ty, size):
-    # 沿两个坐标轴的较短环绕方向移动；先横后纵。
-    dx = (tx - get_pos_x()) % size
-    if dx > size // 2:
-        for step in range(size - dx):
-            move(West)
-    else:
-        for step in range(dx):
-            move(East)
-    dy = (ty - get_pos_y()) % size
-    if dy > size // 2:
-        for step in range(size - dy):
-            move(South)
-    else:
-        for step in range(dy):
+def traverse_topdown_no_if(fn):
+    for i in range(0, s, 2):
+        for j in range(m):
+            fn()
             move(North)
+        fn()
+        move(East)
+        for j in range(m):
+            fn()
+            move(South)
+        fn()
+        move(East)
 
 
-def water_if_available(size):
-    # 水量低于阈值且库存超过地图边长时补水。
-    if get_water() < 0.425 and num_items(Items.Water) > size:
-        use_item(Items.Water)
+def move_to(pos):
+    cx, cy = get_pos_x(), get_pos_y()
+    tx, ty = pos
+
+    dx_east = (tx - cx) % s
+    dx_west = s - dx_east
+    if dx_east < dx_west:
+        for _ in range(dx_east):
+            move(East)
+    else:
+        for _ in range(dx_west):
+            move(West)
+
+    dy_north = (ty - cy) % s
+    dy_south = s - dy_north
+    if dy_north < dy_south:
+        for _ in range(dy_north):
+            move(North)
+    else:
+        for _ in range(dy_south):
+            move(South)
+
+
+def plant_a_sunflower_first():
+    till()
+    plant(Entities.Sunflower)
+    x = get_pos_x()
+    sunflower_dict[measure()].append((x, get_pos_y()))
+    if x >= m:
+        # 首轮只浇最后一列；前面的植株利用后续动作时间生长。
+        while get_water() < W and num_items(Items.Water) > 0:
+            use_item(Items.Water)
+
+
+def plant_a_sunflower():
+    # plant 会在已有植物上 return False
+    if plant(Entities.Sunflower):
+        v = measure()
+        sunflower_dict[v].append((get_pos_x(), get_pos_y()))
+        if v <= 10:  # ty: ignore
+            # 较低花瓣利用先收高花瓣的时间生长，收割前仍检查成熟。
+            return
+        while get_water() < W and num_items(Items.Water) > 0:
+            use_item(Items.Water)
+
+
+def nearest_expect_current(positions):
+    # 找到离当前位置最近的点
+    min_pos = None
+    min_dis = 9999
+    x, y = get_pos_x(), get_pos_y()
+    for pos in positions:
+        mx, my = pos
+        dis = abs(mx - x) + abs(my - y)
+        if dis == 0:
+            continue
+        if dis < min_dis:
+            min_dis = dis
+            min_pos = pos
+    return min_pos
+
+
+def trip_round():
+    sunflower_count = FULL_GROUND  # 肯定种满了，直接赋值
+    for petal in range(MAX_PETALS, MIN_PETALS_S1, -1):
+        # 为了维持场上至少 10 株，最多采集这么多
+        max_can_harvest = sunflower_count - OCTUPLE_BASE_S1
+        tocheck, unripes = sunflower_dict[petal], []
+        this_petal_harvest = min(max_can_harvest, len(tocheck))
+        for _ in range(this_petal_harvest):
+            while True:
+                if not tocheck:
+                    tocheck, unripes = unripes, []
+                # assert tocheck is not empty
+                nearest = nearest_expect_current(tocheck)
+                if nearest == None:
+                    # 说明当前位置就是最后一个点
+                    while not mature():
+                        continue
+                    harvest()
+                    tocheck.pop()
+                    break  # while loop
+                else:
+                    # 尝试采集，否则检查下一个
+                    move_to(nearest)
+                    if mature():
+                        harvest()
+                        tocheck.remove(nearest)
+                        break  # while loop
+                    else:
+                        tocheck.remove(nearest)
+                        unripes.append(nearest)
+        sunflower_dict[petal] = tocheck + unripes
+        sunflower_count -= max(0, this_petal_harvest)
+    # 场面上应该剩余 9 株向日葵，开始种植新的
+    traverse_topdown_no_if(plant_a_sunflower)
+
+
+def last_trip_round():
+    sunflower_count = FULL_GROUND
+    for petal in range(MAX_PETALS, MIN_PETALS_S1, -1):
+        max_can_harvest = sunflower_count - OCTUPLE_BASE_S1
+        tocheck, unripes = sunflower_dict[petal], []
+        this_petal_harvest = min(max_can_harvest, len(tocheck))
+        for _ in range(this_petal_harvest):
+            while True:
+                if not tocheck:
+                    tocheck, unripes = unripes, []
+                nearest = nearest_expect_current(tocheck)
+                if nearest == None:
+                    while not mature():
+                        continue
+                    harvest()
+                    tocheck.pop()
+                    break
+                else:
+                    move_to(nearest)
+                    if mature():
+                        harvest()
+                        tocheck.remove(nearest)
+                        break
+                    else:
+                        tocheck.remove(nearest)
+                        unripes.append(nearest)
+            if num_items(Items.Power) > 10000:
+                return
+        sunflower_dict[petal] = tocheck + unripes
+        sunflower_count -= max(0, this_petal_harvest)
+    traverse_topdown_no_if(plant_a_sunflower)
+
+
+def mature():
+    if can_harvest():
+        return True
+    if num_items(Items.Fertilizer) > 0:
+        use_item(Items.Fertilizer)
+        return can_harvest()
+    return False
 
 
 if __name__ == "__main__":
