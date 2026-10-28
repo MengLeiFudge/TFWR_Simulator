@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：51:46.851（2026-10-28，官方完整3轮，request 182）。
+# 完整轮时间：50:24.677（2026-10-28，官方完整3轮，request 185）。
 # 恐龙路径Copyright (c) 2026 enihsyou，MIT许可见enihsyou_LICENSE.txt。
 
 
@@ -972,6 +972,9 @@ def staged_supply():
                        Unlocks.Watering, Unlocks.Watering, Unlocks.Watering]:
         if not buy(technology):
             return False
+    # 供料前真实补电，支付播种、成熟和收获，以覆盖P4与扩田生产。
+    if not solar_reserve():
+        return False
     # 用实际16000 Carrot购买P4，再支付Expand7与Cactus科技的整田供料。
     if not buy(Unlocks.Pumpkins):
         return False

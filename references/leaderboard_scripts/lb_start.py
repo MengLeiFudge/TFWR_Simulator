@@ -2,7 +2,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Fastest_Reset, "lb_fastest_reset", 10000)
 # 成功条件：num_unlocked(Unlocks.Leaderboard) > 0
-# 用时（#1/当前版本复跑）：25:33.303 / 51:46.851
+# 用时（#1/当前版本复跑）：25:33.303 / 50:24.677
 
 # leaderboard_run(Leaderboards.Hay, "lb_hay", 10000)
 # 成功条件：num_items(Items.Hay) >= 2_000_000_000
