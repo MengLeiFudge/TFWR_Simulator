@@ -28,3 +28,17 @@
 旧单机Young插入此前只因15%旧门槛停止，本轮重评发现seed0/123仅收60株、115200 Cactus，未达到目标；补齐末次种植后的1秒成熟界后三seed均达标，但均值21.900098秒慢于同批基线21.658177秒，因此关闭。上游反对角线近点访问与末步免移动是另一实现，完整355轮20.308270秒已迁入；见[单机仙人掌记录](lb_cactus_single.md)。随后小迷宫对称构建取得完整83轮86.968566秒；迁入8×8单机的增量路由取得完整57轮126.703281秒，较单机旧版145.112秒快12.6859%。来源和执行证据分别写入迷宫同名文档。
 
 单机沿途探墙完整seed1为134.296739秒，比出发点版本128.242054秒慢；少114move但多3013次探测，关闭该固定方案。恐龙的边界绕行填隙已获实际收益，见[恐龙记录](lb_dinosaur.md)。胡萝卜动态请求的完整成熟收割均按实际伴生倍率核对，未成熟改种单列；见[多机记录](lb_carrots.md)与[单机记录](lb_carrots_single.md)。木头单机与多机的同类动态请求也已兑现收益，见[木头单机记录](lb_wood_single.md)与[多机记录](lb_wood.md)。多机允许部分低倍率，少重抽的收益超过这部分损失；不能把“全部满倍率”预设为最快结构。单机向日葵的分瓣用水与分桶巡收已完成实机，见[单机向日葵记录](lb_sunflowers_single.md)。南瓜的双机队列修补与单机合并编号早停已兑现收益，见[多机记录](lb_pumpkins.md)与[单机记录](lb_pumpkins_single.md)。首次探索回退路径、多机末代按需建表仍无新收益证据。当前任务优先级随可实现的收益、成功把握和验证成本重新比较。
+
+## 第二批仙人掌来源的静态筛选
+
+追加两次仓库检索，分别得到19项和7项，去重既有来源后读取五份新算法；不声称覆盖整个GitHub。源码由固定blob下载并核对Git对象哈希，原搜索响应、树、源码与预算在`.codex/leaderboard-astra/github-cactus-search2/`。
+
+| 来源 | 固定树 / 已读算法 | 结论与未覆盖范围 |
+| --- | --- | --- |
+| [KyleGough/the-farmer-was-replaced](https://github.com/KyleGough/the-farmer-was-replaced) | `af472f52d7c01af5630863150cecdc92c17a2cd8`；`cactus/cactus_odd_even_sort.py`全文 | 两轴各16条线、每线31次固定比较，加移动共1024个200t动作；按当前模型计费33.712128秒，加必要铺田至少36.872640秒，尚未计派发与解释器，已高于当前34.727313秒。README自述43秒不代替本机成绩。三个依赖未读，未执行。 |
+| [lukasvermeer/the-farmer-was-replaced](https://github.com/lukasvermeer/the-farmer-was-replaced) | `6f09cc0c40c59e42f1ac32db65603c94fc4ae6ee`；`farm_cactus.py`全文 | 串行全田成熟巡查与施肥，再逐行逐列双向冒泡，无新的并行或交换节省依据，未执行。 |
+| [Berman510/tfwr](https://github.com/Berman510/tfwr) | `0f0f4fd01f708363cca70001e526426393fb535d`；`cact_sort.py`全文及README相关算法/成绩段 | 普通行列双向冒泡，每趟边界缩一格；22格8机65.44秒不与32格32机混比。两个依赖未读，未执行。 |
+| [insivam/The-Farmer-Was-Replaced](https://github.com/insivam/The-Farmer-Was-Replaced) | `56daa789af9341afd1e1ea1f60659ade5c7ff764`；`plantCactus.py`全文 | 逐行列插入、每交换跟随移动，仍含旧`trade(Items.Cactus_Seed)`；`moveTo`依赖未读，未执行。 |
+| [RubenNijhuis/the-farmer-was-replaced](https://github.com/RubenNijhuis/the-farmer-was-replaced) | `518ca0068c81be6839b9d114706d945aefec9d02`；`cactus.py`全文 | 排序前预检查、最后交换收缩的双向冒泡与行列切片，仍是已覆盖结构；四个依赖未读，未执行。 |
+
+本批只作本地静态研究，没有模型、游戏或发布动作。固定网络预算明确依赖当前模型API计费，不能冒充上游真实测试。其余候选因没有新的改善依据暂不投入适配，不能据此证明它们在所有条件都更慢。
