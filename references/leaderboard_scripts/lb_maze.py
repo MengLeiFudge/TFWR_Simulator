@@ -1,7 +1,7 @@
 from __builtins__ import *
-# 完整轮时间：1:27.674（官方完整统计83轮）；本地seed1 87.650051秒，短时2轮89.290秒。
+# 完整轮时间：1:26.969（官方完整统计83轮，request155）；本地seed1 85.117033秒，短时8轮86.494625秒。
 # 算法来源：zzlg-git/TheFarmerWasReplaced_Maze_1min28s，commit e5d5e2d9c8df5c22fee0c1c591d70bd69d4a6629。
-# 保留32座小迷宫、出发点探墙与增量全点对路由，仅整理入口；许可信息见同名文档。
+# 保留32座小迷宫、出发点探墙与增量路由；初始表改为对称构建，许可信息见同名文档。
 
 WORLD = 32
 TARGET_GOLD = 9863168
@@ -201,22 +201,29 @@ def build_all_routes(tree, blank):
 	for goal in range(len(blank)):
 		dist = list(blank)
 		hop = list(up_hop)
-		p = goal
-		depth = 0
-		# 默认都往原根走；对goal到原根这一条链，反转指向并填写距离。
-		while p != -1:
-			dist[p] = depth
-			par = parent[p]
-			if par != -1:
-				hop[par] = down_hop[p]
-			p = par
-			depth += 1
+		dist[goal] = 0
 		hop[goal] = None
-		# 其它节点按父先子后填表；其路径仍是先到父节点再去目标。
-		for p in order:
-			if dist[p] == -1:
-				dist[p] = dist[parent[p]] + 1
 		rows.append([dist, hop])
+	# 每加入一个叶节点，只算它与已加入节点的无序点对，并填写双向首步。
+	visited = []
+	for v in order:
+		p = parent[v]
+		if p != -1:
+			dist_v, toward_v = rows[v]
+			parent_hop = rows[p][1]
+			up = up_hop[v]
+			down = down_hop[v]
+			for u in visited:
+				dist_u, toward_u = rows[u]
+				distance = dist_u[p] + 1
+				dist_u[v] = distance
+				toward_u[v] = up
+				dist_v[u] = distance
+				if u == p:
+					toward_v[u] = down
+				else:
+					toward_v[u] = parent_hop[u]
+		visited.append(v)
 	return rows
 
 

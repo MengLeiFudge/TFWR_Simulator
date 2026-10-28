@@ -1,263 +1,243 @@
 from __builtins__ import *
-# 完整轮时间：2:25.112（2026-10-26，官方完整50轮，request 84）。
+# 完整轮时间：2:06.703（官方完整57轮，request157）；本地三seed122.994672秒，短时17轮124.339412秒。
+# 算法来源：zzlg-git/TheFarmerWasReplaced_Maze_1min28s，commit e5d5e2d9c8df5c22fee0c1c591d70bd69d4a6629。
+# 从多机的独立小迷宫算法迁入8x8单机；对称建表、出发点探墙和增量更新，许可信息见同名文档。
 
 def lb_maze_single():
-    clear()
-    size = get_world_size()
-    for _ in range(size // 2):
-        move(North)
-        move(East)
+	clear()
+	n = get_world_size()
+	half = n // 2
+	for _ in range(half):
+		move(North)
+		move(East)
+	plant(Entities.Bush)
+	use_item(Items.Weird_Substance, n * MULT)
+	grid = geometry(n)
+	blank = []
+	for _ in range(n * n):
+		blank.append(-1)
+	mapped = explore(n, grid, half * n + half)
+	if mapped != None:
+		solve_one(n, 0, 0, grid, mapped, blank)
 
-    plant(Entities.Bush)
-    substance = size * (2 ** (num_unlocked(Unlocks.Mazes) - 1))
-    use_item(Items.Weird_Substance, substance)
-
-    directions = [East, North, West, South]
-    backs = {North: South, East: West, South: North, West: East, None: None}
-    dx = {North: 0, East: 1, South: 0, West: -1}
-    dy = {North: 1, East: 0, South: -1, West: 0}
-
-
-    def maze_index(x, y):
-        return x + y * size
-
-
-    def in_maze(x, y):
-        return x >= 0 and y >= 0 and x < size and y < size
-
-
-    def add_edge(graph, source, target, direction):
-        for edge in graph[source]:
-            if edge[0] == target:
-                return
-        graph[source].append([target, direction])
+TARGET_GOLD = 616448
+REUSE_LIMIT = 300
+DIRS = [North, East, South, West]
+BACK = [2, 3, 0, 1]
+MULT = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
 
 
-    def refresh_current_edges(graph):
-        source = maze_index(get_pos_x(), get_pos_y())
-        pending = closed_edges[source]
-        i = 0
-        while i < len(pending):
-            edge = pending[i]
-            direction = edge[1]
-            if not can_move(direction):
-                i += 1
-                continue
-            target = edge[0]
-            graph[source].append([target, direction])
-            graph[target].append([source, backs[direction]])
-            pending.pop(i)
-            other = closed_edges[target]
-            j = 0
-            while j < len(other):
-                if other[j][0] == source:
-                    other.pop(j)
-                    break
-                j += 1
+def geometry(n):
+	# 本地格号 p=y*n+x；grid[p][方向]是几何邻居，-1表示本宫边界。
+	# 几何表。
+	grid = []
+	for y in range(n):
+		for x in range(n):
+			p = y * n + x
+			row = [-1, -1, -1, -1]
+			if y < n - 1:
+				row[0] = p + n
+			if x < n - 1:
+				row[1] = p + 1
+			if y > 0:
+				row[2] = p - n
+			if x > 0:
+				row[3] = p - 1
+			grid.append(row)
+	return grid
 
+def explore(n, grid, home):
+	# links记录实测通路；graph供DFS选择未访问的邻居，建图后不再返回。
+	# walls记录当时仍有墙的方向；以后可能从两端之一发现该墙已经消失。
+	count = n * n
+	links = []
+	graph = []
+	walls = []
+	seen = []
+	parent = []
+	up_hop = []
+	down_hop = []
+	for _ in range(count):
+		links.append([-1, -1, -1, -1])
+		graph.append([])
+		walls.append([])
+		seen.append(False)
+		parent.append(-1)
+		up_hop.append(None)
+		down_hop.append(None)
 
-    def explore_maze(graph, visited, entered_from):
-        x = get_pos_x()
-        y = get_pos_y()
-        current = maze_index(x, y)
-        if visited[current]:
-            return
+	# order是父节点先于子节点的顺序；trail记录真正走过的DFS回退方向。
+	order = []
+	trail = []
+	p = home
+	visited = 0
+	while True:
+		if not seen[p]:
+			# 达标时提前结束；保留来源算法的统一退出条件。
+			if num_items(Items.Gold) >= TARGET_GOLD:
+				return None
+			seen[p] = True
+			visited += 1
+			order.append(p)
+			for d in range(4):
+				q = grid[p][d]
+				# 边界不能跨；已从另一端记下的通路不用重复探测。
+				if q == -1 or links[p][d] != -1:
+					continue
+				if can_move(DIRS[d]):
+					back = BACK[d]
+					links[p][d] = q
+					links[q][back] = p
+					graph[p].append((q, d))
+					graph[q].append((p, back))
+				else:
+					walls[p].append(d)
+			if visited == count:
+				break
 
-        visited[current] = True
-        open_dirs = []
-        for direction in directions:
-            nx = x + dx[direction]
-            ny = y + dy[direction]
-            if not in_maze(nx, ny):
-                continue
-            if can_move(direction):
-                target = maze_index(nx, ny)
-                add_edge(graph, current, target, direction)
-                add_edge(graph, target, current, backs[direction])
-                open_dirs.append(direction)
+		choice = -1
+		next_p = -1
+		for q, d in graph[p]:
+			if not seen[q]:
+				choice = d
+				next_p = q
+				break
+		if choice != -1:
+			move(DIRS[choice])
+			parent[next_p] = p
+			up_hop[next_p] = (p, DIRS[BACK[choice]])
+			down_hop[next_p] = (next_p, DIRS[choice])
+			trail.append(BACK[choice])
+			p = next_p
+		else:
+			# 连通树、尚有未访问节点：必然还有可以回退的祖先。
+			d = trail.pop()
+			move(DIRS[d])
+			p = grid[p][d]
 
-        back = backs[entered_from]
-        for direction in open_dirs:
-            if direction == back:
-                continue
-            nx = get_pos_x() + dx[direction]
-            ny = get_pos_y() + dy[direction]
-            if not in_maze(nx, ny):
-                continue
-            target = maze_index(nx, ny)
-            if visited[target]:
-                continue
-            move(direction)
-            explore_maze(graph, visited, direction)
-            move(backs[direction])
+	# 初始根parent=-1；up_hop是往父节点走的指令，down_hop是相反指令。
+	tree = (parent, up_hop, down_hop, order)
+	return (p, links, walls, tree)
 
+def build_all_routes(tree, blank):
+	# 每加入一个叶节点，只算它与已加入节点的无序点对，并填写双向首步。
+	parent, up_hop, down_hop, order = tree
+	rows = []
+	for goal in range(len(blank)):
+		dist = list(blank)
+		hop = list(up_hop)
+		dist[goal] = 0
+		hop[goal] = None
+		rows.append([dist, hop])
+	visited = []
+	for v in order:
+		p = parent[v]
+		if p != -1:
+			dist_v, toward_v = rows[v]
+			parent_hop = rows[p][1]
+			up = up_hop[v]
+			down = down_hop[v]
+			for u in visited:
+				dist_u, toward_u = rows[u]
+				distance = dist_u[p] + 1
+				dist_u[v] = distance
+				toward_u[v] = up
+				dist_v[u] = distance
+				if u == p:
+					toward_v[u] = down
+				else:
+					toward_v[u] = parent_hop[u]
+		visited.append(v)
+	return rows
 
-    def move_with_bfs(tx, ty, graph):
-        global bfs_stamp
-        start = maze_index(get_pos_x(), get_pos_y())
-        target = maze_index(tx, ty)
-        if start == target:
-            return True
+def add_route_edge(rows, a, b, hop_ab, hop_ba):
+	# 已知图刚新增一条无向单位边a--b。
+	# 新最短路只能是：旧路、经a->b、经b->a。无需重新跑BFS。
+	da, ha = rows[a]
+	db, hb = rows[b]
+	left = []
+	right = []
 
-        bfs_stamp = bfs_stamp + 1
-        bfs_queue[0] = start
-        bfs_seen[start] = bfs_stamp
-        bfs_previous[start] = start
-        bfs_target_queue[0] = target
-        bfs_target_seen[target] = bfs_stamp
-        bfs_target_previous[target] = target
-        head = 0
-        tail = 1
-        target_head = 0
-        target_tail = 1
-        meet = -1
-        while head < tail and target_head < target_tail and meet == -1:
-            current = bfs_queue[head]
-            head = head + 1
-            for edge in graph[current]:
-                neighbor = edge[0]
-                if bfs_seen[neighbor] == bfs_stamp:
-                    continue
-                bfs_seen[neighbor] = bfs_stamp
-                bfs_previous[neighbor] = current
-                bfs_previous_direction[neighbor] = edge[1]
-                if bfs_target_seen[neighbor] == bfs_stamp:
-                    meet = neighbor
-                    break
-                bfs_queue[tail] = neighbor
-                tail = tail + 1
+	# 必须先冻结两侧距离与首步，再开始修改rows。
+	# left: D(u,a)+1 < D(u,b)；right: D(v,b)+1 < D(v,a)。
+	# 只有左右两组之间的点对可能变短；快照里仅一侧加1，代表新边长度。
+	for u in range(len(rows)):
+		x = da[u]
+		y = db[u]
+		if x + 1 < y:
+			next_hop = ha[u]
+			if u == a:
+				next_hop = hop_ab
+			left.append((u, x + 1, next_hop, rows[u]))
+		elif y + 1 < x:
+			next_hop = hb[u]
+			if u == b:
+				next_hop = hop_ba
+			right.append((u, y, next_hop, rows[u]))
 
-            if meet != -1:
-                break
+	# 把较小集合放外层；x+y仍然只包含一次新边长度，互换不改变计算。
+	if len(left) > len(right):
+		left, right = right, left
+	for u, x, hop_u, row_u in left:
+		dist_u, toward_u = row_u
+		for v, y, hop_v, row_v in right:
+			candidate = x + y
+			# 这是算法条件：只更新严格更短的路线，等长时保留原首步。
+			if candidate < dist_u[v]:
+				dist_u[v] = candidate
+				# row_u的目标是u，因此起点v应采用hop_v，而不是hop_u。
+				toward_u[v] = hop_v
+				dist_v, toward_v = row_v
+				dist_v[u] = candidate
+				toward_v[u] = hop_u
 
-            current = bfs_target_queue[target_head]
-            target_head = target_head + 1
-            for edge in graph[current]:
-                neighbor = edge[0]
-                if bfs_target_seen[neighbor] == bfs_stamp:
-                    continue
-                bfs_target_seen[neighbor] = bfs_stamp
-                bfs_target_previous[neighbor] = current
-                bfs_target_direction[neighbor] = backs[edge[1]]
-                if bfs_seen[neighbor] == bfs_stamp:
-                    meet = neighbor
-                    break
-                bfs_target_queue[target_tail] = neighbor
-                target_tail = target_tail + 1
+def scan_departure(p, links, walls, grid, routes):
+	# 只在上一箱位置、下一次出发前检查原来的墙。
+	# 发现一条边便完整更新路由表。
+	remaining = []
+	for side in walls[p]:
+		# 同一条墙可能早已从另一端发现，必须去重。
+		if links[p][side] != -1:
+			continue
+		if can_move(DIRS[side]):
+			q = grid[p][side]
+			back = BACK[side]
+			links[p][side] = q
+			links[q][back] = p
+			add_route_edge(routes, p, q, (q, DIRS[side]), (p, DIRS[back]))
+		else:
+			remaining.append(side)
+	walls[p] = remaining
 
-        if meet == -1:
-            return False
+def solve_one(n, bx, by, grid, mapped, blank):
+	p, links, walls, tree = mapped
+	cost = n * MULT
+	routes = build_all_routes(tree, blank)
+	relocations = 0
+	while num_items(Items.Gold) < TARGET_GOLD:
+		# 一机一宫；measure一定返回本宫当前宝箱坐标。
+		t = measure()
+		goal = (t[1] - by) * n + t[0] - bx  # ty: ignore[not-subscriptable]  本机始终处于独占迷宫，measure返回坐标。
+		if p != goal:
+			# 第一次搬箱前还没有开新墙，不重复扫描刚建图时测过的墙。
+			if relocations > 0 and len(walls[p]) > 0:
+				scan_departure(p, links, walls, grid, routes)
+			dist, hop = routes[goal]
+			# 沿已确认的路线移动；不查实体、不重复核对坐标、不检查move返回值。
+			for _ in range(dist[p]):
+				p, direction = hop[p]
+				move(direction)
 
-        path_length = 0
-        current = meet
-        while current != start:
-            bfs_path[path_length] = bfs_previous_direction[current]
-            path_length = path_length + 1
-            current = bfs_previous[current]
-
-        while path_length > 0:
-            path_length = path_length - 1
-            direction = bfs_path[path_length]
-            move(direction)
-            refresh_current_edges(graph)
-
-        current = meet
-        while current != target:
-            direction = bfs_target_direction[current]
-            move(direction)
-            refresh_current_edges(graph)
-            current = bfs_target_previous[current]
-        return True
-
-
-    def goto_treasure(graph):
-        target = measure()
-        if target == None:
-            return False
-        tx = target[0]
-        ty = target[1]
-        while get_pos_x() != tx or get_pos_y() != ty:
-            if not move_with_bfs(tx, ty, graph):
-                return False
-        return True
-
-
-    graph = []
-    visited = []
-    for _ in range(size * size):
-        graph.append([])
-        visited.append(False)
-
-    bfs_stamp = 0
-    bfs_seen = []
-    bfs_previous = []
-    bfs_previous_direction = []
-    bfs_queue = []
-    bfs_path = []
-    bfs_target_seen = []
-    bfs_target_previous = []
-    bfs_target_direction = []
-    bfs_target_queue = []
-    for _ in range(size * size):
-        bfs_seen.append(0)
-        bfs_previous.append(-1)
-        bfs_previous_direction.append(None)
-        bfs_queue.append(0)
-        bfs_path.append(None)
-        bfs_target_seen.append(0)
-        bfs_target_previous.append(-1)
-        bfs_target_direction.append(None)
-        bfs_target_queue.append(0)
-
-    start_time = get_time()
-    explore_maze(graph, visited, None)
-    explore_done_time = get_time()
-    quick_print("maze_single_dfs", "explore_time=", explore_done_time - start_time)
-
-    closed_edges = []
-    for y in range(size):
-        for x in range(size):
-            pending = []
-            source = maze_index(x, y)
-            for direction in directions:
-                nx = x + dx[direction]
-                ny = y + dy[direction]
-                if not in_maze(nx, ny):
-                    continue
-                target = maze_index(nx, ny)
-                known = False
-                for edge in graph[source]:
-                    if edge[0] == target:
-                        known = True
-                        break
-                if not known:
-                    pending.append([target, direction])
-            closed_edges.append(pending)
-
-    while True:
-        if goto_treasure(graph):
-            use_item(Items.Weird_Substance, substance)
-            if get_entity_type() == Entities.Treasure:
-                harvest()
-                break
-        else:
-            refresh_current_edges(graph)
-            for _ in range(size):
-                if get_entity_type() == Entities.Treasure:
-                    harvest()
-                    break
-                move(North)
-                refresh_current_edges(graph)
-            if get_entity_type() == Entities.Treasure:
-                break
-            move(East)
-            refresh_current_edges(graph)
-
-    quick_print(
-        "maze_single_dfs",
-        "total_time=", get_time() - start_time,
-    )
-
+		# 达标时退出；单机完整轮正常在第301箱harvest结束。
+		if num_items(Items.Gold) >= TARGET_GOLD:
+			return relocations
+		if relocations >= REUSE_LIMIT:
+			# 300次成功搬迁之后，走到最后一个箱子并harvest，本宫才会消失。
+			harvest()
+			return relocations + 1
+		use_item(Items.Weird_Substance, cost)
+		relocations += 1
+	return relocations
 
 if __name__ == "__main__":
-    lb_maze_single()
+	lb_maze_single()
