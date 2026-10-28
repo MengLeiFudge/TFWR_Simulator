@@ -42,3 +42,17 @@
 | [RubenNijhuis/the-farmer-was-replaced](https://github.com/RubenNijhuis/the-farmer-was-replaced) | `518ca0068c81be6839b9d114706d945aefec9d02`；`cactus.py`全文 | 排序前预检查、最后交换收缩的双向冒泡与行列切片，仍是已覆盖结构；四个依赖未读，未执行。 |
 
 本批只作本地静态研究，没有模型、游戏或发布动作。固定网络预算明确依赖当前模型API计费，不能冒充上游真实测试。其余候选因没有新的改善依据暂不投入适配，不能据此证明它们在所有条件都更慢。
+
+## 快速重置路线检索
+
+补充README范围检索`"the farmer was replaced" "fastest_reset" in:readme`得到10项；此前仅名称/描述两次检索0项不代表没有脚本。原响应、固定树、blob及SHA256保存于`.codex/leaderboard-astra/github-reset-search/`，取得的blob均核对Git对象SHA1。每次18秒、批次25秒上限，未执行任何本批外部代码。
+
+| 来源与固定版本 | 本轮阅读 | 取舍 |
+| --- | --- | --- |
+| enihsyou，树`37a97b58e15dc60bb6aff8829eeb58293be18b39` | `fastest_reset.py`722行全文，blob`f866d8dd3be04b642224a790e15364402c4b8bc8`；沿用已核对MIT许可 | 基础资源多机函数只有max_drones()==2分支，多机向日葵空实现，补电调用注释。单机向日葵桶7..15却从16取值、金币入口重复写COSTS等静态问题保留。未执行，未适配。 |
+| KyleGough，树`af472f52d7c01af5630863150cecdc92c17a2cd8` | `fastest_reset/fastest_reset.py`453行全文，blob`063dc84b6851e1ab730948bfb52335cc3cf05674`及README全文 | 作者自述49m37s/#20，不是本机实测。路线提前多档浇水、肥料及16机，最后预备2M Bone；尚无比当前路线减少生产需求的依据。custom_harvest下载TLS EOF，其他十余依赖未读；未执行，固定树未见LICENSE文件，不发布。 |
+| Zwidek12，树`9388deb7d9bd4e87e7d8eed46e6607045439b29c` | README82行及`full_reset_solution.py`86行全文，blob`767338f2b1799180bdf932317613bd98dba0927f` | 目标是成就通关，自述6:59:34。固定高等级解锁次序，9个生产依赖未读；未见低费用主路径依据，不执行。README允许游戏内使用修改，未迁入正式代码。 |
+| PKDGOOD，树`9e879f2f2d2d6602706529f7a7e79e356d43514b` | README18行全文 | 完整科技自动化引擎，无可比较时间；主程序和设计未读，不给性能结论。 |
+| Berman510，树`0f0f4fd01f708363cca70001e526426393fb535d` | 仅定位`farm_unlocks.py` blob`ff5052938d512e79ae4ee9ede62ff13da06b9f3c` | 下载TLS EOF，正文未取得，不给算法结论。 |
+
+本批没有新实机候选，不把“找到Reset入口”视为更快证据。六个下载/检索工具ty零诊断，两次TLS失败保留且未重复请求。另从本地代码发现单机补电正向绕路，独立候选完整统计3032.746秒未优于正式3000.959667秒，见[Reset记录](lb_fastest_reset.md)；该改动不归为上游算法。
