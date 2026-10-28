@@ -58,7 +58,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Sunflowers, "lb_sunflowers", 10000)
 # 成功条件：num_items(Items.Power) >= 100_000
-# 用时（#1/当前版本复跑）：2:22.574 / 3:32.883
+# 用时（#1/当前版本复跑）：2:22.574 / 3:29.487
 
 # leaderboard_run(Leaderboards.Sunflowers_Single, "lb_sunflowers_single", 10000)
 # 成功条件：num_items(Items.Power) >= 10_000

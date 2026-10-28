@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：3:32.883（2026-10-28，官方完整34轮，request 200）。
+# 完整轮时间：3:29.487（2026-10-28，官方完整35轮，request 203）。
 
 def lb_sunflowers():
     clear()
@@ -156,7 +156,27 @@ def routes(pod, buckets):
     return plans
 
 
-def consume_signal(base, rank, deadline):
+def goal_signal(marker, deadline):
+    # 14波正常屏障共收458752Hay；额外收自己的草标记广播结束。
+    if num_items(Items.Hay) > 458752:
+        return True
+    if num_items(Items.Power) < 100100:
+        return False
+    if not go(marker, deadline):
+        return None
+    while not can_harvest():
+        if num_items(Items.Hay) > 458752:
+            return True
+        if get_time() > deadline:
+            return None
+        pause()
+    if not harvest():
+        return None
+    quick_print("pair_goal_signal", marker, get_time(), num_items(Items.Power))
+    return True
+
+
+def consume_signal(base, rank, deadline, last_wave):
     # 只有本轮种花结束后才进入；临时南瓜不提供伴生或成熟收益。
     if get_ground_type() != Grounds.Soil:
         till()
@@ -165,6 +185,8 @@ def consume_signal(base, rank, deadline):
     if not harvest():
         return False
     while num_items(Items.Carrot) > base - (rank + 1) * 32 * 512:
+        if last_wave and num_items(Items.Hay) > 458752:
+            return True
         if get_time() > deadline:
             return False
         pause()
@@ -175,13 +197,22 @@ def collect(pod, side, cycle, plan, base, deadline):
     marker = pod * 64 + side * 32 + 16
     if not hay_barrier(marker, cycle * 2 + 2, deadline):
         return False
+    last_wave = cycle == 13
     harvested = 0
     for rank in range(9):
         began = get_time()
         for cell in plan[rank]:
+            if last_wave:
+                done = goal_signal(marker, deadline)
+                if done == None:
+                    return False
+                if done:
+                    return True
             if not go(pod * 64 + cell, deadline):
                 return False
             while not can_harvest():
+                if last_wave and num_items(Items.Hay) > 458752:
+                    return True
                 if get_time() > deadline:
                     return False
                 if not water():
@@ -190,7 +221,13 @@ def collect(pod, side, cycle, plan, base, deadline):
             if not harvest():
                 return False
             harvested += 1
-        if not consume_signal(base, rank, deadline):
+        if last_wave:
+            done = goal_signal(marker, deadline)
+            if done == None:
+                return False
+            if done:
+                return True
+        if not consume_signal(base, rank, deadline, last_wave):
             return False
         if pod == 0 and side == 0:
             quick_print("pair_rank_end", cycle, rank, began, get_time(), num_items(Items.Power), num_items(Items.Water))
