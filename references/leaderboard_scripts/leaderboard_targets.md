@@ -18,11 +18,11 @@
 | [Wood](https://steamcommunity.com/stats/2060160/leaderboards/17869895/) | 2:38.334 | 3:54.525 | 4:27.262 | 5:07.177 | [4:43.895](lb_start.py#L17) | 约 #42 | 1.211× | 17.4% | 100/885 |
 | [Sunflowers Single](https://steamcommunity.com/stats/2060160/leaderboards/17827413/) | 3:46.934 | 4:13.958 | 4:54.635 | 5:42.344 | [5:06.334](lb_start.py#L65) | 约 #42 | 1.206× | 17.1% | 100/461 |
 | [Wood Single](https://steamcommunity.com/stats/2060160/leaderboards/17827415/) | 3:27.825 | 4:27.918 | 5:29.863 | 8:22.200 | [5:21.148](lb_start.py#L21) | 约 #29 | 1.199× | 16.6% | 100/368 |
-| [Pumpkins Single](https://steamcommunity.com/stats/2060160/leaderboards/17827408/) | 3:56.114 | 6:33.878 | 7:15.234 | 8:14.304 | [7:39.495](lb_start.py#L37) | 约 #48 | 1.167× | 14.3% | 100/502 |
+| [Pumpkins Single](https://steamcommunity.com/stats/2060160/leaderboards/17827408/) | 3:56.114 | 6:33.878 | 7:15.234 | 8:14.304 | [7:32.911](lb_start.py#L37) | 约 #41 | 1.150× | 13.0% | 100/502 |
 | [Maze Single](https://steamcommunity.com/stats/2060160/leaderboards/17827402/) | 0:42.396 | 1:52.091 | 2:10.443 | 2:43.764 | [2:06.703](lb_start.py#L57) | 约 #26 | 1.130× | 11.5% | 100/780 |
-| [Pumpkins](https://steamcommunity.com/stats/2060160/leaderboards/17869892/) | 5:34.180 | 5:57.770 | 6:16.799 | 7:12.833 | [6:41.562](lb_start.py#L33) | 约 #54 | 1.122× | 10.9% | 100/1408 |
 | [Carrots](https://steamcommunity.com/stats/2060160/leaderboards/17869887/) | 1:58.229 | 3:32.744 | 4:09.746 | 5:01.835 | [3:51.310](lb_start.py#L25) | 约 #19 | 1.087× | 8.0% | 100/628 |
 | [Carrots Single](https://steamcommunity.com/stats/2060160/leaderboards/17827400/) | 2:52.712 | 3:54.818 | 4:27.697 | 7:06.442 | [4:10.641](lb_start.py#L29) | 约 #22 | 1.067× | 6.3% | 100/303 |
+| [Pumpkins](https://steamcommunity.com/stats/2060160/leaderboards/17869892/) | 5:34.180 | 5:57.770 | 6:16.799 | 7:12.833 | [6:14.308](lb_start.py#L33) | 约 #29 | 1.046× | 4.4% | 100/1408 |
 | [Hay](https://steamcommunity.com/stats/2060160/leaderboards/17869890/) | 0:58.262 | 1:48.018 | 1:50.145 | 1:56.875 | [1:51.991](lb_start.py#L9) | 约 #69（同分） | 1.037× | 3.5% | 100/1588 |
 | [Hay Single](https://steamcommunity.com/stats/2060160/leaderboards/17827401/) | 1:47.096 | 2:47.919 | 2:49.781 | 2:56.816 | [2:51.998](lb_start.py#L13) | 约 #73（同分） | 1.024× | 2.4% | 100/1597 |
 

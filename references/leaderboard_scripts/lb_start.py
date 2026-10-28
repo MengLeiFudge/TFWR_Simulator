@@ -30,11 +30,11 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Pumpkins, "lb_pumpkins", 10000)
 # 成功条件：num_items(Items.Pumpkin) >= 200_000_000
-# 用时（#1/当前版本复跑）：5:54.301 / 6:41.562
+# 用时（#1/当前版本复跑）：5:54.301 / 6:14.308
 
 # leaderboard_run(Leaderboards.Pumpkins_Single, "lb_pumpkins_single", 10000)
 # 成功条件：num_items(Items.Pumpkin) >= 10_000_000
-# 用时（#1/当前版本复跑）：6:23.321 / 7:39.495
+# 用时（#1/当前版本复跑）：6:23.321 / 7:32.911
 
 # leaderboard_run(Leaderboards.Cactus, "lb_cactus", 10000)
 # 成功条件：num_items(Items.Cactus) >= 33_554_432
