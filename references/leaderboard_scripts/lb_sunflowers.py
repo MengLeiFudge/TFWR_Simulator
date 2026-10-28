@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：3:35.906（2026-10-28，官方完整34轮，request 197）。
+# 完整轮时间：3:32.883（2026-10-28，官方完整34轮，request 200）。
 
 def lb_sunflowers():
     clear()
@@ -121,7 +121,27 @@ def routes(pod, buckets):
             other_cut, other_cost = split(positions, cells, reverse, prefix)
             if other_cost < cost:
                 cut = other_cut
+                cost = other_cost
                 order = reverse
+            reverse_cells = []
+            reverse_prefix = []
+            end = prefix[-1]
+            for i in range(len(cells) - 1, -1, -1):
+                reverse_cells.append(cells[i])
+                reverse_prefix.append(end - prefix[i])
+            reverse = [order[1], order[0]]
+            back_cut, back_cost = split(positions, reverse_cells, order, reverse_prefix)
+            other_cut, other_cost = split(positions, reverse_cells, reverse, reverse_prefix)
+            if other_cost < back_cost:
+                back_cut = other_cut
+                back_cost = other_cost
+                back_order = reverse
+            else:
+                back_order = order
+            if back_cost < cost:
+                cut = back_cut
+                cells = reverse_cells
+                order = back_order
             stops = [cut, len(cells)]
             index = 0
             for j in range(2):
