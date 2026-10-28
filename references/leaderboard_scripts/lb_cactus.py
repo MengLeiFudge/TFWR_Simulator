@@ -1,32 +1,35 @@
 from __builtins__ import *
-# 完整轮时间：0:36.577（2026-10-26，官方完整197轮，request 116）。
+# 完整轮时间：0:34.727（2026-10-28，官方完整208轮，request 152）。
 
 def lb_cactus():
-    goto(0, size - 1)
     while num_items(Items.Cactus) < 33554432:
-        idx = max_drone_num - 1
-        for _ in range(max_drone_num - 1):
-            spawn_drone(plant_and_sort_x)
-            idx -= 1
-            move(South)
-        plant_and_sort_x()
-
-        goto(size - 1, 0)
-        while num_drones() != 1:
-            pass
-
-        idx = max_drone_num - 1
-        for _ in range(max_drone_num - 1):
-            spawn_drone(sort_one_way)
-            idx -= 1
-            move(West)
-        sort_one_way()
-
+        dispatch_lines(0, max_drone_num, False)
+        dispatch_lines(0, max_drone_num, True)
         goto(0, size - 1)
-        while num_drones() != 1:
-            pass
-
         harvest()
+
+
+def dispatch_lines(first, count, columns):
+    # 每个分发者也处理一条线；最多31次spawn，子树结束后才返回。
+    handles = []
+    while count > 1:
+        left = count // 2
+        handle = spawn_drone(dispatch_lines, first + left, count - left, columns)
+        if handle == None:
+            # 容量意外不足时按同一分区顺序执行，不丢弃任务。
+            dispatch_lines(first + left, count - left, columns)
+        else:
+            handles.append(handle)
+        count = left
+    index = size - 1 - first
+    if columns:
+        goto(index, 0)
+        sort_one_way()
+    else:
+        goto(0, index)
+        plant_and_sort_x()
+    for handle in handles:
+        wait_for(handle)
 
 
 size = get_world_size()
@@ -63,6 +66,9 @@ def plant_and_sort_x():
             if get_ground_type() != Grounds.Soil:
                 till()
             plant(Entities.Cactus)
+        # 利用本行铺田的既有访问先消除左邻逆序。
+        if get_pos_x() > 0 and measure(West) > measure():
+            swap(West)
         move(East)
     # sort x
     sort_one_way("x")
