@@ -22,11 +22,11 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Carrots, "lb_carrots", 10000)
 # 成功条件：num_items(Items.Carrot) >= 2_000_000_000
-# 用时（#1/当前版本复跑）：3:10.664 / 4:36.794
+# 用时（#1/当前版本复跑）：3:10.664 / 3:51.310
 
 # leaderboard_run(Leaderboards.Carrots_Single, "lb_carrots_single", 10000)
 # 成功条件：num_items(Items.Carrot) >= 100_000_000
-# 用时（#1/当前版本复跑）：3:46.963 / 5:17.898
+# 用时（#1/当前版本复跑）：3:46.963 / 4:10.641
 
 # leaderboard_run(Leaderboards.Pumpkins, "lb_pumpkins", 10000)
 # 成功条件：num_items(Items.Pumpkin) >= 200_000_000

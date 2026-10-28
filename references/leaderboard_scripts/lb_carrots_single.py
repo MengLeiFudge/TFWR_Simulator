@@ -1,133 +1,85 @@
 from __builtins__ import *
-# 完整轮时间：5:17.898（2026-10-26，官方完整23轮，request 106）。
+# 完整轮时间：4:10.641（官方完整29轮，request161）；本地三seed249.127523秒，短时9轮251.719444秒。
+# Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
+# 来源：enihsyou/The-Farmer-Was-Replaced，blob 6564437d28f4ce02a160373ce1efbd1af283f29f。
 
 def lb_carrots_single():
+    global s
+    global m
+    global n
+    global wants
     set_world_size(8)
     clear()
-    queues = []
-    targets = []
-    requested = []
-    active = []
-    remaining = []
-    support = []
-    for _ in range(64):
-        queues.append([])
-        targets.append(-1)
-        requested.append(None)
-        active.append(False)
-        remaining.append(0)
-        support.append(Entities.Grass)
-    produced = 0
-    rejected = 0
-    batches = 0
-    changes = 0
-    waiting = 0
-    unripe = 0
-    for tour in range(1000):
-        before = produced
-        for y in range(8):
-            direction = East
-            columns = range(8)
-            if y % 2 == 1:
-                direction = West
-                columns = range(7, -1, -1)
-            for x in columns:
-                if get_time() > 1200:
-                    quick_print("cohort_failed", "time_limit", get_time())
-                    return
-                source = x + 8 * y
-                if (x + y) % 2 == 0:
-                    if tour == 0:
-                        if get_ground_type() != Grounds.Soil:
-                            till()
-                    else:
-                        water_once()
-                    if active[source]:
-                        if can_harvest():
-                            target = targets[source]
-                            if support[target] != requested[source] or remaining[target] <= 0:
-                                quick_print("cohort_failed", "claim", source, target)
-                                return
-                            if not harvest():
-                                quick_print("cohort_failed", "harvest", source)
-                                return
-                            remaining[target] -= 1
-                            active[source] = False
-                            targets[source] = -1
-                            produced += 1
-                            if num_items(Items.Carrot) >= 100000000:
-                                quick_print("cohort_done", get_time(), tour, produced, rejected, batches, changes, waiting, unripe)
-                                return
-                        else:
-                            unripe += 1
-                    elif targets[source] != -1:
-                        waiting += 1
-                    if targets[source] == -1:
-                        rolls = register_carrot(source, queues, targets, requested)
-                        if rolls < 0:
-                            return
-                        rejected += rolls
-                        if tour == 0:
-                            water_once()
-                elif tour > 0 and remaining[source] == 0 and len(queues[source]) > 0:
-                    kind = queues[source][0][1]
-                    if support[source] != kind:
-                        if support[source] != Entities.Grass:
-                            if not harvest():
-                                quick_print("cohort_failed", "support_harvest", source)
-                                return
-                            changes += 1
-                        if kind != Entities.Grass:
-                            if not plant(kind):
-                                quick_print("cohort_failed", "support_plant", source)
-                                return
-                            changes += 1
-                        support[source] = kind
-                    deferred = []
-                    for origin, wanted in queues[source]:
-                        if wanted == kind:
-                            active[origin] = True
-                            remaining[source] += 1
-                        else:
-                            deferred.append((origin, wanted))
-                    queues[source] = deferred
-                    batches += 1
-                if x != 7 and direction == East or x != 0 and direction == West:
-                    move(direction)
-            move(North)
-        quick_print("cohort_tour", tour, get_time(), produced - before, produced, rejected, batches, changes, waiting, unripe)
-    quick_print("cohort_failed", "tour_limit", get_time())
+    s = get_world_size()
+    m = s - 1
+    n = s - 2
+    wants = {}
+    traverse_rectangle(first_round)
+    while traverse_rectangle(while_round):
+        continue
 
 
-def register_carrot(source, queues, targets, requested):
-    for attempt in range(128):
-        if not plant(Entities.Carrot):
-            quick_print("cohort_failed", "carrot_plant", source, get_time())
-            return -1
-        companion = get_companion()
-        if companion == None:
-            quick_print("cohort_failed", "companion", source)
-            return -1
-        kind, position = companion
-        x, y = position
-        if (x + y) % 2 == 1:
-            target = x + 8 * y
-            targets[source] = target
-            requested[source] = kind
-            queues[target].append((source, kind))
-            return attempt
-        if can_harvest() or not harvest():
-            quick_print("cohort_failed", "mature_rejection", source)
-            return -1
-    quick_print("cohort_failed", "reroll_limit", source)
-    return -1
+def traverse_rectangle(fn):
+    # traverse_rectangle 针对 8 x 8 的性能优化版
+    if fn():
+        return False
+    move(North)
+    for i in range(0, s, 2):
+        for j in range(m):
+            if fn():
+                return False
+            if j != n:
+                move(North)
+        move(East)
+        for j in range(m):
+            if fn():
+                return False
+            if j != n:
+                move(South)
+        if i != n:
+            move(East)
+    move(South)
+    for _ in range(m):
+        if fn():
+            return False
+        move(West)
+
+    return True
 
 
-def water_once():
-    if get_water() < 0.9:
-        water = num_items(Items.Water)
-        if water > 0:
-            use_item(Items.Water, min(4, water))
+def on_eachcell():
+    t = (get_pos_x(), get_pos_y())
+
+    if get_water() < 0.01:
+        # 访问间隔挺长的，不需要太多水
+        use_item(Items.Water)
+
+    if t in wants:
+        # 满足当前位置的种植需求
+        c = wants.pop(t)
+        if get_entity_type() != c:
+            harvest()
+            plant(c)
+        return
+
+    while True:
+        harvest()
+        plant(Entities.Carrot)
+        c, p = get_companion()
+        if p in wants and wants[p] != c:
+            continue  # 和其他植物的请求种植的冲突
+        wants[p] = c  # 标记格子接下来要种植的作物
+        break
+
+
+def first_round():
+    till()
+    on_eachcell()
+
+
+def while_round():
+    on_eachcell()
+    return num_items(Items.Carrot) >= 100000000
 
 
 if __name__ == "__main__":
