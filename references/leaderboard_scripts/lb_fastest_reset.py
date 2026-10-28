@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：50:24.677（2026-10-28，官方完整3轮，request 185）。
+# 完整轮时间：50:00.960（2026-10-28，官方完整3轮，request 188）。
 # 恐龙路径Copyright (c) 2026 enihsyou，MIT许可见enihsyou_LICENSE.txt。
 
 
@@ -891,27 +891,24 @@ def cactus_worker_supply(start, stride, phase, deadline):
             return False
         if phase == 0:
             go(line, 0)
-            for _ in range(size):
+            for y in range(size):
                 if get_ground_type() != Grounds.Soil:
                     till()
                 if not affordable(get_cost(Entities.Cactus)) or not plant(Entities.Cactus):
                     return False
+                # 铺田时先消除相邻逆序，复用已支付的访问。
+                if y > 0 and measure(South) > measure():
+                    if not swap(South):
+                        return False
                 if not move(North):
                     return False
-            # 每轮真实闭合巡回；四轮已超过已核对的一秒成熟上界。
-            mature = False
-            for _ in range(4):
-                ready = 0
-                for _ in range(size):
-                    if can_harvest():
-                        ready += 1
-                    if not move(North):
-                        return False
-                if ready == size:
-                    mature = True
-                    break
-            if not mature or not sort_cactus_line(North, South, deadline):
+            # 最后一株播种后至少一秒；排序与自然成熟重叠，不做空巡回。
+            mature_at = get_time() + 1
+            if not sort_cactus_line(North, South, deadline):
                 return False
+            while get_time() < mature_at:
+                if get_time() > deadline:
+                    return False
         else:
             go(0, line)
             if not sort_cactus_line(East, West, deadline):
