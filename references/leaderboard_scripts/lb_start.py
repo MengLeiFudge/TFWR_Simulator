@@ -42,7 +42,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Cactus_Single, "lb_cactus_single", 10000)
 # 成功条件：num_items(Items.Cactus) >= 131_072
-# 用时（#1/当前版本复跑）：0:14.274 / 0:21.472
+# 用时（#1/当前版本复跑）：0:14.274 / 0:20.308
 
 # leaderboard_run(Leaderboards.Dinosaur, "lb_dinosaur", 10000)
 # 成功条件：num_items(Items.Bone) >= 33_488_928
