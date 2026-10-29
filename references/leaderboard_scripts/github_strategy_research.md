@@ -56,3 +56,18 @@
 | Berman510，树`0f0f4fd01f708363cca70001e526426393fb535d` | 仅定位`farm_unlocks.py` blob`ff5052938d512e79ae4ee9ede62ff13da06b9f3c` | 下载TLS EOF，正文未取得，不给算法结论。 |
 
 本批没有新实机候选，不把“找到Reset入口”视为更快证据。六个下载/检索工具ty零诊断，两次TLS失败保留且未重复请求。另从本地代码发现单机补电正向绕路，独立候选完整统计3032.746秒未优于正式3000.959667秒，见[Reset记录](lb_fastest_reset.md)；该改动不归为上游算法。
+
+## 2026-10-29：第二批恐龙来源静态筛选
+
+两次公开仓库检索返回59项和13项，各限前30项；不声称覆盖整个GitHub。六个新来源中的五份树已固定，已取得正文均核对Git blob SHA1，原JSON与SHA256保存在`.codex/leaderboard-astra/github-dinosaur-search2/`。没有执行任何本批外部源码，也没有据仓库名称或作者自述认定更快。
+
+| 来源 / 固定树 | 已读范围与判断 |
+| --- | --- |
+| fol21/the-farmer-was-replaced-algorithms / `2eb0c104c73de4b9f776813f804047893b6d5aa5` | README111行全文，描述追目标和受阻侧步，无可比成绩。compose.py未读，不给实现性能结论；固定树无LICENSE。 |
+| fenxi-uint8/the-farmer-was-downgraded / `57072e98847ab6564dbb249a0869f84c467c3740` | dinosaur.py105行、README、0BSD许可全文。静态Hamilton编号按头尾顺序取捷径，半场后退回固定环，每步list.insert(0,...)维护身体；constant/utils未读。未发现新的中后期移动构造，不执行。 |
+| 401rk8/The-Farmer-Was-Replaced / `0bdfd063a3fd08a03a8dc5b7c90b110305432952` | 两份bone.py共116行及README131行全文。前n个苹果按轴追踪，受阻可摘帽重来，之后固定环；README主要讨论成就，没有当前榜单完整统计。固定树无LICENSE，不迁入或发布。WSL两次读取超时，改Windows网络栈取得相同blob。 |
+| claud2893/TFWR_Best-Functions / `69ecf22db888ef53208416630d96bf452c958a6a` | README29行全文，仅描述perfect_move；代码blob读取超时，未读正文，不给算法结论。树有LICENSE但正文未读。 |
+| luki4fun/TheFarmerWasReplaced / `9c313f53b2baca6bfdb080f332774e8060abfc57` | mainSnakeSolver2.py138行全文：前25%贪心轴向侧步，未到目标递归，没有循环进展保证；后段无限固定路线、不检查move失败且无正常摘帽结算。README和另一solver下载超时；固定树无LICENSE。未执行。 |
+| veisveer/TheFarmerWasReplaced-Solutions | 树请求超时，未取得正文，不给结论。 |
+
+正式恐龙818.713889秒保持。本批来源没有形成可执行的新候选；后续具体问题是当前边界逆时针路线能否在短蛇阶段使用更近入口，同时证明自由区连通、尾部释放和持续进展。该构造尚未确定，不填写预测成绩。
