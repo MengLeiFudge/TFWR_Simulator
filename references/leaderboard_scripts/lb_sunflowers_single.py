@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：5:06.334（官方完整24轮，request168）；本地三seed306.495105秒，短时11轮306.156秒。
+# 完整轮时间：4:56.061（官方完整复验25轮，request210）；环绕距离查表选点。
 # Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
 # 来源：enihsyou/The-Farmer-Was-Replaced，blob 209990a4977f011e0f8e7861530cf3045c6a3a2f。
 
@@ -21,6 +21,9 @@ def lb_sunflowers_single():
         trip_round()
     while num_items(Items.Power) < 10000:
         last_trip_round()
+
+# 固定8格世界，差值-7..7均可直接索引；负下标对应反向距离。
+WRAP_DISTANCE = [0, 1, 2, 3, 4, 3, 2, 1]
 
 W = 0.72
 MAX_PETALS = 15
@@ -91,13 +94,13 @@ def plant_a_sunflower():
 
 
 def nearest_expect_current(positions):
-    # 找到离当前位置最近的点
+    # 按实际环绕距离选点；保留当前点最后处理的成熟协议。
     min_pos = None
     min_dis = 9999
     x, y = get_pos_x(), get_pos_y()
     for pos in positions:
         mx, my = pos
-        dis = abs(mx - x) + abs(my - y)
+        dis = WRAP_DISTANCE[mx - x] + WRAP_DISTANCE[my - y]
         if dis == 0:
             continue
         if dis < min_dis:
