@@ -1,5 +1,13 @@
 # lb_cactus
 
+## 2026-10-30：横纵局部违例交替扫描，完整70.625秒
+
+策略空间C5的一个简单代表：32机先独立铺田；每阶段各自独占一行或一列，只扫描一次相邻边就换轴，逐轮正反交替。每阶段wait整棵派发树后才开始下一阶段，避免同格并发修改。每次违例交换使`sum((x+y)*尺寸)`严格增加，势函数有界；完整一轮两个方向均零交换时二维有序。128轮仅为实验停止线，不是理论收敛上界。
+
+唯一原生seed1正常完成33554432 Cactus，70.624932840秒；同输入、正式执行AST对应父版34.765467390秒。15轮扫描，1024plant/till、1harvest，库存非负、种子消耗65536 Pumpkin，无错误/警告/丢输出。swap10471对父11722，少1251；move39169对12459，多26710；spawn/wait961对62；measure30720对31370。减少交换未抵消反复扫描和调度成本，不把总解释器tick直接换算为多机关键路径差额。
+
+这个静态扫描代表停止，不进入实机；动态违例派工、活动边队列等仍开放。三类时间70.624932840/null/null，正式34.7273125秒保持。证据`.codex/leaderboard-astra/cactus-local-relaxation/`，执行源`9dddfac0f476224c19d552d2ca6de52788044f7665e83514edd004ca30f77715`，原报告`ab39eb0c168a68d7157e03ad008edc781d70c785f7b0b2a2bafc99d45df13e13`。分析器最初误选只含铺田改动的旧父版，AST检查阻止比较；改用combined-three中seed1后通过，无模型重跑。
+
 ## 2026-10-28：第二批GitHub算法未发现更低费用结构
 
 公开检索后固定五个新来源并阅读全文算法：KyleGough的同步奇偶网络，lukasvermeer的串行整田双向冒泡，Berman510的并行行列普通双向冒泡，insivam的旧API插入排序，RubenNijhuis的切片双向冒泡。版本、blob、阅读边界与依赖见[GitHub策略研究](github_strategy_research.md)及`.codex/leaderboard-astra/github-cactus-search2/`，不执行尚未读齐依赖的外部文件。
