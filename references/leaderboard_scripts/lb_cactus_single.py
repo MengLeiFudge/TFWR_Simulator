@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：0:20.308（2026-10-28，官方完整355轮，request179）。
+# 完整轮时间：0:20.056（2026-10-30，官方完整359轮，request216）。
 # Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
 
 def lb_cactus_single():
@@ -43,17 +43,19 @@ def lb_cactus_single():
         # {(7, 7)},
     ]
     last_plant_time = 0
+    # 固定8格世界；正负坐标差均映射到实际环绕步数。
+    wrap_distance = [0, 1, 2, 3, 4, 3, 2, 1]
     max_dis = s + s
     for diag_pos in POSITIONS:
         while diag_pos:
             x, y = get_pos_x(), get_pos_y()
 
-            # 去往离当前最近的对角线上的点
+            # 按实际环绕步数选择同一反对角线的最近点。
             min_pos = None
             min_dis = max_dis
             for pos in diag_pos:
                 mx, my = pos
-                dis = abs(mx - x) + abs(my - y)
+                dis = wrap_distance[mx - x] + wrap_distance[my - y]
                 if dis < min_dis:
                     min_dis = dis
                     min_pos = pos
