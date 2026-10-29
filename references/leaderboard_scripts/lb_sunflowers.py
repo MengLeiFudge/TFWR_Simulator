@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：3:29.487（2026-10-28，官方完整35轮，request 203）。
+# 完整轮时间：3:27.825（2026-10-30，官方完整35轮，request219）。
 
 def lb_sunflowers():
     clear()
@@ -110,6 +110,16 @@ def routes(pod, buckets):
         cells = buckets[rank]
         assigned = [[], []]
         if len(cells) > 0:
+            # 闭环中最长的一条边不再进入线性花序；同长保留原断口。
+            gap = table[cells[-1]][cells[0]]
+            start = 0
+            for i in range(1, len(cells)):
+                distance = table[cells[i - 1]][cells[i]]
+                if distance > gap:
+                    gap = distance
+                    start = i
+            if start:
+                cells = cells[start:] + cells[:start]
             prefix = [0]
             for i in range(1, len(cells)):
                 prefix.append(prefix[-1] + table[cells[i - 1]][cells[i]] + 1)
