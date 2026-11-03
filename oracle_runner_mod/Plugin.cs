@@ -850,7 +850,7 @@ public sealed class Plugin : BaseUnityPlugin
         WriteGameLog(line);
     }
 
-    /// <summary>与游戏执行线程同步写入原生输出；执行外打开的写入器在本次写入后关闭。</summary>
+    /// <summary>与游戏执行线程同步，通过当前模拟的实例日志器写入原生输出。</summary>
     /// <param name="line">保留在游戏输出中的模组诊断或榜单记录。</param>
     private static void WriteGameLog(string line)
     {
@@ -859,20 +859,9 @@ public sealed class Plugin : BaseUnityPlugin
         {
             return;
         }
-        // Logger.Clear 不 Dispose 旧 writer。停止后追加错误必须关闭，否则下一次 Clear 会共享冲突。
         lock (SimulationLockRef(mainSim))
         {
-            try
-            {
-                global::Logger.Log(line);
-            }
-            finally
-            {
-                if (!SimRef(mainSim).IsExecuting())
-                {
-                    global::Logger.Close();
-                }
-            }
+            mainSim.Logger.Log(line);
         }
     }
 
