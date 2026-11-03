@@ -78,6 +78,7 @@ class Drone:
     hat: Hats = Hats.Straw_Hat
     result: object = None
     done: bool = False
+    exhausted: bool = False
     cancelled: bool = False
     waiting: object = None
     response: object = None
@@ -318,7 +319,7 @@ class Scheduler:
                         raise RuntimeError('无人机相互等待，无法继续')
                     self.global_ticks = min(d.ticks for d in runnable)
                     reached = min(target, self.global_ticks)
-                    world.advance_to(world.now_ns + int((reached - previous) * world.tick_ns))
+                    world.add_execution_ticks(reached - previous)
                     used = sum(d.ticks - d.consumed for d in self.active.values())
                     for drone in self.active.values():
                         drone.consumed = drone.ticks
@@ -343,7 +344,7 @@ class Scheduler:
                         break
                     self.global_ticks = min((d.ticks for d in self.active.values() if d.waiting is None), default=target)
                     next_time = world.now_ns + int((self.global_ticks - reached) * world.tick_ns)
-                    world.advance_to(world.now_ns + int((min(self.global_ticks, target) - reached) * world.tick_ns))
+                    world.add_execution_ticks(min(self.global_ticks, target) - reached)
                     if self.global_ticks > target:
                         break
         finally:
@@ -351,12 +352,17 @@ class Scheduler:
                 drone.task.close()
 
     def resume(self, drone, target):
-        """纯操作可以执行到批次边界；世界读写留到共同操作时刻应用。"""
+        """纯操作执行到批次边界；耗尽协程后，下一次调度才提交终态。"""
+        if drone.exhausted:
+            drone.pending = Request('_finished', (drone.result,))
+            return
         while drone.ticks <= target:
             try:
                 request = drone.task.send(drone.response)
             except StopIteration as end:
-                drone.pending = Request('_finished', (end.value,))
+                # ProgramState本轮先清空执行栈，下一轮才设置Terminated。
+                drone.exhausted = True
+                drone.result = end.value
                 return
             if not isinstance(request, Request):
                 raise TypeError('脚本产生了无效调度请求')

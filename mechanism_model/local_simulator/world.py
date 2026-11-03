@@ -286,9 +286,8 @@ class FarmWorld:
         return crop.progress + (self.now_ns - crop.grow_start) / crop.grow_ns if crop.grow_ns else crop.progress
 
     def sync_growth(self, crop):
-        """改变生长条件之前，结算旧定时区间的进度并停止旧事件。"""
+        """结算旧区间并停止事件；生长起点仅在重排成熟事件时更新。"""
         crop.progress = self.growth_progress(crop)
-        crop.grow_start = self.now_ns
         if crop.timer is not None:
             crop.timer.stopped = True
 
@@ -303,6 +302,8 @@ class FarmWorld:
         crop.grow_factor = factor
         crop.tree_factor = self.tree_penalty(crop)
         crop.grow_ns = int(factor * float32(CROPS[crop.kind]['seconds']) * crop.random_factor * 1000000000)
+        # 对齐TryScheduleGrow；施肥先StopGrowing，再到此处再次结算同一旧区间。
+        crop.grow_start = self.now_ns
         delay = int(crop.grow_ns * (1 - crop.progress))
         if delay == 0:
             self.mature(crop)
@@ -331,8 +332,14 @@ class FarmWorld:
         self.timers.start(self.now_ns + int(20000000000 / (1 << self.unlocks[key])),
                           lambda: self.receive_supply(item, key))
 
+    def add_execution_ticks(self, ticks):
+        """解释器批次内只推进时钟；新建事件留到批次结束后处理。"""
+        elapsed = int(ticks * self.tick_ns)
+        self.ticks += elapsed / self.tick_ns
+        self.now_ns += elapsed
+
     def advance_to(self, end):
-        """先处理动作完成时刻之前及同刻的事件，再交还脚本执行器。"""
+        """在解释器批次之间，依次处理到目标时刻的定时事件。"""
         if end < self.now_ns:
             raise ValueError('模拟时钟不能倒退')
         while (at := self.timers.next_time()) <= end:

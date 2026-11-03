@@ -1,6 +1,7 @@
 """原版语法节点的操作计时；保留表达式求值顺序，在计费点让出执行。"""
 
 import ast
+from enum import Enum
 import math
 import operator
 
@@ -13,6 +14,8 @@ ARITHMETIC = {'Add': operator.add, 'Sub': operator.sub, 'Mult': operator.mul,
 
 def size(value):
     """原版哈希键大小：容器递归计数，字符串每8个UTF-16单元计1t。"""
+    if isinstance(value, Enum):
+        return 1
     if isinstance(value, str):
         return max(1, game_len(value) // 8)
     if isinstance(value, (tuple, list, set, dict)):
