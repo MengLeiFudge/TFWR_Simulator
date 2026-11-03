@@ -268,7 +268,7 @@ internal sealed class DinosaurModel
         var tail = new LinkedList<DinosaurTailSegment>();
         var dinosaurs = new Dictionary<GridPoint, DinosaurTailSegment>();
         GridPoint? targetApple = head;
-        GridPoint? targetNext = ChooseGameApple(size, dinosaurs, currentApple: targetApple, random);
+        GridPoint? targetNext = ChooseGameApple(FindGameFreeCells(size, head, dinosaurs, targetApple), head, random);
         GridPoint? measuredApple = targetNext;
 
         string StateDetail(Direction direction)
@@ -316,24 +316,23 @@ internal sealed class DinosaurModel
             return CanMove(direction);
         }
 
-        bool SpawnNextAppleFrom(GridPoint oldApple)
+        bool SpawnNextAppleFrom(List<GridPoint> freeCells)
         {
-            if (targetNext is null)
+            if (targetNext is null || dinosaurs.ContainsKey(targetNext.Value))
             {
                 targetApple = null;
                 return false;
             }
 
-            if (tail.Count >= maxTailLength ||
-                dinosaurs.ContainsKey(targetNext.Value))
+            GridPoint? next = ChooseGameApple(freeCells, targetNext, random);
+            if (next is null)
             {
                 targetApple = null;
-                targetNext = null;
                 return false;
             }
 
             targetApple = targetNext.Value;
-            targetNext = ChooseGameApple(size, dinosaurs, currentApple: targetApple, random);
+            targetNext = next;
             return true;
         }
 
@@ -437,10 +436,15 @@ internal sealed class DinosaurModel
             GridPoint old = head;
             GridPoint next = head.Move(direction);
             bool ateApple = targetApple is not null && targetApple.Value == old;
+            int freeCount = size * size - dinosaurs.Count - (targetApple is not null ? 1 : 0)
+                - (!dinosaurs.ContainsKey(old) && old != targetApple ? 1 : 0);
+            List<GridPoint>? freeCells = ateApple || targetNext == old
+                ? FindGameFreeCells(size, old, dinosaurs, targetApple)
+                : null;
             if (ateApple)
             {
                 apples++;
-                if (SpawnNextAppleFrom(old))
+                if (SpawnNextAppleFrom(freeCells!))
                 {
                     moveTicks -= (int)Math.Floor(moveTicks * 0.03);
                 }
@@ -462,22 +466,22 @@ internal sealed class DinosaurModel
                     }
                 }
 
-                if (tail.Count < maxTailLength &&
+                if (freeCount > 0 &&
                     tail.Count > 1 &&
-                    targetApple is not null &&
-                    next != targetApple.Value &&
+                    next != targetApple &&
                     tail.Last is not null)
                 {
                     tail.Last.Value.CanMoveTo = true;
                 }
             }
 
-            while (targetApple is not null &&
-                   targetNext is not null &&
-                   targetNext.Value == old &&
-                   tail.Count < maxTailLength)
+            if (targetApple is not null && targetNext == old)
             {
-                targetNext = ChooseGameApple(size, dinosaurs, currentApple: targetApple, random);
+                GridPoint? replacement = ChooseGameApple(freeCells!, null, random);
+                if (replacement is not null)
+                {
+                    targetNext = replacement;
+                }
             }
 
             moves++;
@@ -499,6 +503,20 @@ internal sealed class DinosaurModel
                     targetNext is not null)
                 {
                     measuredApple = targetNext.Value;
+                    if (dinosaurs.Count == maxTailLength && dinosaurs.ContainsKey(measuredApple.Value))
+                    {
+                        for (int y = 0; y < size; y++)
+                        {
+                            for (int x = 0; x < size; x++)
+                            {
+                                var point = new GridPoint(x, y);
+                                if (!dinosaurs.ContainsKey(point) && point != targetApple)
+                                {
+                                    measuredApple = point;
+                                }
+                            }
+                        }
+                    }
                     scriptLength++;
                 }
             }
@@ -1670,46 +1688,61 @@ internal sealed class DinosaurModel
         throw new InvalidOperationException("Failed to select apple placement.");
     }
 
-    private static GridPoint? ChooseGameApple(
+    /// <summary>按新版平面农田的深度优先遍历顺序收集空格，头和苹果不进入候选。</summary>
+    /// <param name="size">方形农田边长。</param>
+    /// <param name="head">本次移动之前的头坐标。</param>
+    /// <param name="dinosaurs">身体更新之前的恐龙实体。</param>
+    /// <param name="currentApple">当前苹果坐标；无苹果时为null。</param>
+    /// <returns>按N/E/S/W压栈、后进先出的空格列表。</returns>
+    private static List<GridPoint> FindGameFreeCells(
         int size,
+        GridPoint head,
         IReadOnlyDictionary<GridPoint, DinosaurTailSegment> dinosaurs,
-        GridPoint? currentApple,
-        Random random)
+        GridPoint? currentApple)
     {
-        int free = size * size - dinosaurs.Count;
-        if (currentApple is not null)
+        var seen = new HashSet<GridPoint> { head };
+        var pending = new Stack<GridPoint>();
+        var free = new List<GridPoint>();
+        foreach (Direction direction in ShortcutDirections)
         {
-            free--;
+            pending.Push(head.Move(direction));
         }
+        while (pending.TryPop(out GridPoint point))
+        {
+            if (!Inside(point, size) || !seen.Add(point))
+            {
+                continue;
+            }
+            foreach (Direction direction in ShortcutDirections)
+            {
+                pending.Push(point.Move(direction));
+            }
+            if (!dinosaurs.ContainsKey(point) && point != currentApple)
+            {
+                free.Add(point);
+            }
+        }
+        return free;
+    }
 
-        if (free <= 0)
+    /// <summary>按空格列表索引抽样，排除即将放置的新苹果自身。</summary>
+    /// <param name="freeCells">身体更新前生成的候选快照。</param>
+    /// <param name="excluded">不能选中的新苹果位置；null表示不额外排除。</param>
+    /// <param name="random">动作模型的分布采样器，不代表正式榜单的加密随机流。</param>
+    /// <returns>选中坐标；没有可用候选时为null。</returns>
+    private static GridPoint? ChooseGameApple(List<GridPoint> freeCells, GridPoint? excluded, Random random)
+    {
+        if (freeCells.Count == 0 || freeCells.Count == 1 && freeCells[0] == excluded)
         {
             return null;
         }
-
-        int selected = random.Next(free);
-        int seen = 0;
-        for (int y = 0; y < size; y++)
+        GridPoint point;
+        do
         {
-            for (int x = 0; x < size; x++)
-            {
-                var point = new GridPoint(x, y);
-                if (dinosaurs.ContainsKey(point) ||
-                    (currentApple is not null && point == currentApple.Value))
-                {
-                    continue;
-                }
-
-                if (seen == selected)
-                {
-                    return point;
-                }
-
-                seen++;
-            }
+            point = freeCells[random.Next(freeCells.Count)];
         }
-
-        return null;
+        while (point == excluded);
+        return point;
     }
 
     private static bool Inside(GridPoint point, int size)

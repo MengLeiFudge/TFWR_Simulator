@@ -13,7 +13,7 @@ import sys
 import time
 
 from .world import FarmWorld, UnsupportedMechanism
-from .catalog import Direction, Entities, Grounds, Items, Hats, Unlocks, Leaderboards
+from .catalog import DATA, Direction, Entities, Grounds, Items, Hats, Unlocks, Leaderboards
 from .language import BUILTINS, game_iter
 from .execution import Api, Drone, Request, Scheduler, API_NAMES, Module, attribute, compile_script, dispatch, elapsed, evaluate
 
@@ -191,6 +191,7 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
             trace_file.close()
     return {
         'kind': 'prediction', 'status': status, 'error': error,
+        'model_version': DATA['game_version'], 'random_mode': 'seeded_simulate',
         'scenario': scenario or 'max_unlocks', 'script': str(path),
         'script_sha256': source_hash, 'seed': seed, 'stream_seeds': world.seeds,
         'module_dependencies': dependencies,
@@ -210,9 +211,10 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         'warnings': world.warnings,
         'wall_seconds': time.monotonic() - started,
         'limitations': [
-            '全作物主要机制采用原版参数；成熟共享随机事件和罕见交互不保证逐次一致。',
+            '基础作物主要机制按model_version源码与资产对齐；新版尚未完成实机精度验收。',
+            '固定seed对应simulate随机流；正式资源榜与Reset使用系统加密随机源，不能由该seed复现。',
             '脚本操作及199t无人机批次按原版规则实现；完整语言边界和任意并发组合未全面验证。',
-            '水分、成熟和Power使用定时事件；已验证长窗口范围与剩余计时差异见validation.md。',
+            '水分、成熟和Power使用定时事件；旧版长窗口验收与新版边界分别见validation.md。',
             'simulate/leaderboard_run 只实现模拟内部拒绝递归入口；真实启动仍由协调器负责。',
             '预测不是实测成绩；靠近成熟边界或依赖 get_time/get_tick_count 的策略须实机对照。',
         ],

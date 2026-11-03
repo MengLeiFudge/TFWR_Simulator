@@ -13,7 +13,7 @@
 | `references/unlocks/` | 游戏科技前置、成本和解锁事实表 |
 | `gamesave/` | 指向本机真实 Save0 的链接，只是部署目标，不进 Git |
 
-本地模拟通过CLI手动运行，尚未自动接在部署命令前。[脚本模拟入口](mechanism_model/local_simulator/README.md) 读取游戏脚本，输出预计游戏时间、库存和轨迹。目标是单seed执行与时间对齐，验收门槛见[模拟精度与验收](mechanism_model/README.md#模拟精度与验收)。已验证的约900游戏秒场景通过单次误差小于1秒的门槛，适用范围和剩余差异详见[验收记录](mechanism_model/local_simulator/validation.md)。最终成绩仍由真实游戏验证。
+本地模拟通过CLI手动运行，尚未自动接在部署命令前。[脚本模拟入口](mechanism_model/local_simulator/README.md) 读取游戏脚本，输出预计游戏时间、库存和轨迹。目标是单seed执行与时间对齐，验收门槛见[模拟精度与验收](mechanism_model/README.md#模拟精度与验收)。约900游戏秒场景的通过记录对应旧版；新版已按源码迁移机制，尚待实机精度验收，见[更新影响](mechanism_model/local_simulator/game-update-26385848.md)和[验收记录](mechanism_model/local_simulator/validation.md)。最终成绩仍由真实游戏验证。
 
 ## 首次配置
 

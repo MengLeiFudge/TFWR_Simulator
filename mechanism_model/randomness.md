@@ -1,6 +1,6 @@
 # 随机数对齐研究
 
-核对日期：2026-10-22。结论是：**相同 seed 和相同调用轨迹下可以对齐随机序列；这不等于完整游戏模拟已经对齐。** 本地模型仍只提供策略预期，候选必须到真实游戏打榜验证。
+固定seed和调用轨迹的对齐范围是游戏`simulate`。正式资源榜与Reset在后续更新中改用系统加密随机源，salt相同也不能重放；版本和源码证据见[更新对齐记录](local_simulator/game-update-26385848.md)。本地模型只提供策略预期，候选须到真实游戏打榜验证。下文2026-10-22实机记录对应旧版Core。
 
 ## 当前本地流程
 
@@ -16,9 +16,9 @@ dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- rng --seed 123
 
 后续请求 35 已把相同 RNG 接入实际单无人机仙人掌脚本：六 seed 的 9473 个离散 API 返回值、54 条边界观测与真实游戏一致。无水仙人掌固定 1 秒成熟，当前场景不依赖通用流决定生长时间；这不代表其他 Growable、浇水、伴生或完整通用流状态也已对齐。预计 API 时间仍比这六个实机样本低约 2.84%～2.92%，详情见上述模拟器说明。
 
-## 游戏的生成链
+## 固定seed的simulate生成链
 
-从当前安装的 `Core.dll` 中 `Simulation`、`Helper.JustSha256It`、`ProgramState`，以及游戏 Mono `mscorlib.dll` 的 `System.Random` 核对：
+从记录版本的 `Core.dll` 中 `Simulation`、`Helper.JustSha256It`、`ProgramState`，以及游戏 Mono `mscorlib.dll` 的 `System.Random` 核对：
 
 1. `Simulation(seed)` 创建主 `System.Random(seed)`。
 2. 依次派生 `various → maze → snake → cactus → sunflower → pumpkin → poly → random` 八条流。每条消耗主流 `NextBytes(16)`，对这 16 字节做 SHA256，取摘要前四字节小端有符号整数，再与 `0x7fffffff`。
@@ -27,7 +27,7 @@ dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- rng --seed 123
 
 本次 .NET 10 显式 `new Random(seed)` 与上述采样吻合。Python 标准库 `random.Random` 使用不同算法，不能直接替换；若用 Python 实现，还需保留 C# 的整数溢出、字节截断和各重载抽样规则。
 
-## 新鲜实机证据
+## 旧版实机证据
 
 在游戏内用 `simulate("test", Unlocks, items, {}, seed, 10000)`，依次运行 seed `0 / 1 / 123 / 161803399 / 20261022 / 2147483647`。每个 seed 检查主无人机和两个子无人机，再在 8×8 图交错调用 Cactus、Sunflower 与脚本 random。本地使用独立 Python 减法 RNG 与相同流派生规则。
 
@@ -62,10 +62,10 @@ dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- rng --seed 123
 | --- | --- |
 | 生成器 | Python 默认 RNG 与 Mono System.Random 不同 |
 | 流派生 | SHA256 字节序、八流顺序、每台无人机二次派生 |
-| 抽样轨迹 | 相同分布不保证消耗次数相同；游戏 Apple 先抽 x/y 再拒绝占用格，当前动作模型按空格索引抽样 |
+| 抽样轨迹 | 相同分布不保证消耗次数相同；旧版Apple先抽x/y再拒绝占用格；新版改为DFS空格列表索引，本地已同步选择规则 |
 | 初始化 | 解锁、初始实体、缩放地图等在脚本前已消费部分流 |
 | 调度 | 成长、水分、实体重启、tick 和无人机执行顺序改变后续随机调用 |
-| 多轮 | leaderboard 后续 seed 来自八流后续抽样的求和，上一轮调用轨迹改变会影响下一轮 seed |
+| 多轮 | 旧版leaderboard后续seed来自八流求和；新版增加worldGen抽样且正式作物流使用系统熵，不能据本地seed推断 |
 
 历史独立 water/growth/companion 分流设想也不能直接视为游戏事实：游戏 `various` 流实际承载多个机制，任意拆流会失去逐次对齐。Growable 的 companion 是先抽位置再抽类型，拒绝重抽次数必须一致。
 

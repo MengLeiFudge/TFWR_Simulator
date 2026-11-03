@@ -67,7 +67,7 @@ class FarmWorld:
             if key not in UNLOCK_DATA or type(level) is not int or not 0 <= level <= UNLOCK_DATA[key]['max_unlock_level']:
                 raise ValueError(f'无效科技配置：{name}={level}')
             self.unlocks[key] = level
-        self.items = dict.fromkeys(Items, 0)
+        self.items: dict[Items, int | float] = dict.fromkeys(Items, 0)
         if scenario.get('preset', 'max') == 'max':
             self.items.update({Items.Pumpkin: 1000000000, Items.Power: 1000000000})
         for name, amount in scenario.get('items', {}).items():
@@ -97,21 +97,17 @@ class FarmWorld:
         self.next_plant_order = 0
         self.pumpkin_squares = {}
         self.sunflower_petals = Counter()
+        self.had_incorrect_sunflower_harvest = False
         self.snake_counts = Counter()
         self.calls, self.costs = Counter(), Counter()
         self.harvests, self.warnings = [], []
         self.immature_harvests, self.immature_companion_harvests = Counter(), Counter()
         self.size_limit = 0
-        self.width = self.size = 1
-        self.reset_grid()
+        self.size = self.max_size()
+        self.width = 1 if self.unlocks['expand'] == 1 else self.size
         self.timers.start(100000000, self.decay_water)
-        # 显式科技的原版模拟先应用 Expand 1，再应用最终等级。
-        if self.unlocks['expand'] > 0:
-            self.width, self.size = 1, 3
-            self.reset_grid()
-        if self.unlocks['expand'] > 1:
-            self.width = self.size = self.max_size()
-            self.reset_grid()
+        # Farm构造器最后应用目标Expand等级，只生成一次初始农田。
+        self.reset_grid()
         for item, key in ((Items.Water, 'watering'), (Items.Fertilizer, 'fertilizer')):
             self.timers.start(int(20000000000 / (1 << self.unlocks[key])),
                               lambda item=item, key=key: self.receive_supply(item, key))
@@ -165,8 +161,8 @@ class FarmWorld:
         self.grounds.clear()
         self.water = {pos: value for pos, value in self.water.items() if self.in_bounds(pos)}
         self.cache = {pos: value for pos, value in self.cache.items() if self.in_bounds(pos)}
-        for x in range(self.width):
-            for y in range(self.size):
+        for y in range(self.size):
+            for x in range(self.width):
                 self.grounds[x, y] = Grounds.Grassland
                 self.set_entity((x, y), Entities.Grass)
 
@@ -253,6 +249,8 @@ class FarmWorld:
             crop.timer.stopped = True
         if crop.kind == Entities.Pumpkin and crop.grown:
             update_pumpkin_squares(self, pos)
+        if crop.kind == Entities.Tree:
+            self.update_neighbors(pos)
         if regrow and self.grounds.get(pos) == Grounds.Grassland:
             self.set_entity(pos, Entities.Grass)
 
@@ -260,7 +258,7 @@ class FarmWorld:
         return 2 ** sum(n is not None and n.kind == Entities.Tree for n in self.neighbors(crop.pos)) if crop.kind == Entities.Tree else 1
 
     def update_neighbors(self, pos):
-        # 原版移除实体不通知邻居；种树与成熟事件才刷新邻树的生长计时。
+        """种树、移除树或成熟后，按当前棋盘刷新四邻的生长计时。"""
         for neighbor in self.neighbors(pos):
             if neighbor is not None:
                 self.track_growth(neighbor)
@@ -314,8 +312,8 @@ class FarmWorld:
     def decay_water(self):
         """每0.1秒逐格抽取，包括零水格，以保持共享随机流的位置。"""
         rng = self.rng['various']
-        for x in range(self.width):
-            for y in range(self.size):
+        for y in range(self.size):
+            for x in range(self.width):
                 if rng.double() < 0.1:
                     pos = (x, y)
                     water = self.water_at(pos)
@@ -349,16 +347,12 @@ class FarmWorld:
         self.used_power += ticks / 200 / 30
 
     def settle_power(self):
-        """库存不足一次扣款时归零并限速，然后重新开始扣款周期。"""
-        power = self.items[Items.Power]
-        if power > 0:
-            if power >= self.used_power:
-                self.items[Items.Power] -= self.used_power
-            else:
-                self.items[Items.Power] = 0
-                if self.speed > self.max_speed():
-                    self.speed = self.max_speed()
-                    self.tick_ns = math.ceil(2500000 / self.speed)
+        """每次扣款后重新限速，包含库存恰好耗尽的边界。"""
+        if self.items[Items.Power] > 0:
+            self.items[Items.Power] = max(0, self.items[Items.Power] - self.used_power)
+            if self.speed > self.max_speed():
+                self.speed = self.max_speed()
+                self.tick_ns = math.ceil(2500000 / self.speed)
         self.used_power = 0.0
         self.timers.start(self.now_ns + 200000000, self.settle_power)
 
@@ -410,9 +404,17 @@ class FarmWorld:
             return True, 200
         if crop.maze is not None:
             if crop.kind == Entities.Treasure:
+                if crop.maze.relocate_at is not None:
+                    return True, 200
                 self.add_item(Items.Gold, crop.maze.reward())
             crop.maze.remove()
             return True, 200
+        sunflower_boost = False
+        if crop.kind == Entities.Sunflower:
+            eligible = sum(self.sunflower_petals.values()) >= 10 and crop.number == max(self.sunflower_petals)
+            sunflower_boost = eligible and not self.had_incorrect_sunflower_harvest
+            # 标记按本次资格更新；未成熟铲除也经过Sunflower.Harvest。
+            self.had_incorrect_sunflower_harvest = not eligible
         if not crop.grown:
             self.immature_harvests[crop.kind.value] += 1
             if crop.companion:
@@ -457,9 +459,8 @@ class FarmWorld:
                 companion = self.entities.get(pos)
                 if companion is not None and companion.kind == kind:
                     per_plant *= 5 << self.unlocks['polyculture']
-            if crop.kind == Entities.Sunflower:
-                if sum(self.sunflower_petals.values()) >= 10 and crop.number == max(self.sunflower_petals):
-                    per_plant *= 8
+            if sunflower_boost:
+                per_plant *= 8
         weird = sum(self.entities[p].weird for p in positions)
         goo = math.floor(0.5 * weird * per_plant)
         gain = len(positions) * per_plant - goo
@@ -492,11 +493,11 @@ class FarmWorld:
         size = int(size)
         if size != self.size:
             self.pos = (0, 0)
-            self.size_limit = size if size > 2 else 0
-            actual = min(self.max_size(), self.size_limit) if self.size_limit else self.max_size()
-            width = 1 if self.unlocks['expand'] == 1 and actual == 3 else actual
-            if (width, actual) != (self.width, self.size):
-                self.width, self.size = width, actual
+            if size > 2 or self.size_limit:
+                self.size_limit = size if size > 2 else 0
+                self.size = min(self.max_size(), self.size_limit) if self.size_limit else self.max_size()
+                self.width = 1 if self.unlocks['expand'] == 1 else self.size
+                self.cache.clear()
                 self.reset_grid()
         return None, 200
 
@@ -587,18 +588,26 @@ class FarmWorld:
     def api_measure(self, direction=None):
         pos = self.pos if direction is None else self.neighbor(self.pos, direction, wrap=True)
         crop = self.entities.get(pos)
+        if crop is not None and crop.kind == Entities.Apple:
+            return Dinosaur.measure_apple(self, crop), 1
         return (crop.maze.treasure if crop and crop.maze else crop.number if crop else None), 1
 
     def api_can_harvest(self):
         crop = self.entities.get(self.pos)
+        if crop is not None and crop.kind == Entities.Treasure and crop.maze.relocate_at is not None:
+            return False, 1
         return bool(crop and (crop.grown or crop.kind in (Entities.Hedge, Entities.Treasure, Entities.Dinosaur))), 1
 
-    def api_get_entity_type(self):
-        crop = self.entities.get(self.pos)
+    def api_get_entity_type(self, direction=None):
+        """方向查询始终环绕；墙和恐龙帽只限制移动。"""
+        pos = self.pos if direction is None else self.neighbor(self.pos, direction, wrap=True)
+        crop = self.entities.get(pos)
         return crop.kind if crop else None, 1
 
-    def api_get_ground_type(self):
-        return self.grounds[self.pos], 1
+    def api_get_ground_type(self, direction=None):
+        """返回本格或环绕后的邻格地面，均计1t。"""
+        pos = self.pos if direction is None else self.neighbor(self.pos, direction, wrap=True)
+        return self.grounds[pos], 1
 
     def api_get_pos_x(self):
         return self.pos[0], 1
@@ -721,8 +730,10 @@ class FarmWorld:
             self.speed = self.max_speed()
             self.tick_ns = math.ceil(2500000 / self.speed)
         if key == 'expand':
-            self.size = min(self.max_size(), self.size_limit) if self.size_limit else self.max_size()
+            self.size_limit = 0
+            self.size = self.max_size()
             self.width = 1 if self.unlocks['expand'] == 1 else self.size
+            self.cache.clear()
             self.reset_grid()
         return True, 200
 
@@ -757,6 +768,7 @@ class FarmWorld:
         """包含地面、全实体和分组状态；board保留原仙人掌数值矩阵以支持历史报告。"""
         return {'size':self.size, 'width':self.width, 'pos':list(self.pos),
                 'items':{key.value:value for key,value in self.items.items()}, 'unlocks':self.unlocks,
+                'had_incorrect_sunflower_harvest':self.had_incorrect_sunflower_harvest,
                 'grounds':[[self.grounds[x,y].value for x in range(self.width)] for y in range(self.size)],
                 'water':{str(pos):self.water_at(pos) for pos in self.water},
                 'entities':[{'pos':c.pos,'kind':c.kind.value,'grown':c.grown,'progress':self.growth_progress(c),

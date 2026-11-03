@@ -9,7 +9,7 @@ internal sealed record RandomSequenceResult(
     int[] ScriptRandomMillionths,
     int[] CactusValues);
 
-// 仅复现流初始化和首台无人机的抽样，不推进世界事件或执行脚本。
+// 仅复现固定seed的simulate流初始化与首台无人机抽样；正式榜单的加密随机流不在此范围。
 internal static class RandomSequenceModel
 {
     public static RandomSequenceResult Generate(int seed, int samples)

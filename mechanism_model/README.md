@@ -4,14 +4,14 @@
 
 它和真实游戏 oracle workflow 分工不同：
 
-- [农场 API 模拟](local_simulator/README.md) 执行受支持脚本，已适配全部公开作物的主要机制，以及恐龙、迷宫、水肥、科技和无人机调度。脚本操作计时和离散事件实现已通过首个约900游戏秒单seed精度门槛；方法、作物与语言覆盖及剩余差异见 [模拟验收](local_simulator/validation.md)。
+- [农场 API 模拟](local_simulator/README.md) 执行受支持脚本，已适配基础游戏作物的主要机制，以及恐龙、迷宫、水肥、科技和无人机调度。游戏更新后的源码迁移与影响见[更新对齐记录](local_simulator/game-update-26385848.md)；约900游戏秒的单seed精度通过记录对应旧版，新版尚待实机验收。
 - 下文的 C# 模型验证简化机制和动作预算，不执行脚本，也不模拟 Unity / BepInEx / leaderboard 停表。
 - C# 动作模型以分布和约束筛选，不承诺 seed 轨迹一致；`rng` 命令单独用于初始随机序列对照，范围见 [随机数研究](randomness.md)。
 - 真实排名结论仍以 `tfwr_orchestrator/` + `oracle_runner_mod/` 跑出来的游戏结果为准。
 
 ## 模拟精度与验收
 
-Python模拟器的目标是直接读取游戏使用的脚本，在相同初始条件和单个seed下尽量复刻执行、资源、随机轨迹与时间。首个长程验收窗口为约900游戏秒，单次绝对时间误差须小于1秒，同时核对中间状态和首次分歧，不能用多个seed平均值或末尾误差抵消代替。该门槛是目标，是否通过以新鲜实机证据为准。
+Python模拟器的目标是直接读取游戏使用的脚本，在相同初始条件和单个seed下尽量复刻游戏simulate的执行、资源、随机轨迹与时间。正式资源榜和Reset改用系统加密随机源，不能由本地seed精确重放。首个长程验收窗口为约900游戏秒，单次绝对时间误差须小于1秒，同时核对中间状态和首次分歧，不能用多个seed平均值或末尾误差抵消代替。该门槛是目标，是否通过以新鲜实机证据为准。
 
 默认按游戏 API/方法逐项检查返回值、状态变化、资源消耗、随机数和时间成本，再检查直接相关的边界与交互；不为验收模拟器逐榜运行完整打榜脚本。方法级覆盖不等于所有作物、所有参数和多无人机组合都已覆盖，未实现接口单独列出。当前清单见 [API 覆盖记录](local_simulator/api-coverage.md)。
 
@@ -76,7 +76,7 @@ dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- companion --si
 
 ### Dinosaur
 
-- `lb-current-game` 按当前 `lb_dinosaur.py` 的前期追 apple + 后期固定回路流程，复刻 `Apple.Measure()` / `Apple.ChooseTarget()` / `DinosaurHat.OnMove()` 的一拍延迟机制；它是 Dinosaur 本地筛选的默认可信基线。
+- `lb-current-game` 是前期追apple、后期固定回路的动作代理，保留一拍延迟机制，并使用新版 `DinosaurHat.FindFreeCells/TryChooseTarget/OnMove` 与末果观测规则。它不执行正式脚本，不承诺相同seed的轨迹或完整用时。
 - 当前默认 Dinosaur 选项对齐仓库内 `lb_dinosaur.py`：`chase_limit=9/25`、`fill_step=15/16`、恢复段沿 Hamilton 路径绕行、并使用 `move()` 返回值替代移动前预检查。要复现旧基线时应显式传 `--chase-limit-num 1 --chase-limit-den 3 --fill-step-num 1 --fill-step-den 1 --recover-detour-max-steps 0 --use-move-result false`。
 - 其他 Dinosaur policy 仍是抽象蛇身模型，只用于粗筛 GIF / Hamilton 短切方向，不能直接当成真实脚本可迁入结论。
 - 默认输出 `lb-current-game`、`cycle`、`gif-safe-chase`、`gif-bfs-safe-chase` 和 `hamilton-shortcut-probe`。
@@ -116,10 +116,10 @@ dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- companion --si
 
 模型依据：
 
-- `references/DecompiledSource/Core/Core.decompiled.cs` 中 `Apple.ChooseTarget()` 会在非 Dinosaur / Apple 的位置里选下一个 apple 目标。
-- `Apple.Measure()` 返回当前 apple 预先选好的 `nextPos`；当前脚本走到 apple 格时读取的是下一颗 apple 坐标。
+- 新版 `DinosaurHat.FindFreeCells()` 从头位置按N/E/S/W压栈、后进先出遍历平面农田，排除头、Dinosaur和Apple；`TryChooseTarget()` 按列表索引抽样，再排除新苹果自身。源码版本见[更新对齐记录](local_simulator/game-update-26385848.md)。
+- `Apple.Measure()` 通常返回当前apple预选的 `nextPos`；末果预选格已被Dinosaur占据且只剩一格空地时返回该空地。
 - `DinosaurHat.OnMove()` 在离开当前 apple 格时才吃 apple、生成下一颗 apple，并执行 `ops -= floor(ops * 0.03)`。
-- `DinosaurHat.OnMove()` 每步末尾会检查 `target.nextPos == oldPos` 并重新 `ChooseTarget()`，本地模型也必须模拟这个重投，否则会过早出现不可生成 apple 的假失败。
+- `DinosaurHat.OnMove()` 每步末尾检查 `target.nextPos == oldPos`，使用身体变化之前的空格列表重选目标；动作代理保留同一候选快照。
 - `DinosaurHat.BoneCount()` 数的是 grid 上的 `Dinosaur` 实体数量；模型完成口径使用 grid dinosaur count，而不是内部 tail 链表长度。
 - `Drone.Move()` 会返回布尔值；不能移动时直接返回 `false`，不调用 `DinosaurHat.OnMove()`，不改无人机位置，调度层失败成本为 `1` tick。因此 `lb_dinosaur.py` 可以在不改变路径的情况下用 `move(dir)` 返回值替代部分 `can_move(dir)` 预检查。
 

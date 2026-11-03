@@ -131,8 +131,11 @@ class Maze:
         self.relocate_at = None
         if self.removed:
             return
-        old = self.world.entities[self.treasure]
-        target = self.world.entities[self.next_pos]
+        old = self.world.entities.get(self.treasure)
+        target = self.world.entities.get(self.next_pos)
+        if (old is None or old.maze is not self or old.kind != Entities.Treasure
+                or target is None or target.maze is not self or target.kind != Entities.Hedge):
+            return
         old.kind, target.kind = Entities.Hedge, Entities.Treasure
         self.treasure = self.next_pos
         self.factor += 1
@@ -164,7 +167,7 @@ class Maze:
 
 
 class Dinosaur:
-    """唯一恐龙帽子的尾巴与苹果；吃苹果发生在离开旧格时。"""
+    """平面农田上的唯一恐龙帽；空格按原版深度优先顺序供snake流抽样。"""
 
     def __init__(self, world, owner):
         self.world = world
@@ -172,38 +175,75 @@ class Dinosaur:
         self.tail = deque()
         self.target = None
         self.ops = 400
-        if world.overplantable(world.entities.get(world.pos)) and world.pay(world.cost(Entities.Apple)):
-            self.target = world.set_entity(world.pos, Entities.Apple)
-            self.choose_target()
+        if world.overplantable(world.entities.get(world.pos)):
+            cost = world.cost(Entities.Apple)
+            if all(world.items[item] >= amount for item, amount in cost.items()):
+                pos = self.choose_target(self.free_cells(world.pos), world.pos)
+                if pos is not None:
+                    world.pay(cost)
+                    self.target = world.set_entity(world.pos, Entities.Apple)
+                    self.target.number = pos
 
-    def choose_target(self):
-        """按原版分别抽x/y并拒绝苹果/尾巴格；无空格时停止避免无界重抽。"""
+    def free_cells(self, head):
+        """遍历不受实体阻挡；排除头、苹果与尾巴，按N/E/S/W压栈、后进先出。"""
         world = self.world
-        if self.target is None:
-            raise RuntimeError('没有苹果时不能选择下一个目标')
-        if world.size <= 1:
-            self.target.number = None
-            return
-        if world.snake_counts[Entities.Apple] + world.snake_counts[Entities.Dinosaur] == world.width * world.size:
-            self.target.number = None
-            return
-        for _ in range(100000):
-            pos = (world.rng['snake'].next(world.width), world.rng['snake'].next(world.size))
+        seen = {head}
+        pending = [world.neighbor(head, d) for d in Direction]
+        result = []
+        while pending:
+            pos = pending.pop()
+            if not world.in_bounds(pos) or pos in seen:
+                continue
+            seen.add(pos)
+            pending.extend(world.neighbor(pos, d) for d in Direction)
             crop = world.entities.get(pos)
             if crop is None or crop.kind not in (Entities.Apple, Entities.Dinosaur):
-                self.target.number = pos
-                return
-        raise RuntimeError('苹果位置重抽超过本地上限')
+                result.append(pos)
+        return result
+
+    def choose_target(self, free, current=None):
+        """先按列表索引抽样，仅拒绝新苹果自身所在格；无候选时不消耗随机数。"""
+        if self.world.size <= 1 or not free or len(free) == 1 and free[0] == current:
+            return None
+        for _ in range(100000):
+            pos = free[self.world.rng['snake'].next(len(free))]
+            if pos != current:
+                return pos
+        raise RuntimeError('苹果目标重抽超过本地上限')
+
+    @staticmethod
+    def measure_apple(world, apple):
+        """预选位置被尾巴占据且只剩一格空地时，返回最后一个苹果的实际可用格。"""
+        pos = apple.number
+        crop = world.entities.get(pos)
+        if (crop is not None and crop.kind == Entities.Dinosaur
+                and world.snake_counts[Entities.Dinosaur] == world.width * world.size - 2):
+            empty = [(x, y) for y in range(world.size) for x in range(world.width)
+                     if (x, y) not in world.entities]
+            if len(empty) == 1:
+                return empty[0]
+        return pos
 
     def move(self, old, new):
         world = self.world
         ate = self.target is not None and self.target.pos == old and world.entities.get(old) is self.target
-        max_tail = world.width * world.size - 2
+        # FindFreeCells在身体变化前调用。平面农田连通，计数可由实体索引直接得到；
+        # 只有选目标时才构造同序列表，保留该次移动之前的快照供末尾重选使用。
+        here = world.entities.get(old)
+        head_is_free = here is None or here.kind not in (Entities.Apple, Entities.Dinosaur)
+        free_count = world.width * world.size - sum(world.snake_counts.values()) - head_is_free
+        free = self.free_cells(old) if ate or self.target is not None and self.target.number == old else []
         if ate:
             pos = self.target.number
-            if len(self.tail) < max_tail and pos is not None and world.overplantable(world.entities.get(pos)) and world.pay(world.cost(Entities.Apple)):
+            cost = world.cost(Entities.Apple)
+            next_pos = None
+            if (pos is not None and world.overplantable(world.entities.get(pos))
+                    and all(world.items[item] >= amount for item, amount in cost.items())):
+                next_pos = self.choose_target(free, pos)
+            if next_pos is not None:
+                world.pay(cost)
                 self.target = world.set_entity(pos, Entities.Apple)
-                self.choose_target()
+                self.target.number = next_pos
                 self.ops -= self.ops * 3 // 100
             else:
                 self.target = None
@@ -214,16 +254,16 @@ class Dinosaur:
                 last = self.tail.pop()
                 world.remove(last.pos, internal=True)
             self.tail.appendleft(segment)
-            if len(self.tail) < max_tail and len(self.tail) > 1 and world.entities.get(new) is not self.target:
+            if free_count > 0 and len(self.tail) > 1 and world.entities.get(new) is not self.target:
                 self.tail[-1].passable = True
-        for _ in range(100000):
-            if self.target is None or self.target.number != old or len(self.tail) >= max_tail:
-                return self.ops
-            self.choose_target()
-        raise RuntimeError('苹果目标重抽超过本地上限')
+        if self.target is not None and self.target.number == old:
+            pos = self.choose_target(free)
+            if pos is not None:
+                self.target.number = pos
+        return self.ops
 
     def finish(self):
-        """换帽或破坏尾巴时结算当前棋盘的恐龙数量平方，然后清理尾巴和苹果。"""
+        """结算恐龙数量平方并清理自身实体，保留他机在原苹果位置种下的替代物。"""
         world = self.world
         world.dinosaur = None
         if self.tail:
@@ -231,6 +271,6 @@ class Dinosaur:
             world.add_item(Items.Bone, count * count * world.yield_factor(Entities.Dinosaur))
         for segment in self.tail:
             world.remove(segment.pos, internal=True)
-        if self.target is not None:
+        if self.target is not None and world.entities.get(self.target.pos) is self.target:
             world.remove(self.target.pos, internal=True)
         self.tail.clear()

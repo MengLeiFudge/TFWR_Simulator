@@ -1,5 +1,10 @@
 {
-  "source_sha256": "a465a0e642a5e34687693fee927ef9343f4d2329e75f23a421c03a149d77b6e0",
+  "source_sha256": "69530547e96315f230557c12d4133154b3dcdbace2cfe256ac018003a96ec931",
+  "game_version": {
+    "steam_build": "26385848",
+    "core_sha256": "27f621ba6e78f9b1db3506af571deceffd4a8d075a5d0aba42a2af230a9f7088",
+    "utils_sha256": "d7ada71927581528a1e854f764540d16193c8cd859895deff56c7266bb9136a1"
+  },
   "crops": {
     "Grass": {"random_rotation":true,"goo_count":3,"seconds":0.5,"deviation":0,"companion":true,"grounds":["Soil","Grassland"],"drop":"Hay","amount":1,"upgrade":"grass","cost":{},"overplant":true},
     "Bush": {"random_rotation":true,"goo_count":3,"seconds":4,"deviation":0.20000000298023224,"companion":true,"grounds":["Soil","Grassland"],"drop":"Wood","amount":1,"upgrade":"trees","cost":{}},

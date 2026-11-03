@@ -329,6 +329,9 @@ class Scheduler:
                                 used += drone.ticks - drone.consumed
                                 drone.consumed = drone.ticks
                     world.consume_power(used)
+                    # 原版终止最后一台无人机时立即停表，不补到199t批次末尾。
+                    if not self.active:
+                        break
                     self.global_ticks = min((d.ticks for d in self.active.values() if d.waiting is None), default=target)
                     next_time = world.now_ns + int((self.global_ticks - reached) * world.tick_ns)
                     world.advance_to(world.now_ns + int((min(self.global_ticks, target) - reached) * world.tick_ns))
