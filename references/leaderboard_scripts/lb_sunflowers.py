@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：3:27.643（2026-11-03，build26385848，官方完整35轮，request247）。
+# 完整轮时间：3:26.089（2026-11-03，build26385848，官方完整35轮，request267）。
 
 def lb_sunflowers():
     clear()
@@ -220,6 +220,9 @@ def collect(pod, side, cycle, plan, base, deadline):
                     return True
             if not go(pod * 64 + cell, deadline):
                 return False
+            if not can_harvest() and num_items(Items.Fertilizer) > 0:
+                # 库存由32机共享；竞争失败则回到原成熟等待，不假设使用成功。
+                use_item(Items.Fertilizer)
             while not can_harvest():
                 if last_wave and num_items(Items.Hay) > 458752:
                     return True

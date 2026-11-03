@@ -13,7 +13,7 @@
 | [Maze](https://steamcommunity.com/stats/2060160/leaderboards/17869891/) | 0:01.445 | 0:33.901 | 1:35.698 | 2:03.133 | [1:26.965](lb_start.py#L53) | 约 #20（同分） | 2.565× | 61.0% | 100/1804 |
 | [Dinosaur](https://steamcommunity.com/stats/2060160/leaderboards/17869889/) | 0:07.299 | 7:38.814 | 11:37.011 | 13:48.512 | [13:29.907](lb_start.py#L49) | 约 #86 | 1.765× | 43.3% | 100/1761 |
 | [Fastest Reset](https://steamcommunity.com/stats/2060160/leaderboards/17869903/) | 10:38.767 | 32:24.121 | 38:47.590 | 61:23.575 | [50:46.596](lb_start.py#L5) | 约 #59 | 1.567× | 36.2% | 100/4373 |
-| [Sunflowers](https://steamcommunity.com/stats/2060160/leaderboards/17869894/) | 1:23.241 | 2:23.087 | 3:18.903 | 3:56.070 | [3:27.643](lb_start.py#L61) | 约 #37（同分） | 1.451× | 31.1% | 100/1237 |
+| [Sunflowers](https://steamcommunity.com/stats/2060160/leaderboards/17869894/) | 1:23.241 | 2:23.087 | 3:18.903 | 3:56.070 | [3:26.089](lb_start.py#L61) | 约 #37 | 1.440× | 30.6% | 100/1237 |
 | [Cactus Single](https://steamcommunity.com/stats/2060160/leaderboards/17827398/) | 0:06.835 | 0:14.274 | 0:17.840 | 0:22.056 | [0:20.038](lb_start.py#L45) | 约 #56（同分） | 1.404× | 28.8% | 100/547 |
 | [Wood](https://steamcommunity.com/stats/2060160/leaderboards/17869895/) | 2:23.563 | 3:45.108 | 4:27.148 | 5:06.326 | [4:37.434](lb_start.py#L17) | 约 #40 | 1.232× | 18.9% | 100/898 |
 | [Wood Single](https://steamcommunity.com/stats/2060160/leaderboards/17827415/) | 2:50.390 | 4:24.270 | 5:20.008 | 8:03.725 | [5:20.571](lb_start.py#L21) | 约 #31 | 1.213× | 17.6% | 100/375 |

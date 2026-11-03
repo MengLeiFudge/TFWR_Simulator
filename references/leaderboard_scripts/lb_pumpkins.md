@@ -6,9 +6,9 @@ Steam build26385848。沿用此前正式执行逻辑，只刷新完整轮时间�
 
 request259正常结束官方完整20轮，均值**374.127700000秒**，范围372.117–376.468秒。三类时间为**373.391447400 / 未另开短时统计 / 374.127700000**；同seed模拟另列，不充当短时打榜。正式榜使用加密随机源，其均值与固定seed的差异不是模型误差。游戏输出无警告。BepInEx与Unity新增日志无Error/Exception；终态按同ID回idle后逐字恢复临时存档覆盖，结果页已自动确认。
 
-公开账号行查询未取得：Windows请求失败，改用WSL代理后仍超时。完整统计已正常结束，但本次公开提交未独立确认。
+公开核对最初遇到Windows/WSL代理超时，旧失败记录保留；2026-11-03T05:55:31.624578+00:00使用新URL及no-cache查询已确认Steam账号行374128毫秒、#30。来源：https://steamcommunity.com/stats/2060160/leaderboards/17869892/。该查询只确认当时账号行，名次之后会变化。
 
-执行源SHA256 `31a4637a168d8f091c737aca8efd5e9bd2a8db2aa5c54ba221d3581671407a2d`；仅更新时间注释后的正式源`d83aa058675d124ec8744a6d742238bcdbe1e20732b89531a11ddfc951278163`；完整报告`69fed31c0dee5e34cc9932d54da6e3c70c41253c544e9a5a9b27b7e0ba3abf7c`。原始场景、修正前后本地报告、部署/恢复清单及双日志见本机`.codex/leaderboard-sol/game-update-revalidation/`，逐榜误差和模型边界见[新版16榜复验](game-update-validation.md)。历史下文按原游戏版本保留。本批未新增策略搜索。Implementation deviations：公开账号查询超时。
+执行源SHA256 `31a4637a168d8f091c737aca8efd5e9bd2a8db2aa5c54ba221d3581671407a2d`；仅更新时间注释后的正式源`d83aa058675d124ec8744a6d742238bcdbe1e20732b89531a11ddfc951278163`；完整报告`69fed31c0dee5e34cc9932d54da6e3c70c41253c544e9a5a9b27b7e0ba3abf7c`。原始场景、修正前后本地报告、部署/恢复清单及双日志见本机`.codex/leaderboard-sol/game-update-revalidation/`，逐榜误差和模型边界见[新版16榜复验](game-update-validation.md)。历史下文按原游戏版本保留。本批未新增策略搜索。Implementation deviations：None。
 
 ## 2026-10-30：四大区各八机代表触限，未优于正式版
 
