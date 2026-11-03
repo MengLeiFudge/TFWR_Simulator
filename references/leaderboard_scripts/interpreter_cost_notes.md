@@ -6,7 +6,7 @@
 
 社区来源：[How to Commit Ticks Fraud: Tricks for Saving Ticks](https://discord.com/channels/988081966035402783/1513765931900469348)。2026-10-26通过已登录的Discord桌面界面阅读主帖、已加载讨论、`cactus_ztc.py`和`walker_zero.py`附件。附件未执行或部署。社区说法必须对照当前游戏实现，不能直接作为模型参数。
 
-2026-10-27核对当前安装文件：Core.dll SHA256 `b8ac8d22b614d9e48d3affa9a4de9c77e799b824ed8f50dc2e494cc2dd9f9082`；Utils.dll SHA256 `e2bec8c874a94bd24c5c73e1f967c1f30b2c90912dc83474b77cbf7c6448f9b3`。本页费用来自Core的`UnaryExprNode`、`CallNode`、`BinaryExprNode`、`ImportNode`、`StringConstructor`和Utils的`PyString.Size/Contains`、`CodeUtilities.ToNiceString`。
+2026-10-27核对当时安装文件：Core.dll SHA256 `b8ac8d22b614d9e48d3affa9a4de9c77e799b824ed8f50dc2e494cc2dd9f9082`；Utils.dll SHA256 `e2bec8c874a94bd24c5c73e1f967c1f30b2c90912dc83474b77cbf7c6448f9b3`。本页费用来自Core的`UnaryExprNode`、`CallNode`、`BinaryExprNode`、`ImportNode`、`StringConstructor`和Utils的`PyString.Size/Contains`、`CodeUtilities.ToNiceString`。
 
 同源脚本在实机request140与本地模型产生139条完全一致的输出，包含返回值和逐段累计tick，最后检查点为1008t。另有32条历史实机输出回归一致，17个正式策略通过编译转换。详细范围见[模拟验收](../../mechanism_model/local_simulator/validation.md)。这组证据验证下列具体写法；不替代完整策略的实机计时。
 
@@ -19,6 +19,7 @@
 | `if not count` / `if count == 0` | 对普通数值分别1t / 2t | 1t来自分支；`None`、空容器等不能一律按数值零处理 |
 | 函数定义 | 每次执行定义1t | 生成很多静态函数仍有初始化费用 |
 | 直接静态自定义函数调用 | 分派0t | 函数体、参数求值、默认参数求值另计 |
+| 工厂返回静态函数后立即调用 | 返回表达式保留静态标记，分派0t | `factory()()`仅在返回值仍静态时成立；工厂本体、内部定义与参数另计，先赋给变量会失去该名称的静态标记 |
 | 自定义函数别名、重新赋值、条件定义后调用 | 分派1t | `f = f`也会失去该名称的静态标记 |
 | 内置函数经变量或绑参调用 | 不额外收取自定义函数的分派费 | API自身费用不变，例如成功`move`仍为200t |
 | `get_tick_count()`、`get_time()`、`quick_print()` | 0t | 输出参数中的运算照常计费；`print()`约1游戏秒 |
@@ -51,6 +52,8 @@ north = North.move
 ```
 
 自定义函数有不同的绑定费用：`value.f()`在`f`静态时分派0t；先`bound = value.f`再`bound()`，别名调用分派1t。函数体没有因此免费。不能拿内置函数别名的费用套用到自定义函数。
+
+工厂函数的`return task`保留返回表达式的静态标记，因此已有木头/胡萝卜中的`spawn_drone_task2()()`可直接调用静态闭包。本地过去把所有调用结果都标成动态，多层派发累计出现1～3t启动偏移，并改变共享伴生随机数的调用顺序。build26385848按CallNode、ReturnNode和FunctionNode修正后，request266的279条伴生观测在返回值、累计tick和纳秒时间上逐项一致；完整木头277.998142秒对游戏278.00秒，胡萝卜231.899770秒对231.90秒。原始报告在本机`game-update-revalidation/wood-poly-prefix/`及`model-v3/`。该配对覆盖当前工厂返回名称的路径，不代表任意高阶函数组合均已验证。
 
 `from helper import f`会保留模块导出的静态标记，因此可恢复被禁用的静态入口。首次导入必须支付整个模块初始化；同一无人机后续导入不重复初始化。动态模块别名的属性读取本身不加tick，但从它取得的自定义函数调用不再静态，分派1t。
 

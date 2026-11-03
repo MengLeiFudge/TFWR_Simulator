@@ -15,7 +15,7 @@ import time
 from .world import FarmWorld, UnsupportedMechanism
 from .catalog import DATA, Direction, Entities, Grounds, Items, Hats, Unlocks, Leaderboards
 from .language import BUILTINS, game_iter
-from .execution import Api, Drone, Request, Scheduler, API_NAMES, Module, attribute, compile_script, dispatch, elapsed, evaluate
+from .execution import Api, Drone, Request, Scheduler, API_NAMES, Module, ReturnedValue, attribute, compile_script, dispatch, elapsed, evaluate
 
 
 class BudgetExceeded(RuntimeError):
@@ -134,7 +134,7 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
     env: dict[str, Any] = {'__builtins__': BUILTINS, '__name__': '__main__', '_missing': object(),
            'Entities': Entities, 'Grounds': Grounds, 'Items': Items,
            'Hats': Hats, 'Unlocks': Unlocks, 'Leaderboards': Leaderboards,
-           '_dispatch': dispatch, '_Request': Request,
+           '_dispatch': dispatch, '_Request': Request, '_timing_returned': ReturnedValue,
            '_elapsed': elapsed, '_operation': evaluate, '_slice': slice, '_iterate': game_iter,
            '_attribute': attribute, '_export': Module.export, '_modules': {}, '_game_script': True}
     env.update({d.value: d for d in Direction})

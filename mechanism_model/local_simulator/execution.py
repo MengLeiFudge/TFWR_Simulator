@@ -29,6 +29,13 @@ class BoundFunction:
     receiver: object
 
 
+@dataclass(frozen=True)
+class ReturnedValue:
+    """调用内部保留返回表达式的静态标记，脚本只接触value。"""
+    value: object
+    static: bool
+
+
 @dataclass
 class Module:
     """一个无人机内共享的模块环境与导出绑定标记。"""
@@ -115,11 +122,12 @@ class Calls(ast.NodeTransformer):
 
     def visit_Call(self, node):
         self.generic_visit(node)
-        if isinstance(node.func, ast.Name) and node.func.id in ('_budget', '_elapsed', '_operation', '_slice', '_attribute', '_import', '_export', '_iterate'):
+        if isinstance(node.func, ast.Name) and node.func.id in ('_budget', '_elapsed', '_operation', '_slice', '_attribute', '_import', '_export', '_iterate', '_timing_returned'):
             return node
-        return ast.copy_location(ast.YieldFrom(ast.Call(
-            ast.Name('_dispatch', ast.Load()),
-            [node.func, getattr(node, '_static_flag', ast.Constant(False)), *node.args], node.keywords)), node)
+        call = ast.YieldFrom(ast.Call(ast.Name('_dispatch', ast.Load()),
+            [node.func, getattr(node, '_static_flag', ast.Constant(False)), *node.args], node.keywords))
+        captured = ast.NamedExpr(ast.Name(node._call_reference, ast.Store()), call)
+        return ast.copy_location(ast.Attribute(captured, 'value', ast.Load()), node)
 
     def visit_FunctionDef(self, node):
         self.generic_visit(node)
@@ -166,11 +174,12 @@ def dispatch(function, is_static, *args, **kwargs):
     if isinstance(function, Api):
         if kwargs:
             raise TypeError('游戏 API 不接受关键字参数')
-        return (yield Request(function.name, args))
+        return ReturnedValue((yield Request(function.name, args)), False)
     if inspect.isgeneratorfunction(function):
         if not is_static:
             yield Request('_ops', (1,))
-        return (yield from function(*args, **kwargs))
+        result = yield from function(*args, **kwargs)
+        return result if isinstance(result, ReturnedValue) else ReturnedValue(result, False)
     owner = getattr(function, '__self__', None)
     name = next((key for key, value in BUILTINS.items() if value is function),
                 getattr(function, '__name__', ''))
@@ -199,7 +208,7 @@ def dispatch(function, is_static, *args, **kwargs):
                 best = value
     result = function(*args, **kwargs)
     cost = counter[0] if name in ('min', 'max') or (name == 'remove' and isinstance(args[0], list)) else builtin_cost(name, args, result, before)
-    return (yield from elapsed(result, cost))
+    return ReturnedValue((yield from elapsed(result, cost)), False)
 
 
 def elapsed(value, ticks):
@@ -375,6 +384,8 @@ class Scheduler:
             self.observe(drone, request, result, ticks)
 
     def finish(self, drone, result):
+        if isinstance(result, ReturnedValue):
+            result = result.value
         drone.done = True
         drone.result = copy.deepcopy(result)
         self.active.pop(drone.id)

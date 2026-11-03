@@ -426,6 +426,8 @@ class StaticBindings(ast.NodeTransformer):
             return self.flag(node.id, ast.Load())
         if isinstance(node, ast.Attribute):
             return ast.Subscript(ast.Name(node._reference_name, ast.Load()), ast.Constant(1), ast.Load())
+        if isinstance(node, ast.Call):
+            return ast.Attribute(ast.Name(node._call_reference, ast.Load()), 'static', ast.Load())
         return ast.Constant(False)
 
     def visit_Attribute(self, node):
@@ -457,7 +459,16 @@ class StaticBindings(ast.NodeTransformer):
 
     def visit_Call(self, node):
         self.generic_visit(node)
+        self.references += 1
+        node._call_reference = f'_timing_call_{self.references}'
         node._static_flag = self.expression_flag(node.func)
+        return node
+
+    def visit_Return(self, node):
+        self.generic_visit(node)
+        value = node.value if node.value is not None else ast.Constant(None)
+        flag = self.native(self.expression_flag(value))
+        node.value = ast.Call(ast.Name('_timing_returned', ast.Load()), [value, flag], [])
         return node
 
     def visit_Assign(self, node):
