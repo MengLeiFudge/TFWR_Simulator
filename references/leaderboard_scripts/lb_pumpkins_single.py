@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮均值：7:32.911（2026-10-28，16轮）；6×6队列修补与合并编号早停。
+# 完整轮时间：7:35.863（2026-11-03，build26385848，官方完整16轮，request260）。
 # Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
 
 def lb_pumpkins_single():

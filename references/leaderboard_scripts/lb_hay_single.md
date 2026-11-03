@@ -1,5 +1,15 @@
 # lb_hay_single
 
+## 2026-11-03：新版完整统计172.448643秒
+
+Steam build26385848。沿用此前正式执行逻辑，只刷新完整轮时间注释；执行AST不变。游戏同seed模拟request240为178.35秒，相同源码、研究、库存和seed 1的本地完整时间为178.349667480秒，差-0.000332520秒。simulate只输出到0.01秒，不据舍入值声称tick完全一致。
+
+request256正常结束官方完整42轮，均值**172.448642857秒**，范围167.478–177.313秒。三类时间为**178.349667480 / 未另开短时统计 / 172.448642857**；同seed模拟另列，不充当短时打榜。正式榜使用加密随机源，其均值与固定seed的差异不是模型误差。游戏输出无警告。BepInEx与Unity新增日志无Error/Exception；终态按同ID回idle后逐字恢复临时存档覆盖，结果页已自动确认。
+
+Steam公开账号行在2026-11-03T05:06:04.949693+00:00查询为171.998秒、#76。这是账号跨版本历史最好；比本轮更快时不能当作本版成绩。来源：https://steamcommunity.com/stats/2060160/leaderboards/17827401/。
+
+执行源SHA256 `0208f19190db50787be42691d062301f05364466175db3a7c203e61d6bb2c30d`；仅更新时间注释后的正式源`d7cb010a1f0e34a6de48420efd46e3aa0dcb6c42f774411a558da9bd01cb926f`；完整报告`d26a6ac5bf6a81d8f2bd0e844e979fde4369ee278101dfd8df942185a45f0748`。原始场景、修正前后本地报告、部署/恢复清单及双日志见本机`.codex/leaderboard-sol/game-update-revalidation/`，逐榜误差和模型边界见[新版16榜复验](game-update-validation.md)。历史下文按原游戏版本保留。本批未新增策略搜索。Implementation deviations：None。
+
 ## 2026-10-28：GitHub高水位与近终点计数对照未获益
 
 完整阅读enihsyou同一固定树的hay_single.py（blob1e5434cd138601717f3cc24a9a58884a27ad52ae），无外部依赖，MIT。保留5格两生产位、W=.68、604次双收省库存判断、末段按实际库存收口；仅补同名入口/清场、水调用前库存检查和目标>=100M。WSL blob接口TLS EOF、Windows curl超时后，GitHub contents接口取得相同blob，未换版本。

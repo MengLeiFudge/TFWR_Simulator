@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：1:26.969（官方完整统计83轮，request155）；本地seed1 85.117033秒，短时8轮86.494625秒。
+# 完整轮时间：1:26.965（2026-11-03，build26385848，官方完整83轮，request257）。
 # 算法来源：zzlg-git/TheFarmerWasReplaced_Maze_1min28s，commit e5d5e2d9c8df5c22fee0c1c591d70bd69d4a6629。
 # 保留32座小迷宫、出发点探墙与增量路由；初始表改为对称构建，许可信息见同名文档。
 

@@ -1,5 +1,15 @@
 # lb_wood_single
 
+## 2026-11-03：新版完整统计320.570870秒
+
+Steam build26385848。沿用此前正式执行逻辑，只刷新完整轮时间注释；执行AST不变。游戏同seed模拟request246为313.24秒，相同源码、研究、库存和seed 1的本地完整时间为313.237685880秒，差-0.002314120秒。simulate只输出到0.01秒，不据舍入值声称tick完全一致。
+
+request262正常结束官方完整23轮，均值**320.570869565秒**，范围313.112–327.662秒。三类时间为**313.237685880 / 未另开短时统计 / 320.570869565**；同seed模拟另列，不充当短时打榜。正式榜使用加密随机源，其均值与固定seed的差异不是模型误差。游戏输出无警告。BepInEx与Unity新增日志无Error/Exception；终态按同ID回idle后逐字恢复临时存档覆盖，结果页已自动确认。
+
+Steam公开账号行在2026-11-03T05:14:08.472192+00:00查询为320.571秒、#31。这是账号跨版本历史最好；比本轮更快时不能当作本版成绩。来源：https://steamcommunity.com/stats/2060160/leaderboards/17827415/。
+
+执行源SHA256 `e4213790b8a01fa9d7be83dbaf3690d8405eb0ed2761944a9853e2006c8e17c5`；仅更新时间注释后的正式源`ff6129f2d5459d62298135b70275670aa0c9a73908936f8140e899dfc9979f31`；完整报告`652e61f71e741f4cca5ff3ebace6982de8426268c3ebc16a6eb29e84cb48e135`。原始场景、修正前后本地报告、部署/恢复清单及双日志见本机`.codex/leaderboard-sol/game-update-revalidation/`，逐榜误差和模型边界见[新版16榜复验](game-update-validation.md)。历史下文按原游戏版本保留。本批未新增策略搜索。Implementation deviations：None。
+
 ## 2026-10-28：动态伴生请求，官方23轮321.147652秒
 
 当前版来自[enihsyou木头单机脚本](https://github.com/enihsyou/The-Farmer-Was-Replaced/blob/37a97b58e15dc60bb6aff8829eeb58293be18b39/wood_single.py)。沿8×8固定巡田环，在棋盘格种树、另一半格按动态位置请求安排支撑，伴生目标落入树位或请求类型冲突时重抽。相比上一版，去掉先单独培育一棵满倍率树的启动阶段和冻结支撑批次维护，直接进入全田生产；开局缺胡萝卜种子资源时允许灌木退路，实际低倍率产量另计。原文112行完整阅读，无外部模块依赖，MIT许可见[enihsyou_LICENSE.txt](enihsyou_LICENSE.txt)。
