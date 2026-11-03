@@ -5,33 +5,127 @@ UNBREAKABLE_HARDNESS = 10000000
 
 
 def f0():
-    # 从启动位置打竖井；每条煤脉处理完后回到这里继续向下。
-    shaft_x = get_pos_x()
-    shaft_y = get_pos_y()
+    # 开局即分派多机巡视全图；之后每轮完成同一层，再一起降低目标 z。
     size = get_world_size()
+    count = min(max_drones(), size * size)
+    regions = divide_regions(size, count)
+    jobs = []
+    for region in regions:
+        jobs.append((region, size))
+    layer = get_pos_z()
+    for ok, top in run_jobs(survey_region, jobs):
+        if not ok:
+            return
+        layer = max(layer, top)
+    quick_print("煤矿已分为", len(regions), "个区域，从 z =", layer, "开始。")
 
     while True:
-        if get_ground_type() != Grounds.Coal:
-            if not dig_block():
-                return
-            continue
-
-        layer = get_pos_z()
+        jobs = []
+        for region in regions:
+            jobs.append((region, size, layer))
         before = num_items(Items.Coal)
-        quick_print("发现煤层，z =", layer)
-        if not mine_coal(size):
-            return
-        quick_print("煤脉搜索完成，起始层 z =", layer,
+        results = run_jobs(mine_region, jobs)
+        for ok in results:
+            if not ok:
+                return
+        quick_print("本层完成，z =", layer,
                     "，新增煤炭 =", num_items(Items.Coal) - before)
-        if not go_to(shaft_x, shaft_y, size):
-            return
+        layer -= 1
 
 
-def mine_coal(size):
+def divide_regions(size, count):
+    # 反复平分最大矩形，保证各区非空、不相交，并覆盖所有列。
+    regions = [(0, size, 0, size)]
+    while len(regions) < count:
+        largest = 0
+        area = 0
+        for i in range(len(regions)):
+            x0, x1, y0, y1 = regions[i]
+            current = (x1 - x0) * (y1 - y0)
+            if current > area:
+                largest = i
+                area = current
+        x0, x1, y0, y1 = regions.pop(largest)
+        if x1 - x0 >= y1 - y0:
+            middle = (x0 + x1) // 2
+            regions.append((x0, middle, y0, y1))
+            regions.append((middle, x1, y0, y1))
+        else:
+            middle = (y0 + y1) // 2
+            regions.append((x0, x1, y0, middle))
+            regions.append((x0, x1, middle, y1))
+    return regions
+
+
+def region_cells(region):
+    # 蛇形巡视本区全部列，找矿位置不固定在某一根竖井。
+    x0, x1, y0, y1 = region
+    cells = []
+    for y in range(y0, y1):
+        xs = range(x0, x1)
+        if (y - y0) % 2:
+            xs = range(x1 - 1, x0 - 1, -1)
+        for x in xs:
+            cells.append((x, y))
+    return cells
+
+
+def survey_region(job):
+    # 读取各列现有高度，从全图最高露出层开始，兼容已有深坑。
+    region, size = job
+    if not go_to(region[0], region[2], size):
+        return False, 0
+    top = get_pos_z()
+    for x, y in region_cells(region):
+        if not go_to(x, y, size):
+            return False, 0
+        top = max(top, get_pos_z())
+    return True, top
+
+
+def run_jobs(task, jobs):
+    # 参数是各机独立副本。主机也干活，并在返回前回收所有已启动任务。
+    handles = []
+    fallback = []
+    for i in range(1, len(jobs)):
+        handle = spawn_drone(task, jobs[i])
+        if handle == None:
+            fallback.append(jobs[i])
+        else:
+            handles.append(handle)
+    results = [task(jobs[0])]
+    for job in fallback:
+        results.append(task(job))
+    for handle in handles:
+        results.append(wait_for(handle))
+    return results
+
+
+def mine_region(job):
+    # 只挖本区的列；跨边界的煤由邻区巡视发现，避免两机争挖同一列。
+    region, size, layer = job
+    seen = set()
+    for x, y in region_cells(region):
+        if not go_to(x, y, size):
+            return False
+        while get_pos_z() >= layer:
+            if get_ground_type() == Grounds.Coal:
+                if not mine_coal(region, size, seen):
+                    return False
+                # 追煤会走到分支末端，返回正在巡视的列再判断高度。
+                if not go_to(x, y, size):
+                    return False
+            elif not dig_block():
+                return False
+    return True
+
+
+def mine_coal(region, size, seen):
     # 待查项保存煤块所在的 z；挖掉后当前位置会再下降一格。
+    x0, x1, y0, y1 = region
     start = (get_pos_x(), get_pos_y(), get_pos_z())
     pending = [start]
-    seen = {start}
+    seen.add(start)
 
     while pending:
         x, y, layer = pending.pop()
@@ -56,8 +150,8 @@ def mine_coal(size):
                         continue
                     nx = x + dx
                     ny = y + dy
-                    # 煤脉生成不跨边界；移动时仍可利用世界环绕抄近路。
-                    if nx < 0 or nx >= size or ny < 0 or ny >= size:
+                    # 每台机只扩展本区；邻区的同层煤由邻区完整巡视覆盖。
+                    if nx < x0 or nx >= x1 or ny < y0 or ny >= y1:
                         continue
                     neighbor = (nx, ny, z)
                     if neighbor not in seen:
