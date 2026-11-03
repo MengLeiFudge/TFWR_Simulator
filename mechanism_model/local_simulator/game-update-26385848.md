@@ -1,6 +1,6 @@
 # 游戏更新对齐：Steam build 26385848
 
-本次核对以已安装游戏的 `Core.dll`、`Utils.dll` 和静态资产为依据。Python模拟器已按下列源码规则修改；本轮完成的是源码核对和静态检查，新版的实机方法级、单seed长程精度及正式成绩均未验证。旧版通过记录保留在[验收历史](validation.md)，不能用于宣称新版已通过。
+本次核对以已安装游戏的 `Core.dll`、`Utils.dll` 和静态资产为依据。Python模拟器按下列源码规则迁移后，已完成16榜的同seed完整策略对照，结果和残余误差见[新版配对复验](../../references/leaderboard_scripts/game-update-validation.md)。对照定位并修正了集合枚举和成本字典顺序；木头多机仍有约1.35秒时间偏差，其他多机状态也未全部一致，不能宣称全模型通过精度验收。旧版通过记录保留在[验收历史](validation.md)。
 
 ## 对打榜的影响
 
@@ -25,7 +25,7 @@
 - `print()` 输出空行并按约1游戏秒计费；`quick_print()` 输出空行并计0t。本地原有变长参数输出已支持。
 - 独立表达式和字符串说明语句由现有AST路径执行，表达式内部的运算仍正常计费。
 - 长度为n的列表执行 `a += a` 时追加原来的n项，只收n个追加tick；现有实现先记修改前长度，再由列表自身扩展，已经符合新版。
-- 集合的 `in` / `not in` 使用相同的成员判定，费用按查询元素的递归键大小计算；本地没有继承旧版两条分支不一致的实现。
+- 集合的 `in` / `not in` 使用相同的成员判定，费用按查询元素的递归键大小计算；本地没有继承旧版两条分支不一致的实现。集合枚举现已改用游戏HashSet槽位顺序，避免CPython顺序改变同seed策略路线；实际单机仙人掌对照见配对记录。
 - `dict(d)` 浅复制计 `1 + 2 * len(d)` tick。补丁修正文档，不需要把当前模型改成每项1t。
 - 不存在的本地脚本通过文件读取错误指出路径。模拟内部的嵌套 `simulate` / `leaderboard_run` 仍只覆盖拒绝递归的分支。
 
@@ -44,4 +44,4 @@
 
 关键源码入口是 `Sunflower.Harvest/GetHarvestYield`、`Tree.OnFree`、`Farm.UsePower`、`Treasure.Harvest/CompleteRepositioning`、`DinosaurHat.FindFreeCells/TryChooseTarget/OnMove/RemoveApple`、`Apple.Measure`、`GridManager.GenerateExpandedWorld/GenerateWorld/ClearGrid/WaterDecay`、`Simulation` 构造器和 `BufferedCryptoRandom`。
 
-安装目录中的Save0 `__builtins__.py` 仍显示两个查询的旧无参签名，不能用该提示文件否定新Core的方向参数。本轮未修改外部提示文件或真实存档，也没有重新运行游戏、测试、榜单或运行时探针。后续恢复实机迭代时，应先取得新版方法边界和单seed长程对照，再以同版本基线比较候选。
+Save0 `__builtins__.py` 已按用户要求同步为本版官方模板的中文说明，保留全部接口声明。Save1尚未生成提示文件，采用的是游戏生成新存档时读取的同一StreamingAssets模板；来源指纹、备份和部署记录见新版配对复验。模型仍只实现已列出的基础农田机制，提示文件中新增的地下/DLC接口不等于已经模拟。

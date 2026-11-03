@@ -370,7 +370,8 @@ class FarmWorld:
         return 1 << max(0, self.unlocks.get(OBJECTS[kind]['upgrade'], 0) - 1)
 
     def cost(self, kind):
-        return {Items[name]: value * self.yield_factor(kind) for name, value in OBJECTS[kind]['cost'].items()}
+        cost = OBJECTS[kind]['cost']
+        return {item: cost[item.name] * self.yield_factor(kind) for item in Items if item.name in cost}
 
     def pay(self, cost):
         if any(self.items[item] < value for item, value in cost.items()):
@@ -696,7 +697,8 @@ class FarmWorld:
             current = self.unlocks[key] if level is None or level < 0 else int(level)
             rows = UNLOCK_DATA[key]['levels']
             cost = rows[current]['cost'] if current < len(rows) else {}
-            return {Items[name]: value for name, value in cost.items()}, 1
+            # ItemsToNewDict按物品priority对应的ID顺序插入，影响脚本短路检查。
+            return {item: cost[item.name] for item in Items if item.name in cost}, 1
         if not isinstance(kind, Entities) or level is not None:
             raise ValueError('get_cost 需要科技或实体；实体不接受等级参数')
         return self.cost(kind), 1

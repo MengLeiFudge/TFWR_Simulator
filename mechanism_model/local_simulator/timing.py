@@ -4,7 +4,7 @@ import ast
 import math
 import operator
 
-from .language import game_len, game_iter, string_units, join_units
+from .language import game_len, game_iter, game_set, string_units, join_units
 
 ARITHMETIC = {'Add': operator.add, 'Sub': operator.sub, 'Mult': operator.mul,
               'Div': operator.truediv, 'FloorDiv': operator.floordiv,
@@ -112,6 +112,9 @@ def operation(name, *args):
             if not result:
                 break
         return result, counter[0]
+    if name == 'set_literal':
+        value = game_set(args[0])
+        return value, max(1, size(value))
     if name == 'container':
         value, = args
         cost = 1 if isinstance(value, tuple) else 1 + len(value) if isinstance(value, dict) else max(1, size(value)) if isinstance(value, set) else max(1, len(value))
@@ -260,7 +263,10 @@ class Timing(ast.NodeTransformer):
         self.generic_visit(node)
         return ast.copy_location(self.op('container', node), node)
 
-    visit_Set = visit_Dict
+    def visit_Set(self, node):
+        self.generic_visit(node)
+        values = ast.Tuple(node.elts, ast.Load())
+        return ast.copy_location(self.op('set_literal', values), node)
 
     def index(self, node):
         """将切片AST转换为内部slice值；辅助调用不计费。"""

@@ -1,5 +1,6 @@
 """游戏容器函数；保留原版索引边界，不直接借用 Python 的截断插入语义。"""
 
+import copy
 import math
 from enum import Enum
 
@@ -23,8 +24,57 @@ def game_list(value=()):
     return list(game_iter(value))
 
 
+_REMOVED = object()
+
+
+class GameSet(set):
+    """按原版HashSet的槽位遍历，删除后的空槽由后续添加优先复用。"""
+
+    def __init__(self, values=()):
+        super().__init__()
+        self._slots = []
+        self._indices = {}
+        self._free = []
+        for value in values:
+            self.add(value)
+
+    def __iter__(self):
+        for value in self._slots:
+            if value is not _REMOVED:
+                yield value
+
+    def add(self, value):
+        if value in self:
+            return
+        super().add(value)
+        if self._free:
+            index = self._free.pop()
+            self._slots[index] = value
+        else:
+            index = len(self._slots)
+            self._slots.append(value)
+        self._indices[value] = index
+
+    def remove(self, value):
+        super().remove(value)
+        index = self._indices.pop(value)
+        self._slots[index] = _REMOVED
+        self._free.append(index)
+        if not self:
+            self._slots.clear()
+            self._free.clear()
+
+    def __deepcopy__(self, memo):
+        # PySet.DeepCopy逐项插入新集合，不保留已删除槽位。
+        result = GameSet()
+        memo[id(self)] = result
+        for value in self:
+            result.add(copy.deepcopy(value, memo))
+        return result
+
+
 def game_set(value=()):
-    return set(game_iter(value))
+    return GameSet(game_iter(value))
 
 
 def join_units(values):

@@ -22,6 +22,6 @@
     "Treasure":{"random_rotation":false,"upgrade":"mazes","cost":{"Weird_Substance":1}}
   },
   "hats":["Brown_Hat","Cactus_Hat","Carrot_Hat","Dinosaur_Hat","Gold_Hat","Gold_Trophy_Hat","Golden_Cactus_Hat","Golden_Carrot_Hat","Golden_Gold_Hat","Golden_Pumpkin_Hat","Golden_Sunflower_Hat","Golden_Tree_Hat","Gray_Hat","Green_Hat","Pumpkin_Hat","Purple_Hat","Silver_Trophy_Hat","Straw_Hat","Sunflower_Hat","The_Farmers_Remains","Top_Hat","Traffic_Cone","Traffic_Cone_Stack","Tree_Hat","Wizard_Hat","Wood_Trophy_Hat"],
-  "items":["Bone","Cactus","Carrot","Fertilizer","Gold","Hay","Piggy","Power","Pumpkin","Water","Weird_Substance","Wood"],
+  "items":["Hay","Wood","Carrot","Pumpkin","Cactus","Bone","Weird_Substance","Gold","Water","Fertilizer","Power","Piggy"],
   "leaderboards":["Cactus","Cactus_Single","Carrots","Carrots_Single","Dinosaur","Fastest_Reset","Hay","Hay_Single","Maze","Maze_Single","Pumpkins","Pumpkins_Single","Sunflowers","Sunflowers_Single","Wood","Wood_Single"]
 }
