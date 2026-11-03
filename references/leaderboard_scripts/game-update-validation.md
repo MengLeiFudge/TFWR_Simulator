@@ -54,7 +54,13 @@ Reset的get_cost原先沿用JSON字母顺序，游戏ItemsToNewDict却按物品p
 
 复跑此前三波固定代表：等待版57.868428秒、净吞吐385.938 Power/秒；丢弃未熟版48.819652秒、345.928 Power/秒，移除719株；遇阻施肥版57.187601秒、388.137 Power/秒。这些均是组件，不是10万Power完整成绩；丢弃版的产量损失超过节时收益，停止该固定代表。
 
-施肥版沿用既有规则，仅恢复原14波完整协议。本地seed 1完整204.777256秒，游戏同seed request264为204.12秒，较基线207.01秒快2.89秒；正式完整统计正在request265运行。完整均值确认后才决定是否晋升，不将首几轮代填为最终成绩。证据为`sunflowers-existing-components/`、`sunflowers-fertilize-full/`与`sunflowers-fertilize-game/`。
+施肥版沿用既有规则，仅恢复原14波完整协议。本地seed 1完整204.777256秒，游戏同seed request264为204.12秒，较基线207.01秒快2.89秒。request265因客户端进程查询超时被中止，真实完成15轮均值205.634067秒，full_statistics=false，不能作为完整成绩；修复监控后以独立request267重新完整统计。完整均值确认后才决定是否晋升。证据为`sunflowers-existing-components/`、`sunflowers-fertilize-full/`及两份独立的`sunflowers-fertilize-game*/`。
+
+## 监控修复：进程查询超时不等于游戏退出
+
+request265的客户端`tasklist.exe /FI PID eq 70264`超过5秒，原等待器把TimeoutExpired传播为monitor_failed，并取消了仍在产出的游戏。原始状态、15条真实run、取消摘要及双日志均已归档；取消摘要含未完成轮，不采用其16轮均值。已按265号收取终态、回idle后逐字恢复两份既有存档。
+
+等待器现在单独捕获TimeoutExpired。查询超时会报告诊断并继续监测请求状态与模组日志；原有总等待上限、30秒无日志停止和终态核对继续生效。没有把查询失败伪装为进程仍在。改动LSP无错误，保留3条既有平台不可达提示；修正后request266的有界组件正常结束，request267重新进行完整统计。没有用人工注入超时测试宣称边界通过。
 
 ## 完整统计与公开核验
 

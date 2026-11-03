@@ -549,9 +549,15 @@ def wait_for_status(
                     print(f"real_game_runner output_stall request_id={request_id} {message}")
         # 正常退出可能先于客户端轮询；先收取同一请求的终态，再判断进程是否消失。
         if loop_now >= next_process_check_at:
-            if not is_windows_process_running(pid):
-                raise RuntimeError(f"游戏进程已退出: pid={pid}")
-            next_process_check_at = loop_now + 1.0
+            try:
+                process_running = is_windows_process_running(pid)
+            except subprocess.TimeoutExpired:
+                # 查询超时不能证明游戏退出；原有请求超时和日志停滞检测仍生效。
+                print(f"real_game_runner process_check_timeout pid={pid}，继续监控请求状态与模组日志", file=sys.stderr, flush=True)
+            else:
+                if not process_running:
+                    raise RuntimeError(f"游戏进程已退出: pid={pid}")
+            next_process_check_at = time.monotonic() + 1.0
         time.sleep(min(max(0.05, poll_interval), max(0, deadline - time.monotonic())))
     raise TimeoutError(f"等待状态 {sorted(accepted_statuses)} 超时: request_id={request_id} state_path={state_path}")
 
