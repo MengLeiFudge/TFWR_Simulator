@@ -100,12 +100,16 @@ public class CreateItemTextures : MonoBehaviour
 
 	public int borderThickness = 10;
 
+	public string achievementResourcePath = "Achievements/";
+
+	public string achievementOutputDirectory = "../../AchievementIcons";
+
 	private void Start()
 	{
 		Capture();
 	}
 
-	private void Capture()
+	public void Capture()
 	{
 		QualitySettings.renderPipeline = transparentRenderPipelineAsset;
 		captureCamera.clearFlags = CameraClearFlags.Color;
@@ -127,7 +131,7 @@ public class CreateItemTextures : MonoBehaviour
 				Texture2D[] array2 = new Texture2D[frameCount];
 				for (int j = 0; j < frameCount; j++)
 				{
-					itemTransform.localRotation = Quaternion.Euler(0f, 0f, (float)j * (360f / (float)frameCount) + 135f);
+					itemTransform.localRotation = Quaternion.Euler(itemSO.iconRotation + new Vector3(0f, 0f, (float)j * (360f / (float)frameCount) + 135f));
 					captureCamera.Render();
 					RenderTexture.active = renderTexture;
 					Texture2D texture2D = new Texture2D(width, height, TextureFormat.RGBA32, mipChain: false);
@@ -159,7 +163,7 @@ public class CreateItemTextures : MonoBehaviour
 					Texture2D[] array4 = new Texture2D[frameCount];
 					for (int k = 0; k < frameCount; k++)
 					{
-						itemTransform.localRotation = Quaternion.Euler(0f, 0f, (float)k * (360f / (float)frameCount) + 160f);
+						itemTransform.localRotation = Quaternion.Euler(unlockSO.iconRotation + new Vector3(0f, 0f, (float)k * (360f / (float)frameCount) + 160f));
 						captureCamera.Render();
 						RenderTexture.active = renderTexture;
 						Texture2D texture2D2 = new Texture2D(width, height, TextureFormat.RGBA32, mipChain: false);
@@ -181,7 +185,7 @@ public class CreateItemTextures : MonoBehaviour
 		{
 			RenderTexture renderTexture2 = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
 			uiCamera.targetTexture = renderTexture2;
-			AchievementSO[] array5 = Resources.LoadAll<AchievementSO>("Achievements/");
+			AchievementSO[] array5 = Resources.LoadAll<AchievementSO>(achievementResourcePath);
 			foreach (AchievementSO achievementSO in array5)
 			{
 				itemTransform.localRotation = Quaternion.Euler(0f, 0f, 160f);
@@ -200,7 +204,7 @@ public class CreateItemTextures : MonoBehaviour
 				Texture2D texture2D4 = new Texture2D(width, height, TextureFormat.RGBA32, mipChain: false);
 				texture2D4.ReadPixels(new Rect(0f, 0f, width, height), 0, 0);
 				texture2D4.Apply();
-				string text3 = Path.Combine(Application.dataPath, "../../AchievementIcons");
+				string text3 = Path.Combine(Application.dataPath, achievementOutputDirectory);
 				if (!Directory.Exists(text3))
 				{
 					Directory.CreateDirectory(text3);
@@ -208,11 +212,27 @@ public class CreateItemTextures : MonoBehaviour
 				string filePath3 = Path.Combine(text3, achievementSO.name + ".png");
 				string grayFilePath = Path.Combine(text3, achievementSO.name + "_gray.png");
 				SaveAchievementTexture(texture2D3, texture2D4, filePath3, grayFilePath);
+				ReleaseCaptureObject(texture2D3);
+				ReleaseCaptureObject(texture2D4);
 			}
+			uiCamera.targetTexture = null;
+			ReleaseCaptureObject(renderTexture2);
 		}
 		captureCamera.targetTexture = null;
 		RenderTexture.active = null;
-		UnityEngine.Object.Destroy(renderTexture);
+		ReleaseCaptureObject(renderTexture);
+	}
+
+	private static void ReleaseCaptureObject(UnityEngine.Object captureObject)
+	{
+		if (Application.isPlaying)
+		{
+			UnityEngine.Object.Destroy(captureObject);
+		}
+		else
+		{
+			UnityEngine.Object.DestroyImmediate(captureObject);
+		}
 	}
 
 	private void SaveAchievementTexture(Texture2D texture, Texture2D UItexture, string filePath, string grayFilePath)

@@ -1,0 +1,28 @@
+{
+  "steam_app_id": 2060160,
+  "steam_build_id": "26410308",
+  "generated_at": "2026-11-04T23:08:22+08:00",
+  "decompiler": "ilspycmd 9.1.0.7988",
+  "source_hash_line_endings": "LF",
+  "scope": "现有三个程序集的完整反编译；源文件保留反编译器原始输出。",
+  "assemblies": [
+    {
+      "assembly": "Assembly-CSharp.dll",
+      "assembly_sha256": "b1c3e9cdc4f58f834573a3af120d9d9df70435a71fa53771167597b9213ab9fe",
+      "source": "Assembly-CSharp/Assembly-CSharp.decompiled.cs",
+      "source_sha256": "a0d104215e6711edcb28c0d0999b24828660f152810580653d394da9c3255c41"
+    },
+    {
+      "assembly": "Core.dll",
+      "assembly_sha256": "fa1e0045aee3db3fae92af9bc30f5dd607c98edc6eadbbb88858c24d9b0ac13a",
+      "source": "Core/Core.decompiled.cs",
+      "source_sha256": "ebb0bf14c8b1ec2a04cb231729869d885070d51d1a6a7cfb94421808ef32c872"
+    },
+    {
+      "assembly": "mscorlib.dll",
+      "assembly_sha256": "0e948cbd3c4fd36c10ed5bbbcf5ecab43d1a757a3afda30a662534cce7c6ec0f",
+      "source": "mscorlib/mscorlib.decompiled.cs",
+      "source_sha256": "f873f448ec202cf5bc2d5e8f2b67ced440ec92ef67732d26d20614a9cec8fee1"
+    }
+  ]
+}
