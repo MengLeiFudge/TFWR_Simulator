@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：22108.401秒（构建26462009，1轮官方完整统计；请求394）。
+# 完整轮时间：18140.125秒（构建26462009，1轮官方完整统计；请求401）。
 
 def lb_fastest_underground_reset():
     # 每次升级都读取当前成本；低科技阶段使用单机，资源阶段结束后才clear。
@@ -12,7 +12,8 @@ def lb_fastest_underground_reset():
         (Unlocks.Speed, 3), (Unlocks.Expand, 4),
         (Unlocks.Grass, 2), (Unlocks.Trees, 2),
         (Unlocks.Carrots, 2), (Unlocks.Speed, 5), (Unlocks.Bamboo, 3),
-        (Unlocks.Mining, 5), (Unlocks.Iron, 2), (Unlocks.Mining, 6),
+        (Unlocks.Mining, 5), (Unlocks.Iron, 2), (Unlocks.Prospecting, 1),
+        (Unlocks.Mining, 6),
         (Unlocks.Treasure_Map, 1), (Unlocks.Quartz, 1),
         (Unlocks.Mining, 7), (Unlocks.Pumpkins, 1), (Unlocks.Mushrooms, 2),
         (Unlocks.Mining, 8),
@@ -53,6 +54,8 @@ def ur_need(item, goal):
         return ur_farm(item, goal)
     if item == Items.Quartz:
         return ur_q_stock(goal)
+    if item == Items.Iron and num_unlocked(Unlocks.Prospecting) > 0:
+        return ur_i_stock(goal)
     if item == Items.Block or item == Items.Coal or item == Items.Iron:
         return ur_mine(item, goal)
     if item == Items.Rice:
@@ -158,6 +161,63 @@ def ur_mine(item, goal, deadline=None):
         else:
             empty = 0
     return False
+
+
+def ur_i_stock(goal):
+    deadline = get_time() + 18000
+    size = get_world_size()
+    empty = 0
+    for cycle in range(64):
+        if num_items(Items.Iron) >= goal:
+            return True
+        if get_time() > deadline:
+            return False
+        # 解锁和每次勘探均支付真实Coal，筹资完成后才开始新片。
+        if num_items(Items.Coal) < 16 and not ur_need(Items.Coal, 32):
+            return False
+        clear()
+        before = num_items(Items.Iron)
+        for layer in [32, 64, 96, 128]:
+            if not ur_q_prepare(0, 0, -layer, deadline, size):
+                break
+            if num_items(Items.Iron) >= goal:
+                return True
+            if num_items(Items.Coal) < 2 * size + 1:
+                break
+            for _ in range(2 * size + 1):
+                direction = prospect_iron()
+                if direction == None:
+                    break
+                if not move(direction):
+                    return False
+            # None也可能表示范围无矿；它不是已找到矿的证明。
+            found = False
+            for _ in range(64):
+                if num_items(Items.Iron) >= goal:
+                    return True
+                if get_time() > deadline:
+                    return False
+                ground = get_ground_type()
+                if ground == Grounds.Iron:
+                    if not dig():
+                        return False
+                    found = True
+                    continue
+                if found or get_hardness() >= 10000000:
+                    break
+                if not dig():
+                    return False
+            quick_print("iron_prospect_column", cycle, layer, num_items(Items.Iron) - before, get_time())
+            if num_items(Items.Iron) > before:
+                break
+        if num_items(Items.Iron) > before:
+            empty = 0
+        else:
+            empty += 1
+            if empty >= 2:
+                quick_print("iron_prospect_fallback", get_time(), num_items(Items.Iron), goal)
+                return ur_mine(Items.Iron, goal, deadline)
+    return num_items(Items.Iron) >= goal
 
 
 def ur_q_stock(goal):
