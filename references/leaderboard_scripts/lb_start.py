@@ -98,7 +98,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Dynamite, "lb_dynamite", 10000)
 # 成功条件：num_items(Items.Dynamite) >= 10_000_000
-# 用时（#1/当前版本复跑）：未抓取 / 113:16.005
+# 用时（#1/当前版本复跑）：未抓取 / 92:41.376
 
 # leaderboard_run(Leaderboards.Dynamite_Single, "lb_dynamite_single", 10000)
 # 成功条件：num_items(Items.Dynamite) >= 100_000

@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：6796.005秒（构建26462009，2轮官方完整统计；请求350）。
+# 完整轮时间：5561.376秒（构建26462009，2轮官方完整统计；请求367）。
 
 def lb_dynamite():
     size = get_world_size()
@@ -186,30 +186,28 @@ def dynamite_column(x, cells, size, depth, known):
         if get_pos_z() == depth and get_ground_type() == Grounds.Dynamite:
             if not dig():
                 return "error", facts
-    if not dynamite_move_to(x, 0, size):
-        return "error", facts
+    # 已知Soot也可用于检查数字表是否结算；不能只看未知格而漏掉终态。
+    z = get_pos_z()
+    if z < depth - 1:
+        return "ended", facts
+    if z == depth - 1 and get_ground_type() == Grounds.Soot:
+        if measure() == None:
+            return "ended", facts
+    # 每格由本列观察一次；零扩展在其他工人稍后出现时由下一批补读。
     for y in range(size):
-        for dx, dy, direction in [(0, 0, None), (0, 1, North), (1, 0, East), (0, -1, South), (-1, 0, West)]:
-            nx = x + dx
-            ny = y + dy
-            if nx < 0 or nx >= size or ny < 0 or ny >= size:
-                continue
-            cell = nx + ny * size
-            if known[cell] != -2 and known[cell] != -3:
-                continue
-            z = get_pos_z(direction)
-            if z < depth - 1:
-                return "ended", facts
-            if z == depth - 1 and get_ground_type(direction) == Grounds.Soot:
-                number = measure(direction)
-                if number == None:
-                    # Soot的measure在该盘结算、数字表移除后返回None；成功结算可保留这层Soot。
-                    return "ended", facts
-                if cell in facts and facts[cell] != number:
-                    return "error", facts
-                facts[cell] = number
-        if not move(North):
+        cell = x + y * size
+        if known[cell] != -2 and known[cell] != -3:
+            continue
+        if not dynamite_move_to(x, y, size):
             return "error", facts
+        z = get_pos_z()
+        if z < depth - 1:
+            return "ended", facts
+        if z == depth - 1 and get_ground_type() == Grounds.Soot:
+            number = measure()
+            if number == None:
+                return "ended", facts
+            facts[cell] = number
     return "running", facts
 
 
