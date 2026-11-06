@@ -50,13 +50,13 @@ STATE_IO_MAX_ATTEMPTS = 20
 STATE_IO_RETRY_SECONDS = 0.05
 RESULT_TAIL_LINES = 80
 LEADERBOARD_SUCCESS_SUMMARY_RE = re.compile(
-    r"\[lb_[^\]]+(?:\.py)?\]\s+finished=true\s+runs=[1-9][0-9]*\s+average="
+    r"\[[^\]\r\n]+\]\s+finished=true\s+runs=[1-9][0-9]*\s+average="
 )
 LEADERBOARD_SUMMARY_RE = re.compile(
-    r"\[lb_[^\]]+(?:\.py)?\]\s+finished=(true|false)\s+runs=([1-9][0-9]*)\s+average=([0-9]+:[0-9]{2}\.[0-9]{3})"
+    r"\[[^\]\r\n]+\]\s+finished=(true|false)\s+runs=([1-9][0-9]*)\s+average=([0-9]+:[0-9]{2}\.[0-9]{3})"
 )
 LEADERBOARD_RUN_RE = re.compile(
-    r"\[lb_[^\]]+(?:\.py)?\]\s+run=([1-9][0-9]*)\s+time=([0-9]+:[0-9]{2}\.[0-9]{3})"
+    r"\[[^\]\r\n]+\]\s+run=([1-9][0-9]*)\s+time=([0-9]+:[0-9]{2}\.[0-9]{3})"
 )
 CONTROLLED_STOP_PREFIXES = ("reached stable leaderboard runs",)
 LEADERBOARD_STABILITY_THRESHOLD = 0.10
@@ -78,7 +78,7 @@ RESOURCE_TARGETS_BY_SCRIPT = {
     "lb_sunflowers_single": (("power", 10_000.0),),
 }
 ITEM_SNAPSHOT_RE = re.compile(r"\bitem_snapshot\b(?P<body>.*)$")
-LEADERBOARD_SCRIPT_RE = re.compile(r"\[(lb_[^\]]+?)(?:\.py)?\]")
+LEADERBOARD_SCRIPT_RE = re.compile(r"\[([^\]\r\n]+?)(?:\.py)?\](?=\s+(?:start\b|run=|finished=))")
 REPO_ROOT = Path(__file__).resolve().parents[3]
 LEGACY_REPO_ROOT = REPO_ROOT.with_name("tfwr_simulator")
 SUSPICIOUS_PYTHON_CPU_SECONDS = 300.0
