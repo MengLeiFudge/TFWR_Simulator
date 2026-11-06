@@ -6,10 +6,11 @@ import hashlib
 import math
 import struct
 
-from .catalog import Direction, Entities, Grounds, Items, Hats, Unlocks, UNLOCK_DATA, VECTORS, CROPS, OBJECTS
+from .catalog import Direction, Entities, Grounds, Items, Hats, Unlocks, UNLOCK_DATA, VECTORS, CROPS, OBJECTS, UNDERGROUND
 from .randomness import MonoRandom, stream_seeds
 from .special import Dinosaur, Maze, merge_pumpkin, update_pumpkin_squares
 from .clock import Timers
+from .underground import Underground
 
 
 def float32(value):
@@ -45,7 +46,7 @@ class Plant:
 
 
 class FarmWorld:
-    """棋盘和资源共享；当前无人机仅选择位置、帽子与脚本随机流。"""
+    """棋盘和资源共享；位置、帽子、悬浮高度与脚本随机流属于各无人机。"""
 
     def __init__(self, seed, scenario=None):
         scenario = scenario or {}
@@ -58,7 +59,7 @@ class FarmWorld:
         self.random_rng = self.rng['random']
         self.script_rng = MonoRandom(self.random_rng.next())
         self.cactus_rng = self.rng['cactus']
-        self.unlocks = {key: (row['max_unlock_level'] if scenario.get('preset', 'max') == 'max' else 0)
+        self.unlocks = {key: (row['max_unlock_level'] if scenario.get('preset', 'max') == 'max' and key not in UNDERGROUND['unlocks'] else 0)
                         for key, row in UNLOCK_DATA.items()}
         if scenario.get('preset') == 'reset':
             self.unlocks['grass'] = 1
@@ -88,6 +89,8 @@ class FarmWorld:
         self.pos = (0, 0)
         self.current_drone = 0
         self.hats = {}
+        # 悬浮高度相对脚下地面，各无人机独立，初始为 1。
+        self.hover_heights = {}
         self.dinosaur = None
         self.mazes = []
         self.vectors = VECTORS
@@ -120,6 +123,24 @@ class FarmWorld:
     @hat.setter
     def hat(self, value):
         self.hats[self.current_drone] = value
+
+    def api_get_hover(self):
+        """返回当前无人机相对地面的悬浮高度。"""
+        if not self.unlocks['bamboo']:
+            raise ValueError('尚未解锁：Unlocks.Bamboo')
+        return self.hover_heights.get(self.current_drone, 1), 1
+
+    def api_hover(self, height):
+        """设置 0..18 的整数高度；恐龙帽禁止悬浮。"""
+        if not self.unlocks['bamboo']:
+            raise ValueError('尚未解锁：Unlocks.Bamboo')
+        if type(height) not in (int, float) or not math.isfinite(height):
+            raise ValueError('hover 需要有限数值')
+        height = int(height)
+        if not 0 <= height <= 18 or self.hat == Hats.Dinosaur_Hat:
+            return False, 1
+        self.hover_heights[self.current_drone] = height
+        return True, 200
 
     def max_size(self):
         return (1, 3, 3, 4, 6, 8, 12, 16, 22, 32)[self.unlocks['expand']]
@@ -159,6 +180,7 @@ class FarmWorld:
         self.sunflower_petals.clear()
         self.snake_counts.clear()
         self.grounds.clear()
+        self.underground = Underground(self)
         self.water = {pos: value for pos, value in self.water.items() if self.in_bounds(pos)}
         self.cache = {pos: value for pos, value in self.cache.items() if self.in_bounds(pos)}
         for y in range(self.size):
@@ -490,7 +512,7 @@ class FarmWorld:
         result, ticks = method(*args)
         self.calls[name] += 1
         self.costs[name] += ticks
-        if name not in ('do_a_flip', 'pet_the_piggy'):
+        if name not in ('do_a_flip', 'pet_the_piggy', 'dig'):
             self.consume_power(ticks)
         self.advance_to(self.now_ns + ticks * self.tick_ns)
         return result
@@ -500,6 +522,7 @@ class FarmWorld:
             raise ValueError('set_world_size 需要有限数值')
         size = int(size)
         if size != self.size:
+            self.hover_heights.clear()
             self.pos = (0, 0)
             if size > 2 or self.size_limit:
                 self.size_limit = size if size > 2 else 0
@@ -510,6 +533,7 @@ class FarmWorld:
         return None, 200
 
     def api_clear(self):
+        self.hover_heights.clear()
         self.pos = (0, 0)
         self.reset_grid()
         return None, 200
@@ -542,10 +566,12 @@ class FarmWorld:
 
     def api_swap(self, direction):
         dest = self.neighbor(self.pos, direction)
-        if not self.in_bounds(dest):
+        if not self.in_bounds(dest) or self.underground.depths[dest] != self.underground.depths[self.pos]:
+            self.hover_heights[self.current_drone] = 1
             return False, 1
         here, there = self.entities.get(self.pos), self.entities.get(dest)
         if any(c is not None and c.kind != Entities.Cactus for c in (here, there)):
+            self.hover_heights[self.current_drone] = 1
             return False, 1
         a, b = self.cache.pop(self.pos, None), self.cache.pop(dest, None)
         if a is not None:
@@ -565,6 +591,9 @@ class FarmWorld:
         return True, 200
 
     def api_till(self):
+        if not UNDERGROUND['grounds'][self.grounds[self.pos].name]['isTillable']:
+            return None, 200
+        self.hover_heights[self.current_drone] = 1
         crop = self.entities.get(self.pos)
         if crop is None or crop.maze is None:
             self.remove(self.pos, regrow=False)
@@ -588,9 +617,12 @@ class FarmWorld:
         if not self.pay(self.cost(kind)):
             return False, 1
         self.set_entity(self.pos, kind)
+        self.hover_heights[self.current_drone] = 1
         return True, 200
 
     def api_harvest(self):
+        if self.entities.get(self.pos) is not None:
+            self.hover_heights[self.current_drone] = 1
         return self.harvest()
 
     def api_measure(self, direction=None):
@@ -622,6 +654,50 @@ class FarmWorld:
 
     def api_get_pos_y(self):
         return self.pos[1], 1
+
+    def api_get_pos_z(self, direction=None):
+        """地面坐标向下为负；方向查询环绕，不计悬浮高度。"""
+        if not self.unlocks['underground_senses']:
+            raise ValueError('尚未解锁：Unlocks.Underground_Senses')
+        pos = self.pos if direction is None else self.neighbor(self.pos, direction, wrap=True)
+        return -self.underground.depths[pos], 1
+
+    def underground_query_pos(self, directions):
+        """硬度和稳定性查询不环绕；显式 None 不作为省略参数。"""
+        if len(directions) > 1:
+            raise TypeError('地下查询最多接受一个方向参数')
+        return self.neighbor(self.pos, directions[0]) if directions else self.pos
+
+    def api_get_hardness(self, *directions):
+        """返回当前表层硬度，越界返回 None。"""
+        if not self.unlocks['underground_senses']:
+            raise ValueError('尚未解锁：Unlocks.Underground_Senses')
+        pos = self.underground_query_pos(directions)
+        return (self.underground.ground_at(pos).hardness if self.in_bounds(pos) else None), 1
+
+    def api_get_stability(self, *directions):
+        """返回当前表层稳定性，越界返回 None。"""
+        if not self.unlocks['underground_senses']:
+            raise ValueError('尚未解锁：Unlocks.Underground_Senses')
+        pos = self.underground_query_pos(directions)
+        return (self.underground.ground_at(pos).stability if self.in_bounds(pos) else None), 1
+
+    def api_dig(self):
+        """挖掘脚下的一块地层；公开接口不接受方向。"""
+        if not self.unlocks['mining']:
+            raise ValueError('尚未解锁：Unlocks.Mining')
+        pos = self.pos
+        depth = self.underground.depths[pos] + 1
+        ground = self.underground.ground_at(pos)
+        ticks = math.ceil(ground.hardness / (self.tick_ns / 1000000000) / (1.5 ** self.unlocks['mining']))
+        if ground.hardness < 10000000:
+            data = UNDERGROUND['grounds'][ground.kind.name]
+            level = self.unlocks.get(data['yieldUpgradeName'], 0)
+            factor = max(1, 1 << max(0, level - (data['yieldUpgradeName'] != 'ore_boost')))
+            self.underground.clear_with_caveins(pos, depth)
+            self.add_item(Items[data['dropItem'].title()], data['dropAmount'] * factor)
+            self.hover_heights[self.current_drone] = 1
+        return True, ticks
 
     def api_get_world_size(self):
         return self.size, 1
@@ -692,6 +768,8 @@ class FarmWorld:
         else:
             return False, 1
         self.items[item] -= amount
+        if item in (Items.Water, Items.Fertilizer):
+            self.hover_heights[self.current_drone] = 1
         return True, 200
 
     def api_get_companion(self):
@@ -763,6 +841,7 @@ class FarmWorld:
         if hat == Hats.Dinosaur_Hat:
             if self.dinosaur is not None:
                 raise ValueError('只能有一台无人机使用恐龙帽')
+            self.hover_heights[self.current_drone] = 1
             self.dinosaur = Dinosaur(self, self.current_drone)
         self.hat = hat
         return None, 200
@@ -776,6 +855,8 @@ class FarmWorld:
     def snapshot(self):
         """包含地面、全实体和分组状态；board保留原仙人掌数值矩阵以支持历史报告。"""
         return {'size':self.size, 'width':self.width, 'pos':list(self.pos),
+                'depths':[[self.underground.depths[x,y] for x in range(self.width)] for y in range(self.size)],
+                'hover_heights':dict(self.hover_heights),
                 'items':{key.value:value for key,value in self.items.items()}, 'unlocks':self.unlocks,
                 'had_incorrect_sunflower_harvest':self.had_incorrect_sunflower_harvest,
                 'grounds':[[self.grounds[x,y].value for x in range(self.width)] for y in range(self.size)],

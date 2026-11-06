@@ -13,21 +13,18 @@ class Direction(StrEnum):
     West = 'West'
 
 
-class Grounds(StrEnum):
-    """农田地面，水量独立于地面类型保存。"""
-    Grassland = 'Grounds.Grassland'
-    Soil = 'Grounds.Soil'
-
-
 DATA = json.loads(Path(__file__).with_name('resources.json').read_text())
+UNDERGROUND = json.loads(Path(__file__).with_name('underground_resources.json').read_text())
+Grounds = StrEnum('Grounds', {key: 'Grounds.' + key for key in UNDERGROUND['grounds']})
 Entities = StrEnum('Entities', {key: 'Entities.' + key for key in (*DATA['crops'], *DATA['special'])})
-Items = StrEnum('Items', {key: 'Items.' + key for key in DATA['items']})
+Items = StrEnum('Items', {key: 'Items.' + key for key in (*DATA['items'], *UNDERGROUND['items'])})
 Hats = StrEnum('Hats', {key: 'Hats.' + key for key in DATA['hats']})
 Leaderboards = StrEnum('Leaderboards', {key: 'Leaderboards.' + key for key in DATA['leaderboards']})
 CROPS = {Entities[key]: value for key, value in DATA['crops'].items()}
 OBJECTS = {Entities[key]: value for key, value in (DATA['crops'] | DATA['special']).items()}
 UNLOCK_DATA = json.loads((Path(__file__).resolve().parents[2]
                           / 'references/unlocks/unlock_snapshot.json').read_text())
+UNLOCK_DATA.update(UNDERGROUND['unlocks'])
 Unlocks = StrEnum('Unlocks', {key.title(): 'Unlocks.' + key.title() for key in UNLOCK_DATA})
 VECTORS = {Direction.North: (0, 1), Direction.East: (1, 0),
            Direction.South: (0, -1), Direction.West: (-1, 0)}

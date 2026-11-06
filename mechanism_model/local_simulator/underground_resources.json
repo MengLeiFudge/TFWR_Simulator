@@ -1,0 +1,1344 @@
+{
+  "game_version": {
+    "steam_build": 26410308,
+    "core_sha256": "ebb0bf14c8b1ec2a04cb231729869d885070d51d1a6a7cfb94421808ef32c872",
+    "utils_sha256": "15b0e1db24358df26921f0369f23d451a3a5fd6bc780b2245d1483a2008e4c45"
+  },
+  "grounds": {
+    "Basalt": {
+      "maxHardness": 2,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": ""
+    },
+    "Bedrock": {
+      "maxHardness": 1000000000,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 0,
+      "dropItem": "weird_substance",
+      "dropAmount": 67.0,
+      "yieldUpgradeName": "block"
+    },
+    "Block_Blue": {
+      "maxHardness": 1,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Block_Green": {
+      "maxHardness": 1,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Block_Red": {
+      "maxHardness": 1,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Clay": {
+      "maxHardness": 2,
+      "stability": 3,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 1,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Coal": {
+      "maxHardness": 1,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "coal",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "ore_boost"
+    },
+    "Dirt": {
+      "maxHardness": 1,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 1,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Dry_Rice_Terrace": {
+      "maxHardness": 2,
+      "stability": 3,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 1,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Dynamite": {
+      "maxHardness": 0,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": ""
+    },
+    "Grassland": {
+      "maxHardness": 1,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 1,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Iron": {
+      "maxHardness": 3,
+      "stability": 3,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "iron",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "iron"
+    },
+    "Limestone": {
+      "maxHardness": 3,
+      "stability": 3,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Loam": {
+      "maxHardness": 2,
+      "stability": 3,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 1,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Perlite": {
+      "maxHardness": 2,
+      "stability": 3,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 1,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Petrified_Pumpkin": {
+      "maxHardness": 1,
+      "stability": 8,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "pumpkin",
+      "dropAmount": 8.0,
+      "yieldUpgradeName": "petrified_pumpkins"
+    },
+    "Quartz": {
+      "maxHardness": 10,
+      "stability": 5,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "quartz",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "quartz"
+    },
+    "Rice_Terrace": {
+      "maxHardness": 2,
+      "stability": 3,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 1,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Rock": {
+      "maxHardness": 2,
+      "stability": 3,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Sand": {
+      "maxHardness": 1,
+      "stability": 2,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Soil": {
+      "maxHardness": 1,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 1,
+      "isTillable": 1,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": "block"
+    },
+    "Soot": {
+      "maxHardness": 2,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": ""
+    },
+    "Treasure_Goal": {
+      "maxHardness": 2,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": ""
+    },
+    "Treasure_Map": {
+      "maxHardness": 2,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": ""
+    },
+    "Treasure_Path": {
+      "maxHardness": 2,
+      "stability": 1,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "dropItem": "block",
+      "dropAmount": 1.0,
+      "yieldUpgradeName": ""
+    }
+  },
+  "features": [
+    {
+      "m_Name": "SpecialSoilsFeature_perlite",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 1,
+      "chunkIndexWhitelist": [
+        1,
+        2
+      ],
+      "chunkIndexBlacklist": [],
+      "priority": 200,
+      "associatedUnlockForGroundLoop": "special_soils",
+      "associatedUnlockForJumpCommand": "special_soils",
+      "startOffset": 0,
+      "randomStartOffsetMin": 0,
+      "randomStartOffsetMax": 10,
+      "ground": {
+        "m_FileID": 0,
+        "m_PathID": 1661
+      },
+      "probability": 0.5,
+      "noiseSamplingScale": 0.10000000149011612,
+      "hillRange": 4.0,
+      "class_name": "SpecialSoilsFeature"
+    },
+    {
+      "m_Name": "SpecialSoilsFeature_loam",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 1,
+      "chunkIndexWhitelist": [
+        1,
+        2
+      ],
+      "chunkIndexBlacklist": [],
+      "priority": 200,
+      "associatedUnlockForGroundLoop": "special_soils",
+      "associatedUnlockForJumpCommand": "special_soils",
+      "startOffset": 0,
+      "randomStartOffsetMin": 0,
+      "randomStartOffsetMax": 10,
+      "ground": {
+        "m_FileID": 0,
+        "m_PathID": 1659
+      },
+      "probability": 0.5,
+      "noiseSamplingScale": 0.10000000149011612,
+      "hillRange": 5.0,
+      "class_name": "SpecialSoilsFeature"
+    },
+    {
+      "m_Name": "HardPatchesFeature",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [],
+      "chunkIndexBlacklist": [
+        0
+      ],
+      "priority": 200,
+      "associatedUnlockForGroundLoop": "",
+      "associatedUnlockForJumpCommand": "",
+      "periodHorizontal": 4,
+      "periodVertical": 8,
+      "skipAllChance": 0.3499999940395355,
+      "skipTileChance": 0.10000000149011612,
+      "hardnessIncreaseFrequency": 0.15000000596046448,
+      "baseHardness": 2,
+      "class_name": "HardPatchesFeature"
+    },
+    {
+      "m_Name": "ClayFeature",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [
+        1
+      ],
+      "chunkIndexBlacklist": [],
+      "priority": 190,
+      "associatedUnlockForGroundLoop": "rice",
+      "associatedUnlockForJumpCommand": "rice",
+      "algorithm": 2,
+      "startOffset": 0,
+      "randomStartOffsetMin": 0,
+      "randomStartOffsetMax": 2,
+      "ground": {
+        "m_FileID": 0,
+        "m_PathID": 1651
+      },
+      "seedPieceLongSideMin": 3,
+      "seedPieceLongSideMax": 6,
+      "seedPieceShortSide": 2,
+      "addTerracePieceCounterMin": 7,
+      "addTerracePieceCounterMax": 9,
+      "randomlyAddedTerracePieceMinLength": 2,
+      "randomlyAddedTerracePieceMaxLength": 5,
+      "terracePieceChance": 0.30000001192092896,
+      "randomizeTerraceWidths": 1,
+      "noiseSamplingScale": 0.10000000149011612,
+      "noiseHeightMultiplier": 0.5,
+      "class_name": "ClayFeature"
+    },
+    {
+      "m_Name": "IronVein",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [
+        2,
+        3
+      ],
+      "chunkIndexBlacklist": [],
+      "priority": 180,
+      "associatedUnlockForGroundLoop": "iron",
+      "associatedUnlockForJumpCommand": "iron",
+      "randomAdditionalVeinSizeMin": 0,
+      "randomAdditionalVeinSizeMax": 2,
+      "veinSize": 3,
+      "veinProbability": 0.30000001192092896,
+      "oreGround": {
+        "m_FileID": 0,
+        "m_PathID": 1657
+      },
+      "class_name": "OreVeinFeature"
+    },
+    {
+      "m_Name": "PetrifiedPumpkinsFeature",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 1,
+      "chunkIndexWhitelist": [
+        3,
+        4,
+        5
+      ],
+      "chunkIndexBlacklist": [],
+      "priority": 170,
+      "associatedUnlockForGroundLoop": "petrified_pumpkins",
+      "associatedUnlockForJumpCommand": "petrified_pumpkins",
+      "probability": 0.4000000059604645,
+      "periodHorizontalSmall": 6,
+      "periodHorizontalLarge": 8,
+      "periodVertical": 8,
+      "skipSpawnChance": 0.75,
+      "largePumpkinChance": 0.30000001192092896,
+      "topMiddleMesh": {
+        "m_FileID": 0,
+        "m_PathID": 207
+      },
+      "topDiagonalMesh": {
+        "m_FileID": 0,
+        "m_PathID": 162
+      },
+      "topCornerMesh": {
+        "m_FileID": 0,
+        "m_PathID": 215
+      },
+      "sideCornerMeshL": {
+        "m_FileID": 0,
+        "m_PathID": 263
+      },
+      "sideCornerMeshR": {
+        "m_FileID": 0,
+        "m_PathID": 261
+      },
+      "sideEdgeMeshL": {
+        "m_FileID": 0,
+        "m_PathID": 297
+      },
+      "sideEdgeMeshR": {
+        "m_FileID": 0,
+        "m_PathID": 160
+      },
+      "straightMesh": {
+        "m_FileID": 0,
+        "m_PathID": 155
+      },
+      "straightEdgeMesh": {
+        "m_FileID": 0,
+        "m_PathID": 220
+      },
+      "class_name": "PetrifiedPumpkinsFeature"
+    },
+    {
+      "m_Name": "QuartzFeature",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [
+        3,
+        4,
+        6
+      ],
+      "chunkIndexBlacklist": [],
+      "priority": 160,
+      "associatedUnlockForGroundLoop": "quartz",
+      "associatedUnlockForJumpCommand": "quartz",
+      "veinRollsPer4x4WorldSize": 0.0625,
+      "veinChance": 1.0,
+      "randomAdditionalVeinSizeMin": 0,
+      "randomAdditionalVeinSizeMax": 2,
+      "changeNeedleXYChance": 0.699999988079071,
+      "veinSize": 4,
+      "oreGround": {
+        "m_FileID": 0,
+        "m_PathID": 1663
+      },
+      "class_name": "QuartzFeature"
+    },
+    {
+      "m_Name": "DynamiteStratum",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [
+        3,
+        5
+      ],
+      "chunkIndexBlacklist": [
+        0,
+        1
+      ],
+      "priority": 150,
+      "associatedUnlockForGroundLoop": "dynamite",
+      "associatedUnlockForJumpCommand": "dynamite",
+      "probability": 0.25,
+      "topGround": {
+        "m_FileID": 0,
+        "m_PathID": 1655
+      },
+      "bottomGround": {
+        "m_FileID": 0,
+        "m_PathID": 1668
+      },
+      "class_name": "SweeperStratumFeature"
+    },
+    {
+      "m_Name": "MushroomFeature",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 1,
+      "chunkIndexWhitelist": [],
+      "chunkIndexBlacklist": [
+        0,
+        1,
+        3,
+        5
+      ],
+      "priority": 145,
+      "associatedUnlockForGroundLoop": "mushrooms",
+      "associatedUnlockForJumpCommand": "mushrooms",
+      "probability": 0.15000000596046448,
+      "heightMin": 3,
+      "heightMax": 6,
+      "typesMin": 6,
+      "typesMax": 6,
+      "class_name": "MushroomFeature"
+    },
+    {
+      "m_Name": "TreasureMapFeature",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [
+        5
+      ],
+      "chunkIndexBlacklist": [],
+      "priority": 140,
+      "associatedUnlockForGroundLoop": "treasure_map",
+      "associatedUnlockForJumpCommand": "treasure_map",
+      "probability": 1.0,
+      "strataGround": {
+        "m_FileID": 0,
+        "m_PathID": 1646
+      },
+      "mapGround": {
+        "m_FileID": 0,
+        "m_PathID": 1670
+      },
+      "class_name": "TreasureMapFeature"
+    },
+    {
+      "m_Name": "CoalFeature",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [
+        0
+      ],
+      "chunkIndexBlacklist": [],
+      "priority": 98,
+      "associatedUnlockForGroundLoop": "coal",
+      "associatedUnlockForJumpCommand": "coal",
+      "coal": {
+        "m_FileID": 0,
+        "m_PathID": 1652
+      },
+      "loopRelativeDepthStart": 2,
+      "loopRelativeDepthEnd": 16,
+      "veinCornerSkipChance": 0.20000000298023224,
+      "sheetCountPerUnlock": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        8
+      ],
+      "class_name": "CoalFeature"
+    },
+    {
+      "m_Name": "FullSize",
+      "enabled": 0,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [],
+      "chunkIndexBlacklist": [],
+      "priority": 2,
+      "associatedUnlockForGroundLoop": "",
+      "associatedUnlockForJumpCommand": "",
+      "probability": 0.15000000596046448,
+      "heightMin": 3,
+      "heightMax": 6,
+      "ground": {
+        "m_FileID": 0,
+        "m_PathID": 1657
+      },
+      "class_name": "FullSizeFeature"
+    },
+    {
+      "m_Name": "BlockFeature",
+      "enabled": 0,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [],
+      "chunkIndexBlacklist": [],
+      "priority": 1,
+      "associatedUnlockForGroundLoop": "",
+      "associatedUnlockForJumpCommand": "",
+      "probability": 0.5,
+      "sizeMin": {
+        "x": 5,
+        "y": 5,
+        "z": 5
+      },
+      "sizeMax": {
+        "x": 10,
+        "y": 10,
+        "z": 10
+      },
+      "ground": {
+        "m_FileID": 0,
+        "m_PathID": 1657
+      },
+      "class_name": "BlockFeature"
+    },
+    {
+      "m_Name": "PyramidFeature",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 1,
+      "chunkIndexWhitelist": [
+        4,
+        5,
+        6
+      ],
+      "chunkIndexBlacklist": [],
+      "priority": 0,
+      "associatedUnlockForGroundLoop": "pyramid",
+      "associatedUnlockForJumpCommand": "pyramid",
+      "ground": {
+        "m_FileID": 0,
+        "m_PathID": 1666
+      },
+      "pyramidFoundationGround": {
+        "m_FileID": 0,
+        "m_PathID": 1658
+      },
+      "probability": 0.4000000059604645,
+      "class_name": "PyramidFeature"
+    },
+    {
+      "m_Name": "DynamiteVein",
+      "enabled": 0,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [],
+      "chunkIndexBlacklist": [
+        0
+      ],
+      "priority": 0,
+      "associatedUnlockForGroundLoop": "",
+      "associatedUnlockForJumpCommand": "",
+      "randomAdditionalVeinSizeMin": 0,
+      "randomAdditionalVeinSizeMax": 2,
+      "veinSize": 7,
+      "veinProbability": 0.30000001192092896,
+      "oreGround": {
+        "m_FileID": 0,
+        "m_PathID": 1655
+      },
+      "class_name": "OreVeinFeature"
+    },
+    {
+      "m_Name": "LayeredGroundGenFeature",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [],
+      "chunkIndexBlacklist": [
+        1
+      ],
+      "priority": -1,
+      "associatedUnlockForGroundLoop": "",
+      "associatedUnlockForJumpCommand": "",
+      "hardnessIncreaseFrequency": 0.11999999731779099,
+      "bands": [
+        {
+          "start": -1,
+          "end": -1,
+          "groundSoOrNull": {
+            "m_FileID": 0,
+            "m_PathID": 0
+          },
+          "endFuziness": 0,
+          "hardnessAfterTransition": 2
+        },
+        {
+          "start": 32,
+          "end": 64,
+          "groundSoOrNull": {
+            "m_FileID": 0,
+            "m_PathID": 1665
+          },
+          "endFuziness": 0,
+          "hardnessAfterTransition": 0
+        }
+      ],
+      "class_name": "LayeredGroundGenFeature"
+    },
+    {
+      "m_Name": "AdditiveStabilityNoiseFeature",
+      "enabled": 1,
+      "onlyIncludeFirstChunkInGroundLoop": 0,
+      "chunkIndexWhitelist": [
+        0
+      ],
+      "chunkIndexBlacklist": [],
+      "priority": -2,
+      "associatedUnlockForGroundLoop": "",
+      "associatedUnlockForJumpCommand": "",
+      "class_name": "AdditiveStabilityNoiseFeature"
+    }
+  ],
+  "source_assets_sha256": {
+    "resources.assets": "dab0bbcc3439eaf7870d6cb0443d3a3b0c0ffccba709350f488f5350be73aef1",
+    "globalgamemanagers.assets": "8dc8b28cb10ad403ce90448473ab565d822e0dfd11dcd49049e16321c5db2f88",
+    "sharedassets0.assets": "4959ef0f6e0da5d63c0330832e71d1c8df0ad0f4c821e4f2632d2b1a2ad7c606"
+  },
+  "unlocks": {
+    "bamboo": {
+      "max_unlock_level": 8,
+      "parent_unlock": "rice",
+      "unlocks": [
+        "bamboo",
+        "measure",
+        "hover",
+        "get_hover"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Rice": 50.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Rice": 400.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Rice": 800.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Mushroom": 100.0
+          }
+        },
+        {
+          "level": 5,
+          "cost": {
+            "Mushroom": 400.0
+          }
+        },
+        {
+          "level": 6,
+          "cost": {
+            "Mushroom": 1600.0
+          }
+        },
+        {
+          "level": 7,
+          "cost": {
+            "Mushroom": 6400.0
+          }
+        },
+        {
+          "level": 8,
+          "cost": {
+            "Mushroom": 25600.0
+          }
+        }
+      ]
+    },
+    "coal": {
+      "max_unlock_level": 5,
+      "parent_unlock": "mining",
+      "unlocks": [],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Block": 20.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Rice": 150.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Rice": 1000.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Rice": 4000.0
+          }
+        },
+        {
+          "level": 5,
+          "cost": {
+            "Rice": 16000.0
+          }
+        }
+      ]
+    },
+    "debug_place": {
+      "max_unlock_level": 1,
+      "parent_unlock": "bamboo",
+      "unlocks": [
+        "place",
+        "Grounds",
+        "num_items",
+        "None",
+        "block_red",
+        "block_green",
+        "block_blue"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Bamboo": 1200.0
+          }
+        }
+      ]
+    },
+    "dynamite": {
+      "max_unlock_level": 5,
+      "parent_unlock": "mushrooms",
+      "unlocks": [
+        "dynamite",
+        "dynamite_ground",
+        "soot"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Mushroom": 80.0,
+            "Gold": 4000.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Mushroom": 400.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Quartz": 50.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Quartz": 200.0
+          }
+        },
+        {
+          "level": 5,
+          "cost": {
+            "Quartz": 800.0
+          }
+        }
+      ]
+    },
+    "explosive_drill": {
+      "max_unlock_level": 1,
+      "parent_unlock": "dynamite",
+      "unlocks": [
+        "explosive_drill"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Dynamite": 12000000.0,
+            "Mushroom": 120000.0
+          }
+        }
+      ]
+    },
+    "iron": {
+      "max_unlock_level": 5,
+      "parent_unlock": "coal",
+      "unlocks": [],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Block": 90.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Coal": 50.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Coal": 150.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Coal": 450.0
+          }
+        },
+        {
+          "level": 5,
+          "cost": {
+            "Bamboo": 10000000.0
+          }
+        }
+      ]
+    },
+    "jump": {
+      "max_unlock_level": 1,
+      "parent_unlock": "coal",
+      "unlocks": [
+        "Unlocks"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Iron": 5.0,
+            "Coal": 30.0
+          }
+        }
+      ]
+    },
+    "mining": {
+      "max_unlock_level": 8,
+      "parent_unlock": "expand",
+      "unlocks": [
+        "dig",
+        "dirt",
+        "rock",
+        "mining_hat",
+        "block",
+        "limestone"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Carrot": 20.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Block": 50.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Rice": 60.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Coal": 30.0
+          }
+        },
+        {
+          "level": 5,
+          "cost": {
+            "Bamboo": 200.0
+          }
+        },
+        {
+          "level": 6,
+          "cost": {
+            "Iron": 70.0
+          }
+        },
+        {
+          "level": 7,
+          "cost": {
+            "Quartz": 90.0
+          }
+        },
+        {
+          "level": 8,
+          "cost": {
+            "Mushroom": 250.0
+          }
+        }
+      ]
+    },
+    "mushrooms": {
+      "max_unlock_level": 5,
+      "parent_unlock": "quartz",
+      "unlocks": [
+        "push",
+        "can_push",
+        "mushroom",
+        "measure",
+        "place"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Quartz": 60.0,
+            "Pumpkin": 100.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Gold": 600.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Gold": 3000.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Gold": 15000.0
+          }
+        },
+        {
+          "level": 5,
+          "cost": {
+            "Gold": 75000.0
+          }
+        }
+      ]
+    },
+    "ore_boost": {
+      "max_unlock_level": 1,
+      "parent_unlock": "quartz",
+      "unlocks": [],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Coal": 200.0,
+            "Iron": 100.0,
+            "Quartz": 20.0
+          }
+        }
+      ]
+    },
+    "petrified_pumpkins": {
+      "max_unlock_level": 7,
+      "parent_unlock": "rice",
+      "unlocks": [
+        "pumpkin",
+        "petrified_pumpkin"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Rice": 50.0,
+            "Iron": 5.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Bamboo": 1000.0,
+            "Iron": 10.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Bamboo": 30000.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Bamboo": 150000.0
+          }
+        },
+        {
+          "level": 5,
+          "cost": {
+            "Bamboo": 750000.0
+          }
+        },
+        {
+          "level": 6,
+          "cost": {
+            "Bamboo": 3750000.0
+          }
+        },
+        {
+          "level": 7,
+          "cost": {
+            "Bamboo": 18750000.0
+          }
+        }
+      ]
+    },
+    "prospecting": {
+      "max_unlock_level": 1,
+      "parent_unlock": "iron",
+      "unlocks": [
+        "prospect_iron"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Coal": 32.0
+          }
+        }
+      ]
+    },
+    "pyramid": {
+      "max_unlock_level": 5,
+      "parent_unlock": "bamboo",
+      "unlocks": [
+        "limestone",
+        "block",
+        "place",
+        "sand",
+        "Grounds"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Bamboo": 10000.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Gold": 400.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Gold": 1600.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Gold": 6400.0
+          }
+        },
+        {
+          "level": 5,
+          "cost": {
+            "Gold": 25600.0
+          }
+        }
+      ]
+    },
+    "quartz": {
+      "max_unlock_level": 4,
+      "parent_unlock": "iron",
+      "unlocks": [
+        "prospect_quartz"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Iron": 50.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Iron": 200.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Iron": 400.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Iron": 800.0
+          }
+        }
+      ]
+    },
+    "rice": {
+      "max_unlock_level": 8,
+      "parent_unlock": "mining",
+      "unlocks": [
+        "clay",
+        "dry_rice_terrace",
+        "rice_terrace"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Coal": 10.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Block": 100.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Block": 500.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Block": 1000.0
+          }
+        },
+        {
+          "level": 5,
+          "cost": {
+            "Block": 2000.0
+          }
+        },
+        {
+          "level": 6,
+          "cost": {
+            "Block": 4000.0
+          }
+        },
+        {
+          "level": 7,
+          "cost": {
+            "Block": 8000.0
+          }
+        },
+        {
+          "level": 8,
+          "cost": {
+            "Block": 16000.0
+          }
+        }
+      ]
+    },
+    "special_soils": {
+      "max_unlock_level": 1,
+      "parent_unlock": "rice",
+      "unlocks": [
+        "loam",
+        "perlite"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Rice": 800.0,
+            "Bamboo": 1000.0
+          }
+        }
+      ]
+    },
+    "treasure_map": {
+      "max_unlock_level": 5,
+      "parent_unlock": "iron",
+      "unlocks": [
+        "treasure_map",
+        "basalt",
+        "treasure_path",
+        "treasure_goal",
+        "underground_treasure",
+        "measure"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Bamboo": 40000.0
+          }
+        },
+        {
+          "level": 2,
+          "cost": {
+            "Pumpkin": 200.0
+          }
+        },
+        {
+          "level": 3,
+          "cost": {
+            "Quartz": 40.0
+          }
+        },
+        {
+          "level": 4,
+          "cost": {
+            "Quartz": 160.0
+          }
+        },
+        {
+          "level": 5,
+          "cost": {
+            "Quartz": 640.0
+          }
+        }
+      ]
+    },
+    "underground_leaderboard": {
+      "max_unlock_level": 1,
+      "parent_unlock": "dynamite",
+      "unlocks": [
+        "leaderboard_run",
+        "Leaderboards"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Dynamite": 20000.0,
+            "Bamboo": 200000.0
+          }
+        }
+      ]
+    },
+    "underground_senses": {
+      "max_unlock_level": 1,
+      "parent_unlock": "mining",
+      "unlocks": [
+        "get_ground_type",
+        "Grounds",
+        "get_pos_z",
+        "get_hardness",
+        "get_stability",
+        "num_unlocked",
+        "None"
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": {
+            "Block": 50.0
+          }
+        }
+      ]
+    }
+  },
+  "items": [
+    "Bamboo",
+    "Block",
+    "Coal",
+    "Dynamite",
+    "Iron",
+    "Mushroom",
+    "Quartz",
+    "Rice"
+  ]
+}

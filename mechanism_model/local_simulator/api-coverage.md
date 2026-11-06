@@ -6,7 +6,7 @@
 
 ## 更新后的覆盖边界
 
-新版增加`get_entity_type(direction=None)`与`get_ground_type(direction=None)`，均已按Core实现，但本轮没有实机对照。向日葵错收、树木邻接、Power精确耗尽、迷宫迁移、恐龙末果和地图重建等变化及证据见[更新对齐记录](game-update-26385848.md)。以下49函数的通过记录全部对应旧版Core；DLC新增接口不包含在这份基础游戏清单中。
+新版增加`get_entity_type(direction=None)`与`get_ground_type(direction=None)`，均已按Core实现，但本轮没有实机对照。向日葵错收、树木邻接、Power精确耗尽、迷宫迁移、恐龙末果和地图重建等变化及证据见[更新对齐记录](game-update-26385848.md)。以下49函数的通过记录全部对应旧版Core；DLC新增接口不包含在这份基础游戏清单中。`hover/get_hover/get_pos_z/get_hardness/get_stability/dig` 的新增实现和实测范围另见[地下逐项对照](underground-validation.md)，其中 `get_ground_type` 同时检查了挖掘后的地面。
 
 ## 旧版复验
 

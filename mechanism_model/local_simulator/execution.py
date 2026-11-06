@@ -384,7 +384,7 @@ class Scheduler:
         drone.pos, drone.hat = world.pos, world.hat
         drone.response = result
         drone.ticks += ticks
-        if request.name in ('print', 'do_a_flip', 'pet_the_piggy'):
+        if request.name in ('print', 'do_a_flip', 'pet_the_piggy', 'dig'):
             drone.consumed += ticks
         if request.name != '_ops' and self.observe is not None:
             self.observe(drone, request, result, ticks)
@@ -400,6 +400,7 @@ class Scheduler:
             if dinosaur is not None and dinosaur.owner == drone.id:
                 dinosaur.finish()
             self.world.hats.pop(drone.id, None)
+            self.world.hover_heights.pop(drone.id, None)
         if self.main is drone:
             self.main = next(iter(self.active.values()), None)
         for waiter in self.active.values():

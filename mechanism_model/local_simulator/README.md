@@ -2,7 +2,7 @@
 
 此入口执行受支持的游戏脚本，计算农田状态、资源和预计游戏时间，不需要打开游戏，只依赖 Python 3.11+ 标准库。已适配基础游戏12种实体的主要机制，包括7种可种植作物、南瓜合并、恐龙和迷宫；范围与近似项见 [全作物机制](mechanisms.md)。[API覆盖记录](api-coverage.md) 保留49个公开函数的方法级对照。精度取舍遵循 [模拟精度与验收](../README.md#模拟精度与验收)，结果不能作为真实成绩或排名。
 
-游戏版本、更新影响及当前验收边界见[更新对齐记录](game-update-26385848.md)。固定seed对应游戏`simulate`，正式榜单的加密随机轨迹不能由该seed重放。
+游戏版本、更新影响及当前验收边界见[更新对齐记录](game-update-26385848.md)。固定seed对应游戏`simulate`，正式榜单的加密随机轨迹不能由该seed重放。地下悬浮、普通地层、挖掘和塌方的实现及逐项实测范围见[地下对照记录](underground-validation.md)。
 
 ## 使用
 
@@ -34,7 +34,7 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 {"items":{"Hay":1000000,"Wood":1000000,"Carrot":1000000,"Cactus":1000000,"Water":100,"Fertilizer":100,"Weird_Substance":10000},"unlocks":{"Speed":4},"goal":{"item":"Cactus","amount":131072}}
 ```
 
-默认 `preset=max`：科技全满、32×32草地、Pumpkin和Power各1e9，其他库存0。各榜脚本需要的资源应通过场景明确提供；单无人机榜的地图/无人机限制也应显式设置，例如 `Expand=5`、`Megafarm=0`。`preset=reset` 为除Grass等级1外科技全0、库存全0；两种预设都可覆盖。低级Expand的1×3农田已支持；当前正式Fastest Reset已完成固定seed的完整对照，范围见验收记录。
+默认 `preset=max`：基础科技全满、DLC科技为0、32×32草地、Pumpkin和Power各1e9，其他库存0。各榜脚本需要的资源应通过场景明确提供；单无人机榜的地图/无人机限制也应显式设置，例如 `Expand=5`、`Megafarm=0`。`preset=reset` 为除Grass等级1外科技全0、库存全0；两种预设都可覆盖。低级Expand的1×3农田已支持；当前正式Fastest Reset已完成固定seed的完整对照，范围见验收记录。
 
 | 报告字段 | 含义 |
 | --- | --- |
@@ -51,9 +51,9 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 | `script_steps` / `step_basis` | 源语句和循环边界的预算检查点数；`step_basis=compiled_checkpoint`，不同于历史CPython事件计数，仅用于执行上限 |
 | `wall_seconds` | 本机计算时间，不是游戏时间；不含 CLI 子进程启动 |
 | `output` / `output_dropped` | 最近1000条脚本输出（每条最多4096字符）及已丢弃的早期输出条数；未丢弃时为0 |
-| `state.grounds` | 最终地面矩阵，按 `[y][x]` 读取，`size`行、`width`列，值为`Grounds.Soil`或`Grounds.Grassland`；只读序列化，不推进模拟时间。旧报告缺少此字段时表示未观测，不从till次数反推。 |
+| `state.grounds` | 最终地面矩阵，按 `[y][x]` 读取，`size`行、`width`列，值为对应的`Grounds`枚举名；`state.depths`同样按`[y][x]`记录向下为正的深度，`state.hover_heights`记录已设置的无人机悬浮高度（未设置为1）；只读序列化，不推进模拟时间。旧报告缺少此字段时表示未观测，不从till次数反推。 |
 
-JSONL 每行记录调用序号、无人机、API、参数、返回值、调用时刻的坐标/库存/当前格状态，以及预计可再次运行的 `ready_ns`。与单机按调用完成后记录的旧轨迹不同，它保留并发调用的时间顺序。报告附脚本哈希、seed和八流派生seed；`module_dependencies`记录实际加载模块的路径与源码SHA256，没有导入时为空。只有开启trace才计算轨迹哈希，否则 `trace_sha256=null`。`warnings` 记录模拟内部启动入口被拒绝等情况。
+JSONL 每行记录调用序号、无人机、API、参数、返回值、调用时刻的坐标/库存/当前格状态，以及预计可再次运行的 `ready_ns`。与单机按调用完成后记录的旧轨迹不同，它保留并发调用的时间顺序。报告附脚本哈希、seed和十流派生seed；`module_dependencies`记录实际加载模块的路径与源码SHA256，没有导入时为空。只有开启trace才计算轨迹哈希，否则 `trace_sha256=null`。`warnings` 记录模拟内部启动入口被拒绝等情况。
 
 ## 机制与执行边界
 
@@ -71,7 +71,7 @@ JSONL 每行记录调用序号、无人机、API、参数、返回值、调用�
 
 成熟使用纳秒定时事件，作物随机倍率保留Single精度；水分每0.1秒逐格抽取，包括干地，Power每0.2秒结算执行批次累计的消耗。实体外观和感染切换也消耗共享various随机流。同刻事件保留原版四叉堆顺序。旧版长场景达到单seed时间门槛；新版已完成16榜同seed策略对照。后续修正施肥结算、批次事件顺序、枚举键收费及子机终态阶段后，Reset、南瓜多机和向日葵单双机的完整时间均与原生返回值相同到整数纳秒；其余12榜本地结果不变，仍只核对到原生0.01秒显示精度。具体证据与未覆盖边界见[四榜修复](four-residual-alignment.md)和[验收记录](validation.md)。
 
-Power账不能直接用`(sum(api_ticks_by_function)+interpreter_ticks)/6000`代替。Core在`wait_for`等待的子机结束时把调用者OpCount补到GlobalOpCount，但不同时更新LastConsumedOpCount；后续ConsumeOps将这段补齐计入UsedPower。本地Scheduler.finish/run遵循同一源码路径，而API/解释器字段不包含这段等待补齐。print、翻转、摸猪的免耗电动作，以及0.2秒结算时尚未扣款的消耗，也须另计；有产电或耗尽时还需分别核算收入与库存截断。现有报告未单列等待补齐及待结算总量，缺少这些量时不能仅凭上述工作量与库存差认定计费错误。此为源码语义核对，任意并发等待组合仍未全面通过实机验证。
+Power账不能直接用`(sum(api_ticks_by_function)+interpreter_ticks)/6000`代替。Core在`wait_for`等待的子机结束时把调用者OpCount补到GlobalOpCount，但不同时更新LastConsumedOpCount；后续ConsumeOps将这段补齐计入UsedPower。本地Scheduler.finish/run遵循同一源码路径，而API/解释器字段不包含这段等待补齐。print、翻转、摸猪、挖掘的免耗电动作，以及0.2秒结算时尚未扣款的消耗，也须另计；有产电或耗尽时还需分别核算收入与库存截断。现有报告未单列等待补齐及待结算总量，缺少这些量时不能仅凭上述工作量与库存差认定计费错误。此为源码语义核对，任意并发等待组合仍未全面通过实机验证。
 
 集合字面量和`set()`按游戏HashSet槽位顺序枚举，删除槽位在后续添加时优先复用；无人机复制按当前活跃元素重新构造集合。`get_cost()`字典按物品priority对应的ID顺序插入。游戏常量作为键时大小为1，不按本地StrEnum的显示字符串长度收费。集合顺序会改变等距离选点，成本键顺序会改变资源检查的短路路径，均可能使同seed轨迹分歧；不能用CPython集合或JSON字母排序替代。函数返回表达式也保留静态标记，工厂返回静态名称后立即调用不多收动态分派tick；普通赋值仍使该名称变为动态。当前实机覆盖与残余限制见验收记录。
 

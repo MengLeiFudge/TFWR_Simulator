@@ -1,9 +1,9 @@
-"""原版 Mono System.Random 及 Simulation 的八流派生。"""
+"""原版 Mono System.Random 及 Simulation 的十流派生。"""
 
 import hashlib
 
 MAX = 2147483647
-STREAM_NAMES = ('various', 'maze', 'snake', 'cactus', 'sunflower', 'pumpkin', 'poly', 'random')
+STREAM_NAMES = ('various', 'maze', 'snake', 'cactus', 'sunflower', 'pumpkin', 'poly', 'random', 'worldGen', 'bamboo')
 
 
 def int32(value: int) -> int:
