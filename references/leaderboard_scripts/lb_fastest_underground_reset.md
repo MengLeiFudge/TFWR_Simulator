@@ -4,31 +4,31 @@
 
 ## 当前实现
 
-从零库存按当前get_cost筹集资源，逐步发展6×6单机。Rice3后支付150 Rice升Coal2；Expand4后准备Grass2、Trees2、Carrots2和Speed5。Mining5后支付50 Coal升Iron2、32 Coal解锁Prospecting，再筹70 Iron升Mining6。Iron阶段支付Coal读取公开方向，Quartz阶段支付Iron读取公开距离；只有实际dig库存增加才算收获，失败有限回退到原采矿法。随后完成藏宝图和Quartz解锁，支付90 Quartz升Mining7，Mushrooms2后支付250 Mushroom升Mining8。扫雷在同一物理棋盘猜测前后复用公开状态，新棋盘重新建盘。最后支付20000 Dynamite和200000 Bamboo解锁Underground_Leaderboard。每次unlock前复核整个成本字典；Carrot种子成本随科技倍率增加，仍按get_cost实付。
+从零库存按当前get_cost筹集资源，逐步发展6×6单机。Rice3后支付150 Rice升Coal2；Expand4后准备Grass2、Trees2、Carrots2和Speed5。Mining5后支付50 Coal升Iron2、32 Coal解锁Prospecting，再筹70 Iron升Mining6。Iron阶段支付Coal读取公开方向，Quartz阶段支付Iron读取公开距离；只有实际dig库存增加才算收获，失败有限回退到原采矿法。随后完成藏宝图和Quartz解锁，支付90 Quartz升Mining7，Mushrooms2后支付250 Mushroom升Mining8。扫雷仅在实际开格前清理该柱覆盖层，在同一物理棋盘猜测前后复用公开状态，新棋盘重新建盘。最后支付20000 Dynamite和200000 Bamboo解锁Underground_Leaderboard。每次unlock前复核整个成本字典；Carrot种子成本随科技倍率增加，仍按get_cost实付。
 
-主要成员：`lb_fastest_underground_reset`、`ur_need`、`ur_mine`、`ur_i_stock`、`ur_q_stock`、`ur_q_prepare`、`ur_q_locate`及各`ur_*_stock`和扫雷函数。主流程72000游戏秒；农作7200秒、逐层矿采18000秒。Iron最多64片、准备深度32/64/96/128、每层最多2×世界宽度+1次方向查询及64次dig；Quartz最多64片、探深0–128步长16、单柱最多192次dig。两者回退均共用已有截止。蘑菇/扫雷另有有界盘数、连续未命中和总时间限制。仅复用公开API，采集代码内联；正式验证临时覆盖已有test.py/lb_start.py，普通对照使用已有test.py/simulate.py。
+主要成员：`lb_fastest_underground_reset`、`ur_need`、`ur_mine`、`ur_i_stock`、`ur_q_stock`、`ur_q_prepare`、`ur_q_locate`及各`ur_*_stock`和扫雷函数。主流程72000游戏秒；农作7200秒、逐层矿采18000秒。Iron最多64片、准备深度32/64/96/128、每层最多2×世界宽度+1次方向查询及64次dig；Quartz最多64片、探深0–128步长16、单柱最多192次dig。两者回退均共用已有截止。扫雷每次开格的覆盖层准备最多256次dig，按实际z和Dynamite地面核对后才开格；蘑菇/扫雷另有有界盘数、连续未命中和总时间限制。仅复用公开API，采集代码内联；正式验证临时覆盖已有test.py/lb_start.py，普通对照使用已有test.py/simulate.py。
 
 ## 时间记录
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 17181.191108563 游戏秒 | 当前结构，原目标；地下资源快照来源26410308 |
+| 本地模拟预估时间 | 三seed均值 16267.792087765 游戏秒 | 当前结构，原目标；地下资源快照来源26410308 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 18140.125 游戏秒 | 构建26462009，请求401，1轮，正常完整结束 |
+| 游戏打榜时间 | 16670.354 游戏秒 | 构建26462009，请求404，1轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 17540.865550588 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/iron-prospect-aligned-model-seed1/report.json` |
-| 2 | 17355.715817679 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/iron-prospect-aligned-model-seed2/report.json` |
-| 3 | 16646.991957422 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/iron-prospect-aligned-model-seed3/report.json` |
+| 1 | 16649.129798428 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/lazy-cover-model-seed1/report.json` |
+| 2 | 16425.467697680 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/lazy-cover-model-seed2/report.json` |
+| 3 | 15728.778767187 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/lazy-cover-model-seed3/report.json` |
 
 首版部署源码SHA256：`e0d06a2030e6710ff353a31dba813d1406d27121ba54973f9e65aaaacbcfddcc`。地下资源快照构建为26410308，基础模型字段保留26385848；报告保留真实来源指纹。上表三seed已按当前塌方传播修正重新生成，manifest记录模型文件哈希。专用资源榜仍标`asset_and_source_only`，不能由固定seed重放正式加密随机盘面。
 
 ## 当前普通场景同seed对照
 
-当前执行逻辑在普通Reset初始科技、零库存、seed1下，实机请求399完整为17540.865550588游戏秒，与修正后的本地模型相同到整数纳秒。713条阶段输出的离散状态和整数值一致，小数只按原生0.01显示精度比较。上表seed2/3仍仅为模型预测。
+当前执行逻辑在普通Reset初始科技、零库存、seed1下，实机请求402完整为16649.129798428游戏秒，与修正后的本地模型相同到整数纳秒。713条阶段输出的离散状态和整数值一致，小数只按原生0.01显示精度比较。上表seed2/3仍仅为模型预测。
 
-证据：`.codex/leaderboard-sol/underground-official/alignment-26462009/iron-prospect/game-seed1/comparison.json`及同目录原请求、部署与恢复记录。部署源码SHA256为`7d45b2335eef03fd5260351db20d5c17ce6c54893f7c37b5648bd985637c5dc3`，与当前源码仅时间注释不同。模型修正与额外方法覆盖见[地下对照记录](../../mechanism_model/local_simulator/underground-validation.md)。普通同seed精度与正式随机榜均值分别记录，不用两者差额估算模型误差。
+证据：`.codex/leaderboard-sol/underground-official/alignment-26462009/lazy-cover/game-seed1/comparison.json`及同目录原请求、部署与恢复记录。部署源码SHA256为`d94736df16fd34a93eb9616bb467f6e1fedfdaf875695e7f81fcd3772095214c`，与当前源码仅时间注释不同。前版Iron勘探的请求399为17540.865550588秒，713条输出及完整纳秒也匹配，证据保留于同根`iron-prospect`目录。两版普通同seed实机相差891.735752160秒。模型修正与额外方法覆盖见[地下对照记录](../../mechanism_model/local_simulator/underground-validation.md)。普通同seed精度与正式随机榜均值分别记录，不用两者差额估算模型误差。
 
 此前Quartz定位版的请求395为19716.483046656秒。原模型少2.792106339秒，经免费地层日志定位到塌方方环误按绝对坐标过滤，修正相对偏移后585条输出及完整纳秒一致。修后Quartz版三seed为19716.483046656、21570.882220494、21212.081613928秒，均值20833.148960359秒。原始源码、修前报告与修后重放保留于`alignment-26462009/current-reset/`，三seed位于`fastest_underground_reset/quartz-prospect-cavein-model-seed1..3/`。
 
@@ -66,11 +66,15 @@ Quartz公开距离定位每次支付1 Iron；Iron少于16时先按真实采矿�
 
 Iron公开方向勘探版在Mining5/Iron2后新增Prospecting1，实际支付32 Coal；每次查询再付1 Coal，煤不足16时先按原采矿法筹到32。每片分层准备主柱，最多沿公开方向移动2×世界宽度+1次，再按真实Iron地面挖掘；None也可能表示范围无矿，不作为找到矿的证明。两片无收获回退并继承同一截止。修后三seed完整目标均值17181.191108563秒，比修后Quartz版20833.148960359秒少约17.53%，包含额外煤与解锁成本。
 
-普通同seed请求399另经完整时间和状态校准。正式候选400为16805.039秒，迁入真源后的401为18140.125秒，两次均正常完成1轮，差约7.94%。当前采用401，比前版22108.401秒约快17.95%，比同构建首版31535.109秒约快42.48%；以上为不同正式随机样本的完整成绩。双日志、实际达标与存档恢复证据分别保留，不由普通seed预测推算正式排名。
+普通同seed请求399另经完整时间和状态校准。正式候选400为16805.039秒，迁入真源后的401为18140.125秒，两次均正常完成1轮，差约7.94%。该阶段采用401，比前版22108.401秒约快17.95%，比同构建首版31535.109秒约快42.48%；以上为不同正式随机样本的完整成绩。双日志、实际达标与存档恢复证据分别保留，不由普通seed预测推算正式排名。
+
+扫雷按需清覆盖层只改资源主循环和`ur_d_dig_target`：不再先把36柱全部挖到目标层，而在实际开格前有限清理本柱；仍核对真实z与Grounds.Dynamite，保留数字推理、猜测、结算、缓存和完整目标。三seed扫雷前523/527/521条输出分别与前版完全相同，整轮各省891.735752160、930.248119999、918.213190235秒，均值少5.32%。seed1 dig由71121降到66943，move由53761降到48885，clear和measure次数不变；减少的覆盖层开挖与移动解释了主要收益。
+
+普通同seed请求402完整0ns误差。正式403为15311.563秒，真源复验404为16670.354秒，各完整1轮，两次差约8.87%。当前采用404，比前版18140.125秒约快8.10%，比同构建首版31535.109秒约快47.14%。不将超过模型收益的随机样本差异归为算法提速；完整正式成绩与三seed预测仍独立保存。
 
 ## 静态检查与后续
 
-AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前Iron/Quartz定位、Coal2/Iron2/Mining8及同盘缓存执行逻辑的源码副本已运行ty LSP：10项错误、26项提示。外部桩缺少Underground_Leaderboard，measure联合类型不能按竹子、藏宝图、Soot上下文收窄；其余为spawn/None不可达或既有未使用局部变量。新增Iron函数无错误，None分支多1项桩类型不可达提示；实机正常经过公开API，未修改外部游戏类型桩。
+AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前Iron/Quartz定位、Coal2/Iron2/Mining8、同盘缓存及按需清覆盖层执行逻辑的源码副本已运行ty LSP：10项错误、26项提示，与前版相同。外部桩缺少Underground_Leaderboard，measure联合类型不能按竹子、藏宝图、Soot上下文收窄；其余为spawn/None不可达或既有未使用局部变量。新增Iron与覆盖层函数无错误，实机正常经过公开API，未修改外部游戏类型桩。
 
 下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已取得公开排名。普通生成可能缺当前资源层，有限重试已通过所列三seed和整轮实机；覆盖范围按地下模型对照记录，不扩展为任意世界保证。
 
@@ -241,3 +245,27 @@ AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前I
 部署源码SHA256：`c9a8a282045341dd038a875128ca89e889e4cc7083f317cf3bdd6abcbc283a5b`。当前源码SHA256：`ace2e45be094fb4f6998d1cc0164f5b1dd17bc972b81f8e237817d50cc89e480`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/fastest_underground_reset/iron-prospect-aligned-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：lazy-cover-26462009
+
+<!-- official:lazy-cover-26462009:403 -->
+
+请求403完整正常结束，共1轮。官方最终日志均值为 **255:11.563（15311.563游戏秒）**；逐轮日志重算均值为15311.563000000秒，保留两者的显示舍入口径。
+
+同构建前版完整均值18140.125000000秒/1轮；当前正式均值15311.563秒/1轮，缩短约15.59%。扫雷不再预先清理整片所有柱，只在实际开格前有限准备该柱覆盖层；按真实z和Dynamite地面核对，公开推理、猜测、资源与完整解锁目标不变。同seed普通长程实机另确认状态与完整时间。
+
+部署源码SHA256：`d94736df16fd34a93eb9616bb467f6e1fedfdaf875695e7f81fcd3772095214c`。当前源码SHA256：`abc08f87f4ceaaa8ce37ec483a88bcee5413816d0119aa702ed0ba78035fd882`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/fastest_underground_reset/lazy-cover-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：lazy-cover-current-26462009
+
+<!-- official:lazy-cover-current-26462009:404 -->
+
+请求404完整正常结束，共1轮。官方最终日志均值为 **277:50.354（16670.354游戏秒）**；逐轮日志重算均值为16670.354000000秒，保留两者的显示舍入口径。
+
+同构建前版完整均值18140.125000000秒/1轮；当前正式均值16670.354秒/1轮，缩短约8.10%。扫雷不再预先清理整片所有柱，只在实际开格前有限准备该柱覆盖层；按真实z和Dynamite地面核对，公开推理、猜测、资源与完整解锁目标不变。同seed普通长程实机另确认状态与完整时间。
+
+部署源码SHA256：`abc08f87f4ceaaa8ce37ec483a88bcee5413816d0119aa702ed0ba78035fd882`。当前源码SHA256：`8decc050e6777dc1f8229bee88e8d4d076f9160f43eb1d74baaee8665eb1a0c5`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/fastest_underground_reset/lazy-cover-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。

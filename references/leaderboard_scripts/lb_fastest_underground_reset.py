@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：18140.125秒（构建26462009，1轮官方完整统计；请求401）。
+# 完整轮时间：16670.354秒（构建26462009，1轮官方完整统计；请求404）。
 
 def lb_fastest_underground_reset():
     # 每次升级都读取当前成本；低科技阶段使用单机，资源阶段结束后才clear。
@@ -911,9 +911,6 @@ def ur_dynamite_stock(goal):
             continue
         empty = 0
         depth = get_pos_z()
-        if not ur_d_prepare_all(size, depth):
-            quick_print("dynamite_failed", "prepare", cycle)
-            return
         before = num_items(Items.Dynamite)
         result, guesses = ur_d_dynamite_solve(size, depth)
         quick_print("dynamite_cycle", cycle, result, guesses, num_items(Items.Dynamite) - before, get_time(), num_items(Items.Dynamite))
@@ -1576,6 +1573,12 @@ def ur_d_read_ground(depth, direction=None):
 def ur_d_dig_target(cell, size, depth):
     if not ur_d_move_to(cell % size, cell // size, size):
         return "error", None
+    # 只准备实际需要开挖的柱，未开格的覆盖层保留。
+    for _ in range(256):
+        if get_pos_z() <= depth:
+            break
+        if get_hardness() >= 10000000 or not dig():
+            return "error", None
     z = get_pos_z()
     if z == depth:
         if get_ground_type() != Grounds.Dynamite or not dig():

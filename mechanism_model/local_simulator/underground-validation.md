@@ -4,20 +4,21 @@
 
 ## 2026-11-06：构建26462009塌方传播同步
 
-当前Reset源码在普通初始科技、零库存和seed1下，修正前本地为19713.690940317秒，实机请求395为19716.483046656秒，误差为 **-2.792106339秒**。首次阶段差异出现在解锁Bamboo1后的Rice400采集，库存同为288，时间先差约1.204秒；后续等待使误差有正负变化，不能按固定倍率校正。
+Quartz定位版Reset源码在普通初始科技、零库存和seed1下，修正前本地为19713.690940317秒，实机请求395为19716.483046656秒，误差为 **-2.792106339秒**。首次阶段差异出现在解锁Bamboo1后的Rice400采集，库存同为288，时间先差约1.204秒；后续等待使误差有正负变化，不能按固定倍率校正。
 
 免费日志探针保留原脚本前118条阶段输出的完整本地时间，进一步定位到坐标(2,2)种植前。请求397的地面序列有748条，本地749条；唯一状态序列差异是本地在该格多一次Dirt挖掘，实机已露出Clay。当前Core.dll反编译的`GridManager.ClearGroundWithCaveins`按半径2方环相对挖掘点的偏移执行`dx != dy`筛选，模型却按世界坐标执行`x != y`。已只修正`Underground.clear_with_caveins`的这一条件，并保留原方环顺序、四邻/对角和传播阈值。没有修改Rice生长参数或为整轮时间加补偿。
 
 | 当前构建对照 | 原始实机请求 | 核对输出行数 | 完整时间（游戏秒） | 修正后完整误差 |
 | --- | ---: | ---: | ---: | ---: |
 | 首次地层差异定位，普通Reset前段，seed1 | 397 | 748 / 748 | 4293.274462345 | 0ns |
-| 当前Reset原源码，从零库存至解锁目标，seed1 | 395 | 585 / 585 | 19716.483046656 | 0ns |
+| Quartz定位版Reset原源码，从零库存至解锁目标，seed1 | 395 | 585 / 585 | 19716.483046656 | 0ns |
 | 4×4连挖72层、矿石掉落及公开铁矿/石英勘探，seed1 | 398 | 82 / 82 | 334.205213850 | 0ns |
-| 铁矿勘探候选，从普通Reset初始状态至解锁目标，seed1 | 399 | 713 / 713 | 17540.865550588 | 0ns |
+| 铁矿勘探版，从普通Reset初始状态至解锁目标，seed1 | 399 | 713 / 713 | 17540.865550588 | 0ns |
+| 扫雷覆盖层按需清理版，从普通Reset初始状态至解锁目标，seed1 | 402 | 713 / 713 | 16649.129798428 | 0ns |
 
-前两项在修改后重放本地固定输入，对照保留的原始当前构建实机归档；后两项在修正后重新运行实机。原源码、场景、修前报告和原始请求均未覆盖。四项离散状态、整数值一致，小数只按quick_print的0.01显示精度比较；完整返回时间来自simulate返回值的整数纳秒，单独精确核对。三个长程窗口均超过900游戏秒，满足误差小于1秒的门槛。`underground.py`的ty LSP无诊断。
+前两项在修改后重放本地固定输入，对照保留的原始当前构建实机归档；后三项在修正后重新运行实机。原源码、场景、修前报告和原始请求均未覆盖。五项离散状态、整数值一致，小数只按quick_print的0.01显示精度比较；完整返回时间来自simulate返回值的整数纳秒，单独精确核对。四个长程窗口均超过900游戏秒，满足误差小于1秒的门槛。`underground.py`的ty LSP无诊断。
 
-证据根目录：`.codex/leaderboard-sol/underground-official/alignment-26462009/`。`current-reset`与`rice-ground-only`下的`model-after-cavein.json`及`game-seed1/comparison-after-cavein.json`保留修后重放；`ore-methods`、`iron-prospect`下的`game-seed1/comparison.json`保留新鲜方法与组合复核。Core.dll SHA256为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。各请求检查BepInEx和Unity双日志，未见新增错误，同ID回idle后恢复已有test.py/simulate.py，其他存档Python文件哈希未变。
+证据根目录：`.codex/leaderboard-sol/underground-official/alignment-26462009/`。`current-reset`与`rice-ground-only`下的`model-after-cavein.json`及`game-seed1/comparison-after-cavein.json`保留修后重放；`ore-methods`、`iron-prospect`、`lazy-cover`下的`game-seed1/comparison.json`保留新鲜方法与组合复核。Core.dll SHA256为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。各请求检查BepInEx和Unity双日志，未见新增错误，同ID回idle后恢复已有test.py/simulate.py，其他存档Python文件哈希未变。
 
 本次只确认上述源码、参数、seed和组合。资源快照及原有模型元数据仍保留真实来源版本；未将全部API、任意并发或正式榜单专用盘面标为当前构建精度通过。修正前的策略预测保留为历史，后续候选使用修正后报告；没有为验收模型逐榜运行14个完整策略。
 
