@@ -12,17 +12,23 @@
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 20832.143635273 游戏秒 | 地下模型26410308；当前结构，原目标 |
+| 本地模拟预估时间 | 三seed均值 20833.148960359 游戏秒 | 塌方传播修正后重算；原目标，资源快照来源仍为26410308 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
 | 游戏打榜时间 | 22108.401 游戏秒 | 构建26462009，请求394，1轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 19713.690940317 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/quartz-prospect-bounded-model-seed1/report.json` |
-| 2 | 21570.177691834 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/quartz-prospect-bounded-model-seed2/report.json` |
-| 3 | 21212.562273668 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/quartz-prospect-bounded-model-seed3/report.json` |
+| 1 | 19716.483046656 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/quartz-prospect-cavein-model-seed1/report.json` |
+| 2 | 21570.882220494 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/quartz-prospect-cavein-model-seed2/report.json` |
+| 3 | 21212.081613928 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/quartz-prospect-cavein-model-seed3/report.json` |
 
-首版部署源码 SHA256：`e0d06a2030e6710ff353a31dba813d1406d27121ba54973f9e65aaaacbcfddcc`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
+首版部署源码SHA256：`e0d06a2030e6710ff353a31dba813d1406d27121ba54973f9e65aaaacbcfddcc`。地下资源快照构建为26410308，基础模型字段保留26385848；报告保留真实来源指纹。上表三seed已按当前塌方传播修正重新生成，manifest记录模型文件哈希。专用资源榜仍标`asset_and_source_only`，不能由固定seed重放正式加密随机盘面。
+
+## 当前普通场景同seed对照
+
+当前源码原字节在普通Reset初始科技、零库存、seed1下，实机请求395完整为19716.483046656游戏秒。原模型少2.792106339秒；经免费地层日志定位到塌方方环误按绝对坐标过滤，修正相对偏移后，本地完整时间与实机相同到整数纳秒，585条阶段输出的离散状态和整数值一致，小数只按原生0.01显示精度比较。三seed预测随后重算，上表seed2/3仍仅为模型预测。
+
+证据：`.codex/leaderboard-sol/underground-official/alignment-26462009/current-reset/game-seed1/comparison-after-cavein.json`及同目录原请求、修前报告、部署与恢复记录。源码SHA256为`8b06f7c61999d1e05007de9ff16bbf39132aa71be7e685db68fd09b2a8246020`。模型修正与额外方法覆盖见[地下对照记录](../../mechanism_model/local_simulator/underground-validation.md)。普通同seed精度与正式随机榜均值分别记录，不用两者差额估算模型误差。
 
 ## 首版普通场景实机对照（历史）
 
@@ -50,7 +56,7 @@ Mining5后提前升Iron2/Mining6，新增50 Coal与70 Iron全部支付。三seed
 
 Coal3仅作下一成本边界代表：在相同位置再付1000 Rice，seed1完整目标24690.419270700秒，慢于Coal2同seed23091.030955295秒约6.93%，未进实机，不继续枚举。证据为`.codex/leaderboard-sol/underground-official/fastest_underground_reset/early-coal3-model-seed1/report.json`。Coal4新增4000 Rice的预估成本已高于当前煤阶段可节省的费用，也不进入模型；闭式预算只用于筛选，不能替代完整目标结果。
 
-Quartz公开距离定位每次支付1 Iron；Iron少于16时先按真实采矿筹到32。先完成锚点挖掘，再读取三点的实际x/y/z和距离，枚举世界内整数坐标，允许0.01的平方距离误差。最近矿可能在不同采样点之间变化，三点一致也不作为库存证明；只计真正dig到的Quartz，连续两片无收获则回退普通逐层矿采。原型因调用游戏没有的int在8223.326768699秒停止，未进实机；改用整除舍入，并让回退继承相同截止后，三seed均完成原目标，均值20832.143635273秒，已包含200/146/224次勘探及筹集所耗Iron的成本。
+Quartz公开距离定位每次支付1 Iron；Iron少于16时先按真实采矿筹到32。先完成锚点挖掘，再读取三点的实际x/y/z和距离，枚举世界内整数坐标，允许0.01的平方距离误差。最近矿可能在不同采样点之间变化，三点一致也不作为库存证明；只计真正dig到的Quartz，连续两片无收获则回退普通逐层矿采。原型因调用游戏没有的int在8223.326768699秒停止，未进实机；改用整除舍入，并让回退继承相同截止后，当时三seed均完成原目标，均值20832.143635273秒，已包含200/146/224次勘探及筹集所耗Iron的成本。此为塌方模型修正前记录，当前修后预测见上表。
 
 正式392完整1轮20423.736秒；真源393为22667.688秒，两次差约10.99%，因此追加394，完整1轮22108.401秒，与393差约2.47%。当前采用394，相对Coal2阶段22699.482秒约快2.60%，相对首版31535.109秒约快29.89%。不同正式盘面的波动明显，不能把模型三seed约8.57%的收益直接写成实机收益。部署、Core指纹、双日志和恢复证据见下方三次正式记录。
 

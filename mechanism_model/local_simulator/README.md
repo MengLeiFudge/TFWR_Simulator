@@ -39,7 +39,7 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 | 报告字段 | 含义 |
 | --- | --- |
 | `kind: prediction` | 本地预测 |
-| `model_version` / `random_mode` | 对应的Steam构建及Core/Utils哈希；随机口径固定为`seeded_simulate` |
+| `model_version` / `underground_model_version` / `random_mode` | 基础/地下资源及机制快照的来源构建与Core/Utils哈希；当前代码的实机覆盖见验证记录。随机口径固定为`seeded_simulate` |
 | `status` / `error` | 脚本完成或被停止，以及失败原因、行号 |
 | `goal_reached` | 脚本结束时是否达到场景物品目标或解锁目标；未配置目标时为null。达到库存目标不会自动停止脚本。 |
 | `leaderboard_profile` / `leaderboard_validation` | 地下榜原版场景参数与验证口径；专用地形为 `asset_and_source_only`，不能同seed重放正式加密随机盘面。 |
