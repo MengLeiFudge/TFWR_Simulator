@@ -339,7 +339,8 @@ class Underground:
             nx, ny = directions[(index + 1) % 4]
             for step in range(4):
                 target = pos[0] - 2 * dx - 2 * nx + step * dx, pos[1] - 2 * dy - 2 * ny + step * dy
-                if self.world.in_bounds(target) and target[0] != target[1]:
+                # 原版比较相对开挖点的偏移，不能按世界坐标排除主对角线。
+                if self.world.in_bounds(target) and target[0] - pos[0] != target[1] - pos[1]:
                     pending.append(target)
         while pending:
             target = pending.popleft()
