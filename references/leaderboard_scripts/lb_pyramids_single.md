@@ -1,10 +1,10 @@
 # 金字塔单机（pyramids_single）
 
-2026-11-06：新增可复核基线，目标为30000 Power。目前证据包含当前源码的三seed完整目标模拟和一次普通场景实机对照；已取得构建26462009的正式完整统计，见末节。
+2026-11-06：新增可复核基线，目标为30000 Power。当前实现已完成三seed原目标模拟；普通场景对照保留为首版历史证据；已取得构建26462009的正式完整统计，见末节。
 
 ## 当前实现
 
-4格间隔采样定位Sand/Limestone，再从实际Limestone高度探测正方形边界。清空足印上方、在足印外补齐Block，按离边缘距离逐列放置彩块。所有构造工人结束后才去中心验证、等待并收取Sunflower。
+4格间隔采样定位Sand/Limestone，再从实际Limestone高度探测正方形边界。清空足印上方、在足印外补齐Block，按离边缘距离逐列放置彩块。清理和构造均让奇数列反向访问y，使相邻列首尾相接；只调整访问顺序，保留基座逐格核对。所有构造工人结束后才去中心验证、等待并收取Sunflower。
 
 主要成员：`pyramid_find`、`pyramid_bounds`、`pyramid_materials`、`pyramid_dispatch`、`pyramid_build_column`。最多512片、14400游戏秒；找层每片最多128层/600秒。库存目标加100 Power缓冲，补偿末尾动作耗电。不能把模型预测写成官方成绩。
 
@@ -12,15 +12,15 @@
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 3950.203908905 游戏秒 | 当前源码、原榜单目标；各seed见下表 |
+| 本地模拟预估时间 | 三seed均值 3721.607757505 游戏秒 | 地下模型26410308；当前结构，原目标 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 4079.887 游戏秒 | 构建26462009，请求353，2轮，正常完整结束 |
+| 游戏打榜时间 | 3647.784 游戏秒 | 构建26462009，请求386，2轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 3924.364206101 | 已达到原目标 | `.codex/leaderboard-sol/underground-strategies/pyramids_single/materials-seed1/report.json` |
-| 2 | 3967.120817115 | 已达到原目标 | `.codex/leaderboard-sol/underground-strategies/pyramids_single/materials-seed2/report.json` |
-| 3 | 3959.126703500 | 已达到原目标 | `.codex/leaderboard-sol/underground-strategies/pyramids_single/materials-seed3/report.json` |
+| 1 | 3674.307466009 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/pyramids_single/column-serpentine-model-seed1/report.json` |
+| 2 | 3751.318099495 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/pyramids_single/column-serpentine-model-seed2/report.json` |
+| 3 | 3739.197707010 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/pyramids_single/column-serpentine-model-seed3/report.json` |
 
 首版部署源码 SHA256：`b8896be7f9004d1a853d8ba2b3247577e71b2ff234fecd86cabfde406462e079`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
 
@@ -38,13 +38,15 @@
 
 首版在数轮后缺Block，构造失败。当前版按实际体积预算补料，足印外只挖到基座高度；仍不足时保留已收材料并重生下一片，避免挖穿基座。
 
-清土留沙、分层修补候选的seed1完整原目标模型为4373.871473475游戏秒，当前彩块重建版同seed为3924.364206101秒，候选慢约11.45%。虽然dig由18811次降到13810、place由13433次降到6182，move却由70051次增到93413，解释器计费由821733t增到1268866t。逐层支撑和复读高度的移动费用抵消了单机节省的块操作，未进入实机、未替换当前实现。
+清土留沙、分层修补候选的seed1完整原目标模型为4373.871473475游戏秒，当时彩块重建版同seed为3924.364206101秒，候选慢约11.45%。虽然dig由18811次降到13810、place由13433次降到6182，move却由70051次增到93413，解释器计费由821733t增到1268866t。逐层支撑和复读高度的移动费用抵消了单机节省的块操作，未进入实机、未替换正式实现。
 
-证据：`.codex/leaderboard-sol/underground-official/pyramids_single/sand-repair-model-seed1/report.json`；模型仍为地下构建26410308，不把这一结果作为当前游戏的正式统计。该结论仅关闭当前单机布局，不推断同改动在多机也更慢。
+随后按公开高度生成每层缺块清单、跳过完整沙柱，seed1达原目标3974.134038620秒，move降到82503，但仍比原彩块版慢约1.27%，同样不进实机。两次证据分别为`.codex/leaderboard-sol/underground-official/pyramids_single/sand-repair-model-seed1/report.json`与`sparse-sand-model-seed1/report.json`；模型为地下构建26410308。仅关闭这两种单机布局，不推断多机结果。
+
+最终保留彩块，只改变两遍逐列访问顺序。三seed均值从3950.203908905降到3721.607757505游戏秒，约快5.79%；seed1的move由70051降到63049。候选正式385完整3轮3588.839秒，迁入真源后386完整2轮3647.784秒，采用后者。正式盘面不同，不能把实机相对基线的10.59%全部解释为同seed移动收益。
 
 ## 静态检查与后续
 
-AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。已在当前源码的字节副本上运行ty LSP；游戏类型桩缺少`Grounds.Block_Red`、`Unlocks.Underground_Leaderboard`，并把按实体/地面变化的measure返回值合并成联合类型，因而LSP仍有相关诊断。未修改游戏外部类型桩。
+AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前执行逻辑的字节副本已运行ty LSP：1项错误为外部Grounds类型桩缺少Block_Red，另有5条未使用局部变量提示；未修改外部桩。彩块类型是此前真实游戏已支持的既有调用，本次两次正式完整统计也均达标。
 
 下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已确认最快或取得公开排名。
 
@@ -59,3 +61,27 @@ AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查�
 部署源码SHA256：`b8896be7f9004d1a853d8ba2b3247577e71b2ff234fecd86cabfde406462e079`。当前源码SHA256：`598366d11b38756ea88bb8f47e6821467db9dbcc7a45d1b08cd53168d5a5d84b`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/pyramids_single/baseline-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：column-serpentine-26462009
+
+<!-- official:column-serpentine-26462009:385 -->
+
+请求385完整正常结束，共3轮。官方最终日志均值为 **59:48.839（3588.839游戏秒）**；逐轮日志重算均值为3588.839000000秒，保留两者的显示舍入口径。
+
+同构建前版完整均值4079.887000000秒/2轮；当前正式均值3588.839秒/3轮，缩短约12.04%。保留彩块重建，只在清理与构造时让相邻列反向巡回，减少列尾返回列首的移动；实际基座核对、足印外补料、彩块放置、目标和截止不变。
+
+部署源码SHA256：`5e182e5a97a869c0c78c9bb1cdb66484c53b3ebff8ff4842b4e960f16cf2188d`。当前源码SHA256：`c1471276c5f91a0ff60850d256c6d40269c6d6a5c4ab2ddbc5d50a015eb5f543`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/pyramids_single/column-serpentine-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：column-serpentine-current-26462009
+
+<!-- official:column-serpentine-current-26462009:386 -->
+
+请求386完整正常结束，共2轮。官方最终日志均值为 **60:47.784（3647.784游戏秒）**；逐轮日志重算均值为3647.784000000秒，保留两者的显示舍入口径。
+
+同构建前版完整均值4079.887000000秒/2轮；当前正式均值3647.784秒/2轮，缩短约10.59%。保留彩块重建，只在清理与构造时让相邻列反向巡回，减少列尾返回列首的移动；实际基座核对、足印外补料、彩块放置、目标和截止不变。
+
+部署源码SHA256：`c1471276c5f91a0ff60850d256c6d40269c6d6a5c4ab2ddbc5d50a015eb5f543`。当前源码SHA256：`d3ffbefce85313cc1ac5bea72212bb3d83eb726f9b741a3be9f6389a7e39c6af`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/pyramids_single/column-serpentine-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。

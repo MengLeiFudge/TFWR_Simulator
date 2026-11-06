@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：4079.887秒（构建26462009，2轮官方完整统计；请求353）。
+# 完整轮时间：3647.784秒（构建26462009，2轮官方完整统计；请求386）。
 
 def lb_pyramids_single():
     began = get_time()
@@ -156,7 +156,10 @@ def pyramid_dispatch(job, bounds):
 
 def pyramid_clear_column(x, bounds):
     x0, x1, y0, y1, floor = bounds
-    for y in range(y0, y1 + 1):
+    ys = range(y0, y1 + 1)
+    if (x - x0) % 2 == 1:
+        ys = range(y1, y0 - 1, -1)
+    for y in ys:
         if not pyramid_floor_at(x, y, floor):
             return False
     return True
@@ -188,7 +191,10 @@ def pyramid_materials(bounds):
 
 def pyramid_build_column(x, bounds):
     x0, x1, y0, y1, floor = bounds
-    for y in range(y0, y1 + 1):
+    ys = range(y0, y1 + 1)
+    if (x - x0) % 2 == 1:
+        ys = range(y1, y0 - 1, -1)
+    for y in ys:
         if not pyramid_move_to(x, y):
             return False
         height = 1 + min(x - x0, x1 - x, y - y0, y1 - y)
