@@ -90,7 +90,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Mushrooms, "lb_mushrooms", 10000)
 # 成功条件：num_items(Items.Mushroom) >= 240_000
-# 用时（#1/当前版本复跑）：未抓取 / 9:17.267
+# 用时（#1/当前版本复跑）：未抓取 / 9:17.580
 
 # leaderboard_run(Leaderboards.Mushrooms_Single, "lb_mushrooms_single", 10000)
 # 成功条件：num_items(Items.Mushroom) >= 30_000
