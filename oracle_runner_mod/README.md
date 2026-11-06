@@ -6,7 +6,7 @@
 
 客户端和本地模拟器从 GitHub 仓库取得，Thunderstore 包只安装游戏模组。后台控制接口需要支持协议2的DLL。
 
-当前源码适配 Steam 构建26385848，原生输出使用当前`MainSim`的实例日志器。旧DLL在这个游戏版本上会因静态`Logger.Log(string)`接口已移除而报`MissingMethodException`，并阻断请求处理。需用当前游戏程序集重新编译，替换本地DLL后重启游戏加载；此源码兼容修复不代表已发布的包同步更新。
+当前源码面向 Steam 构建26462009编译，原生输出使用当前`MainSim`的实例日志器。游戏的`Saver.Save(MainSim)`已改为返回`Task<bool>`；使用旧`bool`签名的DLL会报`MissingMethodException`，并阻断包括`prepare`在内的请求。`quit`等待保存成功后才发布完成状态，并在同一请求终态落盘后退出。需用当前游戏程序集重新编译，替换本地DLL后重启游戏加载；本地兼容更新不代表已发布的包同步更新。
 
 ## 后台控制
 

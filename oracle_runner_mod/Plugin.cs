@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -52,6 +53,7 @@ public sealed class Plugin : BaseUnityPlugin
     private int startingRequestId = -1;
     private float startingRequestAt;
     private int quitRequestId = -1;
+    private Task<bool>? quitSaveTask;
     private bool preparationStopInvoked;
     private float stateFailureSince = -1f;
     private float nextStatePollAt;
@@ -152,16 +154,49 @@ public sealed class Plugin : BaseUnityPlugin
             }
             OracleRunnerStateFile? current = stateStore.Read();
             stateFailureSince = -1f;
-            // 退出前先确认同一请求的终态已落盘；更新的请求或取消会撤销尚未执行的退出。
+            // 保存完成后先发布终态，再退出；取消或新请求会撤销尚未执行的退出。
             if (quitRequestId >= 0)
             {
                 int id = quitRequestId;
-                quitRequestId = -1;
-                if (current?.RequestId == id && current.Status == RunnerRequestStatus.Done)
+                if (current?.RequestId != id ||
+                    (current.Status != RunnerRequestStatus.Running && current.Status != RunnerRequestStatus.Done))
                 {
-                    Log.LogInfo($"正常退出游戏 request_id={id}");
-                    mainSim.menu.Quit();
+                    quitRequestId = -1;
+                    quitSaveTask = null;
+                }
+                else if (quitSaveTask != null)
+                {
+                    if (!quitSaveTask.IsCompleted)
+                    {
+                        MaybeLogProgress($"等待游戏保存 request_id={id}");
+                        return;
+                    }
+                    Task<bool> save = quitSaveTask;
+                    quitSaveTask = null;
+                    if (save.Status != TaskStatus.RanToCompletion || !save.Result ||
+                        (mainSim.warningPopup != null && mainSim.warningPopup.gameObject.activeInHierarchy))
+                    {
+                        quitRequestId = -1;
+                        string reason = save.Exception?.GetBaseException().Message ?? "game save was not confirmed; see game dialog and logs";
+                        MarkFailedWithOutput(current, $"control command failed: {reason}", DateTimeOffset.UtcNow);
+                    }
+                    else
+                    {
+                        RunnerStateProtocol.MarkDone(current, DateTimeOffset.UtcNow);
+                        Log.LogInfo($"控制请求完成 command=quit workspace_ready=True request_id={id}");
+                    }
+                    stateStore.Write(current);
                     return;
+                }
+                else
+                {
+                    quitRequestId = -1;
+                    if (current.Status == RunnerRequestStatus.Done)
+                    {
+                        Log.LogInfo($"正常退出游戏 request_id={id}");
+                        mainSim.menu.Quit();
+                        return;
+                    }
                 }
             }
             EnsureStateFileReady(mainSim, current);
@@ -338,13 +373,14 @@ public sealed class Plugin : BaseUnityPlugin
             {
                 if (command == "quit")
                 {
-                    // 先走游戏保存入口，避免 Quit 弹出保存确认而阻塞无人值守退出。
-                    Saver.Save(mainSim);
-                    if (mainSim.warningPopup != null && mainSim.warningPopup.gameObject.activeInHierarchy)
-                    {
-                        throw new InvalidOperationException("game save was not confirmed; see game dialog and logs");
-                    }
+                    // 当前游戏异步保存；主线程逐帧观察完成，禁止提前确认退出。
+                    quitSaveTask = Saver.Save(mainSim);
                     quitRequestId = requestedState.RequestId;
+                    RunnerStateProtocol.MarkRunning(requestedState, DateTimeOffset.UtcNow);
+                    stateStore.Write(requestedState);
+                    lastHandledRequestId = requestedState.RequestId;
+                    Log.LogInfo($"等待游戏保存 request_id={requestedState.RequestId}");
+                    return;
                 }
                 RunnerStateProtocol.MarkRunning(requestedState, DateTimeOffset.UtcNow);
                 RunnerStateProtocol.MarkDone(requestedState, DateTimeOffset.UtcNow);
@@ -353,6 +389,7 @@ public sealed class Plugin : BaseUnityPlugin
             catch (Exception ex)
             {
                 quitRequestId = -1;
+                quitSaveTask = null;
                 MarkFailedWithOutput(requestedState, $"control command failed: {ex.Message}", DateTimeOffset.UtcNow);
             }
             stateStore.Write(requestedState);
