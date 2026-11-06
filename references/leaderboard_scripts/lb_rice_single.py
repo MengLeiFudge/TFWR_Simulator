@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（地下稻米首版，尚无官方完整统计）。
+# 完整轮时间：174.566秒（构建26462009，42轮官方完整统计；请求345）。
 
 def lb_rice_single():
     size = get_world_size()
@@ -32,40 +32,59 @@ def lb_rice_single():
 
 
 def rice_columns(first, stride, size, goal, deadline):
-    # 每个柱独占；两层粘土用尽就返回，由主机在全体结束后重生下一片。
-    for layer in range(2):
-        planted = []
-        for x in range(first, size, stride):
-            if not rice_move_to(x, 0, size):
-                return False
-            for y in range(size):
-                if num_items(Items.Rice) >= goal:
-                    return True
-                ground = get_ground_type()
-                digs = 0
-                while ground != Grounds.Clay and ground != Grounds.Rock and digs < 128:
-                    if get_time() > deadline or not dig():
-                        return False
-                    ground = get_ground_type()
-                    digs += 1
-                if ground == Grounds.Clay:
-                    if not plant(Entities.Rice):
-                        return False
-                    planted.append((x, y))
-                if not move(North):
-                    return False
-        for x, y in planted:
+    # 每柱唯一写者；先铺首层，再让第二层成熟与首层余下收割重叠。
+    planted = []
+    for x in range(first, size, stride):
+        if not rice_move_to(x, 0, size):
+            return False
+        for y in range(size):
             if num_items(Items.Rice) >= goal:
                 return True
-            if not rice_move_to(x, y, size):
-                return False
-            while get_entity_type() == Entities.Rice and not can_harvest():
-                if get_time() > deadline:
+            ground = get_ground_type()
+            digs = 0
+            while ground != Grounds.Clay and ground != Grounds.Rock and digs < 128:
+                if get_time() > deadline or not dig():
                     return False
-                # 一秒等待避免忙轮询；不继续下挖，保留相邻尚未成熟的稻米。
-                do_a_flip()
-            if get_entity_type() == Entities.Rice and not harvest():
+                ground = get_ground_type()
+                digs += 1
+            if ground == Grounds.Clay:
+                if not plant(Entities.Rice):
+                    return False
+                planted.append((x, y))
+            if not move(North):
                 return False
+    second = []
+    for x, y in planted:
+        if num_items(Items.Rice) >= goal:
+            return True
+        if not rice_move_to(x, y, size):
+            return False
+        while get_entity_type() == Entities.Rice and not can_harvest():
+            if get_time() > deadline:
+                return False
+            do_a_flip()
+        if get_entity_type() == Entities.Rice:
+            # 干梯田可能仍承载成熟株；只有harvest成功后才下挖。
+            if not harvest():
+                return False
+            if num_items(Items.Rice) < goal and get_ground_type() == Grounds.Dry_Rice_Terrace:
+                if get_time() > deadline or not dig():
+                    return False
+                if get_ground_type() == Grounds.Clay:
+                    if not plant(Entities.Rice):
+                        return False
+                    second.append((x, y))
+    for x, y in second:
+        if num_items(Items.Rice) >= goal:
+            return True
+        if not rice_move_to(x, y, size):
+            return False
+        while get_entity_type() == Entities.Rice and not can_harvest():
+            if get_time() > deadline:
+                return False
+            do_a_flip()
+        if get_entity_type() == Entities.Rice and not harvest():
+            return False
     return True
 
 
