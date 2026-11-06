@@ -102,7 +102,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Dynamite_Single, "lb_dynamite_single", 10000)
 # 成功条件：num_items(Items.Dynamite) >= 100_000
-# 用时（#1/当前版本复跑）：未抓取 / 23:57.266
+# 用时（#1/当前版本复跑）：未抓取 / 21:06.656
 
 # leaderboard_run(Leaderboards.Pyramids, "lb_pyramids", 10000)
 # 成功条件：num_items(Items.Power) >= 150_000
