@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：15255.250秒（构建26462009，1轮官方完整统计；请求415）。
+# 完整轮时间：13559.391秒（构建26462009，1轮官方完整统计；请求418）。
 
 def lb_fastest_underground_reset():
     # 每次升级都读取当前成本；低科技阶段使用单机，资源阶段结束后才clear。
@@ -129,15 +129,18 @@ def ur_farm(item, goal):
 
 
 def ur_mine(item, goal, deadline=None):
-    # 普通Reset地层不能套用资源榜固定深度；逐层读实况，遇基岩后重生。
+    # 普通Reset按实际地层采集；Rice开启后的煤只采首段再重生。
     empty = 0
     if deadline == None:
         deadline = get_time() + 18000
+    layers = 1024
+    if item == Items.Coal and num_unlocked(Unlocks.Rice) > 0:
+        layers = 16
     for cycle in range(128):
         clear()
         size = get_world_size()
         before = num_items(item)
-        for layer in range(1024):
+        for layer in range(layers):
             active = 0
             for x in range(size):
                 for y in range(size):

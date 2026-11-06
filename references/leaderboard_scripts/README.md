@@ -129,6 +129,7 @@
 - Treasure Map方向查表可减少分支费用，但完整路线、回头路、D次数与同一无人机归属都保留。小收益先用当前构建同seed配对排除路径差异，再做原目标完整统计，不用压缩路线换时间。详见[藏宝图](lb_treasure_map.md)。
 - Underground Reset先按真实阶段时间判断科技投资。免费种子的Grass/Bush增产可以帮助提前Speed，Carrot种子成本则随产量倍率变化；Speed5已达上限，末段dig的固定时间需由Mining投资减少。Coal2/Iron2降低随后矿采量，6×6、Speed5和Mining5/Iron2后再支付3000 Block升Rice5、1000 Rice升Coal3。同一级投资须按实际田大小、速度、挖掘、现存库存和后续需求评估；先筹齐并支付实际成本，再比较完整目标。新增资源、成熟、清场、后续移动与解释器费用全部计入，阶段收益不能直接替代整轮结果。详见[地下Reset](lb_fastest_underground_reset.md)。
 - Reset的Iron方向勘探须全额支付解锁及每次查询的Coal；None也可能表示范围无矿，仍只按实际地面与dig库存确认产量。Quartz公开距离定位须先筹集实际Iron，并在全部锚点挖掘结束后重新读距离。不同点的最近矿可能不同，几何推断只用于选择挖掘位置；两类定位失败都有限回退并共用截止。少一次付费查询也可能增加覆盖层挖掘，须比较整轮费用。详见[地下Reset的候选记录](lb_fastest_underground_reset.md#候选与已处理边界)。
+- 普通Reset采煤可以利用真实地层周期，在首段采完后正常clear重生，避免继续挖不产煤的chunk。当前仅在Rice已解锁时限制首16层，保留最初Coal10和其他资源的原采法。减少附带Block/Iron会改变后续科技的筹资成本，须重新计算投资；当前三个seed均新增Block2000补料，完整目标仍更快。该范围已通过当前构建普通同seed对照和真源完整统计，不直接套用资源榜的专用地形。详见[地下Reset](lb_fastest_underground_reset.md)。
 
 以上来自构建26462009的完整实机与有界模型筛选，模型、短时筛选与正式成绩独立记录。2026-11-06已修正地下塌方传播的坐标筛选；修正前预测保留为历史，后续候选比较重新生成对应报告。当前构建的同seed覆盖与完整时间误差见[地下模型对照](../../mechanism_model/local_simulator/underground-validation.md)，不由正式随机榜均值反推模型误差。
 
