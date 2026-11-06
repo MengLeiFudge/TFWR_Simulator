@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：1335.308秒（构建26462009，6轮官方完整统计；请求349）。
+# 完整轮时间：1164.739秒（构建26462009，7轮官方完整统计；请求378）。
 
 def lb_mushrooms_single():
     began = get_time()
@@ -128,10 +128,10 @@ def run_layer(blocks, ceiling):
 
 
 # 单遍蛇形处理：最高处先尝试直接推送，无法配对才挖，再接收邻格配对。
-# 蘑菇稳定性为3；两格高度带也把内部地块承受的落差限制在一格。
+# 共享高度带不超过三格；主机仍等所有工人返回后才推进采样柱。
 def work_layer(block, ceiling):
     x0, x1, y0, y1 = block
-    floor = ceiling - 2
+    floor = ceiling - 3
     pairs = 0
     digs = 0
     for y in range(y0, y1):
