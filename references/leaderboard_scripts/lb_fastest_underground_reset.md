@@ -4,7 +4,7 @@
 
 ## 当前实现
 
-从零库存按当前get_cost筹集资源，逐步发展6×6单机与Mining6。Expand4后先准备Grass2、Trees2、Carrots2和Speed5，再进入竹子、藏宝图、蘑菇与扫雷资源阶段，最后支付20000 Dynamite和200000 Bamboo解锁Underground_Leaderboard。每次unlock前复核整个成本字典；Carrot种子成本随科技倍率增加，仍按get_cost实付。
+从零库存按当前get_cost筹集资源，逐步发展6×6单机。Expand4后准备Grass2、Trees2、Carrots2和Speed5；Quartz解锁后继续支付90 Quartz升Mining7，Mushrooms2后支付250 Mushroom升Mining8，再完成扫雷资源阶段。最后支付20000 Dynamite和200000 Bamboo解锁Underground_Leaderboard。每次unlock前复核整个成本字典；Carrot种子成本随科技倍率增加，仍按get_cost实付。
 
 主要成员：`lb_fastest_underground_reset`、`ur_need`、`ur_farm`、`ur_mine`及`ur_*_stock`。主流程72000游戏秒；农作7200秒、逐层矿采18000秒；蘑菇/扫雷另有有界盘数、连续未命中和总时间限制。仅复用公开API；基础与地下采集代码内联，存档只需临时已有test/simulate文件。
 
@@ -12,15 +12,15 @@
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 28416.469521305 游戏秒 | 地下模型26410308；当前结构，原目标 |
+| 本地模拟预估时间 | 三seed均值 25849.977463678 游戏秒 | 地下模型26410308；当前结构，原目标 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 29133.641 游戏秒 | 构建26462009，请求366，1轮，正常完整结束 |
+| 游戏打榜时间 | 25147.408 游戏秒 | 构建26462009，请求371，1轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 28410.363445127 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/supply-speed5-model-seed1/report.json` |
-| 2 | 30241.142704110 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/supply-speed5-model-seed2/report.json` |
-| 3 | 26597.902414677 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/supply-speed5-model-seed3/report.json` |
+| 1 | 26024.006745801 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-mining8-model-seed1/report.json` |
+| 2 | 26390.171332439 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-mining8-model-seed2/report.json` |
+| 3 | 25135.754312795 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-mining8-model-seed3/report.json` |
 
 首版部署源码 SHA256：`e0d06a2030e6710ff353a31dba813d1406d27121ba54973f9e65aaaacbcfddcc`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
 
@@ -38,11 +38,13 @@
 
 首轮发现Grass即时再生导致Bush未种下；改为按目标实体补种。逐项筹资会消耗前项的种子资源，现最多8轮复核整组库存。普通地层可能未生成目标层，搜层256次未命中后有限clear重试，连续8次失败才停止；不能套用资源榜强制地形。
 
-提前Speed4、Speed5、补给科技配套Speed5为本轮有限代表。seed1模型依次为32480.250879794、29090.295371570、28410.363445127秒，原版同seed为35057.738444295秒。配套Speed5的三seed均值28416.469521305秒，候选正式请求361为27638.810秒，迁入真源后的请求366为29133.641秒，当前成绩采用后一次完整复验。不同正式盘面有波动；两次结果都优于原31535.109秒，不能把样本差异当成同seed模型误差。没有枚举任意科技顺序。
+提前Speed4、Speed5、补给科技配套Speed5为第一组有限代表。seed1模型依次为32480.250879794、29090.295371570、28410.363445127秒，原版同seed为35057.738444295秒。配套Speed5的三seed均值28416.469521305秒，候选正式请求361为27638.810秒，迁入真源后的请求366为29133.641秒。不同正式盘面有波动，不能把样本差异当成同seed模型误差。
+
+随后按实际末段dig时间比较Mining7和Mining8两个代表，新增90 Quartz、250 Mushroom及对应前置采集全额支付。seed1分别为28287.750766862和26024.006745801秒；Mining8的三seed均值25849.977463678秒，候选正式请求369为25089.868秒，迁入真源后的正式请求371为25147.408秒，两次均正常完成1轮，当前采用真源复验结果。Dig固定游戏时间随1.5**Mining缩短；Speed5已是速度科技上限，不能用继续升级Speed替代这笔投资。没有枚举任意科技顺序。
 
 ## 静态检查与后续
 
-AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。与当前执行逻辑一致的源码副本（仅时间注释不同）的ty LSP有10项错误、25项提示：外部桩缺少Underground_Leaderboard，measure联合类型不能按竹子、藏宝图、Soot上下文收窄；其余为spawn/None不可达或既有未使用局部变量。新增四项科技枚举无诊断；未修改外部游戏类型桩。
+AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。当前Mining8执行逻辑源码副本的ty LSP有10项错误、25项提示：外部桩缺少Underground_Leaderboard，measure联合类型不能按竹子、藏宝图、Soot上下文收窄；其余为spawn/None不可达或既有未使用局部变量。科技顺序改动未增加诊断，未修改外部游戏类型桩。
 
 下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已确认最快或取得公开排名。普通Reset搜层未命中的生成原因仍未定位，有限重试已经通过三seed和整轮实机，但不能据此宣称修复模型。
 
@@ -81,3 +83,27 @@ AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查�
 部署源码SHA256：`a6a149a2d1d00162d81e2d0bdd6bd1d2df0350ca22eefcaeaefb735d4cae1e06`。当前源码SHA256：`a640359cc042414b04db423c29a94582d6200d524c364b0f5241e12b05ebc6f3`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/fastest_underground_reset/supply-speed5-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：late-mining8-26462009
+
+<!-- official:late-mining8-26462009:369 -->
+
+请求369完整正常结束，共1轮。官方最终日志均值为 **418:09.868（25089.868游戏秒）**；逐轮日志重算均值为25089.868000000秒，保留两者的显示舍入口径。
+
+同构建前版完整均值29133.641000000秒/1轮；当前正式均值25089.868秒/1轮，缩短约13.88%。现有补给Speed5后继续付90 Quartz升Mining7，Mushrooms2后付250 Mushroom升Mining8；新增资源全额计入整轮，减少末段dig的固定游戏时间。
+
+部署源码SHA256：`748e2425fcfd3efa875e25de4909dfc5c38132b627c9767396d2317c413b2b07`。当前源码SHA256：`3269550c84964efa4a7eaae37ad5ca15ec9f3208665f5e3e02b52dcb0380a469`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-mining8-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：late-mining8-current-26462009
+
+<!-- official:late-mining8-current-26462009:371 -->
+
+请求371完整正常结束，共1轮。官方最终日志均值为 **419:07.408（25147.408游戏秒）**；逐轮日志重算均值为25147.408000000秒，保留两者的显示舍入口径。
+
+同构建前版完整均值29133.641000000秒/1轮；当前正式均值25147.408秒/1轮，缩短约13.68%。现有补给Speed5后继续付90 Quartz升Mining7，Mushrooms2后付250 Mushroom升Mining8；新增资源全额计入整轮，减少末段dig的固定游戏时间。
+
+部署源码SHA256：`3269550c84964efa4a7eaae37ad5ca15ec9f3208665f5e3e02b52dcb0380a469`。当前源码SHA256：`7f4cf18eff4fcdb25ed33d79592023a42a8d996b0df800015279d7f4a79f5934`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-mining8-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
