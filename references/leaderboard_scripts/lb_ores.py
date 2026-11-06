@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：867.389秒（构建26462009，9轮官方完整统计；请求346）。
+# 完整轮时间：637.147秒（构建26462009，12轮官方完整统计；请求373）。
 
 def lb_ores():
     size = get_world_size()
@@ -41,10 +41,13 @@ def lb_ores():
 
 
 def ore_wells(first, stride, size, goal, deadline):
-    # 每个x只有一个挖掘者；在各4×8区域错开采样x，两口井均不跨所属列。
+    # 每个x仍只有一个挖掘者；延长32×32的批次以分摊clear和派发。
+    offsets = [0, 4]
+    if size == 32:
+        offsets = [0, 4, 16, 20]
     for x in range(first, size, stride):
         y0 = ((x % 4) * 8 + (x // 4) % 4) % size
-        for offset in [0, 4]:
+        for offset in offsets:
             y = (y0 + offset) % size
             if num_items(Items.Quartz) >= goal:
                 return True

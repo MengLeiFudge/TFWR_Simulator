@@ -82,11 +82,11 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Ores, "lb_ores", 10000)
 # 成功条件：num_items(Items.Quartz) >= 20_000
-# 用时（#1/当前版本复跑）：未抓取 / 14:27.389
+# 用时（#1/当前版本复跑）：未抓取 / 10:37.147
 
 # leaderboard_run(Leaderboards.Ores_Single, "lb_ores_single", 10000)
 # 成功条件：num_items(Items.Quartz) >= 4_000
-# 用时（#1/当前版本复跑）：未抓取 / 21:19.818
+# 用时（#1/当前版本复跑）：未抓取 / 17:49.625
 
 # leaderboard_run(Leaderboards.Mushrooms, "lb_mushrooms", 10000)
 # 成功条件：num_items(Items.Mushroom) >= 240_000
