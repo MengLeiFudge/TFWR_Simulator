@@ -30,6 +30,12 @@ Quartz定位版Reset源码在普通初始科技、零库存和seed1下，修正�
 
 该项只确认模型如实复现所列失败边界。`goal_reached=false`，`long_window_passed=false`；不计为完整目标组合通过，不外推到专用盘面。普通地层中返回error的精确分支尚未定位，正式榜的原目标验证另记策略文档。
 
+## 2026-11-07：方向边界短方法对照
+
+请求408在普通8×8、满级科技、seed1下核对地面/坐标查询、硬度/稳定性越界及成功/失败推送。先在(0,0)放置Block_Red，从(7,0)查询East得到该红块及z=1，而硬度和稳定性查询均为None。人工彩块不可推，can_push/push均返回False。移除彩块后找到实际Mushroom层-65，将西侧环绕邻柱(7,0)准备到-66，再从(0,0)向West成功push；实际两柱高度变为-66/-65。
+
+本地与实机5条输出的文本、整数、状态一致，完整时间均为7.248601350游戏秒，误差0ns。双日志无新增错误，同ID回idle后恢复已有test.py/simulate.py，其他Python文件哈希未变。证据为`.codex/leaderboard-sol/underground-official/alignment-26462009/wrap-methods-v3/game-seed1/comparison.json`。该项只通过所列方法与边界，窗口小于900秒，`long_window_passed=false`。
+
 ## 实现范围
 
 | 模块 | 主要职责 |
@@ -47,7 +53,7 @@ Quartz定位版Reset源码在普通初始科技、零库存和seed1下，修正�
 
 新增公开操作为 `hover`、`get_hover`、`get_pos_z`、`get_hardness`、`get_stability`、`dig`、`push`、`can_push`、`place`、`prospect_iron`、`prospect_quartz`、`jump`。既有 `plant/harvest/measure/use_item/change_hat/unlock` 等接口同时支持地下机制。
 
-`dig()` 只接受零参数。硬度、稳定性方向查询不环绕，越界返回 `None`；`get_pos_z(direction)` 环绕，返回向下为负的地面坐标，不含悬浮高度。挖掘按硬度、执行速度和 Mining 等级计时，动作本身不耗 Power。塌方清除不发放物品，爆破钻按实际清除方块收集。普通地形依照科技形成循环，特征各用独立子流，不以普通土替代未识别地形。
+`dig()`只接受零参数。硬度、稳定性方向查询不环绕，越界返回`None`；`get_ground_type(direction)`、`get_pos_z(direction)`、`can_push(direction)`与`push(direction)`的方向会环绕。`get_pos_z`返回向下为负的地面坐标，不含悬浮高度。挖掘按硬度、执行速度和Mining等级计时，动作本身不耗Power。塌方清除不发放物品，爆破钻按实际清除方块收集。普通地形依照科技形成循环，特征各用独立子流，不以普通土替代未识别地形。
 
 ## 地下排行榜入口
 

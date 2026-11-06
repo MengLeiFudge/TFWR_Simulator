@@ -40,6 +40,10 @@
 
 三格高度带候选只把floor从ceiling-2改为ceiling-3。多机seed1在137.483095050秒正常返回，但仅得到70816/240000 Mushroom，输出`mushrooms_failed layer 3 5 -7`，未达到原目标；精确失败分支尚未定位。该多机候选不进入实机、不替换当前两格版，也不继续无界调整深度。证据：`.codex/leaderboard-sol/underground-official/mushrooms/band3-model-seed1/report.json`。仅凭Mushroom稳定性为3不能证明整个跨层、空接收柱及分区组合安全。
 
+2026-11-07修后模型重算当前版seed1，仍为576.858954780秒，原目标完成；证据为`.codex/leaderboard-sol/underground-official/mushrooms/empty-receiver-cavein-model-seed1/report.json`，另两个seed保留历史口径。层间平移x分区半块宽的首版缺少最右列East环绕到(0,0)的保护，在65.075600520秒以`mushrooms_failed sample 2 1`返回，仅25072/240000，未部署。地面方向查询与push都会环绕，不能套用硬度查询的越界规则。
+
+补全East保护后，生成器按环绕坐标核对1024格唯一归属、邻格仍属本块及采样柱不被任何方向写入。候选完整seed1为579.165470100秒，慢于当前同seed约0.40%；push由16384降到16356，解释器由14286871t升到14717903t，clear与派发数不变，没有得到配对收益。不再扩大种子或枚举偏移，也不进入完整实机。证据为`.codex/leaderboard-sol/underground-official/mushrooms/shifted-partitions-wrap-guard-model-seed1/report.json`；首版失败证据另保留于`shifted-partitions-model-seed1/`。当前源码和正式成绩均未变。方向边界另经当前构建请求408短方法对照，具体范围见[地下模型对照](../../mechanism_model/local_simulator/underground-validation.md)。
+
 ## 静态检查与后续
 
 AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。与当前执行逻辑一致的源码副本（仅时间注释不同）的ty LSP无错误，3项提示分别为两处spawn_drone类型桩的None分支不可达和既有循环变量y未使用。保留运行时失败处理，未修改外部类型桩。
