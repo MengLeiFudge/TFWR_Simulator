@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：1266.656秒（构建26462009，6轮官方完整统计；请求381）。
+# 完整轮时间：880.591秒（构建26462009，9轮官方完整统计；请求407）。
 
 def lb_dynamite_single():
     began = get_time()
@@ -18,9 +18,6 @@ def lb_dynamite_single():
                 return
             covers += 1
         depth = get_pos_z()
-        if not prepare_all(size, depth):
-            quick_print("dynamite_failed", "prepare", cycle)
-            return
         before = num_items(Items.Dynamite)
         result, guesses = dynamite_solve(size, depth)
         quick_print("dynamite_cycle", cycle, result, guesses, num_items(Items.Dynamite) - before, get_time(), num_items(Items.Dynamite))
@@ -683,6 +680,12 @@ def read_ground(depth, direction=None):
 def dig_target(cell, size, depth):
     if not move_to(cell % size, cell // size, size):
         return "error", None
+    # 只准备实际需要开挖的柱，未开格的覆盖层保留。
+    for _ in range(256):
+        if get_pos_z() <= depth:
+            break
+        if get_hardness() >= 10000000 or not dig():
+            return "error", None
     z = get_pos_z()
     if z == depth:
         if get_ground_type() != Grounds.Dynamite or not dig():

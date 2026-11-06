@@ -124,7 +124,7 @@
 - Bamboo不必始终保留整行空道。可以先构造四邻覆盖的空中心，再把每株唯一分配给实际相邻中心；环边须补齐覆盖。低飞只在空中心与本株间出入，转移高飞，切花后核对高度增长。种植密度、巡回时间、父机规划和各区负载要一起核算。详见[Bamboo](lb_bamboo.md)和[单机Bamboo](lb_bamboo_single.md)。
 - Mushrooms的非蘑菇接收柱须先验证两块邻居同色且高出共同floor至少两格，再准备接收高度；遇到新的蘑菇保留，不能破坏共同高度带或采样柱。接收柱改动仅多机取得正式改善；单机另由三格高度带取得改善，同组合在多机则未完成目标。详见[Mushrooms](lb_mushrooms.md)和[单机Mushrooms](lb_mushrooms_single.md)。
 - Ores可以用同一片的多口不重复井分摊清场和覆盖层准备。井距须按世界宽度避免重复，保持每个x的唯一写者，按实际地层和库存记产量；固定四井不能直接套到任意世界。详见[Ores](lb_ores.md)和[单机Ores](lb_ores_single.md)。
-- Dynamite多机保留公开数字，只回访本列未知格；单机则可在同一物理棋盘的猜测前后复用已证明状态。必须让新猜测重新开放采样与局部约束检查，每次clear后重建棋盘，不把风险启发式当作SAFE事实。Reset单机还可把覆盖层准备推迟到实际开格前，以利用零扩展的自动揭露；须有限开挖并核对真实z和Dynamite地面。当前该项只在Reset完成三seed、普通同seed与正式复验，不能直接外推到其他专用盘面或多机。详见[Dynamite](lb_dynamite.md)、[单机Dynamite](lb_dynamite_single.md)和[地下Reset](lb_fastest_underground_reset.md)。
+- Dynamite多机保留公开数字，只回访本列未知格；单机则可在同一物理棋盘的猜测前后复用已证明状态。必须让新猜测重新开放采样与局部约束检查，每次clear后重建棋盘，不把风险启发式当作SAFE事实。Reset和炸药单机已分别验证把覆盖层准备推迟到实际开格前，以利用零扩展的自动揭露；须有限开挖并核对真实z和Dynamite地面。两者均已完成三seed和真源完整复验；炸药单机普通场景另有未完成目标的失败边界，不能将纳秒相符写成策略通用正确，也不直接外推到多机。详见[Dynamite](lb_dynamite.md)、[单机Dynamite](lb_dynamite_single.md)和[地下Reset](lb_fastest_underground_reset.md)。
 - Pyramids多机留沙修补须先完成全部清理，再读取缺块，按完整底层提供八邻支撑；中心顶块留到全部工人退出后放置，防止提前自动清场。单机中少挖少放仍可能被逐层移动抵消，当前保留彩块并用相邻列折返减少移动。详见[Pyramids](lb_pyramids.md)和[单机Pyramids](lb_pyramids_single.md)。
 - Treasure Map方向查表可减少分支费用，但完整路线、回头路、D次数与同一无人机归属都保留。小收益先用当前构建同seed配对排除路径差异，再做原目标完整统计，不用压缩路线换时间。详见[藏宝图](lb_treasure_map.md)。
 - Underground Reset先按真实阶段时间判断科技投资。免费种子的Grass/Bush增产可以帮助提前Speed，Carrot种子成本则随产量倍率变化；Speed5已达上限，末段dig的固定时间需由Mining投资减少。Coal2/Iron2可降低随后矿采量，但须把额外Rice/Coal与前置资源全额计入，不能因一级有效就默认更高等级也有效。补给、额外Quartz/Mushroom、后续移动与解释器费用同样计入整轮。详见[地下Reset](lb_fastest_underground_reset.md)。
