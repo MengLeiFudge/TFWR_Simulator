@@ -19,7 +19,7 @@
 | 结束计时 | 游戏在挑战/模拟脚本结束后停止继续推进时间。本地最后一台无人机结束时也立即停表，不再补到199t批次末尾。所有短组件都可能受影响。 | `Scheduler.run` 在活动无人机清空后结束。旧版长程记录中的末尾误差是否全部由此产生，尚未验证。 |
 | 正式榜随机源 | Reset和资源榜的作物随机流改为 `BufferedCryptoRandom`，从系统加密随机源取字节，并混合实例序号与salt；salt相同也不能复现。固定seed的simulate仍用Mono兼容随机流。 | 本地固定seed明确表示 `seeded_simulate`；报告保存游戏版本。预测不能冒充正式榜单的同seed回放。 |
 
-基础游戏12种实体的已有数值参数，以及34项基础科技的上限、父节点、成本序列和成本倍率，与原快照比较没有差异。新增文档符号不改变这些生产参数。资产提取同时发现DLC实体、地面和榜单；本模型仍只覆盖基础平面农田，未实现地下、DLC作物和DLC榜单。
+基础游戏12种实体的已有数值参数，以及34项基础科技的上限、父节点、成本序列和成本倍率，与原快照比较没有差异。新增文档符号不改变这些生产参数。当时资产提取同时发现DLC实体、地面和榜单，迁移阶段只覆盖基础平面农田。后续构建26410308的地下实现、14个排行榜场景与同seed实测另见[地下对照记录](underground-validation.md)。
 
 ## 已有实现可沿用的语言行为
 
@@ -48,4 +48,4 @@
 
 关键源码入口是 `Sunflower.Harvest/GetHarvestYield`、`Tree.OnFree`、`Farm.UsePower`、`Treasure.Harvest/CompleteRepositioning`、`DinosaurHat.FindFreeCells/TryChooseTarget/OnMove/RemoveApple`、`Apple.Measure`、`GridManager.GenerateExpandedWorld/GenerateWorld/ClearGrid/WaterDecay`、`Simulation` 构造器和 `BufferedCryptoRandom`。
 
-Save0 `__builtins__.py` 已按用户要求同步为本版官方模板的中文说明，保留全部接口声明。Save1尚未生成提示文件，采用的是游戏生成新存档时读取的同一StreamingAssets模板；来源指纹、备份和部署记录见新版配对复验。模型仍只实现已列出的基础农田机制，提示文件中新增的地下/DLC接口不等于已经模拟。
+Save0 `__builtins__.py` 已按用户要求同步为本版官方模板的中文说明，保留全部接口声明。Save1尚未生成提示文件，采用的是游戏生成新存档时读取的同一StreamingAssets模板；来源指纹、备份和部署记录见新版配对复验。本页保留该版本的基础农田迁移记录；地下/DLC的当前实现和验收范围以[地下对照记录](underground-validation.md)为准，提示文件中的符号本身不作为通过证据。

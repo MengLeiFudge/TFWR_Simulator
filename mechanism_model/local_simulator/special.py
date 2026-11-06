@@ -167,7 +167,7 @@ class Maze:
 
 
 class Dinosaur:
-    """平面农田上的唯一恐龙帽；空格按原版深度优先顺序供snake流抽样。"""
+    """恐龙只在同高连通地面移动；空格按原版深度优先顺序供snake流抽样。"""
 
     def __init__(self, world, owner):
         self.world = world
@@ -175,10 +175,16 @@ class Dinosaur:
         self.tail = deque()
         self.target = None
         self.ops = 400
+        self.surface_depth = world.underground.depths[world.pos]
+        self.surface = set()
+        self.last_surface = set()
+        self.surface_revision = (world.underground, world.underground.topology_revision)
         if world.overplantable(world.entities.get(world.pos)):
             cost = world.cost(Entities.Apple)
+            free = self.free_cells(world.pos)
+            self.surface = self.last_surface
             if all(world.items[item] >= amount for item, amount in cost.items()):
-                pos = self.choose_target(self.free_cells(world.pos), world.pos)
+                pos = self.choose_target(free, world.pos)
                 if pos is not None:
                     world.pay(cost)
                     self.target = world.set_entity(world.pos, Entities.Apple)
@@ -188,17 +194,19 @@ class Dinosaur:
         """遍历不受实体阻挡；排除头、苹果与尾巴，按N/E/S/W压栈、后进先出。"""
         world = self.world
         seen = {head}
+        depth = world.underground.depths[head]
         pending = [world.neighbor(head, d) for d in Direction]
         result = []
         while pending:
             pos = pending.pop()
-            if not world.in_bounds(pos) or pos in seen:
+            if not world.in_bounds(pos) or pos in seen or world.underground.depths[pos] != depth:
                 continue
             seen.add(pos)
             pending.extend(world.neighbor(pos, d) for d in Direction)
             crop = world.entities.get(pos)
             if crop is None or crop.kind not in (Entities.Apple, Entities.Dinosaur):
                 result.append(pos)
+        self.last_surface = seen
         return result
 
     def choose_target(self, free, current=None):
@@ -226,13 +234,26 @@ class Dinosaur:
 
     def move(self, old, new):
         world = self.world
+        revision = (world.underground, world.underground.topology_revision)
+        if revision != self.surface_revision:
+            self.free_cells(old)
+            if self.target is not None and (world.underground.depths[old] != self.surface_depth
+                                            or self.last_surface != self.surface):
+                if world.entities.get(self.target.pos) is self.target:
+                    world.remove(self.target.pos)
+                self.target = None
+            self.surface_revision = revision
         ate = self.target is not None and self.target.pos == old and world.entities.get(old) is self.target
-        # FindFreeCells在身体变化前调用。平面农田连通，计数可由实体索引直接得到；
-        # 只有选目标时才构造同序列表，保留该次移动之前的快照供末尾重选使用。
-        here = world.entities.get(old)
-        head_is_free = here is None or here.kind not in (Entities.Apple, Entities.Dinosaur)
-        free_count = world.width * world.size - sum(world.snake_counts.values()) - head_is_free
-        free = self.free_cells(old) if ate or self.target is not None and self.target.number == old else []
+        # 平整地面的热路径保留实体计数；非平整地面按同高连通区统计。
+        # 列表必须在身体变化前生成，供本步两个选址分支使用。
+        if len(self.last_surface) == world.width * world.size:
+            here = world.entities.get(old)
+            head_is_free = here is None or here.kind not in (Entities.Apple, Entities.Dinosaur)
+            free_count = world.width * world.size - sum(world.snake_counts.values()) - head_is_free
+            free = self.free_cells(old) if ate or self.target is not None and self.target.number == old else []
+        else:
+            free = self.free_cells(old)
+            free_count = len(free)
         if ate:
             pos = self.target.number
             cost = world.cost(Entities.Apple)

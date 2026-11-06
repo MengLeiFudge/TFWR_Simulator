@@ -196,7 +196,9 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         'scenario': scenario or 'max_unlocks', 'script': str(path),
         'script_sha256': source_hash, 'seed': seed, 'stream_seeds': world.seeds,
         'module_dependencies': dependencies,
-        'goal_reached': world.items[world.goal[0]] >= world.goal[1] if world.goal else None,
+        'goal_reached': world.goal_reached(),
+        'leaderboard_profile': world.leaderboard,
+        'leaderboard_validation': 'asset_and_source_only' if world.leaderboard else None,
         'api_ticks': world.ticks, 'tick_ns': world.tick_ns,
         'predicted_game_seconds': world.now_ns / 1000000000,
         'predicted_api_seconds': world.now_ns / 1000000000,
@@ -217,7 +219,8 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
             '脚本操作及199t无人机批次按原版规则实现；完整语言边界和任意并发组合未全面验证。',
             '水分、成熟和Power使用定时事件；旧版长窗口验收与新版边界分别见validation.md。',
             'simulate/leaderboard_run 只实现模拟内部拒绝递归入口；真实启动仍由协调器负责。',
-            '地下普通地层、挖掘、塌方与悬浮的短程同seed对照见underground-validation.md；DLC作物和特殊地形尚未覆盖。',
+            '地下地形、作物与解谜的逐项同seed实机对照见underground-validation.md；不代表所有并发组合或长程误差已通过。',
+            '地下排行榜专用地形按资产和源码实现；固定seed是本地筛选流，不能重放正式榜的加密随机盘面。',
             '预测不是实测成绩；靠近成熟边界或依赖 get_time/get_tick_count 的策略须实机对照。',
         ],
     }
@@ -269,7 +272,8 @@ def main():
     seed_group = parser.add_mutually_exclusive_group()
     seed_group.add_argument('--seed', type=int, default=1)
     seed_group.add_argument('--seeds', type=int, nargs='+', help='顺序运行1～100个不同seed，复用编译缓存；共享timeout预算')
-    parser.add_argument('--scenario', type=Path, help='JSON：preset=max/reset、items库存、unlocks等级及可选goal目标')
+    parser.add_argument('--scenario', type=Path, help='JSON：preset、items、unlocks、goal；可含地下leaderboard名称')
+    parser.add_argument('--leaderboard', help='地下排行榜名称，如 mushrooms_single；可用scenario覆盖库存、科技和目标')
     parser.add_argument('--trace', type=Path, help='写入逐 API JSONL；会覆盖指定文件')
     parser.add_argument('--output', type=Path, help='写入 JSON 报告；会覆盖指定文件')
     parser.add_argument('--max-api-calls', type=int, default=100000)
@@ -290,6 +294,11 @@ def main():
     options = {'path': args.script.resolve(), 'seed': args.seed, 'trace': args.trace,
                'max_calls': args.max_api_calls, 'max_steps': args.max_steps, 'seconds': args.timeout,
                'scenario': json.loads(args.scenario.read_text()) if args.scenario else None}
+    if args.leaderboard:
+        scenario = options['scenario'] or {}
+        if not isinstance(scenario, dict) or 'leaderboard' in scenario:
+            parser.error('--leaderboard 与场景中的 leaderboard 不能同时设置')
+        options['scenario'] = dict(scenario, leaderboard=args.leaderboard)
     context = multiprocessing.get_context('spawn')
     parent, child = context.Pipe(duplex=False)
     deadline = time.monotonic() + args.timeout

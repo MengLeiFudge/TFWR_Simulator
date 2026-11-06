@@ -4,7 +4,7 @@
 
 它和真实游戏 oracle workflow 分工不同：
 
-- [农场 API 模拟](local_simulator/README.md) 执行受支持脚本，已适配基础游戏作物的主要机制，以及恐龙、迷宫、水肥、科技和无人机调度。游戏更新后的源码迁移与影响见[更新对齐记录](local_simulator/game-update-26385848.md)；约900游戏秒的单seed精度通过记录对应旧版，新版尚待实机验收。
+- [农场 API 模拟](local_simulator/README.md) 执行受支持脚本，已适配基础作物、恐龙、迷宫、水肥、科技与无人机调度，并实现地下地形、作物、解谜和14个地下排行榜场景。基础游戏更新与验收见[更新对齐记录](local_simulator/game-update-26385848.md)；地下23个同seed用例及1095.828秒组合窗口见[地下对照记录](local_simulator/underground-validation.md)。专用排行榜地形仍单列源码核对范围。
 - 下文的 C# 模型验证简化机制和动作预算，不执行脚本，也不模拟 Unity / BepInEx / leaderboard 停表。
 - C# 动作模型以分布和约束筛选，不承诺 seed 轨迹一致；`rng` 命令单独用于初始随机序列对照，范围见 [随机数研究](randomness.md)。
 - 真实排名结论仍以 `tfwr_orchestrator/` + `oracle_runner_mod/` 跑出来的游戏结果为准。
@@ -25,7 +25,7 @@ Python 3.11+，无需启动游戏或安装依赖：
 python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cactus_single.py --seed 1
 ```
 
-输出预测时间、API计数、目标库存和停止原因。可用 `--scenario` 提供初始库存/科技；支持范围、轨迹保存、执行上限与实机误差见 [模拟器说明](local_simulator/README.md)。
+输出预测时间、API计数、目标库存和停止原因。可用 `--scenario` 提供初始库存/科技，或用 `--leaderboard mushrooms_single` 等选项加载地下榜场景；支持范围、轨迹保存、执行上限与实机误差见 [模拟器说明](local_simulator/README.md)。
 
 ## 运行 C# 动作模型
 

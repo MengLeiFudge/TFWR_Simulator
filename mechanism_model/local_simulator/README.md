@@ -1,8 +1,8 @@
 # 农场 API 本地模拟
 
-此入口执行受支持的游戏脚本，计算农田状态、资源和预计游戏时间，不需要打开游戏，只依赖 Python 3.11+ 标准库。已适配基础游戏12种实体的主要机制，包括7种可种植作物、南瓜合并、恐龙和迷宫；范围与近似项见 [全作物机制](mechanisms.md)。[API覆盖记录](api-coverage.md) 保留49个公开函数的方法级对照。精度取舍遵循 [模拟精度与验收](../README.md#模拟精度与验收)，结果不能作为真实成绩或排名。
+此入口执行受支持的游戏脚本，计算农田状态、资源和预计游戏时间，不需要打开游戏，只依赖 Python 3.11+ 标准库。已适配基础游戏作物、南瓜合并、恐龙和迷宫，并实现地下地形、作物、解谜与14个地下排行榜场景；基础范围见 [全作物机制](mechanisms.md)。[API覆盖记录](api-coverage.md) 保留49个公开函数的方法级对照。精度取舍遵循 [模拟精度与验收](../README.md#模拟精度与验收)，结果不能作为真实成绩或排名。
 
-游戏版本、更新影响及当前验收边界见[更新对齐记录](game-update-26385848.md)。固定seed对应游戏`simulate`，正式榜单的加密随机轨迹不能由该seed重放。地下悬浮、普通地层、挖掘和塌方的实现及逐项实测范围见[地下对照记录](underground-validation.md)。
+游戏版本、更新影响及当前验收边界见[更新对齐记录](game-update-26385848.md)。固定seed对应游戏`simulate`，正式榜单的加密随机轨迹不能由该seed重放。地下机制在构建26410308上的23个同seed用例、2994条输出及排行榜边界见[地下对照记录](underground-validation.md)。
 
 ## 使用
 
@@ -34,14 +34,15 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 {"items":{"Hay":1000000,"Wood":1000000,"Carrot":1000000,"Cactus":1000000,"Water":100,"Fertilizer":100,"Weird_Substance":10000},"unlocks":{"Speed":4},"goal":{"item":"Cactus","amount":131072}}
 ```
 
-默认 `preset=max`：基础科技全满、DLC科技为0、32×32草地、Pumpkin和Power各1e9，其他库存0。各榜脚本需要的资源应通过场景明确提供；单无人机榜的地图/无人机限制也应显式设置，例如 `Expand=5`、`Megafarm=0`。`preset=reset` 为除Grass等级1外科技全0、库存全0；两种预设都可覆盖。低级Expand的1×3农田已支持；当前正式Fastest Reset已完成固定seed的完整对照，范围见验收记录。
+默认 `preset=max`：基础科技全满、DLC科技为0、32×32草地、Pumpkin和Power各1e9，其他库存0。各榜脚本需要的资源应通过场景明确提供；单无人机榜的地图/无人机限制也应显式设置，例如 `Expand=5`、`Megafarm=0`。`preset=reset` 使用原版初始科技：Grass和基础语言/调试/感知接口已开启，生产科技及库存从零开始；两种预设都可覆盖。地下资源榜直接用 `--leaderboard` 加载对应库存、全科技和单双机限制。低级Expand的1×3农田已支持；当前正式Fastest Reset已完成固定seed的完整对照，范围见验收记录。
 
 | 报告字段 | 含义 |
 | --- | --- |
 | `kind: prediction` | 本地预测 |
 | `model_version` / `random_mode` | 对应的Steam构建及Core/Utils哈希；随机口径固定为`seeded_simulate` |
 | `status` / `error` | 脚本完成或被停止，以及失败原因、行号 |
-| `goal_reached` | 是否达到场景 `goal` 指定的物品数量；未配置目标时为null |
+| `goal_reached` | 脚本结束时是否达到场景物品目标或解锁目标；未配置目标时为null。达到库存目标不会自动停止脚本。 |
+| `leaderboard_profile` / `leaderboard_validation` | 地下榜原版场景参数与验证口径；专用地形为 `asset_and_source_only`，不能同seed重放正式加密随机盘面。 |
 | `predicted_game_seconds` | 脚本操作、API及定时事件推进的共享游戏秒；旧字段 `predicted_api_seconds` 保留为同值兼容字段 |
 | `interpreter_ticks` | 已执行的脚本表达式、控制流、用户函数和容器操作成本，各无人机相加 |
 | `api_calls` / `api_ticks_by_function` | 按 API 拆分的调用数与动作成本；各无人机成本相加，不等于共享时间 |
@@ -54,6 +55,16 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 | `state.grounds` | 最终地面矩阵，按 `[y][x]` 读取，`size`行、`width`列，值为对应的`Grounds`枚举名；`state.depths`同样按`[y][x]`记录向下为正的深度，`state.hover_heights`记录已设置的无人机悬浮高度（未设置为1）；只读序列化，不推进模拟时间。旧报告缺少此字段时表示未观测，不从till次数反推。 |
 
 JSONL 每行记录调用序号、无人机、API、参数、返回值、调用时刻的坐标/库存/当前格状态，以及预计可再次运行的 `ready_ns`。与单机按调用完成后记录的旧轨迹不同，它保留并发调用的时间顺序。报告附脚本哈希、seed和十流派生seed；`module_dependencies`记录实际加载模块的路径与源码SHA256，没有导入时为空。只有开启trace才计算轨迹哈希，否则 `trace_sha256=null`。`warnings` 记录模拟内部启动入口被拒绝等情况。
+
+## 地下排行榜模拟
+
+将 `strategy.py` 替换为要执行的游戏脚本：
+
+```bash
+python3 -m mechanism_model.local_simulator strategy.py --leaderboard mushrooms_single --seed 1 --timeout 30 --output result.json
+```
+
+支持 Bamboo、Dynamite、Mushrooms、Ores、Pyramids、Rice 的单双机榜，以及 Treasure_Map 和 Fastest_Underground_Reset，共14榜。场景也可写 `{"leaderboard":"Mushrooms_Single"}`，并用 `items/unlocks/goal` 覆盖初始条件。默认库存、目标、地层规则和实测边界见[地下模拟与同种子对照](underground-validation.md)。本地命令只执行传入脚本，不生成策略、不提交成绩。
 
 ## 机制与执行边界
 

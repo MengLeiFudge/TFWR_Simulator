@@ -15,11 +15,15 @@ class Direction(StrEnum):
 
 DATA = json.loads(Path(__file__).with_name('resources.json').read_text())
 UNDERGROUND = json.loads(Path(__file__).with_name('underground_resources.json').read_text())
+DATA['crops'].update(UNDERGROUND['crops'])
+DATA['special'].update(UNDERGROUND['special'])
+for crop, spec in DATA['crops'].items():
+    spec['grounds'] = UNDERGROUND['crop_grounds'][crop]
 Grounds = StrEnum('Grounds', {key: 'Grounds.' + key for key in UNDERGROUND['grounds']})
 Entities = StrEnum('Entities', {key: 'Entities.' + key for key in (*DATA['crops'], *DATA['special'])})
-Items = StrEnum('Items', {key: 'Items.' + key for key in (*DATA['items'], *UNDERGROUND['items'])})
-Hats = StrEnum('Hats', {key: 'Hats.' + key for key in DATA['hats']})
-Leaderboards = StrEnum('Leaderboards', {key: 'Leaderboards.' + key for key in DATA['leaderboards']})
+Items = StrEnum('Items', {key: 'Items.' + key for key in UNDERGROUND['item_order']})
+Hats = StrEnum('Hats', {key: 'Hats.' + key for key in (*DATA['hats'], *UNDERGROUND['hats'])})
+Leaderboards = StrEnum('Leaderboards', {key: 'Leaderboards.' + key for key in (*DATA['leaderboards'], *UNDERGROUND['leaderboards'])})
 CROPS = {Entities[key]: value for key, value in DATA['crops'].items()}
 OBJECTS = {Entities[key]: value for key, value in (DATA['crops'] | DATA['special']).items()}
 UNLOCK_DATA = json.loads((Path(__file__).resolve().parents[2]

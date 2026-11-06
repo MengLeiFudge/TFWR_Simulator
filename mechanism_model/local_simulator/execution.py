@@ -376,6 +376,7 @@ class Scheduler:
         world = self.world
         world.current_drone = drone.id
         world.pos, world.script_rng = drone.pos, drone.rng
+        world.drone_positions[drone.id] = drone.pos
         if request.name != '_ops':
             self.check()
         result, ticks = self.invoke(drone, request.name, request.args)
@@ -401,6 +402,12 @@ class Scheduler:
                 dinosaur.finish()
             self.world.hats.pop(drone.id, None)
             self.world.hover_heights.pop(drone.id, None)
+            self.world.digging_ends.pop(drone.id, None)
+            self.world.drone_positions.pop(drone.id, None)
+            self.world.underground.treasure.remove_drone(drone.id)
+            crop = self.world.entities.get(drone.pos)
+            if crop is not None and crop.bamboo is not None:
+                crop.bamboo.grow(drone.id)
         if self.main is drone:
             self.main = next(iter(self.active.values()), None)
         for waiter in self.active.values():
@@ -426,7 +433,7 @@ class Scheduler:
             function, *params = args
             if not inspect.isgeneratorfunction(function):
                 raise TypeError('spawn_drone 需要脚本函数')
-            if len(self.active) >= 2 ** world.unlocks['megafarm']:
+            if len(self.active) >= world.drone_limit():
                 return None, 1
             function, params = clone_function(function, tuple(params))
             child_id = next(index for index in range(len(self.active) + 1) if index not in self.active)
@@ -435,6 +442,7 @@ class Scheduler:
                           MonoRandom(world.random_rng.sample_int()), world.pos,
                           ticks=start, start_ticks=start, consumed=start, owner=self.handle_owner)
             self.active[child.id] = child
+            world.drone_positions[child.id] = child.pos
             return child, 200
         if name in ('has_finished', 'wait_for'):
             if len(args) != 1 or not isinstance(args[0], Drone) or args[0].owner is not self.handle_owner:
@@ -452,7 +460,7 @@ class Scheduler:
             if args:
                 raise TypeError(f'{name} 不接受参数')
             return (len(self.active) if name == 'num_drones'
-                    else 2 ** world.unlocks['megafarm']), 1
+                    else world.drone_limit()), 1
         if name in ('simulate', 'leaderboard_run'):
             # 本地运行器执行的是模拟中的脚本；原版在此环境拒绝递归启动。
             if name == 'simulate':
@@ -470,17 +478,32 @@ class Scheduler:
             return None, 200
         reset_positions = name == 'set_world_size' and bool(args) and int(args[0]) != world.size
         if name == 'clear':
+            assert self.main is not None
+            hat = world.hats.get(self.main.id, Hats.Straw_Hat)
+            if drone.id != 0:
+                # 原版按旧下标清除副作用失败，编号归零后会再执行一次 clear。
+                drone.pending = Request('clear', ())
             self.main = drone
             for other in self.active.values():
                 if other is not drone:
                     other.task.close()
                     other.cancelled = True
                     other.done = True
-            self.active = {drone.id: drone}
+            drone.id = 0
+            world.current_drone = 0
+            world.hats = {0: hat}
+            self.active = {0: drone}
         result, ticks = getattr(world, 'api_' + name)(*args)
+        if name == 'set_execution_speed':
+            for other in self.active.values():
+                remaining = world.digging_ends.get(other.id, 0) - world.now_ns
+                if other is not drone and remaining > 0:
+                    other.ticks = self.global_ticks + remaining / world.tick_ns
+                    other.consumed = other.ticks
         if reset_positions:
             for other in self.active.values():
                 other.pos = (0, 0)
+            world.drone_positions = {other.id: other.pos for other in self.active.values()}
         return result, ticks
 
 

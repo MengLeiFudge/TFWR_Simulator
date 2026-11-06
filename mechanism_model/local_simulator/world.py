@@ -11,6 +11,11 @@ from .randomness import MonoRandom, stream_seeds
 from .special import Dinosaur, Maze, merge_pumpkin, update_pumpkin_squares
 from .clock import Timers
 from .underground import Underground
+from .underground_crops import Bamboo
+from .underground_features import ground as make_ground
+from .underground_puzzles import PYRAMID_GROUNDS, check_pyramid
+from .underground_explosives import explode, explosion_energy, ground_drop_data
+from .scenarios import RESET_UNLOCKS, leaderboard_scenario
 
 
 def float32(value):
@@ -43,6 +48,8 @@ class Plant:
     grow_start: int = 0
     grow_factor: float = 0
     timer: object = None
+    bamboo: object = None
+    pyramid_yield: float | None = None
 
 
 class FarmWorld:
@@ -50,8 +57,9 @@ class FarmWorld:
 
     def __init__(self, seed, scenario=None):
         scenario = scenario or {}
-        if not isinstance(scenario, dict) or set(scenario) - {'items', 'unlocks', 'preset', 'goal'}:
-            raise ValueError('场景只接受 items、unlocks、preset、goal 字段')
+        if not isinstance(scenario, dict) or set(scenario) - {'items', 'unlocks', 'preset', 'goal', 'leaderboard'}:
+            raise ValueError('场景只接受 items、unlocks、preset、goal、leaderboard 字段')
+        scenario, self.leaderboard = leaderboard_scenario(scenario)
         if scenario.get('preset', 'max') not in ('max', 'reset'):
             raise ValueError('preset 必须是 max 或 reset')
         self.seeds = stream_seeds(seed)
@@ -62,7 +70,7 @@ class FarmWorld:
         self.unlocks = {key: (row['max_unlock_level'] if scenario.get('preset', 'max') == 'max' and key not in UNDERGROUND['unlocks'] else 0)
                         for key, row in UNLOCK_DATA.items()}
         if scenario.get('preset') == 'reset':
-            self.unlocks['grass'] = 1
+            self.unlocks.update(dict.fromkeys(RESET_UNLOCKS, 1), grass=1)
         for name, level in scenario.get('unlocks', {}).items():
             key = name.removeprefix('Unlocks.').lower()
             if key not in UNLOCK_DATA or type(level) is not int or not 0 <= level <= UNLOCK_DATA[key]['max_unlock_level']:
@@ -77,20 +85,26 @@ class FarmWorld:
                 raise ValueError(f'无效物品配置：{name}={amount}')
             self.items[item] = amount
         self.goal = None
+        self.goal_unlock = None
         if 'goal' in scenario:
             goal = scenario['goal']
-            if not isinstance(goal, dict) or set(goal) != {'item', 'amount'} or type(goal['amount']) not in (int, float) or not math.isfinite(goal['amount']) or goal['amount'] <= 0:
-                raise ValueError('goal 需要 item 名称与正数 amount')
-            self.goal = (Items[goal['item']], goal['amount'])
+            if isinstance(goal, dict) and set(goal) == {'unlock'}:
+                self.goal_unlock = Unlocks[goal['unlock']].name.lower()
+            else:
+                if not isinstance(goal, dict) or set(goal) != {'item', 'amount'} or type(goal['amount']) not in (int, float) or not math.isfinite(goal['amount']) or goal['amount'] <= 0:
+                    raise ValueError('goal 需要 item 名称与正数 amount，或 unlock 科技名')
+                self.goal = (Items[goal['item']], goal['amount'])
         self.now_ns = 0
         self.ticks = 0
         self.speed = self.max_speed()
         self.tick_ns = math.ceil(2500000 / self.speed)
         self.pos = (0, 0)
         self.current_drone = 0
+        self.drone_positions = {0: self.pos}
         self.hats = {}
         # 悬浮高度相对脚下地面，各无人机独立，初始为 1。
         self.hover_heights = {}
+        self.digging_ends = {}
         self.dinosaur = None
         self.mazes = []
         self.vectors = VECTORS
@@ -105,6 +119,7 @@ class FarmWorld:
         self.calls, self.costs = Counter(), Counter()
         self.harvests, self.warnings = [], []
         self.immature_harvests, self.immature_companion_harvests = Counter(), Counter()
+        self.has_jumped = False
         self.size_limit = 0
         self.size = self.max_size()
         self.width = 1 if self.unlocks['expand'] == 1 else self.size
@@ -139,8 +154,28 @@ class FarmWorld:
         height = int(height)
         if not 0 <= height <= 18 or self.hat == Hats.Dinosaur_Hat:
             return False, 1
+        crop = self.entities.get(self.pos)
+        if crop is not None and crop.bamboo is not None and height < crop.bamboo.height:
+            return False, 1
+        previous = self.hover_heights.get(self.current_drone, 1)
         self.hover_heights[self.current_drone] = height
+        if crop is not None and crop.bamboo is not None and height > previous:
+            crop.bamboo.grow(self.current_drone)
         return True, 200
+
+    def reset_hover(self):
+        """动作落到普通地面高度1，竹子上保留不高于竹顶的当前高度。"""
+        crop = self.entities.get(self.pos)
+        self.hover_heights[self.current_drone] = (min(crop.bamboo.height, self.hover_heights.get(self.current_drone, 1))
+                                                 if crop is not None and crop.bamboo is not None else 1)
+
+    def drone_limit(self):
+        return 1 if self.leaderboard and self.leaderboard['singleDrone'] else 2 ** self.unlocks['megafarm']
+
+    def goal_reached(self):
+        if self.goal_unlock is not None:
+            return self.unlocks[self.goal_unlock] > 0
+        return self.items[self.goal[0]] >= self.goal[1] if self.goal else None
 
     def max_size(self):
         return (1, 3, 3, 4, 6, 8, 12, 16, 22, 32)[self.unlocks['expand']]
@@ -161,7 +196,7 @@ class FarmWorld:
     def neighbors(self, pos):
         return [self.entities.get(self.neighbor(pos, d)) for d in Direction]
 
-    def reset_grid(self):
+    def reset_grid(self, starting_chunk=0, jump_targets=()):
         """重建草地但保留范围内水量和仙人掌数字缓存。"""
         if self.dinosaur is not None:
             owner = self.dinosaur.owner
@@ -180,13 +215,21 @@ class FarmWorld:
         self.sunflower_petals.clear()
         self.snake_counts.clear()
         self.grounds.clear()
-        self.underground = Underground(self)
+        if hasattr(self, 'underground'):
+            self.underground.treasure.paths.clear()
+        self.underground = Underground(self, starting_chunk, jump_targets)
+        surface_grass = not starting_chunk and not (self.leaderboard and self.leaderboard['pretendedChunkDepths'] and self.leaderboard['pretendedChunkDepths'][0])
+        if not surface_grass:
+            self.underground.chunks[starting_chunk] = self.underground.generate_chunk(starting_chunk)
         self.water = {pos: value for pos, value in self.water.items() if self.in_bounds(pos)}
         self.cache = {pos: value for pos, value in self.cache.items() if self.in_bounds(pos)}
         for y in range(self.size):
             for x in range(self.width):
-                self.grounds[x, y] = Grounds.Grassland
-                self.set_entity((x, y), Entities.Grass)
+                if not surface_grass:
+                    self.grounds[x, y] = self.underground.chunks[starting_chunk][x, y, starting_chunk * 16].kind
+                else:
+                    self.grounds[x, y] = Grounds.Grassland
+                    self.set_entity((x, y), Entities.Grass)
 
     def choose_companion(self, crop):
         """独立poly流先选位置，再重抽与本作物不同的类型。"""
@@ -219,10 +262,9 @@ class FarmWorld:
             rng.next(spec['goo_count'] - 1)
             if spec['companion']:
                 crop.companion = self.choose_companion(crop)
-            deviation = float32(spec['deviation'])
-            crop.random_factor = float32(float32(float32(float32(rng.double()) * deviation) * 2) + 1)
-            crop.random_factor = float32(crop.random_factor - deviation)
-            crop.seconds = float32(spec['seconds']) * crop.random_factor
+            self.roll_growth_time(crop)
+            if kind == Entities.Bamboo:
+                crop.bamboo = Bamboo(self, crop)
             if kind == Entities.Cactus:
                 if pos not in self.cache:
                     self.cache[pos] = self.rng['cactus'].next(10)
@@ -234,6 +276,8 @@ class FarmWorld:
                 crop.number = int.from_bytes(hashlib.sha256(self.rng['pumpkin'].bytes(16)).digest()[:4], 'little') & 2147483647
         crop.tree_factor = self.tree_penalty(crop)
         self.track_growth(crop)
+        if kind == Entities.Dynamite:
+            self.mature(crop)
         if kind == Entities.Tree:
             self.update_neighbors(pos)
         return crop
@@ -285,6 +329,24 @@ class FarmWorld:
             if neighbor is not None:
                 self.track_growth(neighbor)
 
+    def roll_growth_time(self, crop):
+        """每次开始生长阶段都消耗 various，即使生长偏差为零。"""
+        spec = CROPS[crop.kind]
+        deviation = float32(spec['deviation'])
+        crop.random_factor = float32(float32(float32(float32(self.rng['various'].double()) * deviation) * 2) + 1)
+        crop.random_factor = float32(crop.random_factor - deviation)
+        crop.seconds = float32(spec['seconds']) * crop.random_factor
+
+    def restart_growth(self, crop):
+        """竹子增加一节后从零重新安排成熟，保留植株和花节。"""
+        if crop.timer is not None:
+            crop.timer.stopped = True
+        crop.timer = None
+        crop.grown, crop.progress, crop.grow_ns = False, 0, 0
+        crop.grow_start = self.now_ns
+        self.roll_growth_time(crop)
+        self.track_growth(crop)
+
     def mature(self, crop):
         if crop.grown or self.entities.get(crop.pos) is not crop:
             return
@@ -292,7 +354,13 @@ class FarmWorld:
             crop.timer.stopped = True
         crop.progress = 1
         crop.grown = True
-        if crop.kind == Entities.Cactus:
+        if crop.bamboo is not None:
+            crop.bamboo.grow()
+        if crop.kind == Entities.Rice:
+            self.grounds[crop.pos] = Grounds.Dry_Rice_Terrace
+        elif crop.kind == Entities.Dynamite and self.grounds[crop.pos] == Grounds.Soot:
+            self.underground.sweeper.score((*crop.pos, self.underground.depths[crop.pos] - 1), failed=True)
+        elif crop.kind == Entities.Cactus:
             self.cache.pop(crop.pos, None)
         elif crop.kind == Entities.Pumpkin:
             if self.rng['pumpkin'].double() <= 0.2:
@@ -430,6 +498,11 @@ class FarmWorld:
         crop = self.entities.get(self.pos)
         if crop is None:
             return False, 1
+        if crop.kind == Entities.Underground_Treasure:
+            spec = OBJECTS[crop.kind]
+            self.add_item(Items[spec['drop']], spec['amount'] * crop.number * self.yield_factor(crop.kind))
+            self.remove(self.pos)
+            return True, 200
         if crop.kind in (Entities.Apple, Entities.Dinosaur):
             return True, 200
         if crop.maze is not None:
@@ -454,7 +527,12 @@ class FarmWorld:
                     self.immature_companion_harvests[crop.kind.value] += 1
             self.remove(self.pos)
             return True, 200
-        factor = self.yield_factor(crop.kind)
+        factor = self.yield_factor(crop.kind) * UNDERGROUND['grounds'][self.grounds[crop.pos].name]['yieldMultiplierForGrowables']
+        if crop.kind == Entities.Dynamite:
+            factor = 1
+        if crop.pyramid_yield is not None:
+            factor = crop.pyramid_yield
+            sunflower_boost = False
         positions = [self.pos]
         if crop.kind == Entities.Cactus:
             popped, pending = set(), [self.pos]
@@ -523,6 +601,7 @@ class FarmWorld:
         size = int(size)
         if size != self.size:
             self.hover_heights.clear()
+            self.drone_positions = {drone: (0, 0) for drone in self.drone_positions}
             self.pos = (0, 0)
             if size > 2 or self.size_limit:
                 self.size_limit = size if size > 2 else 0
@@ -533,6 +612,7 @@ class FarmWorld:
         return None, 200
 
     def api_clear(self):
+        self.drone_positions = {self.current_drone: (0, 0)}
         self.hover_heights.clear()
         self.pos = (0, 0)
         self.reset_grid()
@@ -540,7 +620,8 @@ class FarmWorld:
 
     def api_can_move(self, direction):
         pos = self.neighbor(self.pos, direction)
-        if self.hat == Hats.Dinosaur_Hat and not self.in_bounds(pos):
+        if self.hat == Hats.Dinosaur_Hat and (not self.in_bounds(pos)
+                or self.underground.depths[pos] != self.underground.depths[self.pos]):
             return False, 1
         pos = self.neighbor(self.pos, direction, wrap=True)
         here, there = self.entities.get(self.pos), self.entities.get(pos)
@@ -561,17 +642,26 @@ class FarmWorld:
         ticks = 200
         if self.dinosaur is not None and self.dinosaur.owner == self.current_drone:
             ticks = self.dinosaur.move(self.pos, dest)
+        previous = self.entities.get(self.pos)
+        if any(UNDERGROUND['grounds'][self.grounds[p].name]['controller'] == 'TreasureMap' for p in (self.pos, dest)):
+            self.underground.treasure.check_position(self.current_drone, (*dest, self.underground.depths[dest]))
         self.pos = dest
+        self.drone_positions[self.current_drone] = dest
+        entered = self.entities.get(dest)
+        if entered is not None and entered.bamboo is not None:
+            entered.bamboo.cut(self.hover_heights.get(self.current_drone, 1))
+        if previous is not None and previous.bamboo is not None:
+            previous.bamboo.grow(self.current_drone)
         return True, ticks
 
     def api_swap(self, direction):
         dest = self.neighbor(self.pos, direction)
         if not self.in_bounds(dest) or self.underground.depths[dest] != self.underground.depths[self.pos]:
-            self.hover_heights[self.current_drone] = 1
+            self.reset_hover()
             return False, 1
         here, there = self.entities.get(self.pos), self.entities.get(dest)
         if any(c is not None and c.kind != Entities.Cactus for c in (here, there)):
-            self.hover_heights[self.current_drone] = 1
+            self.reset_hover()
             return False, 1
         a, b = self.cache.pop(self.pos, None), self.cache.pop(dest, None)
         if a is not None:
@@ -593,7 +683,7 @@ class FarmWorld:
     def api_till(self):
         if not UNDERGROUND['grounds'][self.grounds[self.pos].name]['isTillable']:
             return None, 200
-        self.hover_heights[self.current_drone] = 1
+        self.reset_hover()
         crop = self.entities.get(self.pos)
         if crop is None or crop.maze is None:
             self.remove(self.pos, regrow=False)
@@ -606,31 +696,57 @@ class FarmWorld:
         return None, 200
 
     def api_plant(self, kind):
+        if (self.leaderboard and self.leaderboard['leaderboardType'] == 3
+                and self.leaderboard['fullyGenerateUnderground']
+                and self.leaderboard['leaderboardName'] not in ('rice', 'rice_single')):
+            raise ValueError('当前排行榜禁止种植')
         if not isinstance(kind, Entities):
             raise UnsupportedMechanism(f'无效实体：{kind}')
+        if kind == Entities.Bamboo and any(drone != self.current_drone and pos == self.pos and self.hover_heights.get(drone, 1) == 0
+                                           for drone, pos in self.drone_positions.items()):
+            return False, 1
         if kind not in CROPS or not self.overplantable(self.entities.get(self.pos)):
             return False, 1
-        if self.grounds[self.pos].name not in CROPS[kind]['grounds']:
+        if 'All' not in CROPS[kind]['grounds'] and self.grounds[self.pos].name not in CROPS[kind]['grounds']:
             return False, 1
         if self.api_num_unlocked(kind)[0] < 1:
             raise ValueError(f'尚未解锁：{kind}')
         if not self.pay(self.cost(kind)):
             return False, 1
         self.set_entity(self.pos, kind)
-        self.hover_heights[self.current_drone] = 1
+        if kind == Entities.Rice and self.grounds[self.pos] == Grounds.Clay:
+            self.grounds[self.pos] = Grounds.Rice_Terrace
+        self.reset_hover()
         return True, 200
 
     def api_harvest(self):
+        crop = self.entities.get(self.pos)
+        if crop is not None and crop.bamboo is not None:
+            gain = crop.bamboo.drops(crop.bamboo.height) if crop.grown else 0
+            crop.bamboo.cut(0, collect=False)
+            self.add_item(Items.Bamboo, gain)
+            self.reset_hover()
+            return True, 200
         if self.entities.get(self.pos) is not None:
-            self.hover_heights[self.current_drone] = 1
+            self.reset_hover()
         return self.harvest()
 
     def api_measure(self, direction=None):
         pos = self.pos if direction is None else self.neighbor(self.pos, direction, wrap=True)
         crop = self.entities.get(pos)
-        if crop is not None and crop.kind == Entities.Apple:
-            return Dinosaur.measure_apple(self, crop), 1
-        return (crop.maze.treasure if crop and crop.maze else crop.number if crop else None), 1
+        if crop is not None:
+            if crop.kind == Entities.Apple:
+                return Dinosaur.measure_apple(self, crop), 1
+            if crop.kind == Entities.Underground_Treasure:
+                return None, 1
+            return (crop.maze.treasure if crop.maze else crop.number), 1
+        if self.grounds[pos] == Grounds.Mushroom:
+            return self.underground.ground_at(pos).color, 1
+        if self.grounds[pos] == Grounds.Soot:
+            return self.underground.sweeper.measure(pos, self.underground.depths[pos]), 1
+        if UNDERGROUND['grounds'][self.grounds[pos].name]['controller'] == 'TreasureMap':
+            return self.underground.treasure.measure(pos, self.underground.depths[pos]), 1
+        return None, 1
 
     def api_can_harvest(self):
         crop = self.entities.get(self.pos)
@@ -686,18 +802,149 @@ class FarmWorld:
         """挖掘脚下的一块地层；公开接口不接受方向。"""
         if not self.unlocks['mining']:
             raise ValueError('尚未解锁：Unlocks.Mining')
+        if self.leaderboard and not self.leaderboard['fullyGenerateUnderground']:
+            raise ValueError('当前排行榜禁止挖掘')
         pos = self.pos
         depth = self.underground.depths[pos] + 1
         ground = self.underground.ground_at(pos)
         ticks = math.ceil(ground.hardness / (self.tick_ns / 1000000000) / (1.5 ** self.unlocks['mining']))
         if ground.hardness < 10000000:
-            data = UNDERGROUND['grounds'][ground.kind.name]
+            data = ground_drop_data(ground)
             level = self.unlocks.get(data['yieldUpgradeName'], 0)
             factor = max(1, 1 << max(0, level - (data['yieldUpgradeName'] != 'ore_boost')))
+            crop = self.entities.get(pos)
+            if crop is not None and crop.kind == Entities.Dynamite:
+                ticks = min(200, ticks)
+                explode(self.underground, (*pos, depth - 1), explosion_energy(self))
+                data = dict(data, dropItem='')
+            if ground.kind in (Grounds.Dynamite, Grounds.Soot):
+                self.underground.sweeper.dig(pos)
+            self.digging_ends[self.current_drone] = self.now_ns + int(ticks * self.tick_ns)
+            if self.hat == Hats.Explosive_Drill and self.pay({Items.Dynamite: 1}):
+                explode(self.underground, (*pos, self.underground.depths[pos]), explosion_energy(self), collect=True)
+                ticks = min(200, ticks)
             self.underground.clear_with_caveins(pos, depth)
-            self.add_item(Items[data['dropItem'].title()], data['dropAmount'] * factor)
-            self.hover_heights[self.current_drone] = 1
+            if ground.kind in (Grounds.Dynamite, Grounds.Soot):
+                self.underground.sweeper.after_dig(pos)
+            if data['controller'] == 'TreasureMap':
+                self.underground.treasure.after_dig(pos)
+            if self.underground.ground_at(pos, depth).kind in PYRAMID_GROUNDS:
+                check_pyramid(self.underground, pos, depth)
+            if data['dropItem']:
+                self.add_item(Items[data['dropItem'].title()], data['dropAmount'] * factor)
+            self.reset_hover()
         return True, ticks
+
+    def api_jump(self, unlock):
+        """单次执行最多跳一次；最多六次重建、每次向下找三个区块。"""
+        if not isinstance(unlock, Unlocks):
+            raise ValueError('jump 需要 Unlocks 类型')
+        if self.leaderboard is not None:
+            raise ValueError('排行榜中禁止跳跃')
+        if not self.unlocks['jump']:
+            raise ValueError('尚未解锁跳跃')
+        features = [f for f in UNDERGROUND['features'] if f['associatedUnlockForJumpCommand'] == unlock.name.lower()]
+        if not features:
+            raise ValueError('该科技没有可跳转的地层')
+        if self.has_jumped:
+            raise ValueError('每次运行只能跳跃一次')
+        loop_size = 1
+        for feature in UNDERGROUND['features']:
+            allowed = feature['chunkIndexWhitelist']
+            key = feature['associatedUnlockForGroundLoop']
+            if key and self.unlocks.get(key) and allowed:
+                loop_size = max(loop_size, (allowed[0] if feature['onlyIncludeFirstChunkInGroundLoop'] else max(allowed)) + 1)
+        start = max(self.underground.max_depth // 16 + 1, 0)
+        candidates = [index for f in features for index in range(start, start + loop_size)
+                      if (not f['chunkIndexWhitelist'] or index % loop_size in f['chunkIndexWhitelist'])
+                      and index % loop_size not in f['chunkIndexBlacklist']]
+        if not candidates:
+            raise ValueError('当前地层循环中没有可跳转区域')
+        start = min(candidates)
+        targets = tuple('QuartzVeinFeature' if f['class_name'] == 'QuartzFeature' else f['class_name'] for f in features)
+        for _ in range(6):
+            self.reset_grid(start, targets)
+            for index in range(start, start + 3):
+                if index not in self.underground.chunks:
+                    self.underground.chunks[index] = self.underground.generate_chunk(index)
+                boxes = [box for kind, box in self.underground.features[index] if kind in targets]
+                if boxes:
+                    depth = max(min(box.low[2] for box in boxes) - 3, start * 16)
+                    for x in range(self.width):
+                        for y in range(self.size):
+                            self.underground.clear_column((x, y), depth)
+                    self.has_jumped = True
+                    self.underground.jump_targets = ()
+                    return None, 200
+        self.has_jumped = True
+        self.underground.jump_targets = ()
+        return None, 200
+
+    def api_place(self, kind):
+        """消耗一块 Block 放置允许的地面；高度边界与原版农田深度偏移一致。"""
+        if not isinstance(kind, Grounds):
+            raise ValueError('place 需要 Grounds 类型')
+        if not UNDERGROUND['grounds'][kind.name]['allowedToPlaceManually'] or self.items[Items.Block] < 1:
+            return False, 1
+        depths = self.underground.depths
+        padding = {(1, 1): 0, (1, 3): 1, (3, 3): 2, (4, 4): 3}.get((self.width, self.size), 4)
+        side = max(self.width, self.size) - 1
+        average = float32(float32(sum(depths.values())) / len(depths))
+        offset = max(average, max(depths.values()) - side - 0.5 * (4 + side * 0.5) + padding)
+        if depths[self.pos] <= round(offset) - 70:
+            raise ValueError('放置位置超出最大高度')
+        self.underground.place(self.pos, make_ground(kind))
+        if kind in PYRAMID_GROUNDS:
+            check_pyramid(self.underground, self.pos, depths[self.pos])
+        self.items[Items.Block] -= 1
+        self.reset_hover()
+        return True, 200
+
+    def api_can_push(self, direction):
+        """可推动的表层块只能进入更深的邻柱，方向环绕。"""
+        if not isinstance(direction, Direction):
+            return False, 1
+        block = self.underground.ground_at(self.pos)
+        target = self.neighbor(self.pos, direction, wrap=True)
+        return bool(UNDERGROUND['grounds'][block.kind.name]['isPushable']
+                    and self.underground.depths[target] - 1 >= self.underground.depths[self.pos]), 1
+
+    def api_push(self, direction):
+        """推动并处理同色蘑菇合并；失败不改变高度或库存。"""
+        allowed, _ = self.api_can_push(direction)
+        if not allowed:
+            return False, 1
+        gain = self.underground.push(self.pos, self.neighbor(self.pos, direction, wrap=True))
+        self.add_item(Items.Mushroom, gain)
+        self.reset_hover()
+        return True, 200
+
+    def api_prospect_iron(self):
+        """消耗一块煤，返回最近铁矿的水平引导方向。"""
+        if not self.unlocks['prospecting']:
+            raise ValueError('尚未解锁：Unlocks.Prospecting')
+        if not self.pay({Items.Coal: 1}):
+            return None, 1
+        target, _ = self.underground.closest_ore(Grounds.Iron)
+        if target is None:
+            return None, 1
+        x, y = self.pos
+        candidates = ((x - target[0], Direction.West), (target[0] - x, Direction.East),
+                      (y - target[1], Direction.South), (target[1] - y, Direction.North))
+        distance, result = float('inf'), None
+        for value, direction in candidates:
+            if 0 < value < distance:
+                distance, result = value, direction
+        return result, 1
+
+    def api_prospect_quartz(self):
+        """消耗一块铁矿，返回最近石英的 Single 欧氏距离。"""
+        if not self.unlocks['quartz']:
+            raise ValueError('尚未解锁：Unlocks.Quartz')
+        if not self.pay({Items.Iron: 1}):
+            return None, 1
+        target, distance = self.underground.closest_ore(Grounds.Quartz)
+        return (distance if target is not None else None), 1
 
     def api_get_world_size(self):
         return self.size, 1
@@ -736,15 +983,18 @@ class FarmWorld:
             self.water[self.pos] = min(1, self.water_at(self.pos) + 0.25 * amount)
             if crop is not None:
                 self.track_growth(crop)
+        elif item == Items.Dynamite:
+            amount = 1
+            explode(self.underground, (*self.pos, self.underground.depths[self.pos]), explosion_energy(self))
         elif item == Items.Fertilizer:
-            if crop is None or crop.kind not in CROPS:
+            if crop is None or crop.kind not in CROPS or not CROPS[crop.kind].get('weird', True):
                 return False, 1
             self.sync_growth(crop)
             crop.weird = True
             crop.tree_factor = self.tree_penalty(crop)
             factor = 1 / (1 + 4 * self.water_at(self.pos)) * crop.tree_factor
             duration = int(factor * float32(CROPS[crop.kind]['seconds']) * crop.random_factor * 1000000000)
-            crop.progress = min(crop.progress + 2000000000 * amount / duration, 1)
+            crop.progress = min(crop.progress + 2000000000 * amount / duration, 1) if duration else 1
             self.track_growth(crop, force=True)
         elif item == Items.Weird_Substance:
             size = amount // (1 << max(0, self.unlocks['mazes'] - 1))
@@ -755,9 +1005,9 @@ class FarmWorld:
                 if success:
                     self.items[item] -= amount
                 return success, ticks
-            elif crop and crop.kind in CROPS:
+            elif crop and crop.kind in CROPS and CROPS[crop.kind].get('weird', True):
                 for target in [crop, *self.neighbors(self.pos)]:
-                    if target is not None and target.kind in CROPS:
+                    if target is not None and target.kind in CROPS and CROPS[target.kind].get('weird', True):
                         target.weird = not target.weird
                         self.rng['various'].next(CROPS[target.kind]['goo_count'] - 1)
                 # 原版Bush不足迷宫单位时切换感染，但返回False且不扣款。
@@ -769,7 +1019,7 @@ class FarmWorld:
             return False, 1
         self.items[item] -= amount
         if item in (Items.Water, Items.Fertilizer):
-            self.hover_heights[self.current_drone] = 1
+            self.reset_hover()
         return True, 200
 
     def api_get_companion(self):
@@ -805,8 +1055,11 @@ class FarmWorld:
         if not isinstance(kind, Unlocks):
             raise ValueError('unlock 需要 Unlocks 枚举')
         key = kind.name.lower()
-        parent = UNLOCK_DATA[key]['parent_unlock']
-        if (parent and self.unlocks[parent] < 1) or self.unlocks[key] >= UNLOCK_DATA[key]['max_unlock_level']:
+        requirement = UNDERGROUND['unlock_requirements'].get(key, {})
+        required = requirement.get('unlockName')
+        if (self.unlocks[key] >= UNLOCK_DATA[key]['max_unlock_level']
+                or (required and self.unlocks.get(required, 0) < requirement['level'])
+                or (self.leaderboard and self.leaderboard['singleDrone'] and key in ('megafarm', 'expand'))):
             return False, 1
         cost, _ = self.api_get_cost(kind)
         if not self.pay(cost):
@@ -834,6 +1087,15 @@ class FarmWorld:
     def api_change_hat(self, hat):
         if not isinstance(hat, Hats):
             raise UnsupportedMechanism(f'无效帽子：{hat}')
+        crop = self.entities.get(self.pos)
+        if hat == Hats.Dinosaur_Hat and crop is not None and crop.bamboo is not None and crop.bamboo.height > 1:
+            return None, 1
+        if hat == Hats.Explosive_Drill:
+            if not self.unlocks['explosive_drill']:
+                raise ValueError('尚未解锁爆破钻')
+            if any(drone != self.current_drone and other == hat for drone, other in self.hats.items()):
+                self.hat = Hats.Straw_Hat
+                raise ValueError('只能有一台无人机使用爆破钻')
         if hat == Hats.Dinosaur_Hat and self.unlocks['dinosaurs'] < 1:
             raise ValueError('尚未解锁恐龙帽')
         if self.dinosaur is not None and self.dinosaur.owner == self.current_drone:

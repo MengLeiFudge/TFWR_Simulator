@@ -1,4 +1,671 @@
 {
+  "crop_grounds": {
+    "Apple": [
+      "Soil",
+      "Grassland"
+    ],
+    "Bamboo": [
+      "Soil",
+      "Dirt",
+      "Perlite"
+    ],
+    "Bush": [
+      "Grassland",
+      "Soil",
+      "Perlite"
+    ],
+    "Cactus": [
+      "Soil",
+      "Perlite"
+    ],
+    "Carrot": [
+      "Soil",
+      "Loam"
+    ],
+    "Dead_Pumpkin": [],
+    "Dinosaur": [
+      "Soil",
+      "Grassland"
+    ],
+    "Dynamite": [
+      "All"
+    ],
+    "Grass": [
+      "Soil",
+      "Grassland"
+    ],
+    "Hedge": [
+      "Soil",
+      "Grassland"
+    ],
+    "Pumpkin": [
+      "Soil"
+    ],
+    "Rice": [
+      "Clay"
+    ],
+    "Sunflower": [
+      "Soil",
+      "Loam"
+    ],
+    "Treasure": [
+      "Soil",
+      "Grassland"
+    ],
+    "Tree": [
+      "Soil",
+      "Grassland",
+      "Perlite"
+    ],
+    "Underground_Treasure": []
+  },
+  "item_order": [
+    "Hay",
+    "Wood",
+    "Carrot",
+    "Rice",
+    "Bamboo",
+    "Pumpkin",
+    "Cactus",
+    "Bone",
+    "Weird_Substance",
+    "Gold",
+    "Water",
+    "Fertilizer",
+    "Block",
+    "Coal",
+    "Iron",
+    "Quartz",
+    "Mushroom",
+    "Dynamite",
+    "Power",
+    "Piggy"
+  ],
+  "unlock_requirements": {
+    "auto_unlock": {
+      "unlockName": "",
+      "level": 0
+    },
+    "bamboo": {
+      "unlockName": "",
+      "level": 0
+    },
+    "cactus": {
+      "unlockName": "",
+      "level": 0
+    },
+    "carrots": {
+      "unlockName": "",
+      "level": 0
+    },
+    "coal": {
+      "unlockName": "",
+      "level": 0
+    },
+    "costs": {
+      "unlockName": "",
+      "level": 0
+    },
+    "debug": {
+      "unlockName": "",
+      "level": 0
+    },
+    "debug_2": {
+      "unlockName": "",
+      "level": 0
+    },
+    "debug_place": {
+      "unlockName": "",
+      "level": 0
+    },
+    "dictionaries": {
+      "unlockName": "",
+      "level": 0
+    },
+    "dinosaurs": {
+      "unlockName": "",
+      "level": 0
+    },
+    "dynamite": {
+      "unlockName": "expand",
+      "level": 4
+    },
+    "expand": {
+      "unlockName": "",
+      "level": 0
+    },
+    "explosive_drill": {
+      "unlockName": "",
+      "level": 0
+    },
+    "fertilizer": {
+      "unlockName": "",
+      "level": 0
+    },
+    "functions": {
+      "unlockName": "",
+      "level": 0
+    },
+    "grass": {
+      "unlockName": "",
+      "level": 0
+    },
+    "hats": {
+      "unlockName": "",
+      "level": 0
+    },
+    "import": {
+      "unlockName": "",
+      "level": 0
+    },
+    "iron": {
+      "unlockName": "expand",
+      "level": 3
+    },
+    "jump": {
+      "unlockName": "",
+      "level": 0
+    },
+    "leaderboard": {
+      "unlockName": "",
+      "level": 0
+    },
+    "lists": {
+      "unlockName": "",
+      "level": 0
+    },
+    "loops": {
+      "unlockName": "",
+      "level": 0
+    },
+    "mazes": {
+      "unlockName": "",
+      "level": 0
+    },
+    "megafarm": {
+      "unlockName": "",
+      "level": 0
+    },
+    "mining": {
+      "unlockName": "",
+      "level": 0
+    },
+    "mushrooms": {
+      "unlockName": "",
+      "level": 0
+    },
+    "operators": {
+      "unlockName": "",
+      "level": 0
+    },
+    "ore_boost": {
+      "unlockName": "expand",
+      "level": 3
+    },
+    "petrified_pumpkins": {
+      "unlockName": "expand",
+      "level": 3
+    },
+    "plant": {
+      "unlockName": "",
+      "level": 0
+    },
+    "polyculture": {
+      "unlockName": "",
+      "level": 0
+    },
+    "prospecting": {
+      "unlockName": "",
+      "level": 0
+    },
+    "pumpkins": {
+      "unlockName": "",
+      "level": 0
+    },
+    "pyramid": {
+      "unlockName": "expand",
+      "level": 4
+    },
+    "quartz": {
+      "unlockName": "",
+      "level": 0
+    },
+    "rice": {
+      "unlockName": "expand",
+      "level": 2
+    },
+    "senses": {
+      "unlockName": "",
+      "level": 0
+    },
+    "simulation": {
+      "unlockName": "",
+      "level": 0
+    },
+    "special_soils": {
+      "unlockName": "",
+      "level": 0
+    },
+    "speed": {
+      "unlockName": "",
+      "level": 0
+    },
+    "sunflowers": {
+      "unlockName": "",
+      "level": 0
+    },
+    "the_farmers_remains": {
+      "unlockName": "",
+      "level": 0
+    },
+    "timing": {
+      "unlockName": "",
+      "level": 0
+    },
+    "top_hat": {
+      "unlockName": "",
+      "level": 0
+    },
+    "treasure_map": {
+      "unlockName": "expand",
+      "level": 3
+    },
+    "trees": {
+      "unlockName": "",
+      "level": 0
+    },
+    "underground_leaderboard": {
+      "unlockName": "simulation",
+      "level": 1
+    },
+    "underground_senses": {
+      "unlockName": "",
+      "level": 0
+    },
+    "utilities": {
+      "unlockName": "",
+      "level": 0
+    },
+    "variables": {
+      "unlockName": "",
+      "level": 0
+    },
+    "watering": {
+      "unlockName": "",
+      "level": 0
+    }
+  },
+  "leaderboards": {
+    "Bamboo": {
+      "leaderboardName": "bamboo",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 0,
+      "fullyGenerateUnderground": 0,
+      "whitelistedGroundFeatureUnlocks": [],
+      "pretendedFeatureChunks": [],
+      "pretendedChunkDepths": [],
+      "items": {
+        "Power": 1000000000.0,
+        "Rice": 1000000000.0
+      },
+      "goal_items": {
+        "Bamboo": 500000000.0
+      }
+    },
+    "Bamboo_Single": {
+      "leaderboardName": "bamboo_single",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 1,
+      "fullyGenerateUnderground": 0,
+      "whitelistedGroundFeatureUnlocks": [],
+      "pretendedFeatureChunks": [],
+      "pretendedChunkDepths": [],
+      "items": {
+        "Power": 1000000000.0,
+        "Rice": 1000000000.0
+      },
+      "goal_items": {
+        "Bamboo": 25000000.0
+      }
+    },
+    "Dynamite": {
+      "leaderboardName": "dynamite",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 0,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "DynamiteStratum"
+      ],
+      "pretendedFeatureChunks": [
+        2
+      ],
+      "pretendedChunkDepths": [
+        32
+      ],
+      "items": {
+        "Power": 1000000000.0
+      },
+      "goal_items": {
+        "Dynamite": 10000000.0
+      }
+    },
+    "Dynamite_Single": {
+      "leaderboardName": "dynamite_single",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 1,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "DynamiteStratum"
+      ],
+      "pretendedFeatureChunks": [
+        2
+      ],
+      "pretendedChunkDepths": [
+        32
+      ],
+      "items": {
+        "Power": 1000000000.0
+      },
+      "goal_items": {
+        "Dynamite": 100000.0
+      }
+    },
+    "Fastest_Underground_Reset": {
+      "leaderboardName": "fastest_underground_reset",
+      "leaderboardType": 2,
+      "everythingUnlocked": 0,
+      "singleDrone": 0,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [],
+      "pretendedFeatureChunks": [],
+      "pretendedChunkDepths": [],
+      "items": {},
+      "goal_items": {}
+    },
+    "Mushrooms": {
+      "leaderboardName": "mushrooms",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 0,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "MushroomFeature"
+      ],
+      "pretendedFeatureChunks": [
+        2
+      ],
+      "pretendedChunkDepths": [
+        32
+      ],
+      "items": {
+        "Power": 1000000000.0
+      },
+      "goal_items": {
+        "Mushroom": 240000.0
+      }
+    },
+    "Mushrooms_Single": {
+      "leaderboardName": "mushrooms_single",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 1,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "MushroomFeature"
+      ],
+      "pretendedFeatureChunks": [
+        2
+      ],
+      "pretendedChunkDepths": [
+        32
+      ],
+      "items": {
+        "Power": 1000000000.0
+      },
+      "goal_items": {
+        "Mushroom": 30000.0
+      }
+    },
+    "Ores": {
+      "leaderboardName": "ores",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 0,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "CoalFeature",
+        "IronVein",
+        "QuartzFeature"
+      ],
+      "pretendedFeatureChunks": [
+        1,
+        2,
+        3
+      ],
+      "pretendedChunkDepths": [
+        0,
+        32,
+        128
+      ],
+      "items": {
+        "Power": 1000000000.0
+      },
+      "goal_items": {
+        "Quartz": 20000.0
+      }
+    },
+    "Ores_Single": {
+      "leaderboardName": "ores_single",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 1,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "CoalFeature",
+        "IronVein",
+        "QuartzFeature"
+      ],
+      "pretendedFeatureChunks": [
+        1,
+        2,
+        3
+      ],
+      "pretendedChunkDepths": [
+        0,
+        32,
+        128
+      ],
+      "items": {
+        "Power": 1000000000.0
+      },
+      "goal_items": {
+        "Quartz": 4000.0
+      }
+    },
+    "Pyramids": {
+      "leaderboardName": "pyramids",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 0,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "PyramidFeature"
+      ],
+      "pretendedFeatureChunks": [
+        2
+      ],
+      "pretendedChunkDepths": [
+        48
+      ],
+      "items": {},
+      "goal_items": {
+        "Power": 150000.0
+      }
+    },
+    "Pyramids_Single": {
+      "leaderboardName": "pyramids_single",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 1,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "PyramidFeature"
+      ],
+      "pretendedFeatureChunks": [
+        3
+      ],
+      "pretendedChunkDepths": [
+        32
+      ],
+      "items": {},
+      "goal_items": {
+        "Power": 30000.0
+      }
+    },
+    "Rice": {
+      "leaderboardName": "rice",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 0,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "ClayFeature"
+      ],
+      "pretendedFeatureChunks": [
+        1
+      ],
+      "pretendedChunkDepths": [
+        16
+      ],
+      "items": {
+        "Power": 1000000000.0
+      },
+      "goal_items": {
+        "Rice": 2000000.0
+      }
+    },
+    "Rice_Single": {
+      "leaderboardName": "rice_single",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 1,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "ClayFeature"
+      ],
+      "pretendedFeatureChunks": [
+        1
+      ],
+      "pretendedChunkDepths": [
+        16
+      ],
+      "items": {
+        "Power": 1000000000.0
+      },
+      "goal_items": {
+        "Rice": 100000.0
+      }
+    },
+    "Treasure_Map": {
+      "leaderboardName": "treasure_map",
+      "leaderboardType": 3,
+      "everythingUnlocked": 1,
+      "singleDrone": 1,
+      "fullyGenerateUnderground": 1,
+      "whitelistedGroundFeatureUnlocks": [
+        "TreasureMapFeature"
+      ],
+      "pretendedFeatureChunks": [
+        2
+      ],
+      "pretendedChunkDepths": [
+        32
+      ],
+      "items": {
+        "Power": 1000000000.0
+      },
+      "goal_items": {
+        "Gold": 115000.0
+      }
+    }
+  },
+  "special": {
+    "Underground_Treasure": {
+      "random_rotation": false,
+      "drop": "Gold",
+      "amount": 1.0,
+      "upgrade": "treasure_map",
+      "cost": {}
+    }
+  },
+  "hats": [
+    "Bamboo_Hat",
+    "Bucket",
+    "Coal_Hat",
+    "Dynamite_Hat",
+    "Explosive_Drill",
+    "Mining_Hat",
+    "Mushroom_Hat",
+    "Quartz_Hat",
+    "Rice_Hat"
+  ],
+  "crops": {
+    "Bamboo": {
+      "random_rotation": true,
+      "goo_count": 3,
+      "seconds": 1.0,
+      "deviation": 0.0,
+      "companion": false,
+      "grounds": [
+        "Soil",
+        "Dirt",
+        "Perlite"
+      ],
+      "drop": "Bamboo",
+      "amount": 1.0,
+      "upgrade": "bamboo",
+      "cost": {
+        "Rice": 1.0
+      },
+      "weird": false
+    },
+    "Dynamite": {
+      "random_rotation": true,
+      "goo_count": 1,
+      "seconds": 0.0,
+      "deviation": 0.0,
+      "companion": false,
+      "grounds": [
+        "All"
+      ],
+      "drop": "Dynamite",
+      "amount": 1.0,
+      "upgrade": "",
+      "cost": {
+        "Dynamite": 1.0
+      },
+      "weird": true
+    },
+    "Rice": {
+      "random_rotation": true,
+      "goo_count": 3,
+      "seconds": 6.0,
+      "deviation": 0.20000000298023224,
+      "companion": false,
+      "grounds": [
+        "Clay"
+      ],
+      "drop": "Rice",
+      "amount": 1.0,
+      "upgrade": "rice",
+      "cost": {},
+      "weird": true
+    }
+  },
   "game_version": {
     "steam_build": 26410308,
     "core_sha256": "ebb0bf14c8b1ec2a04cb231729869d885070d51d1a6a7cfb94421808ef32c872",
@@ -6,229 +673,342 @@
   },
   "grounds": {
     "Basalt": {
+      "controller": "TreasureMap",
       "maxHardness": 2,
       "stability": 1,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": ""
+      "yieldUpgradeName": "",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Bedrock": {
+      "controller": "",
       "maxHardness": 1000000000,
       "stability": 1,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "weird_substance",
       "dropAmount": 67.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Block_Blue": {
+      "controller": "",
       "maxHardness": 1,
       "stability": 1,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 1,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Block_Green": {
+      "controller": "",
       "maxHardness": 1,
       "stability": 1,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 1,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Block_Red": {
+      "controller": "",
       "maxHardness": 1,
       "stability": 1,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 1,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Clay": {
+      "controller": "",
       "maxHardness": 2,
       "stability": 3,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 1,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Coal": {
+      "controller": "",
       "maxHardness": 1,
       "stability": 1,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "coal",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "ore_boost"
+      "yieldUpgradeName": "ore_boost",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Dirt": {
+      "controller": "",
       "maxHardness": 1,
       "stability": 1,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 1,
+      "isPushable": 0,
+      "allowedToPlaceManually": 1,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Dry_Rice_Terrace": {
+      "controller": "",
       "maxHardness": 2,
       "stability": 3,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 1,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Dynamite": {
+      "controller": "Sweeper",
       "maxHardness": 0,
       "stability": 1,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": ""
+      "yieldUpgradeName": "",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Grassland": {
+      "controller": "",
       "maxHardness": 1,
       "stability": 1,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 1,
+      "isPushable": 0,
+      "allowedToPlaceManually": 1,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Iron": {
+      "controller": "",
       "maxHardness": 3,
       "stability": 3,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "iron",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "iron"
+      "yieldUpgradeName": "iron",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Limestone": {
+      "controller": "",
       "maxHardness": 3,
       "stability": 3,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 1,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Loam": {
+      "controller": "",
       "maxHardness": 2,
       "stability": 3,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 1,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 2.0
     },
     "Perlite": {
+      "controller": "",
       "maxHardness": 2,
       "stability": 3,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 1,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 2.0
     },
     "Petrified_Pumpkin": {
+      "controller": "",
       "maxHardness": 1,
       "stability": 8,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "pumpkin",
       "dropAmount": 8.0,
-      "yieldUpgradeName": "petrified_pumpkins"
+      "yieldUpgradeName": "petrified_pumpkins",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Quartz": {
+      "controller": "",
       "maxHardness": 10,
       "stability": 5,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "quartz",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "quartz"
+      "yieldUpgradeName": "quartz",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Rice_Terrace": {
+      "controller": "",
       "maxHardness": 2,
       "stability": 3,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 1,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Rock": {
+      "controller": "",
       "maxHardness": 2,
       "stability": 3,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 1,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Sand": {
+      "controller": "",
       "maxHardness": 1,
       "stability": 2,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 1,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Soil": {
+      "controller": "",
       "maxHardness": 1,
       "stability": 1,
       "autodestroyWhenDugBeside": 1,
       "isTillable": 1,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": "block"
+      "yieldUpgradeName": "block",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Soot": {
+      "controller": "Sweeper",
       "maxHardness": 2,
       "stability": 1,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": ""
+      "yieldUpgradeName": "",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Treasure_Goal": {
+      "controller": "TreasureMap",
       "maxHardness": 2,
       "stability": 1,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": ""
+      "yieldUpgradeName": "",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Treasure_Map": {
+      "controller": "TreasureMap",
       "maxHardness": 2,
       "stability": 1,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": ""
+      "yieldUpgradeName": "",
+      "yieldMultiplierForGrowables": 1.0
     },
     "Treasure_Path": {
+      "controller": "TreasureMap",
       "maxHardness": 2,
       "stability": 1,
       "autodestroyWhenDugBeside": 0,
       "isTillable": 0,
+      "isPushable": 0,
+      "allowedToPlaceManually": 0,
       "dropItem": "block",
       "dropAmount": 1.0,
-      "yieldUpgradeName": ""
+      "yieldUpgradeName": "",
+      "yieldMultiplierForGrowables": 1.0
+    },
+    "Mushroom": {
+      "controller": "Mushroom",
+      "maxHardness": 1,
+      "stability": 3,
+      "autodestroyWhenDugBeside": 0,
+      "isTillable": 0,
+      "isPushable": 1,
+      "allowedToPlaceManually": 0,
+      "dropItem": "",
+      "dropAmount": 0.0,
+      "yieldUpgradeName": "",
+      "yieldMultiplierForGrowables": 1.0
     }
   },
   "features": [

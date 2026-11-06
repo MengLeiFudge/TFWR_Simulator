@@ -6,7 +6,20 @@
 
 ## 更新后的覆盖边界
 
-新版增加`get_entity_type(direction=None)`与`get_ground_type(direction=None)`，均已按Core实现，但本轮没有实机对照。向日葵错收、树木邻接、Power精确耗尽、迷宫迁移、恐龙末果和地图重建等变化及证据见[更新对齐记录](game-update-26385848.md)。以下49函数的通过记录全部对应旧版Core；DLC新增接口不包含在这份基础游戏清单中。`hover/get_hover/get_pos_z/get_hardness/get_stability/dig` 的新增实现和实测范围另见[地下逐项对照](underground-validation.md)，其中 `get_ground_type` 同时检查了挖掘后的地面。
+新版增加`get_entity_type(direction=None)`与`get_ground_type(direction=None)`，已按Core实现；地下专项补充了方向实体查询和挖掘后的地面查询。向日葵错收、树木邻接、Power精确耗尽、迷宫迁移、恐龙末果和地图重建等变化及证据见[更新对齐记录](game-update-26385848.md)。以下49函数的通过记录全部对应旧版Core；DLC新增接口不包含在这份基础游戏清单中。新增地下接口及受影响基础接口的23个同seed用例共2994条输出，19个用例的完整返回时间一致到整数纳秒，范围见[地下逐项对照](underground-validation.md)。
+
+| 地下接口或扩展 | 已配对的行为 |
+| --- | --- |
+| `hover/get_hover` | 高度、动作重置、竹子阻挡与切割、恐龙帽限制 |
+| `get_pos_z/get_hardness/get_stability/dig` | 普通与特殊地层、深度、硬度、稳定性、掉落、塌方、双机及调速 |
+| `push/can_push/measure` | 蘑菇颜色、成功/失败推动、同色合并；扫雷数字与藏宝图路径 |
+| `place` | 允许的材料、无支撑沙、彩块与负深度、金字塔重建奖励 |
+| `prospect_iron/prospect_quartz` | 付费、无目标、引导方向、距离与矿石变化 |
+| `jump` | 单次跳跃到稻米地层、重建后状态；其他目标未逐项实测 |
+| `plant/harvest/use_item/change_hat` | 稻米、竹子、特殊土壤种植、炸药/爆破钻、地下宝藏、恐龙同高地面 |
+| `unlock/get_cost/num_unlocked` | 地下科技、资源扣款、附加解锁条件和地下Leaderboard目标 |
+
+14个地下榜的专用初始化另通过本地有界检查。正式榜使用加密随机源，其地形白名单与虚拟深度路径按源码和资产实现，不计入上述同seed实机通过范围。
 
 ## 旧版复验
 
