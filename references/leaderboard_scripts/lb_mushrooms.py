@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：572.673秒（构建26462009，13轮官方完整统计；请求348）。
+# 完整轮时间：557.267秒（构建26462009，13轮官方完整统计；请求357）。
 
 def lb_mushrooms():
     began = get_time()
@@ -207,9 +207,10 @@ def feed_column(neighbors, floor):
         z = get_pos_z()
         if z < floor:
             return None
-        if get_ground_type() != Grounds.Mushroom:
-            return matched
-        t = measure()
+        mushroom = get_ground_type() == Grounds.Mushroom
+        t = -1
+        if mushroom:
+            t = measure()
         types = [-1, -1, -1, -1]
         heights = [0, 0, 0, 0]
         hit = -1
@@ -218,7 +219,7 @@ def feed_column(neighbors, floor):
             if get_ground_type(direction) == Grounds.Mushroom:
                 types[i] = measure(direction)
                 heights[i] = get_pos_z(direction)
-                if z > floor and types[i] == t and heights[i] > z:
+                if mushroom and z > floor and types[i] == t and heights[i] > z:
                     hit = i
                     break
         if hit >= 0:
@@ -226,13 +227,17 @@ def feed_column(neighbors, floor):
                 return None
             matched += 1
             continue
+        # 非蘑菇柱只有确认两块同色且都高于floor至少两格后才准备。
+        target = z
+        if not mushroom:
+            target = floor
         pair_a = -1
         pair_b = -1
         for i in neighbors:
-            if types[i] < 0 or types[i] == t or heights[i] < z + 2:
+            if types[i] < 0 or types[i] == t or heights[i] < target + 2:
                 continue
             for j in neighbors:
-                if j > i and types[j] == types[i] and heights[j] >= z + 2:
+                if j > i and types[j] == types[i] and heights[j] >= target + 2:
                     pair_a = i
                     pair_b = j
                     break
@@ -240,6 +245,17 @@ def feed_column(neighbors, floor):
                 break
         if pair_a < 0:
             return matched
+        if not mushroom:
+            while get_pos_z() > floor:
+                # 遇到新蘑菇就保留，不为了空接收柱挖掉下一层颜色。
+                if get_ground_type() == Grounds.Mushroom:
+                    return matched
+                if get_hardness() >= 10000000 or not dig():
+                    return None
+            if get_pos_z() != floor:
+                return None
+            if get_ground_type() == Grounds.Mushroom:
+                return matched
         if not push_neighbor(pair_a):
             return None
         if not push_neighbor(pair_b):

@@ -36,7 +36,7 @@
 
 ## 候选与已处理边界
 
-逐覆盖层全田派发的旧版约1201秒/多机、2826秒/单机。单孔定位后一次准备减少了覆盖层派发与等待；新的末层非蘑菇接收柱优化尚未混入当前版。
+逐覆盖层全田派发的旧版约1201秒/多机、2826秒/单机。单孔定位后一次准备减少了覆盖层派发与等待。末层非蘑菇接收柱候选已完成三seed全目标模型（1371.121793370/1301.536043460/1352.897820270秒），但当前构建正式结果未超过本版，保留原实现。
 
 ## 静态检查与后续
 
@@ -55,3 +55,11 @@ AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查�
 部署源码SHA256：`ee2dd468bffb0ab9d4f17f98764a15c6469b48c538da9e8b5be4f53e9c9dd803`。当前源码SHA256：`f5a187947c79b2eee3d4913ef0bfc5b1a51bb2c6f7e8f17256eb37a97fbfe13b`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/mushrooms_single/baseline-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 空接收柱候选：未保留
+
+请求358完成6轮正式完整统计，官方最终均值1344.643游戏秒；当前原版请求349为1335.308秒。本次候选实测慢约0.70%，盘面存在随机差异；三seed模型均值1341.851885700秒的改善没有在本次完整实机中兑现，未替换当前源码或成绩索引。
+
+候选只在预先确认两邻块同色且高出floor至少两格后准备非蘑菇接收柱，保留分区、两格高度带、采样柱和等待全部工人的边界。未进行无界调参。
+
+证据：`.codex/leaderboard-sol/underground-official/mushrooms_single/empty-receiver-26462009/summary.json`及同目录完整请求、部署清单、restoration记录；候选源码及三seed模型位于同榜empty-receiver-candidate/empty-receiver-model-seed1…3。双日志无新增Error/Exception；已有test.py/lb_start.py在同ID回idle后逐字节恢复，其余存档Python文件未变。
