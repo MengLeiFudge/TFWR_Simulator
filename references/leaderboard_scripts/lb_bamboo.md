@@ -1,26 +1,26 @@
 # 竹子（bamboo）
 
-2026-11-06：目标为500000000 Bamboo。当前横巡版已完成三seed原目标模拟及构建26462009的8轮正式统计；普通场景对照保留为首版历史证据。
+2026-11-06：目标为500000000 Bamboo。当前空中心四邻版已完成三seed原目标模拟及构建26462009的11轮正式统计；普通场景对照保留为首版历史证据。
 
 ## 当前实现
 
-每个偶数种植行由两机独占半行，沿上方空行横向往返。低飞仅在空道与本株之间出入，端点访问后先移到相邻株再检查。保留两次切花、第三次整收和切花成功验证；所有子机返回后才结束。
+先按(x+2y)%5构造空中心，环边仍未被四邻覆盖的格子也留空。每株竹子唯一分配给一个实际相邻空中心，空中心按32个矩形区分给工人；32×32实机得到794个种植位、230个空中心。低飞只在空中心与本株之间出入，转移高飞18；保留两次切花、第三次整收及切花成功验证，等待全部子机后结束。父机规划约9.83游戏秒，已计入完整成绩。
 
-主要成员：`bamboo_row`、`bamboo_move_to`。最多3600游戏秒；按实际库存退出，不把株数或未来产量计入目标。
+主要成员：`lb_bamboo`、`bamboo_fans`、`bamboo_move_to`。规划只遍历有限格点与四邻，支持环边；生产最多3600游戏秒，按实际库存退出。
 
 ## 时间记录
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 979.348895970 游戏秒 | 地下模型26410308；当前结构，原目标 |
+| 本地模拟预估时间 | 三seed均值 706.452786360 游戏秒 | 地下模型26410308；当前结构，原目标 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 978.167 游戏秒 | 构建26462009，请求356，8轮，正常完整结束 |
+| 游戏打榜时间 | 705.024 游戏秒 | 构建26462009，请求363，11轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 981.859802040 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/bamboo/horizontal-model-seed1/report.json` |
-| 2 | 977.929409070 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/bamboo/horizontal-model-seed2/report.json` |
-| 3 | 978.257476800 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/bamboo/horizontal-model-seed3/report.json` |
+| 1 | 706.091138190 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/bamboo/star-model-seed1/report.json` |
+| 2 | 704.847345030 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/bamboo/star-model-seed2/report.json` |
+| 3 | 708.419875860 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/bamboo/star-model-seed3/report.json` |
 
 首版部署源码 SHA256：`6603de2d3e543992153548d70f2445d4764dc2b99ff2d86735782843bdfa45a6`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
 
@@ -40,7 +40,7 @@
 
 ## 静态检查与后续
 
-AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。当前横巡源码字节副本的ty LSP有2项错误和1项提示：游戏类型桩把按实体变化的measure合并为联合类型，无法推断此处竹子高度是数值；spawn_drone类型桩还把None分支标为不可达。保留运行时失败处理，未修改外部类型桩。
+AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。当前源码字节副本的ty LSP有2项错误和3项提示：measure联合类型桩不能推断竹子高度是数值；spawn_drone桩把None分支标为不可达，初始化phase的x/y未使用。保留运行时失败处理，未修改外部类型桩。
 
 下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已确认最快或取得公开排名。
 
@@ -67,3 +67,27 @@ AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查�
 部署源码SHA256：`516fe040c02bdfe99ea8d0931a1259adbe5b1c50c05b193740782bfaf3a4207f`。当前源码SHA256：`3aa3eb3302e395587de13ef1f539926adba79ab2e90afeb5ed9a79f092f35306`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/bamboo/horizontal-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：star-26462009
+
+<!-- official:star-26462009:359 -->
+
+请求359完整正常结束，共11轮。官方最终日志均值为 **11:42.715（702.715游戏秒）**；逐轮日志重算均值为702.714636364秒，保留两者的显示舍入口径。
+
+同构建前版完整均值978.166500000秒/8轮；当前正式均值702.715秒/11轮，缩短约28.16%。空中心按四邻覆盖分配全部非中心植株，环边未覆盖格也留空；每株仅一个工人写入，低飞只在空中心与本株间往返，所有转移高飞18。
+
+部署源码SHA256：`27ada1af52fe9a8d0801a885327625a3b3c41863db2a9aa51e7f2830fe34f058`。当前源码SHA256：`d6bafb4dd2742bdadceeea9c650389ff77720ece0c2364662e30ecfd7c03ce05`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/bamboo/star-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：star-current-26462009
+
+<!-- official:star-current-26462009:363 -->
+
+请求363完整正常结束，共11轮。官方最终日志均值为 **11:45.024（705.024游戏秒）**；逐轮日志重算均值为705.024545455秒，保留两者的显示舍入口径。
+
+同构建前版完整均值978.166500000秒/8轮；当前正式均值705.024秒/11轮，缩短约27.92%。空中心按四邻覆盖分配全部非中心植株，环边未覆盖格也留空；每株仅一个工人写入，低飞只在空中心与本株间往返，所有转移高飞18。
+
+部署源码SHA256：`d6bafb4dd2742bdadceeea9c650389ff77720ece0c2364662e30ecfd7c03ce05`。当前源码SHA256：`a5ecf050e6cd514ea0e8e8ef78a6f9a115679aae3f954853429aa99834a260f2`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/bamboo/star-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。

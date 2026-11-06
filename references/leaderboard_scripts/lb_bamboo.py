@@ -1,92 +1,141 @@
 from __builtins__ import *
-# 完整轮时间：978.167秒（构建26462009，8轮官方完整统计；请求356）。
+# 完整轮时间：705.024秒（构建26462009，11轮官方完整统计；请求363）。
 
 def lb_bamboo():
     clear()
     size = get_world_size()
-    if size % 2 != 0 or max_drones() < size:
-        quick_print("bamboo_failed", "row_worker_layout", size, max_drones())
+    if size < 4:
+        quick_print("bamboo_failed", "world_size", size)
         return
+    centers = set()
+    for y in range(size):
+        for x in range(size):
+            if (x + 2 * y) % 5 == 0:
+                centers.add((x, y))
+    covered = set(centers)
+    for x, y in centers:
+        for dx, dy in STEPS:
+            covered.add(((x + dx) % size, (y + dy) % size))
+    # 环边不能直接套无限格点；未被覆盖的格子也保留为空中心。
+    for y in range(size):
+        for x in range(size):
+            if (x, y) not in covered:
+                centers.add((x, y))
+    fans = {}
+    for center in centers:
+        fans[center] = []
+    plants = 0
+    for y in range(size):
+        for x in range(size):
+            if (x, y) in centers:
+                continue
+            for i in range(4):
+                dx, dy = STEPS[i]
+                center = ((x + dx) % size, (y + dy) % size)
+                if center in centers:
+                    fans[center].append((i + 2) % 4)
+                    plants += 1
+                    break
+    gx = 1
+    gy = 1
+    while gx * gy * 2 <= max_drones():
+        if gx <= gy and gx * 2 <= size:
+            gx *= 2
+        elif gy * 2 <= size:
+            gy *= 2
+        else:
+            break
+    plans = []
+    for owner in range(gx * gy):
+        x0 = (owner % gx) * size // gx
+        x1 = (owner % gx + 1) * size // gx
+        y0 = (owner // gx) * size // gy
+        y1 = (owner // gx + 1) * size // gy
+        plan = []
+        for y in range(y0, y1):
+            for offset in range(x1 - x0):
+                x = x0 + offset
+                if (y - y0) % 2 != 0:
+                    x = x1 - 1 - offset
+                if (x, y) in fans and len(fans[(x, y)]) > 0:
+                    plan.append((x, y, fans[(x, y)]))
+        plans.append(plan)
+    quick_print("bamboo_star_plan", plants, len(centers), len(plans), get_time())
     deadline = get_time() + 3600
     handles = []
-    ok = True
-    for owner in range(1, size):
-        row = 2 * (owner // 2)
-        low = (owner % 2) * (size // 2)
-        handle = spawn_drone(bamboo_row, row, low, low + size // 2 - 1, 500000000, deadline)
+    results = []
+    for owner in range(1, len(plans)):
+        handle = spawn_drone(bamboo_fans, plans[owner], 500000000, deadline)
         if handle == None:
-            ok = False
-            break
-        handles.append(handle)
-    if not bamboo_row(0, 0, size // 2 - 1, 500000000, deadline):
-        ok = False
+            results.append(bamboo_fans(plans[owner], 500000000, deadline))
+        else:
+            handles.append(handle)
+    results.append(bamboo_fans(plans[0], 500000000, deadline))
     for handle in handles:
-        if not wait_for(handle):
+        results.append(wait_for(handle))
+    ok = True
+    for result in results:
+        if not result:
             ok = False
     quick_print("bamboo_done", ok, get_time(), num_items(Items.Bamboo))
 
 
-def bamboo_row(row, low, high, goal, deadline):
-    # 半行只有一个写者；低飞出入仅发生在本株与其上方空道之间。
+def bamboo_fans(plan, goal, deadline):
     size = get_world_size()
     phases = []
-    for _ in range(low, high + 1):
-        phases.append(0)
+    for x, y, directions in plan:
+        local = []
+        for _ in directions:
+            local.append(0)
+        phases.append(local)
     hover(18)
-    x = low
-    direction = East
-    if not bamboo_move_to(x, row + 1, size):
-        return False
-    visits = 0
+    laps = 0
     while num_items(Items.Bamboo) < goal:
         if get_time() > deadline:
-            quick_print("bamboo_failed", "deadline", row, low, get_time())
+            quick_print("bamboo_failed", "deadline", get_time())
             return False
-        if not move(South):
-            return False
-        if get_entity_type() != Entities.Bamboo:
-            if get_ground_type() != Grounds.Soil:
-                till()
-            if not plant(Entities.Bamboo):
+        for k in range(len(plan)):
+            x, y, directions = plan[k]
+            if not bamboo_move_to(x, y, size):
                 return False
-            phases[x - low] = 0
-            hover(18)
-        elif can_harvest():
-            phase = phases[x - low]
-            if phase < 2:
-                height = measure()
-                if not move(North):
+            for i in range(len(directions)):
+                if num_items(Items.Bamboo) >= goal:
+                    return True
+                d = directions[i]
+                direction = DIRECTIONS[d]
+                back = DIRECTIONS[(d + 2) % 4]
+                if not move(direction):
                     return False
-                hover(height)
-                if not move(South):
+                if get_entity_type() != Entities.Bamboo:
+                    if get_ground_type() != Grounds.Soil:
+                        till()
+                    if not plant(Entities.Bamboo):
+                        return False
+                    phases[k][i] = 0
+                    hover(18)
+                elif can_harvest():
+                    if phases[k][i] < 2:
+                        height = measure()
+                        if not move(back):
+                            return False
+                        hover(height)
+                        if not move(direction):
+                            return False
+                        if measure() <= height:
+                            quick_print("bamboo_failed", "flower_not_cut", x, y, d)
+                            return False
+                        phases[k][i] += 1
+                        hover(18)
+                    else:
+                        if not harvest() or not plant(Entities.Bamboo):
+                            return False
+                        phases[k][i] = 0
+                        hover(18)
+                if not move(back):
                     return False
-                if measure() <= height:
-                    quick_print("bamboo_failed", "flower_not_cut", x, row, phase)
-                    return False
-                phases[x - low] = phase + 1
-                hover(18)
-            else:
-                if not harvest() or not plant(Entities.Bamboo):
-                    return False
-                phases[x - low] = 0
-                hover(18)
-        if not move(North):
-            return False
-        # 端点访问后先移到相邻株再检查；全程留在自己的半行空道。
-        if high > low:
-            if x == high:
-                direction = West
-            elif x == low:
-                direction = East
-            if not move(direction):
-                return False
-            if direction == East:
-                x += 1
-            else:
-                x -= 1
-        visits += 1
-        if row == 0 and low == 0 and visits % 128 == 0:
-            quick_print("bamboo_row_visits", visits, get_time(), num_items(Items.Bamboo))
+        laps += 1
+        if len(plan) > 0 and plan[0][0] == 0 and laps % 16 == 0:
+            quick_print("bamboo_star_lap", laps, get_time(), num_items(Items.Bamboo))
     return True
 
 
@@ -109,6 +158,9 @@ def bamboo_move_to(tx, ty, size):
             return False
     return True
 
+
+STEPS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+DIRECTIONS = [North, East, South, West]
 
 if __name__ == "__main__":
     lb_bamboo()

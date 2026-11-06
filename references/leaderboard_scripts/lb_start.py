@@ -66,11 +66,11 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Bamboo, "lb_bamboo", 10000)
 # 成功条件：num_items(Items.Bamboo) >= 500_000_000
-# 用时（#1/当前版本复跑）：未抓取 / 16:18.167
+# 用时（#1/当前版本复跑）：未抓取 / 11:45.024
 
 # leaderboard_run(Leaderboards.Bamboo_Single, "lb_bamboo_single", 10000)
 # 成功条件：num_items(Items.Bamboo) >= 25_000_000
-# 用时（#1/当前版本复跑）：未抓取 / 18:15.017
+# 用时（#1/当前版本复跑）：未抓取 / 15:56.579
 
 # leaderboard_run(Leaderboards.Rice, "lb_rice", 10000)
 # 成功条件：num_items(Items.Rice) >= 2_000_000
