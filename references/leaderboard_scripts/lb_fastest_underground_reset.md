@@ -1,10 +1,10 @@
 # 地下Reset（fastest_underground_reset）
 
-2026-11-06建立基线，目标为解锁Underground_Leaderboard；2026-11-07加入晚升Coal3。当前实现已完成塌方模型修正后的三seed原目标模拟、普通同seed完整实机对照与迁入真源后的正式完整统计。
+2026-11-06建立基线，目标为解锁Underground_Leaderboard；2026-11-07加入晚升Rice5和Coal3。当前实现已完成塌方模型修正后的三seed原目标模拟、普通同seed完整实机对照与迁入真源后的正式完整统计。
 
 ## 当前实现
 
-从零库存按当前get_cost筹集资源，逐步发展6×6单机。Rice3后支付150 Rice升Coal2；Expand4后准备Grass2、Trees2、Carrots2和Speed5。Mining5后支付50 Coal升Iron2；此时才筹1000 Rice升Coal3，再支付32 Coal解锁Prospecting、70 Iron升Mining6。Iron阶段支付Coal读取公开方向，Quartz阶段支付Iron读取公开距离；只有实际dig库存增加才算收获，失败有限回退到原采矿法。随后完成藏宝图和Quartz解锁，支付90 Quartz升Mining7，Mushrooms2后支付250 Mushroom升Mining8。扫雷仅在实际开格前清理该柱覆盖层，在同一物理棋盘猜测前后复用公开状态，新棋盘重新建盘。最后支付20000 Dynamite和200000 Bamboo解锁Underground_Leaderboard。每次unlock前复核整个成本字典；Carrot种子成本随科技倍率增加，仍按get_cost实付。
+从零库存按当前get_cost筹集资源，逐步发展6×6单机。Rice3后支付150 Rice升Coal2；Expand4后准备Grass2、Trees2、Carrots2和Speed5。Mining5后支付50 Coal升Iron2，再按实际库存支付1000+2000 Block把Rice升到5；随后筹1000 Rice升Coal3、支付32 Coal解锁Prospecting、70 Iron升Mining6。Iron阶段支付Coal读取公开方向，Quartz阶段支付Iron读取公开距离；只有实际dig库存增加才算收获，失败有限回退到原采矿法。随后完成藏宝图和Quartz解锁，支付90 Quartz升Mining7，Mushrooms2后支付250 Mushroom升Mining8。扫雷仅在实际开格前清理该柱覆盖层，在同一物理棋盘猜测前后复用公开状态，新棋盘重新建盘。最后支付20000 Dynamite和200000 Bamboo解锁Underground_Leaderboard。每次unlock前复核整个成本字典；Carrot种子成本随科技倍率增加，仍按get_cost实付。
 
 主要成员：`lb_fastest_underground_reset`、`ur_need`、`ur_mine`、`ur_i_stock`、`ur_q_stock`、`ur_q_prepare`、`ur_q_locate`及各`ur_*_stock`和扫雷函数。主流程72000游戏秒；农作7200秒、逐层矿采18000秒。Iron最多64片、准备深度32/64/96/128、每层最多2×世界宽度+1次方向查询及64次dig；Quartz最多64片、探深0–128步长16、单柱最多192次dig。两者回退均共用已有截止。扫雷每次开格的覆盖层准备最多256次dig，按实际z和Dynamite地面核对后才开格；蘑菇/扫雷另有有界盘数、连续未命中和总时间限制。仅复用公开API，采集代码内联；正式验证临时覆盖已有test.py/lb_start.py，普通对照使用已有test.py/simulate.py。
 
@@ -12,23 +12,23 @@
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 15544.141791522 游戏秒 | 当前结构，原目标；地下资源快照来源26410308 |
+| 本地模拟预估时间 | 三seed均值 15153.235882071 游戏秒 | 当前结构，原目标；地下资源快照来源26410308 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 15440.645 游戏秒 | 构建26462009，请求411，1轮，正常完整结束 |
+| 游戏打榜时间 | 15255.250 游戏秒 | 构建26462009，请求415，1轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 15752.701420357 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-coal3-model-seed1/report.json` |
-| 2 | 15598.660249196 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-coal3-model-seed2/report.json` |
-| 3 | 15281.063705013 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-coal3-model-seed3/report.json` |
+| 1 | 15810.350362724 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-rice5-model-seed1/report.json` |
+| 2 | 14888.956986669 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-rice5-model-seed2/report.json` |
+| 3 | 14760.400296819 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-rice5-model-seed3/report.json` |
 
 首版部署源码SHA256：`e0d06a2030e6710ff353a31dba813d1406d27121ba54973f9e65aaaacbcfddcc`。地下资源快照构建为26410308，基础模型字段保留26385848；报告保留真实来源指纹。上表三seed已按当前塌方传播修正重新生成，manifest记录模型文件哈希。专用资源榜仍标`asset_and_source_only`，不能由固定seed重放正式加密随机盘面。
 
 ## 当前普通场景同seed对照
 
-当前执行逻辑在普通Reset初始科技、零库存、seed1下，实机请求409完整为15752.701420357游戏秒，与修正后的本地模型相同到整数纳秒。714条阶段输出的离散状态和整数值一致，小数只按原生0.01显示精度比较。上表seed2/3仍仅为模型预测。
+当前执行逻辑在普通Reset初始科技、零库存、seed1下，实机请求412完整为15810.350362724游戏秒，与修正后的本地模型相同到整数纳秒。722条阶段输出的离散状态和整数值一致，小数只按原生0.01显示精度比较。上表seed2/3仍仅为模型预测。
 
-证据：`.codex/leaderboard-sol/underground-official/alignment-26462009/late-coal3/game-seed1/comparison.json`及同目录原请求、部署与恢复记录。部署源码SHA256为`93db402570d75608003c393cd76bf3d201fb1b1f9a053538a28edf2798582c7b`，当前执行逻辑与其AST相同，时间注释不同。前版按需清覆盖层的请求402为16649.129798428秒，713条输出及完整纳秒也匹配；本次同seed完整少896.428378071秒。再前版Iron勘探请求399为17540.865550588秒，713条输出及完整纳秒匹配。各版证据分别保留于同根`lazy-cover`和`iron-prospect`目录。模型修正与额外方法覆盖见[地下对照记录](../../mechanism_model/local_simulator/underground-validation.md)。普通同seed精度与正式随机榜均值分别记录，不用两者差额估算模型误差。
+证据：`.codex/leaderboard-sol/underground-official/alignment-26462009/late-rice5/game-seed1/comparison.json`及同目录原请求、部署与恢复记录。部署源码SHA256为`445e88b0389123e774dde0564536e07b715eae199335e33f848c7af6e7646598`，当前执行逻辑与其AST相同，时间注释不同。此前Coal3版请求409为15752.701420357秒，714条输出及完整纳秒匹配；当前seed1慢57.648942367秒，其他两个模型seed更快，因此三seed均值仍降低。再前版按需清覆盖层请求402为16649.129798428秒、713条/0ns，Iron勘探请求399为17540.865550588秒、713条/0ns。各版证据分别保留于同根对应目录。模型修正与额外方法覆盖见[地下对照记录](../../mechanism_model/local_simulator/underground-validation.md)。普通同seed精度与正式随机榜均值分别记录，不用两者差额估算模型误差。
 
 此前Quartz定位版的请求395为19716.483046656秒。原模型少2.792106339秒，经免费地层日志定位到塌方方环误按绝对坐标过滤，修正相对偏移后585条输出及完整纳秒一致。修后Quartz版三seed为19716.483046656、21570.882220494、21212.081613928秒，均值20833.148960359秒。原始源码、修前报告与修后重放保留于`alignment-26462009/current-reset/`，三seed位于`fastest_underground_reset/quartz-prospect-cavein-model-seed1..3/`。
 
@@ -74,11 +74,17 @@ Iron公开方向勘探版在Mining5/Iron2后新增Prospecting1，实际支付32 
 
 晚升Coal3只在主stages增加一步：先完成6×6、Speed5、Mining5和Iron2，再筹1000 Rice升级，随后才解锁Prospecting。前版seed1勘探前32 Coal筹备约814秒，而这个时点筹齐升级Rice用了约142.054秒。煤升级同时影响产量及矿层数量，新增种植、成熟、清场和后续Iron/Quartz筹资全部计入；不能只用产量倍率估算整轮。修后三seed完整均值15544.141791522秒，比前版16267.792087765秒少约4.45%，三个seed均完成原目标。seed1 dig66943→62365、move48885→47189；勘探次数因路线与库存改变而上升，完整时间仍降低，没有从单阶段差额直接推算整轮收益。
 
-普通同seed请求409为15752.701420357秒，714条输出及完整纳秒匹配。正式候选410为15400.750秒，真源复验411为15440.645秒，各完整1轮，两次差约0.26%。当前采用411，比前版16670.354秒约快7.38%，比同构建首版31535.109秒约快51.04%。双日志无新增错误，目标正常完成并按同ID回idle后恢复已有脚本。
+普通同seed请求409为15752.701420357秒，714条输出及完整纳秒匹配。正式候选410为15400.750秒，真源复验411为15440.645秒，各完整1轮，两次差约0.26%。该阶段采用411，比前版16670.354秒约快7.38%，比同构建首版31535.109秒约快51.04%。双日志无新增错误，目标正常完成并按同ID回idle后恢复已有脚本。
+
+随后利用前置采矿积累的Block评估Rice升级。带观测分支的本地前缀在Mining5/Iron2后有4530 Block，只作库存预算；Rice4/5合计3000 Block，Rice6还需4000，因此先选Rice5。主stages只在Coal3前增加Rice5，其余采集逻辑不变。三模型seed均未新增Block采集调用，实际升级支付仍全额计入；库存不足时原ur_need会补齐。预算证据为`.codex/leaderboard-sol/underground-official/fastest_underground_reset/investment-budget-after-mining5/report.json`，不把带观察分支的前缀时间当作原字节精度证据。
+
+Rice5首seed的稻米采集小计由1212.815626876降到663.931504287秒，但后续流程变化使整轮从15752.701420357升到15810.350362724秒。因此补齐另外两个seed，得到14888.956986669、14760.400296819秒；三seed均值15153.235882071秒，比前版15544.141791522秒少约2.52%。没有把单一阶段收益直接当作完整策略收益。新等级另经请求413短方法确认：默认get_cost分别返回1000/2000 Block，解锁后库存3000→2000→0，4条输出和0.139588856秒完整时间均与模型相符。
+
+候选原字节普通同seed请求412完整15810.350362724秒、722条/0ns。正式414为14467.709秒，真源415为15255.250秒，各完整1轮，两次差约5.44%。当前采用415，比前版15440.645秒约快1.20%，比同构建首版31535.109秒约快51.62%。两次均正常达标、双日志干净、同ID恢复，正式随机样本与本地三seed分别保留。
 
 ## 静态检查与后续
 
-AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前Iron/Quartz定位、Coal2至晚升Coal3、Iron2/Mining8、同盘缓存及按需清覆盖层执行逻辑的源码副本已运行ty LSP：10项错误、26项提示，与前版相同。外部桩缺少Underground_Leaderboard，measure联合类型不能按竹子、藏宝图、Soot上下文收窄；其余为spawn/None不可达或既有未使用局部变量。新增科技时序没有增加诊断，实机正常经过公开API，未修改外部游戏类型桩。
+AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前Iron/Quartz定位、晚升Rice5和Coal3、Iron2/Mining8、同盘缓存及按需清覆盖层执行逻辑的源码副本已运行ty LSP：10项错误、26项提示，与前版相同。外部桩缺少Underground_Leaderboard，measure联合类型不能按竹子、藏宝图、Soot上下文收窄；其余为spawn/None不可达或既有未使用局部变量。新增科技时序没有增加诊断，实机正常经过公开API，未修改外部游戏类型桩。
 
 下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已取得公开排名。普通生成可能缺当前资源层，有限重试已通过所列三seed和整轮实机；覆盖范围按地下模型对照记录，不扩展为任意世界保证。
 
@@ -297,3 +303,27 @@ AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前I
 部署源码SHA256：`1b8837b03793dcf3891dacd058ab63d1e177dde511695a1806b379e8e6add4ec`。当前源码SHA256：`dbd224f0a15f1c201014708e6cedf62c8d3311f59b1e7b080c5ddf099fdd1579`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-coal3-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：late-rice5-26462009
+
+<!-- official:late-rice5-26462009:414 -->
+
+请求414完整正常结束，共1轮。官方最终日志均值为 **241:07.709（14467.709游戏秒）**；逐轮日志重算均值为14467.709000000秒，保留两者的显示舍入口径。
+
+同构建前版完整均值15440.645000000秒/1轮；当前正式均值14467.709秒/1轮，缩短约6.30%。在Mining5/Iron2后、Coal3前把Rice从3升到5，全额支付1000+2000 Block，减少后续稻米采集；现存库存与全部前置计入，其他采集函数及原完整目标不变。
+
+部署源码SHA256：`445e88b0389123e774dde0564536e07b715eae199335e33f848c7af6e7646598`。当前源码SHA256：`dd378e1fe9483bf592a36c4ebb04d2ae57514851bdfee3933e1f4e12cf6d38f2`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-rice5-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：late-rice5-current-26462009
+
+<!-- official:late-rice5-current-26462009:415 -->
+
+请求415完整正常结束，共1轮。官方最终日志均值为 **254:15.250（15255.250游戏秒）**；逐轮日志重算均值为15255.250000000秒，保留两者的显示舍入口径。
+
+同构建前版完整均值15440.645000000秒/1轮；当前正式均值15255.250秒/1轮，缩短约1.20%。在Mining5/Iron2后、Coal3前把Rice从3升到5，全额支付1000+2000 Block，减少后续稻米采集；现存库存与全部前置计入，其他采集函数及原完整目标不变。
+
+部署源码SHA256：`dd378e1fe9483bf592a36c4ebb04d2ae57514851bdfee3933e1f4e12cf6d38f2`。当前源码SHA256：`7f006f9cec28d1b6541f8f03c474934f7fc85336da526edd0a1a3991c0184f9d`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/fastest_underground_reset/late-rice5-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。

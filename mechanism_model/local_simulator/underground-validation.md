@@ -16,10 +16,11 @@ Quartz定位版Reset源码在普通初始科技、零库存和seed1下，修正�
 | 铁矿勘探版，从普通Reset初始状态至解锁目标，seed1 | 399 | 713 / 713 | 17540.865550588 | 0ns |
 | 扫雷覆盖层按需清理版，从普通Reset初始状态至解锁目标，seed1 | 402 | 713 / 713 | 16649.129798428 | 0ns |
 | Mining5/Iron2后晚升Coal3版，从零库存至解锁目标，seed1 | 409 | 714 / 714 | 15752.701420357 | 0ns |
+| Mining5/Iron2后先升Rice5再升Coal3，从零库存至解锁目标，seed1 | 412 | 722 / 722 | 15810.350362724 | 0ns |
 
-前两项在修改后重放本地固定输入，对照保留的原始当前构建实机归档；后四项在修正后重新运行实机。原源码、场景、修前报告和原始请求均未覆盖。六项离散状态、整数值一致，小数只按quick_print的0.01显示精度比较；完整返回时间来自simulate返回值的整数纳秒，单独精确核对。五个长程窗口均超过900游戏秒，满足误差小于1秒的门槛。`underground.py`的ty LSP无诊断。
+前两项在修改后重放本地固定输入，对照保留的原始当前构建实机归档；后五项在修正后重新运行实机。原源码、场景、修前报告和原始请求均未覆盖。七项离散状态、整数值一致，小数只按quick_print的0.01显示精度比较；完整返回时间来自simulate返回值的整数纳秒，单独精确核对。六个长程窗口均超过900游戏秒，满足误差小于1秒的门槛。`underground.py`的ty LSP无诊断。
 
-证据根目录：`.codex/leaderboard-sol/underground-official/alignment-26462009/`。`current-reset`与`rice-ground-only`下的`model-after-cavein.json`及`game-seed1/comparison-after-cavein.json`保留修后重放；`ore-methods`、`iron-prospect`、`lazy-cover`、`late-coal3`下的`game-seed1/comparison.json`保留新鲜方法与组合复核。Core.dll SHA256为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。各请求检查BepInEx和Unity双日志，未见新增错误，同ID回idle后恢复已有test.py/simulate.py，其他存档Python文件哈希未变。
+证据根目录：`.codex/leaderboard-sol/underground-official/alignment-26462009/`。`current-reset`与`rice-ground-only`下的`model-after-cavein.json`及`game-seed1/comparison-after-cavein.json`保留修后重放；`ore-methods`、`iron-prospect`、`lazy-cover`、`late-coal3`、`late-rice5`下的`game-seed1/comparison.json`保留新鲜方法与组合复核。Core.dll SHA256为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。各请求检查BepInEx和Unity双日志，未见新增错误，同ID回idle后恢复已有test.py/simulate.py，其他存档Python文件哈希未变。
 
 本次只确认上述源码、参数、seed和组合。资源快照及原有模型元数据仍保留真实来源版本；未将全部API、任意并发或正式榜单专用盘面标为当前构建精度通过。修正前的策略预测保留为历史，后续候选使用修正后报告；没有为验收模型逐榜运行14个完整策略。
 
@@ -36,6 +37,12 @@ Quartz定位版Reset源码在普通初始科技、零库存和seed1下，修正�
 请求408在普通8×8、满级科技、seed1下核对地面/坐标查询、硬度/稳定性越界及成功/失败推送。先在(0,0)放置Block_Red，从(7,0)查询East得到该红块及z=1，而硬度和稳定性查询均为None。人工彩块不可推，can_push/push均返回False。移除彩块后找到实际Mushroom层-65，将西侧环绕邻柱(7,0)准备到-66，再从(0,0)向West成功push；实际两柱高度变为-66/-65。
 
 本地与实机5条输出的文本、整数、状态一致，完整时间均为7.248601350游戏秒，误差0ns。双日志无新增错误，同ID回idle后恢复已有test.py/simulate.py，其他Python文件哈希未变。证据为`.codex/leaderboard-sol/underground-official/alignment-26462009/wrap-methods-v3/game-seed1/comparison.json`。该项只通过所列方法与边界，窗口小于900秒，`long_window_passed=false`。
+
+## 2026-11-07：Rice升级费用短方法对照
+
+请求413使用当前Reset在Mining5/Iron2后的正常前置科技，初始Rice3、Block3000。默认get_cost先返回Rice4所需1000 Block，解锁后Rice4/Block2000；再次返回Rice5所需2000 Block，解锁后Rice5/Block0。返回值、等级和扣减库存均逐项核对，本地与实机4条输出一致，完整时间均为0.139588856游戏秒，误差0ns。
+
+证据为`.codex/leaderboard-sol/underground-official/alignment-26462009/rice-upgrade-costs/game-seed1/comparison.json`，探针为`.codex/tests/rice_upgrade_costs_probe.py`。双日志无新增错误，同ID回idle后恢复已有test.py/simulate.py，其他Python文件未变。该项只覆盖默认get_cost和这两个升级的资源扣减，`long_window_passed=false`。
 
 ## 实现范围
 

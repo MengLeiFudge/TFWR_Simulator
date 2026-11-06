@@ -127,7 +127,7 @@
 - Dynamite多机保留公开数字，只回访本列未知格；单机则可在同一物理棋盘的猜测前后复用已证明状态。必须让新猜测重新开放采样与局部约束检查，每次clear后重建棋盘，不把风险启发式当作SAFE事实。Reset和炸药单机已分别验证把覆盖层准备推迟到实际开格前，以利用零扩展的自动揭露；须有限开挖并核对真实z和Dynamite地面。两者均已完成三seed和真源完整复验；炸药单机普通场景另有未完成目标的失败边界，不能将纳秒相符写成策略通用正确，也不直接外推到多机。详见[Dynamite](lb_dynamite.md)、[单机Dynamite](lb_dynamite_single.md)和[地下Reset](lb_fastest_underground_reset.md)。
 - Pyramids多机留沙修补须先完成全部清理，再读取缺块，按完整底层提供八邻支撑；中心顶块留到全部工人退出后放置，防止提前自动清场。单机中少挖少放仍可能被逐层移动抵消，当前保留彩块并用相邻列折返减少移动。详见[Pyramids](lb_pyramids.md)和[单机Pyramids](lb_pyramids_single.md)。
 - Treasure Map方向查表可减少分支费用，但完整路线、回头路、D次数与同一无人机归属都保留。小收益先用当前构建同seed配对排除路径差异，再做原目标完整统计，不用压缩路线换时间。详见[藏宝图](lb_treasure_map.md)。
-- Underground Reset先按真实阶段时间判断科技投资。免费种子的Grass/Bush增产可以帮助提前Speed，Carrot种子成本则随产量倍率变化；Speed5已达上限，末段dig的固定时间需由Mining投资减少。Coal2/Iron2可降低随后矿采量，晚升Coal3则在6×6、Speed5和Mining5/Iron2后全额支付1000 Rice。同一级投资须按实际田大小、速度、挖掘和后续勘探需求评估；旧小田的失败不直接代替新时点结论，也不能因一级有效就默认继续升级有利。新增资源、成熟、清场、后续移动与解释器费用全部计入整轮。详见[地下Reset](lb_fastest_underground_reset.md)。
+- Underground Reset先按真实阶段时间判断科技投资。免费种子的Grass/Bush增产可以帮助提前Speed，Carrot种子成本则随产量倍率变化；Speed5已达上限，末段dig的固定时间需由Mining投资减少。Coal2/Iron2降低随后矿采量，6×6、Speed5和Mining5/Iron2后再支付3000 Block升Rice5、1000 Rice升Coal3。同一级投资须按实际田大小、速度、挖掘、现存库存和后续需求评估；先筹齐并支付实际成本，再比较完整目标。新增资源、成熟、清场、后续移动与解释器费用全部计入，阶段收益不能直接替代整轮结果。详见[地下Reset](lb_fastest_underground_reset.md)。
 - Reset的Iron方向勘探须全额支付解锁及每次查询的Coal；None也可能表示范围无矿，仍只按实际地面与dig库存确认产量。Quartz公开距离定位须先筹集实际Iron，并在全部锚点挖掘结束后重新读距离。不同点的最近矿可能不同，几何推断只用于选择挖掘位置；两类定位失败都有限回退并共用截止。少一次付费查询也可能增加覆盖层挖掘，须比较整轮费用。详见[地下Reset的候选记录](lb_fastest_underground_reset.md#候选与已处理边界)。
 
 以上来自构建26462009的完整实机与有界模型筛选，模型、短时筛选与正式成绩独立记录。2026-11-06已修正地下塌方传播的坐标筛选；修正前预测保留为历史，后续候选比较重新生成对应报告。当前构建的同seed覆盖与完整时间误差见[地下模型对照](../../mechanism_model/local_simulator/underground-validation.md)，不由正式随机榜均值反推模型误差。

@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：15440.645秒（构建26462009，1轮官方完整统计；请求411）。
+# 完整轮时间：15255.250秒（构建26462009，1轮官方完整统计；请求415）。
 
 def lb_fastest_underground_reset():
     # 每次升级都读取当前成本；低科技阶段使用单机，资源阶段结束后才clear。
@@ -12,8 +12,8 @@ def lb_fastest_underground_reset():
         (Unlocks.Speed, 3), (Unlocks.Expand, 4),
         (Unlocks.Grass, 2), (Unlocks.Trees, 2),
         (Unlocks.Carrots, 2), (Unlocks.Speed, 5), (Unlocks.Bamboo, 3),
-        (Unlocks.Mining, 5), (Unlocks.Iron, 2), (Unlocks.Coal, 3),
-        (Unlocks.Prospecting, 1),
+        (Unlocks.Mining, 5), (Unlocks.Iron, 2), (Unlocks.Rice, 5),
+        (Unlocks.Coal, 3), (Unlocks.Prospecting, 1),
         (Unlocks.Mining, 6),
         (Unlocks.Treasure_Map, 1), (Unlocks.Quartz, 1),
         (Unlocks.Mining, 7), (Unlocks.Pumpkins, 1), (Unlocks.Mushrooms, 2),
