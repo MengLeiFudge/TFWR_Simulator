@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：25147.408秒（构建26462009，1轮官方完整统计；请求371）。
+# 完整轮时间：22699.482秒（构建26462009，1轮官方完整统计；请求391）。
 
 def lb_fastest_underground_reset():
     # 每次升级都读取当前成本；低科技阶段使用单机，资源阶段结束后才clear。
@@ -8,11 +8,12 @@ def lb_fastest_underground_reset():
         (Unlocks.Carrots, 1), (Unlocks.Expand, 2), (Unlocks.Expand, 3),
         (Unlocks.Speed, 2), (Unlocks.Mining, 1), (Unlocks.Mining, 2),
         (Unlocks.Coal, 1), (Unlocks.Rice, 1), (Unlocks.Mining, 3),
-        (Unlocks.Rice, 3), (Unlocks.Iron, 1), (Unlocks.Mining, 4),
+        (Unlocks.Rice, 3), (Unlocks.Coal, 2), (Unlocks.Iron, 1), (Unlocks.Mining, 4),
         (Unlocks.Speed, 3), (Unlocks.Expand, 4),
         (Unlocks.Grass, 2), (Unlocks.Trees, 2),
         (Unlocks.Carrots, 2), (Unlocks.Speed, 5), (Unlocks.Bamboo, 3),
-        (Unlocks.Mining, 5), (Unlocks.Treasure_Map, 1), (Unlocks.Quartz, 1),
+        (Unlocks.Mining, 5), (Unlocks.Iron, 2), (Unlocks.Mining, 6),
+        (Unlocks.Treasure_Map, 1), (Unlocks.Quartz, 1),
         (Unlocks.Mining, 7), (Unlocks.Pumpkins, 1), (Unlocks.Mushrooms, 2),
         (Unlocks.Mining, 8),
         (Unlocks.Dynamite, 3), (Unlocks.Underground_Leaderboard, 1)]
@@ -749,10 +750,11 @@ def ur_d_dynamite_solve(size, depth):
     if status != "number":
         return status, 0
     facts = {1 + size: number}
+    board = ur_d_build_board(size)
     status = "waiting"
     for guesses in range(33):
         if status == "waiting" or status == "incomplete":
-            status, facts = ur_d_worker(size, (0, size - 1, 0, size - 1), depth, facts, False)
+            status, facts = ur_d_worker(size, (0, size - 1, 0, size - 1), depth, facts, False, board)
         if status == "ended":
             return status, guesses
         if status == "done":
@@ -1120,20 +1122,26 @@ def ur_d_infer(board, clue):
 
 
 # 每台使用相同求解器；初次到位后，移动和读取均由各自窗口限制。
-def ur_d_worker(size, area, depth, facts, await_start):
+def ur_d_worker(size, area, depth, facts, await_start, board):
     if await_start:
         until = get_tick_count() + 100000
         while get_pos_z() == depth:
             if get_tick_count() >= until:
                 return "error", {}
     x0, x1, y0, y1 = area
-    board = ur_d_build_board(size)
-    travel = (max(0, x0 - 1), min(size - 1, x1 + 1), max(0, y0 - 1), min(size - 1, y1 + 1))
-    board["travel"] = travel
-    board["info"] = (max(0, x0 - 2), min(size - 1, x1 + 2), max(0, y0 - 2), min(size - 1, y1 + 2))
-    for y in range(y0, y1 + 1):
-        for x in range(x0, x1 + 1):
-            board["owned"].add(x + y * size)
+    fresh = "travel" not in board
+    if fresh:
+        travel = (max(0, x0 - 1), min(size - 1, x1 + 1), max(0, y0 - 1), min(size - 1, y1 + 1))
+        board["travel"] = travel
+        board["info"] = (max(0, x0 - 2), min(size - 1, x1 + 2), max(0, y0 - 2), min(size - 1, y1 + 2))
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                board["owned"].add(x + y * size)
+    else:
+        # 新猜测可能揭开零扩展和新数字，重新采样并允许检查新出现的同伴约束。
+        travel = board["travel"]
+        board["sampled"] = set()
+        board["checked"] = {}
     for cell in facts:
         value = facts[cell]
         if value >= 0:
@@ -1152,20 +1160,24 @@ def ur_d_worker(size, area, depth, facts, await_start):
     if not ur_d_move_to(max(travel[0], min(travel[1], get_pos_x())),
                    max(travel[2], min(travel[3], get_pos_y())), size):
         return "error", {}
-    probes = []
-    for y in range(travel[2], travel[3] + 1):
-        if (y - travel[2]) % 2 == 0:
-            for x in range(travel[0], travel[1] + 1):
+    if fresh:
+        probes = []
+        for y in range(travel[2], travel[3] + 1):
+            if (y - travel[2]) % 2 == 0:
+                for x in range(travel[0], travel[1] + 1):
+                    probes.append(x + y * size)
+            else:
+                for x in range(travel[1], travel[0] - 1, -1):
+                    probes.append(x + y * size)
+        # 四向读取缺少最外斜角，临时从活动区角点沿y跨一步，再横向读取。
+        for y in [travel[2] - 1, travel[3] + 1]:
+            if y < board["info"][2] or y > board["info"][3]:
+                continue
+            for x in [travel[0], travel[1]]:
                 probes.append(x + y * size)
-        else:
-            for x in range(travel[1], travel[0] - 1, -1):
-                probes.append(x + y * size)
-    # 四向读取缺少最外斜角，临时从活动区角点沿y跨一步，再横向读取。
-    for y in [travel[2] - 1, travel[3] + 1]:
-        if y < board["info"][2] or y > board["info"][3]:
-            continue
-        for x in [travel[0], travel[1]]:
-            probes.append(x + y * size)
+        board["probes"] = probes
+    else:
+        probes = board["probes"]
     probe_at = 0
     scan_epoch = num_items(Items.Dynamite)
     while board["ending"] == None and len(board["owned"]) > 0:
