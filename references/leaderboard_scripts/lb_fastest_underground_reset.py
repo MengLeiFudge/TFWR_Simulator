@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：22699.482秒（构建26462009，1轮官方完整统计；请求391）。
+# 完整轮时间：22108.401秒（构建26462009，1轮官方完整统计；请求394）。
 
 def lb_fastest_underground_reset():
     # 每次升级都读取当前成本；低科技阶段使用单机，资源阶段结束后才clear。
@@ -51,7 +51,9 @@ def ur_need(item, goal):
     quick_print("underground_reset_collect", item, goal, get_time())
     if item == Items.Hay or item == Items.Wood or item == Items.Carrot or item == Items.Pumpkin:
         return ur_farm(item, goal)
-    if item == Items.Block or item == Items.Coal or item == Items.Iron or item == Items.Quartz:
+    if item == Items.Quartz:
+        return ur_q_stock(goal)
+    if item == Items.Block or item == Items.Coal or item == Items.Iron:
         return ur_mine(item, goal)
     if item == Items.Rice:
         ur_rice_stock(goal)
@@ -122,10 +124,11 @@ def ur_farm(item, goal):
     return False
 
 
-def ur_mine(item, goal):
+def ur_mine(item, goal, deadline=None):
     # 普通Reset地层不能套用资源榜固定深度；逐层读实况，遇基岩后重生。
     empty = 0
-    deadline = get_time() + 18000
+    if deadline == None:
+        deadline = get_time() + 18000
     for cycle in range(128):
         clear()
         size = get_world_size()
@@ -155,6 +158,121 @@ def ur_mine(item, goal):
         else:
             empty = 0
     return False
+
+
+def ur_q_stock(goal):
+    deadline = get_time() + 18000
+    size = get_world_size()
+    empty = 0
+    anchors = [(0, 0), (1, 0), (0, 1)]
+    for cycle in range(64):
+        if num_items(Items.Quartz) >= goal:
+            return True
+        if get_time() > deadline:
+            return False
+        # 勘探按真实库存支付Iron，筹资发生在新片开始前，避免清场使定位失效。
+        if num_items(Items.Iron) < 16 and not ur_need(Items.Iron, 32):
+            return False
+        clear()
+        before = num_items(Items.Quartz)
+        for layer in range(0, 129, 16):
+            if not ur_q_prepare(0, 0, -layer, deadline, size):
+                break
+            if num_items(Items.Quartz) >= goal:
+                return True
+            if num_items(Items.Iron) < 4:
+                break
+            if prospect_quartz() == None:
+                continue
+            ready = True
+            for point in anchors:
+                if not ur_q_prepare(point[0], point[1], -layer, deadline, size):
+                    ready = False
+                    break
+            if not ready:
+                break
+            # 先完成全部开挖，再在不改地形时重读三点，不能缓存塌方前的距离。
+            samples = []
+            for point in anchors:
+                if not ur_d_move_to(point[0], point[1], size):
+                    return False
+                distance = prospect_quartz()
+                if distance == None:
+                    break
+                samples.append((get_pos_x(), get_pos_y(), get_pos_z(), distance))
+            if len(samples) != 3:
+                continue
+            target = ur_q_locate(samples, size)
+            if target == None:
+                quick_print("quartz_prospect_ambiguous", cycle, layer, get_time())
+                continue
+            if not ur_d_move_to(target[0], target[1], size):
+                return False
+            found = False
+            for _ in range(192):
+                if num_items(Items.Quartz) >= goal:
+                    return True
+                if get_time() > deadline:
+                    return False
+                ground = get_ground_type()
+                if ground == Grounds.Quartz:
+                    if not dig():
+                        return False
+                    found = True
+                    continue
+                if found or get_pos_z() < target[2] or get_hardness() >= 10000000:
+                    break
+                if not dig():
+                    return False
+            quick_print("quartz_prospect_column", cycle, layer, target, num_items(Items.Quartz) - before, get_time())
+            if num_items(Items.Quartz) > before:
+                break
+        if num_items(Items.Quartz) > before:
+            empty = 0
+        else:
+            empty += 1
+            if empty >= 2:
+                quick_print("quartz_prospect_fallback", get_time(), num_items(Items.Quartz), goal)
+                return ur_mine(Items.Quartz, goal, deadline)
+    return num_items(Items.Quartz) >= goal
+
+
+def ur_q_prepare(x, y, target, deadline, size):
+    if not ur_d_move_to(x, y, size):
+        return False
+    for _ in range(192):
+        if get_pos_z() <= target:
+            return True
+        if get_time() > deadline or get_hardness() >= 10000000 or not dig():
+            return False
+    return False
+
+
+def ur_q_locate(samples, size):
+    # 只枚举公开距离允许的整数坐标；三点的最近矿可能变化，失配就放弃定位。
+    x0, y0, z0, d0 = samples[0]
+    best = None
+    for x in range(size):
+        for y in range(size):
+            square = d0 * d0 - (x - x0) ** 2 - (y - y0) ** 2
+            if square < 0:
+                continue
+            dz = (square ** 0.5 + 0.5) // 1
+            for z in [z0 - dz, z0 + dz]:
+                if z > 0 or z < -256:
+                    continue
+                valid = True
+                for sx, sy, sz, distance in samples:
+                    residual = (x - sx) ** 2 + (y - sy) ** 2 + (z - sz) ** 2 - distance * distance
+                    if abs(residual) > 0.01:
+                        valid = False
+                        break
+                    if x == sx and y == sy and z > sz:
+                        valid = False
+                        break
+                if valid and (best == None or z < best[2]):
+                    best = (x, y, z)
+    return best
 
 
 def ur_rice_stock(goal):

@@ -118,4 +118,4 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Fastest_Underground_Reset, "lb_fastest_underground_reset", 10000)
 # 成功条件：num_unlocked(Unlocks.Underground_Leaderboard) > 0
-# 用时（#1/当前版本复跑）：未抓取 / 378:19.482
+# 用时（#1/当前版本复跑）：未抓取 / 368:28.401

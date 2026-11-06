@@ -128,6 +128,7 @@
 - Pyramids多机留沙修补须先完成全部清理，再读取缺块，按完整底层提供八邻支撑；中心顶块留到全部工人退出后放置，防止提前自动清场。单机中少挖少放仍可能被逐层移动抵消，当前保留彩块并用相邻列折返减少移动。详见[Pyramids](lb_pyramids.md)和[单机Pyramids](lb_pyramids_single.md)。
 - Treasure Map方向查表可减少分支费用，但完整路线、回头路、D次数与同一无人机归属都保留。小收益先用当前构建同seed配对排除路径差异，再做原目标完整统计，不用压缩路线换时间。详见[藏宝图](lb_treasure_map.md)。
 - Underground Reset先按真实阶段时间判断科技投资。免费种子的Grass/Bush增产可以帮助提前Speed，Carrot种子成本则随产量倍率变化；Speed5已达上限，末段dig的固定时间需由Mining投资减少。Coal2/Iron2可降低随后矿采量，但须把额外Rice/Coal与前置资源全额计入，不能因一级有效就默认更高等级也有效。补给、额外Quartz/Mushroom、后续移动与解释器费用同样计入整轮。详见[地下Reset](lb_fastest_underground_reset.md)。
+- Reset的Quartz公开距离定位须先筹集实际Iron，并在全部锚点挖掘结束后重新读距离。不同点的最近矿可能不同，几何推断只用于选择挖掘位置，产量仍以真实库存为准；定位失败有限回退并共用截止。少一次付费查询也可能增加覆盖层挖掘，须比较整轮费用。详见[地下Reset的候选记录](lb_fastest_underground_reset.md#候选与已处理边界)。
 
 以上来自构建26462009的完整实机与有界模型筛选，不表示旧模型已通过新构建精度验收；模型、短时筛选与正式成绩仍独立记录。
 
