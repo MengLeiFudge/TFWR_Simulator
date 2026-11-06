@@ -114,7 +114,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Treasure_Map, "lb_treasure_map", 10000)
 # 成功条件：num_items(Items.Gold) >= 115_000
-# 用时（#1/当前版本复跑）：未抓取 / 4:37.200
+# 用时（#1/当前版本复跑）：未抓取 / 4:34.988
 
 # leaderboard_run(Leaderboards.Fastest_Underground_Reset, "lb_fastest_underground_reset", 10000)
 # 成功条件：num_unlocked(Unlocks.Underground_Leaderboard) > 0

@@ -1,9 +1,10 @@
 from __builtins__ import *
-# 完整轮时间：277.200秒（构建26462009，26轮官方完整统计；请求354）。
+# 完整轮时间：274.988秒（构建26462009，27轮官方完整统计；请求384）。
 
 def lb_treasure_map():
     clear()
     deadline = get_time() + 7200
+    directions = {"N": North, "E": East, "S": South, "W": West}
     for cycle in range(256):
         if num_items(Items.Gold) >= 115000:
             quick_print("treasure_map_done", True, get_time(), num_items(Items.Gold))
@@ -45,14 +46,8 @@ def lb_treasure_map():
                 return
             if step == "D":
                 ok = dig()
-            elif step == "N":
-                ok = move(North)
-            elif step == "E":
-                ok = move(East)
-            elif step == "S":
-                ok = move(South)
-            elif step == "W":
-                ok = move(West)
+            elif step in directions:
+                ok = move(directions[step])
             else:
                 quick_print("treasure_map_failed", "unknown_step", step)
                 return
