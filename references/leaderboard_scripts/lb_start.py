@@ -63,3 +63,11 @@ from __builtins__ import *
 # leaderboard_run(Leaderboards.Sunflowers_Single, "lb_sunflowers_single", 10000)
 # 成功条件：num_items(Items.Power) >= 10_000
 # 用时（#1/当前版本复跑）：4:17.819 / 4:55.410
+
+# leaderboard_run(Leaderboards.Bamboo, "lb_bamboo", 10000)
+# 成功条件：num_items(Items.Bamboo) >= 500_000_000
+# 用时（#1/当前版本复跑）：未抓取 / 16:43.920
+
+# leaderboard_run(Leaderboards.Bamboo_Single, "lb_bamboo_single", 10000)
+# 成功条件：num_items(Items.Bamboo) >= 25_000_000
+# 用时（#1/当前版本复跑）：未抓取 / 18:15.017
