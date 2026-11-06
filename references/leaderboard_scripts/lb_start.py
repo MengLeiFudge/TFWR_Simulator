@@ -106,7 +106,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Pyramids, "lb_pyramids", 10000)
 # 成功条件：num_items(Items.Power) >= 150_000
-# 用时（#1/当前版本复跑）：未抓取 / 97:15.884
+# 用时（#1/当前版本复跑）：未抓取 / 78:58.376
 
 # leaderboard_run(Leaderboards.Pyramids_Single, "lb_pyramids_single", 10000)
 # 成功条件：num_items(Items.Power) >= 30_000
