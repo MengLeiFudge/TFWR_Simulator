@@ -1,26 +1,26 @@
 # 竹子（bamboo）
 
-2026-11-06：新增可复核基线，目标为500000000 Bamboo。目前证据包含当前源码的三seed完整目标模拟和一次普通场景实机对照；已取得构建26462009的正式完整统计，见末节。
+2026-11-06：目标为500000000 Bamboo。当前横巡版已完成三seed原目标模拟及构建26462009的8轮正式统计；普通场景对照保留为首版历史证据。
 
 ## 当前实现
 
-每列唯一写者，偶数行种竹、奇数行通行。高飞到专属通道，前两次开花只切花节并确认measure增长；第三次开花后整株收获、补种。所有子机返回后才结束。
+每个偶数种植行由两机独占半行，沿上方空行横向往返。低飞仅在空道与本株之间出入，端点访问后先移到相邻株再检查。保留两次切花、第三次整收和切花成功验证；所有子机返回后才结束。
 
-主要成员：`bamboo_columns`、`bamboo_move_to`。最多3600游戏秒；按实际库存退出，不把株数或未来产量计入目标。
+主要成员：`bamboo_row`、`bamboo_move_to`。最多3600游戏秒；按实际库存退出，不把株数或未来产量计入目标。
 
 ## 时间记录
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 1010.184189870 游戏秒 | 当前源码、原榜单目标；各seed见下表 |
+| 本地模拟预估时间 | 三seed均值 979.348895970 游戏秒 | 地下模型26410308；当前结构，原目标 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 1003.920 游戏秒 | 构建26462009，请求340，8轮，正常完整结束 |
+| 游戏打榜时间 | 978.167 游戏秒 | 构建26462009，请求356，8轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 1012.934384010 | 已达到原目标 | `.codex/leaderboard-sol/underground-strategies/bamboo/checked/seed1.json` |
-| 2 | 1007.680526640 | 已达到原目标 | `.codex/leaderboard-sol/underground-strategies/bamboo/checked/seed2.json` |
-| 3 | 1009.937658960 | 已达到原目标 | `.codex/leaderboard-sol/underground-strategies/bamboo/checked/seed3.json` |
+| 1 | 981.859802040 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/bamboo/horizontal-model-seed1/report.json` |
+| 2 | 977.929409070 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/bamboo/horizontal-model-seed2/report.json` |
+| 3 | 978.257476800 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/bamboo/horizontal-model-seed3/report.json` |
 
 首版部署源码 SHA256：`6603de2d3e543992153548d70f2445d4764dc2b99ff2d86735782843bdfa45a6`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
 
@@ -40,7 +40,7 @@
 
 ## 静态检查与后续
 
-AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。已在当前源码的字节副本上运行ty LSP；游戏类型桩缺少`Grounds.Block_Red`、`Unlocks.Underground_Leaderboard`，并把按实体/地面变化的measure返回值合并成联合类型，因而LSP仍有相关诊断。未修改游戏外部类型桩。
+AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。当前横巡源码字节副本的ty LSP有2项错误和1项提示：游戏类型桩把按实体变化的measure合并为联合类型，无法推断此处竹子高度是数值；spawn_drone类型桩还把None分支标为不可达。保留运行时失败处理，未修改外部类型桩。
 
 下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已确认最快或取得公开排名。
 
@@ -55,3 +55,15 @@ AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查�
 部署源码SHA256：`6603de2d3e543992153548d70f2445d4764dc2b99ff2d86735782843bdfa45a6`。当前源码SHA256：`f622052913d38bd2d417ed6b3dbf7e18bcec7e6b1c5b5e93dc31a6e45c7a7dd3`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/bamboo/baseline-26462009/summary-recovered.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：horizontal-26462009
+
+<!-- official:horizontal-26462009:356 -->
+
+请求356完整正常结束，共8轮。官方最终日志均值为 **16:18.167（978.167游戏秒）**；逐轮日志重算均值为978.166500000秒，保留两者的显示舍入口径。
+
+同构建原列巡回完整均值为1003.920375000秒/8轮；双机分半行横巡为978.167秒/8轮，缩短约2.57%。端点不连续重复检查，仍保留两次切花和第三次整收；实际收益由本次完整统计确认。
+
+部署源码SHA256：`516fe040c02bdfe99ea8d0931a1259adbe5b1c50c05b193740782bfaf3a4207f`。当前源码SHA256：`3aa3eb3302e395587de13ef1f539926adba79ab2e90afeb5ed9a79f092f35306`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/bamboo/horizontal-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
