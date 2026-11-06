@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（零付费探测稀疏井候选，尚无官方完整统计）。
+# 完整轮时间：1279.818秒（构建26462009，6轮官方完整统计；请求347）。
 
 def lb_ores_single():
     size = get_world_size()

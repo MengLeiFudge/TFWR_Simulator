@@ -79,3 +79,43 @@ from __builtins__ import *
 # leaderboard_run(Leaderboards.Rice_Single, "lb_rice_single", 10000)
 # 成功条件：num_items(Items.Rice) >= 100_000
 # 用时（#1/当前版本复跑）：未抓取 / 2:54.566
+
+# leaderboard_run(Leaderboards.Ores, "lb_ores", 10000)
+# 成功条件：num_items(Items.Quartz) >= 20_000
+# 用时（#1/当前版本复跑）：未抓取 / 14:27.389
+
+# leaderboard_run(Leaderboards.Ores_Single, "lb_ores_single", 10000)
+# 成功条件：num_items(Items.Quartz) >= 4_000
+# 用时（#1/当前版本复跑）：未抓取 / 21:19.818
+
+# leaderboard_run(Leaderboards.Mushrooms, "lb_mushrooms", 10000)
+# 成功条件：num_items(Items.Mushroom) >= 240_000
+# 用时（#1/当前版本复跑）：未抓取 / 9:32.673
+
+# leaderboard_run(Leaderboards.Mushrooms_Single, "lb_mushrooms_single", 10000)
+# 成功条件：num_items(Items.Mushroom) >= 30_000
+# 用时（#1/当前版本复跑）：未抓取 / 22:15.308
+
+# leaderboard_run(Leaderboards.Dynamite, "lb_dynamite", 10000)
+# 成功条件：num_items(Items.Dynamite) >= 10_000_000
+# 用时（#1/当前版本复跑）：未抓取 / 113:16.005
+
+# leaderboard_run(Leaderboards.Dynamite_Single, "lb_dynamite_single", 10000)
+# 成功条件：num_items(Items.Dynamite) >= 100_000
+# 用时（#1/当前版本复跑）：未抓取 / 23:57.266
+
+# leaderboard_run(Leaderboards.Pyramids, "lb_pyramids", 10000)
+# 成功条件：num_items(Items.Power) >= 150_000
+# 用时（#1/当前版本复跑）：未抓取 / 97:15.884
+
+# leaderboard_run(Leaderboards.Pyramids_Single, "lb_pyramids_single", 10000)
+# 成功条件：num_items(Items.Power) >= 30_000
+# 用时（#1/当前版本复跑）：未抓取 / 67:59.887
+
+# leaderboard_run(Leaderboards.Treasure_Map, "lb_treasure_map", 10000)
+# 成功条件：num_items(Items.Gold) >= 115_000
+# 用时（#1/当前版本复跑）：未抓取 / 4:37.200
+
+# leaderboard_run(Leaderboards.Fastest_Underground_Reset, "lb_fastest_underground_reset", 10000)
+# 成功条件：num_unlocked(Unlocks.Underground_Leaderboard) > 0
+# 用时（#1/当前版本复跑）：未抓取 / 525:35.109

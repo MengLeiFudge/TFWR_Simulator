@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（识别基座后彩块重建，尚无官方完整统计）。
+# 完整轮时间：4079.887秒（构建26462009，2轮官方完整统计；请求353）。
 
 def lb_pyramids_single():
     began = get_time()

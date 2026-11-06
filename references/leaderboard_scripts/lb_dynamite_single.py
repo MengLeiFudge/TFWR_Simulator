@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（公开约束扫雷基线，尚无官方完整统计）。
+# 完整轮时间：1437.266秒（构建26462009，6轮官方完整统计；请求351）。
 
 def lb_dynamite_single():
     began = get_time()

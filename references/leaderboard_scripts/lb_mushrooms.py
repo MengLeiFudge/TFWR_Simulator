@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（分区同色合并基线，尚无官方完整统计）。
+# 完整轮时间：572.673秒（构建26462009，13轮官方完整统计；请求348）。
 
 def lb_mushrooms():
     began = get_time()

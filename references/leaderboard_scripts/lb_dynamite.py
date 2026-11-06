@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（批次安全格与公开约束求解，尚无官方完整统计）。
+# 完整轮时间：6796.005秒（构建26462009，2轮官方完整统计；请求350）。
 
 def lb_dynamite():
     size = get_world_size()

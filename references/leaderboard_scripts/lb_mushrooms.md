@@ -1,6 +1,6 @@
 # 蘑菇（mushrooms）
 
-2026-11-06：新增可复核基线，目标为240000 Mushroom。目前证据包含当前源码的三seed完整目标模拟和一次普通场景实机对照；尚未取得正式排行榜完整统计。
+2026-11-06：新增可复核基线，目标为240000 Mushroom。目前证据包含当前源码的三seed完整目标模拟和一次普通场景实机对照；已取得构建26462009的正式完整统计，见末节。
 
 ## 当前实现
 
@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | 本地模拟预估时间 | 三seed均值 588.702095580 游戏秒 | 当前源码、原榜单目标；各seed见下表 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 未取得 | 尚无finished=true的官方完整统计 |
+| 游戏打榜时间 | 572.673 游戏秒 | 构建26462009，请求348，13轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
@@ -22,9 +22,9 @@
 | 2 | 574.342561710 | 已达到原目标 | `.codex/leaderboard-sol/underground-strategies/mushrooms/single-probe-prepare-seed2/report.json` |
 | 3 | 589.587093810 | 已达到原目标 | `.codex/leaderboard-sol/underground-strategies/mushrooms/single-probe-prepare-seed3/report.json` |
 
-源码 SHA256：`358c2f73cf9f2586652eaf5f5a330df5e59ba9ace0b603579024f7cbe6247b06`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
+首版部署源码 SHA256：`358c2f73cf9f2586652eaf5f5a330df5e59ba9ace0b603579024f7cbe6247b06`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
 
-## 实机对照
+## 首版普通场景实机对照（历史）
 
 普通8×8地层，显式传入满级基础和地下科技。诊断调整为 `{"goal":{"item":"Mushroom","amount":512},"ordinary_world_size":8,"find_stratum_limit":256}`；正式榜原目标仍由上方三seed验证。
 
@@ -42,4 +42,16 @@
 
 AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。已在当前源码的字节副本上运行ty LSP；游戏类型桩缺少`Grounds.Block_Red`、`Unlocks.Underground_Leaderboard`，并把按实体/地面变化的measure返回值合并成联合类型，因而LSP仍有相关诊断。未修改游戏外部类型桩。
 
-下一步按[共用研究流程](README.md)做正式榜至少两轮筛选与一次完整统计；只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已确认最快或取得公开排名。
+下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已确认最快或取得公开排名。
+
+## 构建26462009正式统计：baseline-26462009
+
+<!-- official:baseline-26462009:348 -->
+
+请求348完整正常结束，共13轮。官方最终日志均值为 **9:32.673（572.673游戏秒）**；逐轮日志重算均值为572.672769231秒，保留两者的显示舍入口径。
+
+当前结构完成首次正式统计。
+
+部署源码SHA256：`358c2f73cf9f2586652eaf5f5a330df5e59ba9ace0b603579024f7cbe6247b06`。当前源码SHA256：`1298cea19856d52bdc8073493895cadb6c96f0869aee0db2bdb0ff6ecc2b8683`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/mushrooms/baseline-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
