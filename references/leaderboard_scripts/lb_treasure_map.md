@@ -85,3 +85,9 @@ AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前�
 部署源码SHA256：`6a4d5cba086040b68477b9ee6864a72a6acc17bebf8d297ac6f4afe1b12fb86c`。当前源码SHA256：`fa35ea56ef201e70231ee5f17e3cb6aa40339628c9238f2cd3e16ca30353f884`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/treasure_map/direction-table-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 2026-11-07 本地候选：最后出口去环
+
+在公开地图路径内按三维坐标保留最后出口，删除回环而保留每次下降；8格世界每图重生。原目标三seed预估34.584396390/42.404359050/36.856014390秒，均值37.948256610；当前完整路线fresh三seed均值289.540320540，减少86.89%。全部原目标完成，未做实机验证，正式274.988秒不变。
+
+脚本为`.codex/leaderboard-sol/underground-official/treasure_map/last-exit-reset8-candidate/lb_treasure_map.py`。尺寸4/6、逐层BFS及按原串长度筛图的比较、源码指纹与检查限制见[本地候选记录](underground_local_candidates.md)。这是此前“必须照走回头路”错误约束被纠正后的结构收益，不是字符分派优化。
