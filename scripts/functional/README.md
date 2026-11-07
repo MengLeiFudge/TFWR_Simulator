@@ -2,7 +2,7 @@
 
 本目录的初版以**科技全解、32×32农场、32台无人机**为运行前提，持续生产对应资源。Fastest Reset类脚本仍归排行榜目录，使用各自的重置初始条件。运行与文件同名的入口即可，例如打开 `rice.py` 执行。
 
-有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。只适配持续入口和普通地形的必要差异，保留成熟布局、并行方式和热路径。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)，本批来源和本地结果见[功能脚本效率记录](../../docs/functional-validation.md)。
+有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，当前地下算法、三seed数据及材料见[本轮地下效率](../../docs/underground-functional-validation.md)。
 
 ## 按库存目标补齐
 
@@ -37,25 +37,25 @@ TARGETS = {
 | 恐龙产骨头 | [bone_dinosaur.py](bone_dinosaur.py) | `lb_dinosaur.py`，贪心前缀、安全桥接和后段捷径 |
 | 迷宫产金币 | [gold_maze.py](gold_maze.py) | `lb_maze.py`，32座独立小迷宫及增量路由 |
 | 向日葵产能量 | [power_sunflower.py](power_sunflower.py) | `lb_sunflowers.py`，16组双机分瓣收获与同步 |
-| 水稻 | [rice.py](rice.py) | 用户原 `Rice.py`，按列巡回采收、下挖、补种 |
-| 竹子 | [bamboo.py](bamboo.py) | 用户原 `Bamboo.py`，通道多株状态与到期轮转 |
+| 水稻 | [rice.py](rice.py) | `lb_rice.py`两层粘土清单流水及补水，实际收割后下挖、全部回收后换田 |
+| 竹子 | [bamboo.py](bamboo.py) | `lb_bamboo.py`星形四邻布局；首次Jump保留天然珍珠岩，补水后恢复高飞 |
 | 煤 | [coal.py](coal.py) | 用户原 `Coal.py`，分散探孔、发现煤后沿矿层扩展 |
-| 蘑菇 | [mushroom.py](mushroom.py) | 用户原 `Mushroom.py`，Jump、浅层爆破与分区配对 |
-| 炸药 | [dynamite.py](dynamite.py) | 用户原 `Dynamite.py`，Jump、协同找层及数字推理 |
+| 蘑菇 | [mushroom.py](mushroom.py) | 用户原逐层同步与采样柱，加公开颜色缓存、低台搬运与同高配对 |
+| 炸药 | [dynamite.py](dynamite.py) | `lb_dynamite.py`区域增量求解；普通田单次Jump、协同找层和逐盘正常结算 |
 | 藏宝图产金币 | [gold_treasure_map.py](gold_treasure_map.py) | `lb_treasure_map.py`，按层去环，适配普通地形入口 |
 | 金字塔产能量 | [power_pyramids.py](power_pyramids.py) | `lb_pyramids.py`修补主体，普通田使用Jump和浅层爆破钻头 |
-| 建材 | [block.py](block.py) | `lb_ores.py`的按列并行沟挖，浅层爆破收集 |
-| 铁 | [iron.py](iron.py) | `lb_ores.py`的按列并行沟挖，Jump及全科技爆破 |
-| 石英 | [quartz.py](quartz.py) | `lb_ores.py`的按列并行沟挖，Jump及全科技爆破 |
-| 石化南瓜 | [pumpkin_petrified.py](pumpkin_petrified.py) | `lb_ores.py`的按列并行沟挖，Jump至石化层后爆破收集 |
+| 建材 | [block.py](block.py) | 单爆破钻、四格间距蛇形浅层开孔 |
+| 铁 | [iron.py](iron.py) | 同一稀疏开孔结构，Jump后按铁目标深度爆破收取 |
+| 石英 | [quartz.py](quartz.py) | 同上，保留石英深度与矿层终止条件 |
+| 石化南瓜 | [pumpkin_petrified.py](pumpkin_petrified.py) | 同上，Jump至石化层附近后收取真实爆破掉落 |
 | 怪异物质 | [weird_substance.py](weird_substance.py) | `lb_fastest_reset.py`的并行伴生树苗圃 |
 
-水和肥料由游戏自动补给，不设生产脚本。`mining.py`集中矿石榜迁入的派工、沟挖和导航，不是独立生产入口。矿物的全科技爆破实现消耗炸药，未计入补做炸药的用时，材料净消耗见效率记录。
+水和肥料由游戏自动补给，不设生产脚本。`mining.py`集中四项矿采的固定稀疏孔、钻头和导航，不是独立生产入口。仅一台钻头实际爆破，子机默认帽；爆破消耗Dynamite，只计真实入库。单入口效率预备了材料，未计入重新生产炸药、能量或种子的时间，净消耗见效率记录。
 
 ## 运行与依赖
 
 - 资源生产持续运行，直到用户停止、原算法检测到材料不足或出现动作错误。种子、肥料、怪异物质、煤/铁勘探消耗品以及爆破所需炸药，须按所选机制准备；不要用无成本资源假设估算实际净收益。
-- 多机榜的固定资源目标改为持续生产条件；完整周期型算法在正常结算并回收子机后继续下一轮。原功能脚本保留其Jump、布局、等待、钻头和进度日志。
+- 多机榜固定目标改为持续生产条件；完整周期型在正常结算并回收子机后继续。矿采按整片、蘑菇按整片、炸药按整盘返回，调度可能晚于60游戏秒。竹子已有Jump额度时采用地表星形，未用时先保留可达珍珠岩；不会为保土假设全图增产。
 - 多数入口会整理或重生农田，运行前确认当前农田可被清理。Jump每次执行只能使用一次，后续循环按原算法继续或重生。
 - 金字塔只同时修一座，底层就绪后再补高层，主机在中心放最后顶块。爆破钻头只用于远离塔区的浅覆盖层，接近塔区前换回采矿帽；结果须以实际模拟记录为准。
 - `block.py`、`iron.py`、`quartz.py`、`pumpkin_petrified.py`还需要同目录的 `mining.py`。各入口保存对应成熟算法，运行时不导入 `lb_*.py`。

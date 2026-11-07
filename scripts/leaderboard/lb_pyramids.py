@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：1480.702秒（构建26462009，5轮官方完整统计；请求440）。
+# 完整轮时间：1338.123秒（本地原目标三seed均值；当前沿边补缺版本未实机验证）。
 
 
 def lb_pyramids():
@@ -8,14 +8,14 @@ def lb_pyramids():
         if num_items(Items.Power) >= 150100:
             quick_print("pyramids_done", True, get_time(), num_items(Items.Power))
             return
+        if get_time() - began > 14400:
+            return
         clear()
-        cycle_began = get_time()
+        start = get_time()
         point = pyramid_find(get_time() + 600)
         if point == None:
-            quick_print("pyramid_skip", cycle, get_time())
             continue
         if point == False or not pyramid_move_to(point[0], point[1]):
-            quick_print("pyramids_failed", "find", cycle)
             return
         for _ in range(32):
             if get_ground_type() == Grounds.Limestone:
@@ -23,71 +23,55 @@ def lb_pyramids():
             if not dig():
                 return
         if get_ground_type() != Grounds.Limestone:
-            quick_print("pyramids_failed", "foundation", cycle)
             return
-        if cycle < 3:
-            quick_print("pyramid_stage", cycle, "find_floor", get_time() - cycle_began)
-        stage = get_time()
-        bounds = pyramid_bounds(point[0], point[1], get_pos_z())
+        bounds = pyramid_edge_bounds(point[0], point[1], get_pos_z())
         if bounds == None:
-            quick_print("pyramids_failed", "bounds", cycle)
             return
-        if cycle < 3:
-            quick_print("pyramid_stage", cycle, "bounds", get_time() - stage)
-        stage = get_time()
         x0, x1, y0, y1, floor = bounds
-        if pyramid_dispatch(pyramid_clean_column, bounds) == None:
-            quick_print("pyramids_failed", "clean", cycle)
-            return
         cx = (x0 + x1) // 2
         cy = (y0 + y1) // 2
         height = (x1 - x0 + 2) // 2
         if not pyramid_move_to(cx, cy):
             return
-        # 只保留中心最后一块未放，禁止其他工人未结束时自动完成并清场。
-        if get_pos_z() == floor + height:
-            if get_ground_type() != Grounds.Sand or not dig():
+        top = floor + height
+        for _ in range(17):
+            if get_pos_z() < top:
+                break
+            if not dig():
                 return
-        if get_pos_z() >= floor + height or get_pos_z() < floor:
-            quick_print("pyramids_failed", "center_height", cycle)
+        if get_pos_z() >= top:
             return
-        if cycle < 3:
-            quick_print("pyramid_stage", cycle, "clean", get_time() - stage)
-        stage = get_time()
-        counts = pyramid_dispatch(pyramid_missing_column, bounds)
-        if counts == None:
-            quick_print("pyramids_failed", "count", cycle)
+        located = get_time()
+        attempts = pyramid_dispatch(pyramid_clean_fill, bounds)
+        if attempts == None:
+            quick_print("pyramids_failed", "clean_fill", cycle)
+            return
+        wasted = 0
+        for count in attempts:
+            wasted += count
+        cleaned = get_time()
+        jobs = pyramid_dispatch(pyramid_missing_column, bounds)
+        if jobs == None:
             return
         needed = 0
-        for holes in counts:
-            for x, y, z, target in holes:
+        for column in jobs:
+            for x, y, z, target in column:
                 needed += target - z
+        counted = get_time()
         if not pyramid_materials(bounds, needed):
-            quick_print("pyramid_materials_missing", cycle, needed, num_items(Items.Block))
             continue
-        if cycle < 3:
-            quick_print("pyramid_stage", cycle, "count_materials", get_time() - stage)
-        quick_print("pyramid_sand_prepare", cycle, x1 - x0 + 1, needed, get_time())
-        if not pyramid_repair(counts, bounds, height):
+        if not pyramid_repair(jobs, bounds, height):
             quick_print("pyramids_failed", "repair", cycle)
             return
         if not pyramid_move_to(cx, cy) or get_pos_z() != floor + height - 1:
-            quick_print("pyramids_failed", "cap_height", cycle)
             return
-        if not place(Grounds.Sand) or get_entity_type() != Entities.Sunflower:
+        if not place(Grounds.Sand) or get_entity_type() != Entities.Sunflower or not harvest():
             quick_print("pyramids_failed", "sunflower", cycle)
             return
-        while not can_harvest():
-            if get_time() - began > 14400:
-                return
-            do_a_flip()
-        if not harvest():
-            return
-        quick_print("pyramid_cycle", cycle, x1 - x0 + 1, floor, get_time(), num_items(Items.Power))
-        if get_time() - began > 14400:
-            quick_print("pyramids_failed", "deadline", cycle)
-            return
-    quick_print("pyramids_failed", "cycle_limit", get_time(), num_items(Items.Power))
+        quick_print("pyramid_fill_cycle", cycle, x1 - x0 + 1, needed, wasted,
+                    located - start, cleaned - located, counted - cleaned,
+                    get_time() - counted, get_time(), num_items(Items.Power))
+    quick_print("pyramids_failed", "cycle_limit", get_time())
 
 
 def pyramid_find(deadline):
@@ -143,34 +127,31 @@ def pyramid_floor_at(x, y, floor):
     return get_pos_z() == floor and get_ground_type() == Grounds.Limestone
 
 
-def pyramid_bounds(x, y, floor):
-    # 四条射线都只挖到已知基座高度，互不钻穿沙柱；全部返回后才清理塔盖。
+def pyramid_edge_bounds(x, y, floor):
+    # 沿一条西侧基边确认南北端点，用正方形边长直接得到东边。
+    west = pyramid_boundary((x, y), floor, (-1, 0))
+    if west == None:
+        return None
     handles = []
     edges = []
-    for delta in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+    for delta in [(0, -1), (0, 1)]:
         if num_drones() < max_drones():
-            handle = spawn_drone(pyramid_boundary, (x, y), floor, delta)
+            handle = spawn_drone(pyramid_boundary, west, floor, delta)
             if handle != None:
                 handles.append(handle)
                 continue
-        edges.append(pyramid_boundary((x, y), floor, delta))
+        edges.append(pyramid_boundary(west, floor, delta))
     for handle in handles:
         edges.append(wait_for(handle))
-    x0 = x
-    x1 = x
-    y0 = y
-    y1 = y
-    for edge in edges:
-        if edge == None:
-            return None
-        x0 = min(x0, edge[0])
-        x1 = max(x1, edge[0])
-        y0 = min(y0, edge[1])
-        y1 = max(y1, edge[1])
-    length = x1 - x0 + 1
-    if length < 5 or length % 2 != 1 or y1 - y0 + 1 != length:
+    if edges[0] == None or edges[1] == None:
         return None
-    return x0, x1, y0, y1, floor
+    x0 = west[0]
+    y0 = min(edges[0][1], edges[1][1])
+    y1 = max(edges[0][1], edges[1][1])
+    length = y1 - y0 + 1
+    if length < 5 or length % 2 != 1 or x0 + length > get_world_size():
+        return None
+    return x0, x0 + length - 1, y0, y1, floor
 
 
 def pyramid_boundary(point, floor, delta):
@@ -210,8 +191,12 @@ def pyramid_dispatch(job, bounds, layer=0):
     return results
 
 
-def pyramid_clean_column(x, bounds, _layer):
+def pyramid_clean_fill(x, bounds, _layer):
+    # 本列独占，清土后直接尝试补到公式高度；中心始终预留顶块。
     x0, x1, y0, y1, floor = bounds
+    cx = (x0 + x1) // 2
+    cy = (y0 + y1) // 2
+    wasted = 0
     for y in range(y0, y1 + 1):
         if not pyramid_move_to(x, y):
             return None
@@ -221,10 +206,22 @@ def pyramid_clean_column(x, bounds, _layer):
                 break
             if not dig():
                 return None
-        ground = get_ground_type()
-        if get_pos_z() < floor or (ground != Grounds.Sand and ground != Grounds.Limestone):
+        if get_pos_z() < floor:
             return None
-    return 0
+        target = floor + 1 + min(x - x0, x1 - x, y - y0, y1 - y)
+        if x == cx and y == cy:
+            target -= 1
+        z = get_pos_z()
+        while z < target and num_items(Items.Block) > 0:
+            if not place(Grounds.Sand):
+                return None
+            after = get_pos_z()
+            if after != z + 1:
+                # 落沙或并发塌方均可能阻止增高，留给清理后的实际缺口修补。
+                wasted += 1
+                break
+            z = after
+    return wasted
 
 
 def pyramid_missing_column(x, bounds, _layer):
@@ -244,8 +241,6 @@ def pyramid_missing_column(x, bounds, _layer):
 
 
 def pyramid_repair(columns, bounds, height):
-    # 修补期间只有place消耗Block。准确计算每层耗材，库存到达阈值才进入下一层。
-    # 这段期间禁止挖掘、补料或其他Block消费；顶块由全部工人返回后的主机放置。
     floor = bounds[4]
     counts = []
     for _ in range(height):
@@ -265,22 +260,26 @@ def pyramid_repair(columns, bounds, height):
     if len(active) == 0:
         return True
     jobs = []
-    for _ in range(min(len(active), max_drones())):
+    for _ in range(min(len(active), max(1, max_drones() - 1))):
         jobs.append([])
     for i in range(len(active)):
         for hole in active[i]:
             jobs[i % len(jobs)].append(hole)
     deadline = get_time() + 120
     handles = []
-    for i in range(1, len(jobs)):
-        handle = spawn_drone(pyramid_patch_layers, jobs[i], floor, thresholds, deadline)
+    local = []
+    for job in jobs:
+        handle = spawn_drone(pyramid_patch_layers, job, floor, thresholds, deadline)
         if handle == None:
-            # 未启动的列并入主机，仍保证每个计划放块恰好有一个执行者。
-            for hole in jobs[i]:
-                jobs[0].append(hole)
+            for hole in job:
+                local.append(hole)
         else:
             handles.append(handle)
-    ok = pyramid_patch_layers(jobs[0], floor, thresholds, deadline)
+    ok = True
+    if len(local) > 0:
+        ok = pyramid_patch_layers(local, floor, thresholds, deadline)
+    if not pyramid_move_to((bounds[0] + bounds[1]) // 2, (bounds[2] + bounds[3]) // 2):
+        ok = False
     for handle in handles:
         if not wait_for(handle):
             ok = False

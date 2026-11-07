@@ -4,6 +4,7 @@ import production
 
 # 启动时跳到蘑菇附近；每片结束后回到地表重新寻找，持续采集。
 # 蘑菇分区保持共同两格高度带，(0,0)留作地层采样柱。
+OFFSETS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 DIRECTIONS = [North, East, South, West]
 BACKS = [South, West, North, East]
 
@@ -156,13 +157,14 @@ def run_layer(blocks, ceiling):
     return pairs, digs
 
 
-# 单遍蛇形处理：最高处先尝试直接推送，无法配对才挖，再接收邻格配对。
-# 蘑菇稳定性为3；两格高度带也把内部地块承受的落差限制在一格。
+# 保留全层同步；利用本分区已公开低台搬运，避免把同高同色块直接挖掉。
 def work_layer(block, ceiling):
     x0, x1, y0, y1 = block
+    cache = {}
     floor = ceiling - 2
     pairs = 0
     digs = 0
+    mushrooms = 0
     for y in range(y0, y1):
         for offset in range(x1 - x0):
             x = x0 + offset
@@ -182,10 +184,13 @@ def work_layer(block, ceiling):
             if x > x0 and (x != 1 or y != 0):
                 neighbors.append(3)
             z = get_pos_z()
-            if z < floor or z > ceiling:
-                return None
-            if z == ceiling:
-                count = push_match(neighbors, floor)
+            if z < floor:
+                continue
+            mushroom = get_ground_type() == Grounds.Mushroom
+            if mushroom:
+                mushrooms += 1
+            if z >= ceiling and mushroom:
+                count = carry_match(cache, x, y, neighbors, floor)
                 if count == None:
                     return None
                 pairs += count
@@ -199,7 +204,11 @@ def work_layer(block, ceiling):
             if count == None:
                 return None
             pairs += count
-    return pairs, digs
+            read_column(cache, x, y)
+            for i in neighbors:
+                dx, dy = OFFSETS[i]
+                read_column(cache, x + dx, y + dy, DIRECTIONS[i])
+    return pairs, digs, mushrooms
 
 
 # 直接从脚下推送省去前往邻格再返回的两次移动。
@@ -235,10 +244,11 @@ def feed_column(neighbors, floor):
     while True:
         z = get_pos_z()
         if z < floor:
-            return None
-        if get_ground_type() != Grounds.Mushroom:
             return matched
-        t = measure()
+        mushroom = get_ground_type() == Grounds.Mushroom
+        t = -1
+        if mushroom:
+            t = measure()
         types = [-1, -1, -1, -1]
         heights = [0, 0, 0, 0]
         hit = -1
@@ -247,7 +257,7 @@ def feed_column(neighbors, floor):
             if get_ground_type(direction) == Grounds.Mushroom:
                 types[i] = measure(direction)
                 heights[i] = get_pos_z(direction)
-                if z > floor and types[i] == t and heights[i] > z:
+                if mushroom and z > floor and types[i] == t and heights[i] > z:
                     hit = i
                     break
         if hit >= 0:
@@ -255,13 +265,16 @@ def feed_column(neighbors, floor):
                 return None
             matched += 1
             continue
+        target = z
+        if not mushroom:
+            target = floor
         pair_a = -1
         pair_b = -1
         for i in neighbors:
-            if types[i] < 0 or types[i] == t or heights[i] < z + 2:
+            if types[i] < 0 or types[i] == t or heights[i] < target + 2:
                 continue
             for j in neighbors:
-                if j > i and types[j] == types[i] and heights[j] >= z + 2:
+                if j > i and types[j] == types[i] and heights[j] >= target + 2:
                     pair_a = i
                     pair_b = j
                     break
@@ -269,6 +282,16 @@ def feed_column(neighbors, floor):
                 break
         if pair_a < 0:
             return matched
+        if not mushroom:
+            while get_pos_z() > floor:
+                if get_ground_type() == Grounds.Mushroom:
+                    return matched
+                if get_hardness() >= 10000000 or not dig():
+                    return None
+            if get_pos_z() != floor:
+                return None
+            if get_ground_type() == Grounds.Mushroom:
+                return matched
         if not push_neighbor(pair_a):
             return None
         if not push_neighbor(pair_b):
@@ -296,6 +319,96 @@ def move_to(tx, ty):
         if not move(vertical):
             return False
     return True
+
+
+# 缓存仅保存本分区公开柱顶，搬运后更新全部受影响的柱。
+def read_column(cache, x, y, direction=None):
+    if direction == None:
+        z = get_pos_z()
+        ground = get_ground_type()
+        t = -1
+        if ground == Grounds.Mushroom:
+            t = measure()
+    else:
+        z = get_pos_z(direction)
+        ground = get_ground_type(direction)
+        t = -1
+        if ground == Grounds.Mushroom:
+            t = measure(direction)
+    cache[(x, y)] = (z, t)
+
+
+def carry_match(cache, x, y, neighbors, floor):
+    direct = push_match(neighbors, floor)
+    if direct != 0:
+        return direct
+    read_column(cache, x, y)
+    z, t = cache[(x, y)]
+    if t < 0 or z - 1 <= floor:
+        return 0
+    for i in neighbors:
+        dx, dy = OFFSETS[i]
+        read_column(cache, x + dx, y + dy, DIRECTIONS[i])
+    for i in neighbors:
+        dx, dy = OFFSETS[i]
+        mx = x + dx
+        my = y + dy
+        height = cache[(mx, my)][0]
+        if height != z - 1 and height != z - 2:
+            continue
+        for j in range(4):
+            ex, ey = OFFSETS[j]
+            end = (mx + ex, my + ey)
+            if end not in cache:
+                continue
+            target, color = cache[end]
+            if target != z - 1 or color != t:
+                continue
+            if height == z - 2:
+                if num_items(Items.Block) < 1:
+                    continue
+                if not move(DIRECTIONS[i]) or get_pos_z() != height:
+                    return None
+                if not place(Grounds.Dirt) or get_pos_z() != z - 1:
+                    return None
+                if not move(BACKS[i]):
+                    return None
+            if not push(DIRECTIONS[i]):
+                return None
+            read_column(cache, x, y)
+            if not move(DIRECTIONS[i]) or not push(DIRECTIONS[j]):
+                return None
+            read_column(cache, mx, my)
+            read_column(cache, end[0], end[1], DIRECTIONS[j])
+            if not move(BACKS[i]):
+                return None
+            return 1
+    return fixture_match(neighbors, floor)
+
+
+# 相邻同高同色A/B借低两格的C完成B→C、A→B、B→C。
+def fixture_match(neighbors, floor):
+    if get_ground_type() != Grounds.Mushroom:
+        return 0
+    z = get_pos_z()
+    if z - 2 < floor:
+        return 0
+    t = measure()
+    for i in neighbors:
+        source = DIRECTIONS[i]
+        if get_pos_z(source) != z or get_ground_type(source) != Grounds.Mushroom or measure(source) != t:
+            continue
+        for j in neighbors:
+            if i == j or get_pos_z(DIRECTIONS[j]) != z - 2:
+                continue
+            if not push(DIRECTIONS[j]):
+                return None
+            if not move(source) or not push(BACKS[i]):
+                return None
+            if not move(BACKS[i]) or not push(DIRECTIONS[j]):
+                return None
+            return 1
+    return 0
 
 
 if __name__ == "__main__":

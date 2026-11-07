@@ -2,7 +2,9 @@
 
 - [项目结构与边界](architecture.md)：模块分工、脚本分类、数据流和命名迁移。
 - [游戏脚本验证与替换准入](script-validation.md)：全科技前提、本地效率验证、严格更快才允许覆盖存档。
-- [功能脚本效率对照](functional-validation.md)：成熟算法来源、实际增长率、固定窗口库存及完整周期。
+- [功能脚本效率对照](functional-validation.md)：成熟算法来源、历史实际增长率、固定窗口库存及完整周期。
+- [当前地下功能效率](underground-functional-validation.md)：三seed净增长、实际材料消耗、完整两盘炸药与调度验证边界。
+- [地下方向与淘汰记录](leaderboards/underground_efficiency_iteration.md)：14榜的策略筛选、完整目标结果和后续方向。
 - [游戏语言静态检查](../simulator/local_simulator/syntax-validation.md)：原版静态规则、错误行列和木材条件修复。
 - [排行榜共用方法](leaderboards/README.md)：方向探索、机制淘汰、预算与实机准入。
 - [排行榜进度](leaderboards/leaderboard_progress.md)：各榜的预测、短时实机和完整打榜记录。
