@@ -1,82 +1,88 @@
 from __builtins__ import *
-import farm_support
+SIZE = get_world_size()
+HALF = SIZE // 2
 
+# inlined water: num_items is only asked when the tile is actually dry,
+# that saves one tick on every tile that does not need water
+def water_tile():
+    if get_water() > 0.75:
+        return
+    if num_items(Items.Water) >= 1:
+        use_item(Items.Water)
+
+# one tile: harvest -> dig used-up layer -> plant -> move on
+def sweep():
+    while True:
+
+        # harvest if possible; this also makes the clay layer used up
+        if can_harvest():
+            harvest()
+
+        # dig the used-up / covering layer away, stop on clay or rock
+        n = 0
+        g = get_ground_type()
+        while n < 4 and g != Grounds.Clay and g != Grounds.Rock:
+            dig()
+            g = get_ground_type()
+            n += 1
+
+        if g == Grounds.Clay:
+            plant(Entities.Rice)
+            water_tile()
+
+        elif g == Grounds.Rock:
+            # dead end only if the north neighbour is rock too
+            if get_ground_type(North) == Grounds.Rock:
+                return
+
+        move(North)
+
+# go back to y = 0 by the shorter route (the map wraps at the edge)
+def back_to_start():
+    if get_pos_y() > HALF:
+        while get_pos_y() > 0:
+            move(North)
+    else:
+        while get_pos_y() > 0:
+            move(South)
+
+def DRice():
+    d = 0
+    while d < 60:
+        t = get_ground_type()
+        if t == Grounds.Clay:
+            break
+        if t == Grounds.Rock:
+            break
+        dig()
+        d += 1
+
+    # pass 1: plant the whole column
+    sweep()
+
+    back_to_start()
+
+    # pass 2: harvest what has ripened
+    sweep()
+
+# ---------------- main ----------------
 
 def rice():
-    # 将存档的逐柱稻米采集改为有限批次，全部工人回收后重生下一片。
-    farm_support.run(Items.Rice, collect)
-
-
-def collect(goal):
-    # 不要求Jump；每柱两层粘土用尽后回地表，低科技同样使用自然成熟。
-    if not farm_support.require(Unlocks.Rice) or not farm_support.require(Unlocks.Mining):
-        return False
-    if not farm_support.require(Unlocks.Plant):
-        return False
-    width, size = farm_support.dimensions()
-    empty = 0
-    while num_items(Items.Rice) < goal:
-        before = num_items(Items.Rice)
+    while True:
         clear()
-        workers = min(width, farm_support.capacity())
-        handles = []
-        ok = True
-        for first in range(1, workers):
-            handle = spawn_drone(columns, first, workers, width, size, goal)
-            if handle == None:
-                if not columns(first, workers, width, size, goal):
-                    ok = False
-            else:
-                handles.append(handle)
-        if not columns(0, workers, width, size, goal):
-            ok = False
-        for handle in handles:
-            if not wait_for(handle):
-                ok = False
-        if not ok:
-            quick_print("稻米种植或采收失败，已回收子机。")
-            return False
-        if num_items(Items.Rice) == before:
-            empty += 1
-            if empty >= 8:
-                quick_print("连续八片没有可收获的稻米，停止。")
-                return False
-        else:
-            empty = 0
-    return True
 
+        i = 0
+        while i < SIZE - 1:
+            spawn_drone(DRice)
+            move(East)
+            i += 1
 
-def columns(first, stride, width, size, goal):
-    # 每列唯一写者；只在harvest成功后继续下挖，避免破坏尚未成熟的稻米。
-    for layer in range(2):
-        planted = []
-        for x in range(first, width, stride):
-            for y in range(size):
-                if num_items(Items.Rice) >= goal:
-                    return True
-                if not farm_support.move_to(x, y):
-                    return False
-                for _ in range(128):
-                    ground = get_ground_type()
-                    if ground == Grounds.Clay or ground == Grounds.Rock or ground == Grounds.Bedrock:
-                        break
-                    if not dig():
-                        return False
-                if get_ground_type() == Grounds.Clay:
-                    if not plant(Entities.Rice):
-                        return False
-                    farm_support.water()
-                    planted.append((x, y))
-        for x, y in planted:
-            if num_items(Items.Rice) >= goal:
-                return True
-            if not farm_support.move_to(x, y):
-                return False
-            if get_entity_type() == Entities.Rice:
-                if not farm_support.mature(Entities.Rice) or not harvest():
-                    return False
-    return True
+        DRice()
 
+        t = 0
+        while num_drones() > 1 and t < 2000:
+            do_a_flip()
+            t += 1
 
 if __name__ == "__main__":
     rice()

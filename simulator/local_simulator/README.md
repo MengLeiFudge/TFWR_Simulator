@@ -32,7 +32,7 @@ python3 -m simulator.local_simulator scripts/leaderboard/lb_cactus_single.py --s
 python3 -m simulator.local_simulator scripts/leaderboard/lb_cactus_single.py --seeds 0 1 123 --jobs 3 --timeout 30 --output .codex/cactus-batch.json
 ```
 
-报告为 `kind=prediction_batch`，包含 `reports` 和 `completed_seeds`；`reports` 始终按输入seed顺序排列，实时进度按各进程实际执行顺序显示。CLI在API检查点每隔至少5墙钟秒向stderr输出当前seed的虚拟游戏秒、API数和目标库存（若配置目标），每完成一个seed再报告所在工作进程的分组进度；stdout仍只承载JSON结果。进度不依赖脚本日志，也不增加游戏计费。若配置trace，分别写入 `名称.seed-N.扩展名`。
+报告为 `kind=prediction_batch`，包含 `reports` 和 `completed_seeds`；`reports` 始终按输入seed顺序排列，实时进度按各进程实际执行顺序显示。CLI在API检查点每隔至少5墙钟秒向stderr输出当前seed的虚拟游戏秒、API数和目标库存；配置目标时同时输出 `goal_net_gain`、`goal_per_game_second`，后者为净增长/实际游戏秒。每完成一个seed再报告工作进程的分组进度；stdout仍只承载JSON结果。进度不依赖脚本日志，也不增加游戏计费。若配置trace，分别写入 `名称.seed-N.扩展名`。
 
 ## 科技与初始库存
 
@@ -48,10 +48,12 @@ python3 -m simulator.local_simulator scripts/leaderboard/lb_cactus_single.py --s
 
 先选择预设或存档，再应用 `--scenario` 中的库存和科技，最后应用 `--unlock`。显式 `--preset` 覆盖场景中的preset；它与 `--save` 互斥。存档中的非科技解锁符号会忽略，`debug_2` 这类独立科技优先按完整名称识别。不会自动补齐被显式关闭的前置科技。
 
+功能初版使用 `--preset all`。其余科技组合用于重置榜或明确指定的机制场景，不代表功能脚本已适配低科技。
+
 ```bash
-python3 -m simulator.local_simulator scripts/functional/carrot.py --preset reset --unlock Plant=1 --unlock Carrots=1 --unlock Expand=1 --timeout 10
-python3 -m simulator.local_simulator scripts/functional/rice.py --preset all --unlock Mining=3 --unlock Megafarm=0 --timeout 10
-python3 -m simulator.local_simulator scripts/functional/bamboo.py --save gamesave/save.json --unlock Megafarm=0 --timeout 10
+python3 -m simulator.local_simulator scripts/functional/rice.py --preset all --timeout 30
+python3 -m simulator.local_simulator scripts/leaderboard/lb_fastest_reset.py --preset reset --unlock Expand=1 --timeout 30
+python3 -m simulator.local_simulator scripts/functional/bamboo.py --save gamesave/save.json --timeout 30
 ```
 
 用 `--scenario scenario.json` 指定初始库存、科技及可选目标。将下列JSON保存为 `scenario.json` 后传入；省略项保留所选预设或存档的值：
@@ -60,7 +62,7 @@ python3 -m simulator.local_simulator scripts/functional/bamboo.py --save gamesav
 {"items":{"Hay":1000000,"Wood":1000000,"Carrot":1000000,"Cactus":1000000,"Water":100,"Fertilizer":100,"Weird_Substance":10000},"unlocks":{"Speed":4},"goal":{"item":"Cactus","amount":131072}}
 ```
 
-预设与JSON都支持 `preset=max/all/reset`。科技决定速度、产量、成本、地图和无人机容量，具体组合的机制覆盖仍以验收记录为准；语言解锁门槛尚未全面对齐。`Expand=1` 是1×3，其余地图尺寸随等级变化。地下资源榜用 `--leaderboard` 加载原版场景，可以用 `--unlock` 或JSON覆盖单项科技，与 `--save/--preset` 互斥；正式榜仍统一移除爆破钻头。普通功能脚本持续运行，API、检查点或墙钟上限会停止模拟；场景目标只记录达标状态，不会自动停止入口。
+预设与JSON都支持 `preset=max/all/reset`。科技决定速度、产量、成本、地图和无人机容量，具体组合的机制覆盖仍以验收记录为准；语言解锁门槛尚未全面对齐。`Expand=1` 是1×3，其余地图尺寸随等级变化。地下资源榜用 `--leaderboard` 加载原版场景，可以用 `--unlock` 或JSON覆盖单项科技，与 `--save/--preset` 互斥；正式榜仍统一移除爆破钻头。普通功能脚本持续运行，可用 `--game-seconds` 按游戏时间停止；场景物品目标只记录达标状态，不会自动停止入口。
 
 | 报告字段 | 含义 |
 | --- | --- |
@@ -71,6 +73,9 @@ python3 -m simulator.local_simulator scripts/functional/bamboo.py --save gamesav
 | `goal_reached` | 脚本结束时是否达到场景物品目标或解锁目标；未配置目标时为null。达到库存目标不会自动停止脚本。 |
 | `leaderboard_profile` / `leaderboard_validation` | 地下榜原版场景参数与验证口径；专用地形为 `asset_and_source_only`，不能同seed重放正式加密随机盘面。 |
 | `predicted_game_seconds` | 脚本操作、API及定时事件推进的共享游戏秒；旧字段 `predicted_api_seconds` 保留为同值兼容字段 |
+| `efficiency.elapsed_game_seconds` | 从初始化到当前停止点实际经过的游戏秒，不使用现实计算时间 |
+| `efficiency.items.名称.net_change` | 该物品最终库存减初始库存，计入产出、消耗及自动获取；负数表示净消耗 |
+| `efficiency.items.名称.net_per_game_second` | 净变化除以实际游戏秒；游戏时间为0时为null。对预算停止的连续生产样本仍计算该值；批量结算须先完成完整周期才能用于效率判断 |
 | `interpreter_ticks` | 已执行的脚本表达式、控制流、用户函数和容器操作成本，各无人机相加 |
 | `api_calls` / `api_ticks_by_function` | 按 API 拆分的调用数与动作成本；各无人机成本相加，不等于共享时间 |
 | `state` / `harvests` | 最终全实体/分组、库存和随机抽取次数；harvests记录成熟普通作物收获，恐龙/迷宫收益体现在库存 |
@@ -105,6 +110,8 @@ python3 -m simulator.local_simulator strategy.py --leaderboard mushrooms_single 
 
 字符串键按`max(1, UTF16长度 // 8)`计费，`str`本身1t，包含判断按全串长度计费；索引、切片、迭代和解包按UTF-16单元。普通值的点运算支持函数绑参。支持同目录显式`import helper` / `from helper import f`，首次导入执行模块初始化，后续导入保留导出静态标记；无人机复制相关作用域，新无人机首次导入仍执行初始化。旧版139条专项实机观测已逐项对齐，具体写法与限制见[解释器计费指南](../../docs/leaderboards/interpreter_cost_notes.md)。
 
+入口及实际导入模块在编译时还执行游戏解析后的三类静态规则：比较后or常量、资源常量直接作条件、把物品/实体/科技常量当数量比较。失败带原版错误码、文件和行列；范围与合法括号用法见[游戏语言静态检查](syntax-validation.md)。
+
 尚未全面对齐非整数range、所有类型/解锁门槛、完整浮点字符串格式化、地区相关字符串排序和完整游戏语言语义。通配导入（builtins类型提示导入除外）、模块属性赋值、多名称global等不支持的语法会拒绝，不按0t跳过。非法参数会停止，不返回固定成功值。`simulate` / `leaderboard_run`只复现模拟内部禁止递归启动的行为；外部游戏启动使用真实协调器。
 
 成熟使用纳秒定时事件，作物随机倍率保留Single精度；水分每0.1秒逐格抽取，包括干地，Power每0.2秒结算执行批次累计的消耗。实体外观和感染切换也消耗共享various随机流。同刻事件保留原版四叉堆顺序。旧版长场景达到单seed时间门槛；基础构建26385848曾完成16榜同seed策略对照。该阶段修正施肥结算、批次事件顺序、枚举键收费及子机终态后，Reset、南瓜多机和向日葵单双机完整时间均与原生返回值相同到整数纳秒；其余12榜当时本地结果不变，只核对到原生0.01秒显示精度。历史证据见[四榜修复](four-residual-alignment.md)和[验收记录](validation.md)，不替代后续构建及代码的重新验证。
@@ -117,7 +124,11 @@ Power账不能直接用`(sum(api_ticks_by_function)+interpreter_ticks)/6000`代�
 
 ## 执行上限
 
-默认每个seed限制 100000 次 API 调用、2000000 个编译检查点，可用 `--max-api-calls`、`--max-steps` 修改。检查点位于源语句和循环边界，纯计算循环及递归也受限；不再开启 `sys.settrace`。`_budget`等内部执行函数及`_timing_`前缀属于运行器保留名称。检查本身不增加虚拟游戏时间。`--timeout` 默认10秒、最多75秒，包含所有子进程启动；串行和并行批次中的所有seed共享这一墙钟截止时间。CLI在该预算内预留10%、最多1秒用于生成和回传停止报告，执行预算因此略短；正常触及预算时返回已有状态、阶段输出和调用统计。超出报告余量或卡在不可中断操作时，父进程终止并回收全部工作进程，保留超时摘要、已回传的seed报告和已写出的轨迹。失败返回非零退出码；回收进程另有有限等待，不计入游戏预测时间。
+连续生产可先用 `--timeout 30` 给有限现实计算预算。正常触及墙钟、API或检查点预算时，报告仍包含 `efficiency`；比如推进100游戏秒、净增1e8，增长率就是1e6/游戏秒。它是该观测段的实际增长率，不是600秒或未来产量的预测。无需为凑固定游戏时长延长预算。恐龙等批量结算须用有限入口完成至少一个完整生产周期，再按结算净收益/周期总游戏秒评价；未完成时0库存不能说明周期效率为0。
+
+可选 `--game-seconds 600` 为每个seed设置600游戏秒上限，必须是有限正数。窗口从0秒起计，包含脚本初始化与全部动作；在检查点发现共享游戏时间已到时停止，报告 `status=stopped` 和 `BudgetExceeded: 达到游戏时间窗口 600s`。动作或事件可能跨过边界，实际值以 `predicted_game_seconds` 为准。它不放宽其他预算；先触及现实预算时照常报告已观测增长率，不能把实际短段产量填写成已完成600秒。详细口径见[脚本验证](../../docs/script-validation.md)。
+
+默认每个seed限制 100000 次 API 调用、2000000 个编译检查点，可用 `--max-api-calls`、`--max-steps` 修改。检查点位于源语句和循环边界，纯计算循环及递归也受限；不再开启 `sys.settrace`。`_budget`等内部执行函数及`_timing_`前缀属于运行器保留名称。检查本身不增加虚拟游戏时间。`--timeout` 默认10秒、最多75秒，包含所有子进程启动；串行和并行批次中的所有seed共享这一墙钟截止时间。CLI在该预算内预留10%、最多1秒用于生成和回传停止报告，执行预算因此略短；正常触及预算时返回已有状态、效率、阶段输出和调用统计。超出报告余量或卡在不可中断操作时，父进程终止并回收全部工作进程，保留超时摘要、已回传seed报告和轨迹；没有世界快照的超时摘要不能计算效率。CLI停止仍返回非零退出码，调用者应区分正常预算停止和脚本/机制错误。回收进程另有有限等待，不计入游戏预测时间。
 
 并行影响本机计算时间、CPU和内存占用，不改变完整执行的单seed模拟结果。受墙钟限制而中途停止时，已完成seed数与停止位置可能不同；比较模拟一致性应让脚本正常结束，或使用相同API/检查点上限。
 

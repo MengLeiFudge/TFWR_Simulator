@@ -1,90 +1,78 @@
 from __builtins__ import *
-import farm_support
 
-# 配对主体来自Save0/Mushroom.py；普通地形按层推进，不依赖Jump或爆破钻。
+
+# 启动时跳到蘑菇附近；每片结束后回到地表重新寻找，持续采集。
+# 蘑菇分区保持共同两格高度带，(0,0)留作地层采样柱。
 DIRECTIONS = [North, East, South, West]
 BACKS = [South, West, North, East]
 
 
 def mushroom():
-    # 持续采集，上一批所有子机结束后才重生下一片。
-    farm_support.run(Items.Mushroom, collect)
-
-
-def collect(goal):
-    # 每层主机采样柱最后推进，保持各分区共同的两格高度带。
-    if not farm_support.require(Unlocks.Mushrooms) or not farm_support.require(Unlocks.Mining):
-        return False
-    if not farm_support.require(Unlocks.Underground_Senses):
-        return False
-    width, size = farm_support.dimensions()
-    if width * size < 2:
-        quick_print("蘑菇配对需要至少两个地块。")
-        return False
-    empty = 0
-    while num_items(Items.Mushroom) < goal:
-        clear()
+    if num_unlocked(Unlocks.Mushrooms) < 1 or num_unlocked(Unlocks.Jump) < 1:
+        quick_print("请先解锁蘑菇和 Jump，再运行蘑菇采集。")
+        return
+    jump(Unlocks.Mushrooms)
+    blocks = make_blocks()
+    batches = 0
+    while True:
+        start = get_time()
         before = num_items(Items.Mushroom)
-        for _ in range(256):
-            if get_ground_type() == Grounds.Mushroom:
+        change_hat(Hats.Mining_Hat)
+        # 普通地形首个蘑菇区块从深度32开始；爆破仅用于地表至深度16的探孔。
+        # 主机独占钻头，接近蘑菇层和派出子机前都换回采矿帽。
+        drill = (get_pos_z() > -16 and num_unlocked(Unlocks.Explosive_Drill) > 0
+                 and num_items(Items.Dynamite) > 0)
+        if drill:
+            change_hat(Hats.Explosive_Drill)
+        top = get_pos_z()
+        while get_ground_type() != Grounds.Mushroom:
+            if drill and (get_pos_z() <= -16 or num_items(Items.Dynamite) < 1):
+                change_hat(Hats.Mining_Hat)
+                drill = False
+            if top - get_pos_z() >= 48 or get_hardness() >= 10000000 or not dig():
                 break
-            if get_hardness() >= 10000000 or not dig():
-                break
+        if drill:
+            change_hat(Hats.Mining_Hat)
         if get_ground_type() != Grounds.Mushroom:
-            empty += 1
-            if empty >= 8:
-                quick_print("连续八片没有可达蘑菇层，停止。")
-                return False
+            quick_print("本田未找到可达蘑菇层，换田：z", get_pos_z())
+            clear()
             continue
         ceiling = get_pos_z()
-        if not dig_layer(ceiling) or not move_to(0, 0):
-            return False
-        blocks = make_blocks()
-        while get_ground_type() == Grounds.Mushroom and num_items(Items.Mushroom) < goal:
+        if not dig_layer(ceiling):
+            quick_print("覆盖层挖掘或移动失败，已等待子机结束，停止：z", ceiling)
+            return
+        if not move_to(0, 0):
+            return
+        quick_print("开始采集蘑菇：z", ceiling, "分区", len(blocks))
+        layers = 0
+        while get_ground_type() == Grounds.Mushroom:
+            layer_start = get_time()
             result = run_layer(blocks, ceiling)
             if result == None:
-                quick_print("蘑菇配对失败，已回收子机。")
-                return False
-            if not move_to(0, 0) or get_pos_z() != ceiling or not dig():
-                return False
+                quick_print("蘑菇采集失败，已等待子机结束，停止：z", ceiling)
+                return
+            if not move_to(0, 0) or get_pos_z() != ceiling:
+                quick_print("采样点高度异常，停止：应为 z", ceiling)
+                return
+            if not dig() or get_pos_z() != ceiling - 1:
+                quick_print("采样点挖掘失败，停止：z", ceiling)
+                return
+            pairs, digs = result
+            layers += 1
+            quick_print("蘑菇层", layers, "配对", pairs, "挖掘", digs + 1,
+                        "耗时", get_time() - layer_start)
             ceiling -= 1
-        if num_items(Items.Mushroom) > before:
-            empty = 0
-        else:
-            empty += 1
-            if empty >= 8:
-                quick_print("连续八片没有蘑菇配对收益，停止。")
-                return False
-    return True
+        batches += 1
+        quick_print("本片蘑菇已采完：片数", batches, "层数", layers,
+                    "获得", num_items(Items.Mushroom) - before, "耗时", get_time() - start)
+        # 全部工人已回收；clear恢复默认帽子，下一片开始时重新戴采矿帽。
+        clear()
 
 
-def make_blocks():
-    # 矩形分区不小于4格；小地图使用一个分区，兼容1×3农场。
-    width, size = farm_support.dimensions()
-    gx = max(1, width // 4)
-    gy = max(1, size // 4)
-    while gx * gy > farm_support.capacity():
-        if gx >= gy and gx > 1:
-            gx -= 1
-        else:
-            gy -= 1
-    blocks = []
-    for k in range(gx * gy):
-        bx = k % gx
-        by = k // gx
-        blocks.append((bx * width // gx, (bx + 1) * width // gx,
-                       by * size // gy, (by + 1) * size // gy))
-    return blocks
-
-
-def move_to(tx, ty):
-    # 统一使用真实地图宽高的导航。
-    return farm_support.move_to(tx, ty)
-
-
+# 每台无人机负责一列；无人机不足时按列步长分担，整层完成后才返回。
 def dig_layer(target):
-    width, size = farm_support.dimensions()
-    workers = min(width, farm_support.capacity())
+    size = get_world_size()
+    workers = min(size, max_drones())
     handles = []
     ok = True
     for x in range(workers - 1):
@@ -104,9 +92,10 @@ def dig_layer(target):
             ok = False
     return ok
 
+
+# 探孔定位后逐列挖到共同高度；塌方已清除的覆盖物不再重复挖掘。
 def dig_columns(first_x, stride, size, target):
-    width, size = farm_support.dimensions()
-    for x in range(first_x, width, stride):
+    for x in range(first_x, size, stride):
         if not move_to(x, 0):
             return False
         for y in range(size):
@@ -119,13 +108,36 @@ def dig_columns(first_x, stride, size, target):
                 return False
     return True
 
+
+# 主机只创建少量矩形边界，逐格坐标和邻格交给各子机就地计算。
+def make_blocks():
+    size = get_world_size()
+    limit = max(1, size // 4)
+    capacity = max_drones()
+    gx = 1
+    gy = 1
+    best = 1
+    for ty in range(1, limit + 1):
+        tx = min(limit, capacity // ty)
+        if tx * ty > best:
+            best = tx * ty
+            gx = tx
+            gy = ty
+    blocks = []
+    for k in range(best):
+        bx = k % gx
+        by = k // gx
+        blocks.append((bx * size // gx, (bx + 1) * size // gx,
+                       by * size // gy, (by + 1) * size // gy))
+    return blocks
+
+
+# 各分区共用本层高度上限；先收回全部子机，再推进采样点和下一层。
 def run_layer(blocks, ceiling):
     handles = []
     results = []
     for k in range(1, len(blocks)):
-        handle = None
-        if farm_support.capacity() > 1:
-            handle = spawn_drone(work_layer, blocks[k], ceiling)
+        handle = spawn_drone(work_layer, blocks[k], ceiling)
         if handle == None:
             results.append(work_layer(blocks[k], ceiling))
         else:
@@ -142,6 +154,9 @@ def run_layer(blocks, ceiling):
         digs += result[1]
     return pairs, digs
 
+
+# 单遍蛇形处理：最高处先尝试直接推送，无法配对才挖，再接收邻格配对。
+# 蘑菇稳定性为3；两格高度带也把内部地块承受的落差限制在一格。
 def work_layer(block, ceiling):
     x0, x1, y0, y1 = block
     floor = ceiling - 2
@@ -185,6 +200,8 @@ def work_layer(block, ceiling):
             pairs += count
     return pairs, digs
 
+
+# 直接从脚下推送省去前往邻格再返回的两次移动。
 def push_match(neighbors, floor):
     if get_ground_type() != Grounds.Mushroom:
         return 0
@@ -200,6 +217,8 @@ def push_match(neighbors, floor):
                 return 1
     return 0
 
+
+# 从邻格推向当前格并返回，移动或推送失败交给主机停止本轮。
 def push_neighbor(i):
     if not move(DIRECTIONS[i]):
         return False
@@ -208,6 +227,8 @@ def push_neighbor(i):
         return False
     return pushed
 
+
+# 直接匹配会使目标下降一格；双邻配对保持目标高度，但不能提前同型消除。
 def feed_column(neighbors, floor):
     matched = 0
     while True:
@@ -252,6 +273,28 @@ def feed_column(neighbors, floor):
         if not push_neighbor(pair_b):
             return None
         matched += 1
+
+
+# 利用边界环绕走较短路径，坐标只读一次。
+def move_to(tx, ty):
+    size = get_world_size()
+    dx = (tx - get_pos_x()) % size
+    dy = (ty - get_pos_y()) % size
+    horizontal = East
+    vertical = North
+    if dx > size // 2:
+        dx = size - dx
+        horizontal = West
+    if dy > size // 2:
+        dy = size - dy
+        vertical = South
+    for _ in range(dx):
+        if not move(horizontal):
+            return False
+    for _ in range(dy):
+        if not move(vertical):
+            return False
+    return True
 
 
 if __name__ == "__main__":

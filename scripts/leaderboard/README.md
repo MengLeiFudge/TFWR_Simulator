@@ -8,4 +8,4 @@
 
 外部代码的来源、commit 和适用规则记录在对应策略文档中；`enihsyou_LICENSE.txt` 随相关脚本保留。
 
-持续生产、适配科技进度的普通脚本见 [功能脚本约定](../functional/README.md)。
+全科技下持续生产资源的普通脚本见 [功能脚本约定](../functional/README.md)。它们优先迁入成熟功能或多机榜算法，遵守[本地效率与替换准入](../../docs/script-validation.md)。

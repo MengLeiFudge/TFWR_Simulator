@@ -19,10 +19,22 @@ from .catalog import DATA, Direction, Entities, Grounds, Items, Hats, Unlocks, L
 from .language import BUILTINS, game_iter
 from .execution import Api, Drone, Request, Scheduler, API_NAMES, Module, ReturnedValue, attribute, compile_script, dispatch, elapsed, evaluate
 from .scenarios import save_scenario, unlock_overrides
+from .syntax import validate_syntax
 
 
 class BudgetExceeded(RuntimeError):
     pass
+
+
+def exception_details(exc, line=None):
+    result = {'type': type(exc).__name__, 'message': str(exc),
+              'line': getattr(exc, 'lineno', None) or line}
+    if isinstance(exc, SyntaxError):
+        result.update({'path': exc.filename, 'column': exc.offset,
+                       'end_line': exc.end_lineno, 'end_column': exc.end_offset})
+        if hasattr(exc, 'code'):
+            result['code'] = exc.code
+    return result
 
 
 ALLOWED_NODES = (
@@ -75,18 +87,19 @@ def compile_source(source, filename):
             raise UnsupportedMechanism(f'第 {node.lineno} 行：尚未支持模块属性赋值')
         if isinstance(node, ast.FunctionDef) and (node.decorator_list or node.returns):
             raise UnsupportedMechanism(f'第 {node.lineno} 行：不支持装饰器或返回类型注解')
+    validate_syntax(tree, source, filename)
     return compile_script(tree, path), hashlib.sha256(source.encode()).hexdigest()
 
 
-def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=10.0, trace=None, scenario=None, progress=False):
+def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=10.0, trace=None, scenario=None, progress=False, game_seconds=None):
     """返回预测报告；progress启用限频stderr进度，CLI另用子进程兜住长操作。"""
     started = time.monotonic()
     deadline = started + seconds
     next_progress = started + 5
     code, source_hash = load_script(path)
     world = FarmWorld(seed, scenario)
-    initial_state = {'unlocks': dict(world.unlocks),
-                     'items': {item.name: amount for item, amount in world.items.items()},
+    initial_items = {item.name: amount for item, amount in world.items.items()}
+    initial_state = {'unlocks': dict(world.unlocks), 'items': initial_items,
                      'width': world.width, 'size': world.size, 'max_drones': world.drone_limit()}
     trace_hash = hashlib.sha256() if trace else None
     calls = 0
@@ -97,6 +110,8 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
     def check():
         """执行副作用之前检查预算，避免上限之外多扣一次资源。"""
         nonlocal calls, next_progress
+        if game_seconds is not None and world.now_ns >= game_seconds * 1000000000:
+            raise BudgetExceeded(f'达到游戏时间窗口 {game_seconds:g}s')
         if calls >= max_calls:
             raise BudgetExceeded(f'达到 API 调用上限 {max_calls}')
         now = time.monotonic()
@@ -106,7 +121,12 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
             goal = ''
             if world.goal:
                 item, amount = world.goal
-                goal = f' goal_item={item.name} goal_current={world.items[item]:g} goal_target={amount:g}'
+                current = world.items[item]
+                net = current - initial_items.get(item.name, 0)
+                elapsed_seconds = world.now_ns / 1000000000
+                rate = f'{net / elapsed_seconds:g}' if elapsed_seconds > 0 else 'n/a'
+                goal = (f' goal_item={item.name} goal_current={current:g} goal_target={amount:g}'
+                        f' goal_net_gain={net:g} goal_per_game_second={rate}')
             print(f'local_simulator seed={seed} game_seconds={world.now_ns / 1000000000:.3f}'
                   f' api_calls={calls} wall_seconds={now - started:.1f}{goal}', file=sys.stderr, flush=True)
             next_progress = now + 5
@@ -191,10 +211,16 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         scheduler.run(env['_entry'])
     except (Exception, KeyboardInterrupt) as exc:
         status = 'stopped'
-        error = {'type': type(exc).__name__, 'message': str(exc), 'line': last_line}
+        error = exception_details(exc, last_line)
     finally:
         if trace_file:
             trace_file.close()
+    elapsed_seconds = world.now_ns / 1000000000
+    efficiency = {}
+    for item, current in world.items.items():
+        net = current - initial_items.get(item.name, 0)
+        efficiency[item.name] = {'net_change': net,
+                                 'net_per_game_second': net / elapsed_seconds if elapsed_seconds > 0 else None}
     return {
         'kind': 'prediction', 'status': status, 'error': error,
         'model_version': DATA['game_version'], 'random_mode': 'seeded_simulate',
@@ -206,7 +232,8 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         'leaderboard_profile': world.leaderboard,
         'leaderboard_validation': 'asset_and_source_only' if world.leaderboard else None,
         'api_ticks': world.ticks, 'tick_ns': world.tick_ns,
-        'predicted_game_seconds': world.now_ns / 1000000000,
+        'predicted_game_seconds': elapsed_seconds,
+        'efficiency': {'elapsed_game_seconds': elapsed_seconds, 'items': efficiency},
         'predicted_api_seconds': world.now_ns / 1000000000,
         'interpreter_ticks': world.costs.get('_ops', 0), 'script_steps': steps, 'step_basis': 'compiled_checkpoint',
         'api_calls': {k:v for k,v in world.calls.items() if k != '_ops'},
@@ -267,7 +294,7 @@ def worker(connection, options, deadline, seeds=None):
     except Exception as exc:
         with suppress(BrokenPipeError, EOFError):
             connection.send({'kind': 'prediction', 'status': 'stopped',
-                             'error': {'type': type(exc).__name__, 'message': str(exc)}})
+                             'error': exception_details(exc)})
     finally:
         connection.close()
 
@@ -381,6 +408,7 @@ def main():
     parser.add_argument('--output', type=Path, help='写入 JSON 报告；会覆盖指定文件')
     parser.add_argument('--max-api-calls', type=int, default=100000)
     parser.add_argument('--max-steps', type=int, default=2000000, help='编译后源语句/循环预算检查点上限，不是游戏tick')
+    parser.add_argument('--game-seconds', type=float, help='可选游戏时间上限；效率始终按实际经过的游戏秒计算')
     parser.add_argument('--timeout', type=float, default=10, help='整个工作进程的墙钟上限，默认 10 秒，最多 75 秒')
     args = parser.parse_args()
     seeds = args.seeds or [args.seed]
@@ -388,6 +416,8 @@ def main():
         parser.error('seeds须为1～100个不同的非负Int32')
     if args.jobs < 1:
         parser.error('jobs须为正整数')
+    if args.game_seconds is not None and not 0 < args.game_seconds < float('inf'):
+        parser.error('game-seconds须为有限正数')
     if not (0 <= args.seed <= 2147483647 and 0 < args.timeout <= 75
             and args.max_api_calls > 0 and args.max_steps > 0):
         parser.error('seed 须为非负 Int32，timeout 须在 (0, 75] 内，调用/步数上限须为正数')
@@ -422,7 +452,7 @@ def main():
         parser.error(f'初始配置无效：{exc}')
     options = {'path': args.script.resolve(), 'seed': args.seed, 'trace': args.trace,
                'max_calls': args.max_api_calls, 'max_steps': args.max_steps, 'seconds': args.timeout,
-               'scenario': scenario or None}
+               'scenario': scenario or None, 'game_seconds': args.game_seconds}
     deadline = time.monotonic() + args.timeout
     report = run_workers(options, args.seeds, deadline, args.jobs)
     text = json.dumps(report, ensure_ascii=False, indent=2) + '\n'

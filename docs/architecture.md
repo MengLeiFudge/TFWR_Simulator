@@ -7,7 +7,7 @@
 | `simulator/` | 执行游戏脚本的本地模型、简化动作预算、随机数与时间对齐 | [模拟器](../simulator/README.md) |
 | `game_control/` | 本机路径、脚本部署、模组请求、结果采集、公开数据工具 | [游戏控制](../game_control/README.md) |
 | `game_mod/` | 游戏内请求状态机、脚本运行、窗口准备、成绩日志与退出 | [模组](../game_mod/README.md) |
-| `scripts/functional/` | 持续生产资源，适配解锁与科技进度 | [运行约定](../scripts/functional/README.md) |
+| `scripts/functional/` | 全科技下持续生产资源，复用成熟功能与多机算法 | [运行约定](../scripts/functional/README.md) |
 | `scripts/leaderboard/` | 对应榜单初始条件下的最快已确认策略 | [脚本约定](../scripts/leaderboard/README.md) |
 | `references/` | 反编译源码、资源和解锁快照、外部来源及公开成绩缓存 | [参考资料](../references/README.md) |
 | `docs/` | 架构、研究方法、策略结论和验证记录 | [文档索引](README.md) |
@@ -20,7 +20,9 @@
 
 路径统一由 `game_control/src/tfwr_orchestrator/config.py` 推导。排行榜同步读取 `scripts/leaderboard/`；公开成绩写入 `references/leaderboards/leaderboard_cache.json`；比较报告写入 `docs/leaderboards/leaderboard_targets.md`，仓库复跑成绩从 `scripts/leaderboard/lb_start.py` 读取。公开缓存和策略研究文档分别拥有来源事实与解释结论，不混作脚本依赖。
 
-功能脚本按资源名或 `资源_机制.py` 命名，例如 `rice.py`、`bone_dinosaur.py`；排行榜脚本保留 `lb_` 前缀。功能模块拥有对应的持续入口与 `collect(goal)` 收集方法，`farm_support.py` 集中导航、补给路由和通用种植/开采。脚本之间只通过同目录模块补料，不依赖排行榜文件；完整清单、科技前提与验证边界见[功能脚本说明](../scripts/functional/README.md)。功能脚本部署仍遵守既有存档边界，现有同步命令只处理排行榜。
+功能脚本按资源名或 `资源_机制.py` 命名，例如 `rice.py`、`bone_dinosaur.py`；排行榜脚本保留 `lb_` 前缀。功能初版以科技全解为前提，优先迁入用户已有功能脚本，没有对应实现时使用成熟多机排行榜算法。每个入口持续生产对应资源，排行榜的固定库存终点改为连续生产周期；保留原算法的并行、路径、同步与热路径。`mining.py` 只集中普通地形开采的共用函数。水、化肥自动获取，不设功能脚本。
+
+功能脚本不依赖排行榜文件，来源、许可、材料和地图前提见[功能脚本说明](../scripts/functional/README.md)。全部游戏脚本先通过[本地验证与替换准入](script-validation.md)，实际时间采样、固定窗口库存与完整周期见[功能效率报告](functional-validation.md)。低科技适配不在功能初版范围；模拟器仍保留科技配置能力，供重置榜及明确指定的场景使用。功能脚本部署遵守既有存档边界，现有同步命令只处理排行榜。
 
 ## 命名迁移
 

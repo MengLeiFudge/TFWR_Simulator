@@ -11,13 +11,15 @@
 | [simulator/](simulator/README.md) | 无需启动游戏的脚本模拟器，以及简化动作模型 |
 | [game_control/](game_control/README.md) | 路径配置、脚本部署、请求控制、结果采集和公开排行榜缓存 |
 | [game_mod/](game_mod/README.md) | BepInEx 模组，接收指令并在游戏内运行脚本 |
-| [scripts/functional/](scripts/functional/README.md) | 地上/地下资源与机制的持续生产脚本，按解锁、地图、无人机和材料选择可执行方式 |
+| [scripts/functional/](scripts/functional/README.md) | 全科技下持续生产资源，优先沿用已有功能脚本和成熟多机排行榜算法 |
 | [scripts/leaderboard/](scripts/leaderboard/README.md) | `lb_*.py` 排行榜脚本真源 |
 | [references/](references/README.md) | 游戏源码、资源与科技快照、公开成绩缓存等参考事实 |
 | [docs/](docs/README.md) | 项目架构、共用研究方法、各榜策略与验证记录 |
 | `gamesave/` | 指向本机真实 Save0 的链接，只是部署目标，不进 Git |
 
 本地模拟通过CLI手动运行，尚未自动接在部署命令前。[脚本模拟入口](simulator/local_simulator/README.md) 读取游戏脚本，输出预计游戏时间、库存和轨迹。目标是单seed执行与时间对齐，验收门槛见[模拟精度与验收](simulator/README.md#模拟精度与验收)。约900游戏秒场景的通过记录对应旧版；新版已按源码迁移机制，尚待实机精度验收，见[更新影响](simulator/local_simulator/game-update-26385848.md)和[验收记录](simulator/local_simulator/validation.md)。最终成绩仍由真实游戏验证。
+
+所有准备在游戏内执行的脚本，必须先通过本地模拟的正确性与效率验证。只有同条件下效率严格高于当前存档版本，才允许覆盖已有对应文件。功能初版按科技全解，Fastest Reset按原版重置条件；详细要求见[脚本验证与替换准入](docs/script-validation.md)，本轮功能脚本的来源、实际增长率与完整周期结果见[功能效率对照](docs/functional-validation.md)。
 
 ## 首次配置
 
@@ -61,7 +63,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
    ```
 
    限制样本数、移动数和命令时间。模型比较的是动作成本、完成率或命中率，不能把动作下界直接写成真实成绩。
-3. 完整目标的本地模拟预估时间不超过对应榜单当前公开 #1 的 1.5 倍，或用户明确指定实机运行该脚本后，才部署单个目标脚本及派生入口。完整准入规则见 [共用策略说明](docs/leaderboards/README.md#固定效率闭环)：
+3. 先满足[脚本验证与替换准入](docs/script-validation.md)，再检查打榜门槛：完整目标的本地模拟预估时间不超过对应榜单当前公开 #1 的 1.5 倍，或用户明确指定实机运行该脚本后，才部署单个目标脚本及派生入口。用户指定脚本只豁免#1倍数门槛。完整打榜规则见 [共用策略说明](docs/leaderboards/README.md#固定效率闭环)：
 
    ```bash
    python3 game_control/tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single

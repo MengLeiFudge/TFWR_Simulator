@@ -1,61 +1,54 @@
 # 功能脚本
 
-本目录保存直接在游戏内运行、持续获取目标资源的脚本。运行与文件同名的入口，例如打开 `rice.py` 直接执行，或在同目录脚本中调用 `rice.rice()`。除 `farm_support.py` 共用模块外，每个文件都提供持续入口和按绝对库存目标停止的 `collect(goal)`。
+本目录的初版以**科技全解、32×32农场、32台无人机**为运行前提，持续生产对应资源。Fastest Reset类脚本仍归排行榜目录，使用各自的重置初始条件。运行与文件同名的入口即可，例如打开 `rice.py` 执行。
 
-## 命名
+有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。只适配持续入口和普通地形的必要差异，保留成熟布局、并行方式和热路径。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)，本批来源和本地结果见[功能脚本效率记录](../../docs/functional-validation.md)。
 
-使用小写英文和下划线，保证文件名可直接用作游戏模块名。资源生产脚本直接按资源命名；需要区分机制时使用 `资源_机制.py`。
+## 脚本清单
 
-| 目标资源 | 脚本 | 生产方式与前置 |
+| 资源或机制 | 入口 | 算法来源 |
 | --- | --- | --- |
-| 干草 | [hay.py](hay.py) | 自然草地；无种植科技也可收草 |
-| 木材 | [wood.py](wood.py) | 早期灌木；解锁树后交错种植 |
-| 胡萝卜 | [carrot.py](carrot.py) | 自动补干草、木材种子成本 |
-| 南瓜 | [pumpkin.py](pumpkin.py) | 整田种植、补死株、成熟合并后收获 |
-| 仙人掌 | [cactus.py](cactus.py) | 补南瓜种子，行列排序后连锁收获 |
-| 骨头 | [bone_dinosaur.py](bone_dinosaur.py) | 补苹果所需资源，恐龙巡回后换帽结算 |
-| 怪异物质 | [weird_substance.py](weird_substance.py) | 肥料科技；感染成熟草后收获 |
-| 金币（迷宫） | [gold_maze.py](gold_maze.py) | 补怪异物质，DFS寻找每座新迷宫的宝藏 |
-| 能量（向日葵） | [power_sunflower.py](power_sunflower.py) | 补胡萝卜种子，花瓣从高到低收获 |
-| 水稻 | [rice.py](rice.py) | 稻米、挖掘、种植；逐柱两层粘土，按可用无人机分担 |
-| 竹子 | [bamboo.py](bamboo.py) | 补稻米种子；空通道切花后整株收获 |
-| 建材 | [block.py](block.py) | 挖掘；普通地层开采 |
-| 煤 | [coal.py](coal.py) | 煤、挖掘；稻米解锁后优先开采首区块 |
-| 铁 | [iron.py](iron.py) | 铁、挖掘；逐层开采，不依赖勘探消耗品 |
-| 石英 | [quartz.py](quartz.py) | 石英、挖掘；普通地形开采，不套排行榜固定深度 |
-| 蘑菇 | [mushroom.py](mushroom.py) | 蘑菇、挖掘、地下感知；按分区配对，层间回收子机 |
-| 炸药 | [dynamite.py](dynamite.py) | 炸药、挖掘、地下感知；数字传播、子集推理、按列开安全格 |
-| 金币（藏宝图） | [gold_treasure_map.py](gold_treasure_map.py) | 藏宝图、挖掘、地下感知；公开路线按层去环 |
-| 能量（金字塔） | [power_pyramids.py](power_pyramids.py) | 金字塔、挖掘、地下感知；定位同一座塔、逐层补缺、中心补尖 |
-| 南瓜（石化南瓜） | [pumpkin_petrified.py](pumpkin_petrified.py) | 石化南瓜、挖掘；直接开采地下南瓜 |
-| 水 | [water.py](water.py) | 等待浇水科技的被动补给，保留农田 |
-| 肥料 | [fertilizer.py](fertilizer.py) | 等待肥料科技的被动补给，保留农田 |
+| 干草 | [hay.py](hay.py) | `lb_hay.py`，32组双锚点伴生草 |
+| 木材 | [wood.py](wood.py) | `lb_wood.py`，32机区域伴生树 |
+| 胡萝卜 | [carrot.py](carrot.py) | `lb_carrots.py`，区域动态伴生请求 |
+| 南瓜 | [pumpkin.py](pumpkin.py) | `lb_pumpkins.py`，16个双机区域及成熟队列 |
+| 仙人掌 | [cactus.py](cactus.py) | `lb_cactus.py`，树形派发、铺田预交换和三格窗口排序 |
+| 恐龙产骨头 | [bone_dinosaur.py](bone_dinosaur.py) | `lb_dinosaur.py`，贪心前缀、安全桥接和后段捷径 |
+| 迷宫产金币 | [gold_maze.py](gold_maze.py) | `lb_maze.py`，32座独立小迷宫及增量路由 |
+| 向日葵产能量 | [power_sunflower.py](power_sunflower.py) | `lb_sunflowers.py`，16组双机分瓣收获与同步 |
+| 水稻 | [rice.py](rice.py) | 用户原 `Rice.py`，按列巡回采收、下挖、补种 |
+| 竹子 | [bamboo.py](bamboo.py) | 用户原 `Bamboo.py`，通道多株状态与到期轮转 |
+| 煤 | [coal.py](coal.py) | 用户原 `Coal.py`，分散探孔、发现煤后沿矿层扩展 |
+| 蘑菇 | [mushroom.py](mushroom.py) | 用户原 `Mushroom.py`，Jump、浅层爆破与分区配对 |
+| 炸药 | [dynamite.py](dynamite.py) | 用户原 `Dynamite.py`，Jump、协同找层及数字推理 |
+| 藏宝图产金币 | [gold_treasure_map.py](gold_treasure_map.py) | `lb_treasure_map.py`，按层去环，适配普通地形入口 |
+| 金字塔产能量 | [power_pyramids.py](power_pyramids.py) | `lb_pyramids.py`修补主体，普通田使用Jump和浅层爆破钻头 |
+| 建材 | [block.py](block.py) | `lb_ores.py`的按列并行沟挖，浅层爆破收集 |
+| 铁 | [iron.py](iron.py) | `lb_ores.py`的按列并行沟挖，Jump及全科技爆破 |
+| 石英 | [quartz.py](quartz.py) | `lb_ores.py`的按列并行沟挖，Jump及全科技爆破 |
+| 石化南瓜 | [pumpkin_petrified.py](pumpkin_petrified.py) | `lb_ores.py`的按列并行沟挖，Jump至石化层后爆破收集 |
+| 怪异物质 | [weird_substance.py](weird_substance.py) | `lb_fastest_reset.py`的并行伴生树苗圃 |
 
-## 运行约定
+水和肥料由游戏自动补给，不设生产脚本。`mining.py`集中矿石榜迁入的派工、沟挖和导航，不是独立生产入口。矿物的全科技爆破实现消耗炸药，未计入补做炸药的用时，材料净消耗见效率记录。
 
-- 用户运行入口后持续生产目标资源，不以排行榜目标库存为停止条件，不调用排行榜计时入口。
-- 入口函数与文件同名，直接执行文件即可调用入口。依赖、必要资源及解锁前提在脚本说明中列明。
-- 根据当前解锁、科技等级、可用地块和无人机数量选择可执行方式；低科技阶段采用可用方案，高科技阶段利用已解锁能力。不默认满科技、32×32 地图或 32 台无人机。
-- 对种植材料、消耗品和其他必需资源处理补给。机制本身未解锁且无可行替代，或缺少无法自产的前置资源时，明确说明条件后停止，不空转，也不调用尚未解锁的 API。
-- 脚本需要相应的语言与查询功能：函数、导入、变量、循环、列表/字典、感知、成本查询与自动解锁查询。科技适配指当前已具备脚本执行能力后的资源科技等级、地图及无人机配置；机制未解锁时停止。
-- 竹子需要相邻通道格，恐龙需要至少两个相连格，炸药需要至少2×2正方形，金字塔需要至少5×5。一般开采在没有地下感知时只按公开地面避开基岩，有地下感知后按高度/硬度跳过已塌落地块。
-- 地表种植、稻米、竹子、一般开采、蘑菇和炸药按可用无人机分工；其他机制使用主机。地形重生和补料会调用 `clear()`，请在可以重新整理农田时启动。水与肥料入口只等待补给。
-- 本批新实现完成游戏语法静态编译、依赖检查和代码自审；各科技组合的模拟产量、净吞吐与实机行为尚未验证。能量会被普通动作消耗，收益取决于实际科技和产能，不能把毛产量当净增长。
+## 运行与依赖
 
-## 本地模拟
+- 资源生产持续运行，直到用户停止、原算法检测到材料不足或出现动作错误。种子、肥料、怪异物质、煤/铁勘探消耗品以及爆破所需炸药，须按所选机制准备；不要用无成本资源假设估算实际净收益。
+- 多机榜的固定资源目标改为持续生产条件；完整周期型算法在正常结算并回收子机后继续下一轮。原功能脚本保留其Jump、布局、等待、钻头和进度日志。
+- 多数入口会整理或重生农田，运行前确认当前农田可被清理。Jump每次执行只能使用一次，后续循环按原算法继续或重生。
+- 金字塔只同时修一座，底层就绪后再补高层，主机在中心放最后顶块。爆破钻头只用于远离塔区的浅覆盖层，接近塔区前换回采矿帽；结果须以实际模拟记录为准。
+- `block.py`、`iron.py`、`quartz.py`、`pumpkin_petrified.py`需要同目录的 `mining.py`。其余入口独立保存对应成熟算法，运行时不导入 `lb_*.py`。
+
+MIT来源的木材、胡萝卜、南瓜和恐龙脚本保留作者声明及 [enihsyou_LICENSE.txt](enihsyou_LICENSE.txt)。迷宫上游来源和本地使用边界见[迷宫策略文档](../../docs/leaderboards/lb_maze.md)。
+
+## 本地效率对照
 
 ```bash
-python3 -m simulator.local_simulator scripts/functional/carrot.py --preset reset --unlock Plant=1 --unlock Carrots=1 --unlock Expand=1 --max-api-calls 20000 --timeout 10
-python3 -m simulator.local_simulator scripts/functional/rice.py --preset all --unlock Mining=3 --unlock Megafarm=0 --timeout 10
-python3 -m simulator.local_simulator scripts/functional/mushroom.py --save gamesave/save.json --timeout 10
+python3 -m simulator.local_simulator scripts/functional/bamboo.py --preset all --scenario scenario.json --timeout 30 --max-api-calls 5000000 --max-steps 50000000 --output result.json
 ```
 
-持续入口按模拟器的API/检查点/墙钟预算停止，`status=stopped` 可能表示正常触及执行上限；应同时查看库存、输出和具体错误。需要有限目标时，在同目录入口中调用对应模块的 `collect(goal)`；场景的 `goal` 只记录达标状态，不会自动停止持续脚本。科技选项与覆盖顺序见[模拟器说明](../../simulator/local_simulator/README.md#科技与初始库存)。
+`scenario.json`必须明确初始库存；比较双方使用相同科技、地图、库存和seed。连续产出先给有限现实预算，直接读取报告 `efficiency.items.资源名.net_change` 和 `net_per_game_second`，按实际游戏时间评价。现实预算到即停止，无须凑满600游戏秒；`--game-seconds 600`仅在需要固定展示窗口时使用，未跑满就保留实际时间，不填写成600秒产量。
 
-## 依赖与来源
+恐龙等批量结算机制必须跑完至少一个完整周期，收益以实际入库为准；未结算时不把0当作周期效率。持续脚本可通过本地有限入口调用原有完整生产周期，保留算法与依赖哈希，不在真实存档新增入口。材料消耗、首次Jump、初始化及后续周期都要记录。
 
-运行时保留本目录的模块名，尤其是 `farm_support.py`。胡萝卜、南瓜、仙人掌、骨头、竹子、迷宫和金字塔的补料可能继续导入其他功能模块，不能只复制单个入口而省去补给依赖。脚本不导入 `lb_*.py`。
-
-稻米、竹子与煤参考本机已有功能脚本和对应排行榜/重置策略；蘑菇的分层配对、炸药的数字推理主体来自本机 `Mushroom.py` / `Dynamite.py`。藏宝图去环和金字塔几何补缺参考仓库已记录的排行榜实现，再适配普通地形与持续入口。排行榜本身的研究与实测证据仍归 [docs/leaderboards](../../docs/leaderboards/README.md)。
-
-部署遵守仓库的真实存档边界。现有 `sync_leaderboard_scripts.py` 只处理排行榜脚本；本次只补齐仓库文件，未同步或新增真实存档文件。
+只有通过本地正确性和效率对照、且效率严格高于当前存档对应版本时，才允许覆盖该文件。同效迁入、批量尚未结算、错误或对照不足都保留当前存档。运行前确认4个矿物入口所需的 `mining.py`已在同目录；检查[游戏语言静态规则](../../simulator/local_simulator/syntax-validation.md)，语法不合格的模型产量不能作为替换依据。

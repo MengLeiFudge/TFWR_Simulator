@@ -1,63 +1,172 @@
 from __builtins__ import *
-import farm_support
-
+# 全科技功能初版；来源 lb_cactus.py，本地对照见docs/functional-validation.md。
 
 def cactus():
-    # 持续完成整田排序与连锁收获，种子南瓜不足时先补给。
-    farm_support.run(Items.Cactus, collect)
+    while True:
+        dispatch_lines(0, max_drone_num, False)
+        dispatch_lines(0, max_drone_num, True)
+        goto(0, size - 1)
+        harvest()
 
 
-def collect(goal):
-    # 相邻交换的行列插入排序不依赖固定尺寸和无人机数量。
-    if not farm_support.require(Unlocks.Cactus):
-        return False
-    width, size = farm_support.dimensions()
-    while num_items(Items.Cactus) < goal:
-        if not farm_support.seeds(Entities.Cactus, width * size):
-            return False
-        clear()
-        for x in range(width):
-            for y in range(size):
-                if not farm_support.move_to(x, y):
-                    return False
-                if get_entity_type() != None:
-                    harvest()
-                if get_ground_type() != Grounds.Soil:
-                    till()
-                if not plant(Entities.Cactus):
-                    return False
-        if not sort_all(width, size):
-            return False
-        for x in range(width):
-            for y in range(size):
-                if not farm_support.move_to(x, y) or not farm_support.mature(Entities.Cactus):
-                    return False
-        if not harvest():
-            return False
-    return True
+def dispatch_lines(first, count, columns):
+    # 每个分发者也处理一条线；最多31次spawn，子树结束后才返回。
+    handles = []
+    while count > 1:
+        left = count // 2
+        handle = spawn_drone(dispatch_lines, first + left, count - left, columns)
+        if handle == None:
+            # 容量意外不足时按同一分区顺序执行，不丢弃任务。
+            dispatch_lines(first + left, count - left, columns)
+        else:
+            handles.append(handle)
+        count = left
+    index = size - 1 - first
+    if columns:
+        goto(index, 0)
+        sort_one_way()
+    else:
+        goto(0, index)
+        plant_and_sort_x()
+    for handle in handles:
+        wait_for(handle)
 
 
-def sort_all(width, size):
-    # 每行向东非降序，再每列向北非降序；纵向排序保持各行已有顺序。
-    for y in range(size):
-        for x in range(1, width):
-            if not farm_support.move_to(x, y):
-                return False
-            position = x
-            while position > 0 and measure(West) > measure():  # ty: ignore[unsupported-operator]  已种仙人掌的measure为整数。
-                if not swap(West) or not move(West):
-                    return False
-                position -= 1
-    for x in range(width):
-        for y in range(1, size):
-            if not farm_support.move_to(x, y):
-                return False
-            position = y
-            while position > 0 and measure(South) > measure():  # ty: ignore[unsupported-operator]  已种仙人掌的measure为整数。
-                if not swap(South) or not move(South):
-                    return False
-                position -= 1
-    return True
+size = get_world_size()
+max_drone_num = min(max_drones(), size)
+
+
+def goto(tx, ty):
+    size = get_world_size()
+    half_size = size // 2
+    x, y = get_pos_x(), get_pos_y()
+    # x方向
+    dx = (tx - x) % size
+    if dx <= half_size:
+        for _ in range(dx):
+            move(East)
+    else:
+        for _ in range(size - dx):
+            move(West)
+    # y方向
+    dy = (ty - y) % size
+    if dy <= half_size:
+        for _ in range(dy):
+            move(North)
+    else:
+        for _ in range(size - dy):
+            move(South)
+
+
+def plant_and_sort_x():
+    # plant each row
+    for _ in range(size):  # x
+        entity = get_entity_type()
+        if entity == None or entity == Entities.Grass:
+            if get_ground_type() != Grounds.Soil:
+                till()
+            plant(Entities.Cactus)
+        # 利用本行铺田的既有访问先消除左邻逆序。
+        if get_pos_x() > 0 and measure(West) > measure():
+            swap(West)
+        move(East)
+    # sort x
+    sort_one_way("x")
+
+
+def sort_one_way(dir="y"):
+    if dir == "x":
+        forward = East
+        backward = West
+
+        def move_to(tx):
+            x = get_pos_x()
+            dx = (tx - x) % size
+            if dx <= size // 2:
+                for _ in range(dx):
+                    move(East)
+            else:
+                for _ in range(size - dx):
+                    move(West)
+
+    else:
+        forward = North
+        backward = South
+
+        def move_to(ty):
+            y = get_pos_y()
+            dy = (ty - y) % size
+            if dy <= size // 2:
+                for _ in range(dy):
+                    move(North)
+            else:
+                for _ in range(size - dy):
+                    move(South)
+
+    bound_low = 0
+    bound_high = size - 1
+    while True:
+        # move forward
+        swap_pos_last = -1
+        move_to(bound_low)
+        i = bound_low
+        while i < bound_high - 1:
+            move(forward)
+            i += 1
+            # sort window 3
+            a = measure(backward)
+            b = measure()
+            c = measure(forward)
+            if a > b:
+                swap(backward)
+                swap_pos_last = max(swap_pos_last, i)
+                a, b = b, a
+            if b > c:
+                swap(forward)
+                swap_pos_last = max(swap_pos_last, i + 1)
+                b, c = c, b
+                if a > b:
+                    swap(backward)
+        if swap_pos_last == -1:  # no update
+            break
+        bound_high = swap_pos_last - 2
+        if bound_low >= bound_high:
+            break
+
+        # move backward
+        swap_pos_first = size
+        move_to(bound_high)
+        i = bound_high
+        while i > bound_low + 1:
+            move(backward)
+            i -= 1
+            # sort window 3
+            a = measure(backward)
+            b = measure()
+            c = measure(forward)
+            if b > c:
+                swap(forward)
+                swap_pos_first = min(swap_pos_first, i)
+                b, c = c, b
+            if a > b:
+                swap(backward)
+                swap_pos_first = min(swap_pos_first, i - 1)
+                a, b = b, a
+                if b > c:
+                    swap(forward)
+        if swap_pos_first == size:  # no update
+            break
+        bound_low = swap_pos_first + 2
+        if bound_low >= bound_high:
+            break
+
+    if bound_low + 1 == bound_high:
+        move_to(bound_low)
+        # sort window 2
+        a = measure()
+        b = measure(forward)
+        if a > b:
+            swap(forward)
 
 
 if __name__ == "__main__":

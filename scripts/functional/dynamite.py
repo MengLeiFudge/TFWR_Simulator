@@ -1,75 +1,106 @@
 from __builtins__ import *
-import farm_support
 
-# 约束传播、子集推理与按列开安全格来自Save0/Dynamite.py。
+
+# 持续向下采集：主机合并全图公开数字，子机按列开安全格；每盘独立重建缓存。
 UNKNOWN = -2
 MINE = -1
 SAFE = -3
+# 沿用地下策略的有限搜层、猜测与批次预算；耗尽搜层预算时报错，求解预算耗尽则结算。
 DIG_LIMIT = 2048
 GUESS_LIMIT = 32
 BATCH_LIMIT = 2048
 SUBSET_LIMIT = 4096
 
 
-def dynamite():
-    # 正常结算每盘后继续下挖；不要求Jump或固定科技等级。
-    farm_support.run(Items.Dynamite, collect)
-
-
-def collect(goal):
-    # 普通扫雷需要正方形地图，使用公开数字推理并允许正常猜测风险。
-    if not farm_support.require(Unlocks.Dynamite) or not farm_support.require(Unlocks.Mining):
-        return False
-    if not farm_support.require(Unlocks.Underground_Senses):
-        return False
-    width, size = farm_support.dimensions()
-    if width != size or size < 2:
-        quick_print("炸药采集需要至少2×2的正方形农场。")
-        return False
-    clear()
+# 默认连续运行；有限盘数用于本地模型比较，不改变每盘策略。
+def dynamite(round_limit=0):
+    started = get_time()
+    size = get_world_size()
+    if size < 4:
+        quick_print("炸药采集需要至少 4×4 的农场。")
+        return
+    if num_unlocked(Unlocks.Dynamite) < 1 or num_unlocked(Unlocks.Jump) < 1:
+        quick_print("请先解锁炸药和 Jump。")
+        return
+    if num_drones() != 1:
+        quick_print("请在其他无人机结束后启动。")
+        return
     adjacent = []
     for cell in range(size * size):
         adjacent.append(neighbors(cell, size))
-    empty = 0
-    while num_items(Items.Dynamite) < goal:
+
+    initial = num_items(Items.Dynamite)
+    change_hat(Hats.Mining_Hat)
+    # jump每次执行只能用一次；后续沿当前地层下挖，不clear回地表。
+    jump(Unlocks.Dynamite)
+    cycle = 0
+    while round_limit == 0 or cycle < round_limit:
+        began = get_time()
         before = num_items(Items.Dynamite)
         if not move_to(size // 2, size // 2, size) or not find_stratum():
-            quick_print("找不到下一可达炸药层，停止。")
-            return False
+            quick_print("炸药采集停止：无法到达下一炸药层。", "深度", get_pos_z())
+            return
         depth = get_pos_z()
+        # 找层工人可能已开入口；煤灰上的数字属于上一格的炸药层。
         if get_ground_type() == Grounds.Soot:
             depth += 1
+        prepared = get_time()
         status, number = open_ground(depth)
+        guesses = 0
         if status == "number":
             status, guesses = solve(size, depth, adjacent, number)
+        # 猜中雷或主动结束时，全部工人已回收；只结算仍有数字表的当前盘。
         if status == "settle" or status == "mine":
             status = settle(size, depth)
+        cycle += 1
+        now = get_time()
+        gained = num_items(Items.Dynamite) - before
+        total = num_items(Items.Dynamite) - initial
+        quick_print("炸药第", cycle, "盘：", status, "深度", depth,
+                    "获得", gained, "准备秒", prepared - began,
+                    "求解秒", now - prepared, "猜测", guesses,
+                    "累计", total, "累计秒", now - started, "每秒", total / (now - started))
         if status != "ended":
-            quick_print("炸药地层或求解异常，已回收子机：", status)
-            return False
-        if num_items(Items.Dynamite) > before:
-            empty = 0
-        else:
-            empty += 1
-            if empty >= 8:
-                quick_print("连续八盘没有炸药收益，停止。")
-                return False
-    return True
+            quick_print("炸药采集停止：地层、动作或数字异常，全部子机已回收。")
+            return
 
 
+# 多机在同一入口下挖；回收全部工人后才开始解盘。
 def find_stratum():
-    # 入口由主机独占，避免无人机不足时按槽位轮转的挖掘协议悬空等待。
-    for _ in range(DIG_LIMIT):
-        ground = get_ground_type()
-        if ground == Grounds.Dynamite:
+    if get_ground_type() == Grounds.Dynamite:
+        return True
+    if get_ground_type() == Grounds.Soot:
+        if measure() != None:
             return True
-        if ground == Grounds.Soot and measure() != None:
-            return True
-        if get_hardness() >= 10000000 or not dig():
+        # 上一盘全部挖完时仍留下煤灰，由主机先清掉再派找层工人。
+        if not dig():
             return False
-    return False
+    count = max_drones()
+    limit_z = get_pos_z() - DIG_LIMIT
+    handles = []
+    for slot in range(1, count):
+        handles.append(spawn_drone(dig_to_stratum, slot, count, limit_z))
+    dig_to_stratum(0, count, limit_z)
+    for handle in handles:
+        wait_for(handle)
+    return get_ground_type() == Grounds.Dynamite
 
 
+# 深度唯一决定下刀工人；其余工人不改地形，检查与下刀之间不会被抢挖。
+def dig_to_stratum(slot, count, limit_z):
+    while True:
+        z = get_pos_z()
+        ground = get_ground_type()
+        if ground == Grounds.Dynamite or ground == Grounds.Soot:
+            return
+        if z <= limit_z or get_hardness() >= 10000000:
+            return
+        if (-z) % count == slot:
+            if not dig():
+                return
+
+
+# 数字只在同一盘内有效；低于Soot底面或数字表消失均表示该盘已结束。
 def read_ground(depth):
     z = get_pos_z()
     if z >= depth:
@@ -88,6 +119,9 @@ def read_ground(depth):
         return "error", None
     return "number", number
 
+
+# 只准备实际要开的柱；零扩展可自动清掉其他柱的覆盖层。
+# 调用者持有该列唯一开挖权；猜测只在所有子机回收后由主机执行。
 def open_ground(depth):
     for _ in range(DIG_LIMIT):
         if get_pos_z() <= depth:
@@ -102,6 +136,8 @@ def open_ground(depth):
             return "error", None
     return read_ground(depth)
 
+
+# 首挖点必已揭开；只挖仍有有效数字的Soot一次，兑现当前盘收益后继续下层。
 def settle(size, depth):
     if not move_to(size // 2, size // 2, size):
         return "error"
@@ -115,6 +151,8 @@ def settle(size, depth):
         return "error"
     return status
 
+
+# 主机统一推理，避免相邻分区反复交接；实际数字、确定雷和安全格分别缓存。
 def solve(size, depth, adjacent, first_number):
     known = []
     for _ in range(size * size):
@@ -165,6 +203,8 @@ def solve(size, depth, adjacent, first_number):
         facts = {choice: number}
     return "settle", guesses
 
+
+# 每次状态改变只唤醒相邻数字；队列收敛后所有剩余约束来自同一最新快照。
 def propagate(known, active, adjacent):
     pending = []
     queued = set()
@@ -204,6 +244,9 @@ def propagate(known, active, adjacent):
                     queued.add(other)
     return constraints
 
+
+# 只有共享未知格的数字才可能有非空子集关系；省掉全图无关约束两两比较。
+# 一旦确定新格便返回，调用者先传播新状态，不能继续使用旧约束猜测。
 def infer_subset(known, constraints, adjacent):
     checked = 0
     for first in constraints:
@@ -245,6 +288,8 @@ def infer_subset(known, constraints, adjacent):
                 return "changed"
     return "unchanged"
 
+
+# 风险启发式只选择猜测位置，不作为安全证明；与多机榜保持相同风险口径。
 def choose_guess(known, constraints):
     risks = {}
     for clue in constraints:
@@ -266,6 +311,9 @@ def choose_guess(known, constraints):
             least = risk
     return best
 
+
+# 每个工人只接收本列安全格，不复制全图棋盘；容量不足时主机顺序处理剩余列。
+# 所有wait完成后才合并事实、猜测、结算或寻找下一层。
 def run_columns(size, depth, known):
     handles = []
     results = []
@@ -277,7 +325,7 @@ def run_columns(size, depth, known):
                 targets.append(cell)
         if len(targets) == 0:
             continue
-        if farm_support.capacity() > 1 and num_drones() < farm_support.capacity():
+        if num_drones() < max_drones():
             handle = spawn_drone(work_column, targets, size, depth)
             if handle != None:
                 handles.append(handle)
@@ -304,6 +352,8 @@ def run_columns(size, depth, known):
             facts[cell] = result[1][cell]
     return status, facts
 
+
+# 按y顺序把开挖与读数合为一趟；已知数字和已确定雷均不回访。
 def work_column(targets, size, depth):
     facts = {}
     for cell in targets:
@@ -316,6 +366,8 @@ def work_column(targets, size, depth):
             return status, facts
     return "running", facts
 
+
+# 雷数八邻域不环绕；移动路径可以利用农场边界环绕。
 def neighbors(cell, size):
     x = cell % size
     y = cell // size
@@ -338,6 +390,8 @@ def neighbors(cell, size):
             result.append(cell + size + 1)
     return result
 
+
+# 两轴均走环绕最短路，每次移动保留失败检查。
 def move_to(tx, ty, size):
     dx = (tx - get_pos_x()) % size
     dy = (ty - get_pos_y()) % size
