@@ -1,0 +1,11 @@
+# 参考资料
+
+本目录保存可追溯的来源事实。引用时保留游戏版本、来源和获取时间；策略解释与验证结论写入 [docs](../docs/README.md) 或所属模块的文档。
+
+| 位置 | 内容 |
+| --- | --- |
+| `DecompiledSource/` | 游戏反编译源码及 `source-manifest.json` 来源清单 |
+| [unlocks/](unlocks/README.md) | 科技前置、成本和解锁事实快照 |
+| [leaderboards/leaderboard_cache.json](leaderboards/leaderboard_cache.json) | 公开排行榜来源、抓取时间和成绩缓存 |
+
+排行榜可执行脚本位于 [scripts/leaderboard](../scripts/leaderboard/README.md)，策略记录和生成的成绩比较报告位于 [docs/leaderboards](../docs/leaderboards/README.md)。模拟器执行所依赖的资源表随 `simulator/local_simulator/` 保存，避免执行模型依赖研究文档。

@@ -1,23 +1,29 @@
-# TFWR Oracle Workflow Workspace
+# TFWR 脚本与模拟工具
 
-工作流是：本地模型粗筛策略 → 真实游戏验证候选 → 按完整轮成绩更新策略记录。优先推进预期收益明确、成功把握高且实现与验证成本合理的方向。排行榜只作参考，阶段目标依据当前合规基线动态调整；#10 不保证常规或可达，也不是候选准入线。模拟器按同脚本、初始条件与单seed对齐执行和计时，记录误差与覆盖范围，具体见 [模拟精度与验收](mechanism_model/README.md#模拟精度与验收)。模型结果和轮内 ETA 都是预测，排名结论以真实游戏结算为准。
+本项目包含无需启动游戏的本地模拟器、连接真实游戏的控制工具与模组，以及功能脚本和排行榜脚本。本地模拟是脚本的主要验证方式；覆盖范围与误差须按具体机制确认。
+
+工作流是：本地模型粗筛策略 → 真实游戏验证候选 → 按完整轮成绩更新策略记录。优先推进预期收益明确、成功把握高且实现与验证成本合理的方向。排行榜只作参考，阶段目标依据当前合规基线动态调整；#10 不保证常规或可达，也不是候选准入线。模拟器按同脚本、初始条件与单seed对齐执行和计时，记录误差与覆盖范围，具体见 [模拟精度与验收](simulator/README.md#模拟精度与验收)。模型结果和轮内 ETA 都是预测，排名结论以真实游戏结算为准。
 
 ## 仓库分工
 
 | 目录 | 职责 |
 | --- | --- |
-| `mechanism_model/` | 本地农场API脚本模拟；C#的Dinosaur、Cactus、Companion动作模型和随机序列对照 |
-| `references/leaderboard_scripts/` | `lb_*.py` 策略真源，同名 `.md` 保存研究过程和实测证据 |
-| `tfwr_orchestrator/` | Python 路径配置、脚本部署、请求控制、结果采集和公开排行榜缓存 |
-| `oracle_runner_mod/` | BepInEx 模组，在真实游戏内执行脚本、记录完成轮和资源快照 |
-| `references/unlocks/` | 游戏科技前置、成本和解锁事实表 |
+| [simulator/](simulator/README.md) | 无需启动游戏的脚本模拟器，以及简化动作模型 |
+| [game_control/](game_control/README.md) | 路径配置、脚本部署、请求控制、结果采集和公开排行榜缓存 |
+| [game_mod/](game_mod/README.md) | BepInEx 模组，接收指令并在游戏内运行脚本 |
+| [scripts/functional/](scripts/functional/README.md) | 适配科技进度、持续生产资源的功能脚本；目前已建立约定，尚无实现 |
+| [scripts/leaderboard/](scripts/leaderboard/README.md) | `lb_*.py` 排行榜脚本真源 |
+| [references/](references/README.md) | 游戏源码、资源与科技快照、公开成绩缓存等参考事实 |
+| [docs/](docs/README.md) | 项目架构、共用研究方法、各榜策略与验证记录 |
 | `gamesave/` | 指向本机真实 Save0 的链接，只是部署目标，不进 Git |
 
-本地模拟通过CLI手动运行，尚未自动接在部署命令前。[脚本模拟入口](mechanism_model/local_simulator/README.md) 读取游戏脚本，输出预计游戏时间、库存和轨迹。目标是单seed执行与时间对齐，验收门槛见[模拟精度与验收](mechanism_model/README.md#模拟精度与验收)。约900游戏秒场景的通过记录对应旧版；新版已按源码迁移机制，尚待实机精度验收，见[更新影响](mechanism_model/local_simulator/game-update-26385848.md)和[验收记录](mechanism_model/local_simulator/validation.md)。最终成绩仍由真实游戏验证。
+本地模拟通过CLI手动运行，尚未自动接在部署命令前。[脚本模拟入口](simulator/local_simulator/README.md) 读取游戏脚本，输出预计游戏时间、库存和轨迹。目标是单seed执行与时间对齐，验收门槛见[模拟精度与验收](simulator/README.md#模拟精度与验收)。约900游戏秒场景的通过记录对应旧版；新版已按源码迁移机制，尚待实机精度验收，见[更新影响](simulator/local_simulator/game-update-26385848.md)和[验收记录](simulator/local_simulator/validation.md)。最终成绩仍由真实游戏验证。
 
 ## 首次配置
 
-需要 Python 3.11+、游戏、可打榜的真实存档，以及 BepInEx 5 Mono。R2 对应依赖为 `BepInEx-BepInExPack-5.4.2305`。构建模组需要 Windows .NET SDK；动作模型使用 .NET 10。
+本地 Python 模拟仅需 Python 3.11+，无需打开游戏或配置真实存档。运行方式见 [模拟器说明](simulator/README.md)。C# 动作模型使用 .NET 10。
+
+以下配置用于真实游戏执行：需要游戏、真实存档和 BepInEx 5 Mono；排行榜任务还需要存档已解锁对应榜单。R2 对应依赖为 `BepInEx-BepInExPack-5.4.2305`。构建模组需要 Windows .NET SDK。
 
 从 `.env.example` 复制一份 `.env`，填写本机路径：
 
@@ -29,50 +35,50 @@ TFWR_BEPINEX_ROOT=C:\Users\YourName\AppData\Roaming\r2modmanPlus-local\TheFarmer
 
 `TFWR_BEPINEX_ROOT` 指向实际 profile 的 BepInEx 目录；手动安装可留空，回退到游戏目录下的 BepInEx。环境变量优先于 `.env`；WSL 支持上述 Windows 路径。
 
-在 R2 安装 `MengLei / TFWR_Oracle_Runner`，通过所选 profile 启动游戏。客户端在 R2 模式只连接已启动的游戏；支持协议2的模组提供 `--action prepare` 准备工作区、`--action quit` 保存并退出，脚本请求也会自动进入工作区。构建、配置和手动安装见 [模组说明](oracle_runner_mod/README.md)。
+在 R2 安装 `MengLei / TFWR_Oracle_Runner`，通过所选 profile 启动游戏。客户端在 R2 模式只连接已启动的游戏；支持协议2的模组提供 `--action prepare` 准备工作区、`--action quit` 保存并退出，脚本请求也会自动进入工作区。构建、配置和手动安装见 [模组说明](game_mod/README.md)。
 
 ```bash
-python3 tfwr_orchestrator/tools/refresh_gamesave_link.py
-python3 tfwr_orchestrator/tools/run_real_game_script.py --status-only
+python3 game_control/tools/refresh_gamesave_link.py
+python3 game_control/tools/run_real_game_script.py --status-only
 ```
 
 确认 `gamesave/` 指向正确 Save0，状态文件位于所选 profile，模组已加载。真实存档只能覆盖已有文件，不能通过部署新增或删除文件；临时验证覆盖前备份，验证后恢复。
 
 ## 日常优化流程
 
-1. 阅读 [共用策略说明](references/leaderboard_scripts/README.md) 和目标榜单的同名 `.md`。刷新公开榜单，结合 [成绩与提升空间](references/leaderboard_scripts/leaderboard_targets.md)、当前瓶颈和可用算法选择研究对象；用同版本基线和阶段目标反推动作预算：
+1. 阅读 [共用策略说明](docs/leaderboards/README.md) 和目标榜单的同名 `.md`。先列出策略方向并按机制淘汰，再估算完整成本。仅刷新当前研究榜单的公开成绩，结合前排分布、当前瓶颈和可用算法制定预算；现有批量缓存工具不支持指定榜单时，单独查询该榜并保存来源和抓取时间。已有缓存的报告可离线重算：
 
    ```bash
-   python3 tfwr_orchestrator/tools/refresh_leaderboard_cache.py
+   python3 game_control/tools/refresh_leaderboard_cache.py --offline
    ```
 
-   默认批量读取每榜前 100 名，报告展示 #1/#10/#30/#100、仓库复跑参考和大致位置。仅重算已有缓存用 `--offline`；代理和 Windows/WSL 用法见 [排行榜缓存](tfwr_orchestrator/README.md#排行榜缓存)。
-2. 先用 [本地模型](mechanism_model/README.md) 筛选，例如：
+   默认批量读取每榜前 100 名，报告展示 #1/#10/#30/#100、仓库复跑参考和大致位置。仅重算已有缓存用 `--offline`；代理和 Windows/WSL 用法见 [排行榜缓存](game_control/README.md#排行榜缓存)。
+2. 先用 [本地模型](simulator/README.md) 筛选，例如：
 
    ```bash
-   python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cactus_single.py --seed 1
-   dotnet run --project mechanism_model/TFWRMechanismModel.csproj -- cactus --size 32 --samples 100
+   python3 -m simulator.local_simulator scripts/leaderboard/lb_cactus_single.py --seed 1
+   dotnet run --project simulator/TFWRMechanismModel.csproj -- cactus --size 32 --samples 100
    ```
 
    限制样本数、移动数和命令时间。模型比较的是动作成本、完成率或命中率，不能把动作下界直接写成真实成绩。
-3. 候选接近预算后，部署单个目标脚本及派生入口：
+3. 完整目标的本地模拟预估时间不超过对应榜单当前公开 #1 的 1.5 倍，或用户明确指定实机运行该脚本后，才部署单个目标脚本及派生入口。完整准入规则见 [共用策略说明](docs/leaderboards/README.md#固定效率闭环)：
 
    ```bash
-   python3 tfwr_orchestrator/tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single
-   python3 tfwr_orchestrator/tools/run_real_game_script.py --target-script lb_start --request-timeout 60
+   python3 game_control/tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single
+   python3 game_control/tools/run_real_game_script.py --target-script lb_start --request-timeout 60
    ```
 
    默认在至少两轮且最近两轮差异不超过 10% 后停止，适合方向筛选。确认接近候选谁更快时增加轮数；`--max-leaderboard-runs 0` 允许完整统计，另设足够的请求超时。完整统计累计约 **7200 游戏秒**，不是固定等待现实两小时。
 4. 运行中查看资源百分比和预测，首轮结束后看完成轮均值：
 
    ```bash
-   python3 tfwr_orchestrator/tools/run_real_game_script.py --status-only --status-lines 20
+   python3 game_control/tools/run_real_game_script.py --status-only --status-lines 20
    ```
 
    `estimated_total_game_seconds` 是本轮预计总游戏时间；`eta_game_seconds` 是预计剩余时间。应以前者比较同版本基线和阶段目标，公开排名时间仅供参考。库存线性增长才能估算；Cactus/Dinosaur 等批量结算前可能长期 0%，需结合阶段日志，不能直接判为卡住。Fastest Reset 不使用资源比例估算。
-5. 把预测、实测轮数/均值/波动、失败原因和下一步写回同名 `.md`；[Cactus 记录样本](references/leaderboard_scripts/lb_cactus.md#2026-10-22-研究记录样本) 展示完整口径。`.py` 只保留当前确认最快的实现。
+5. 把预测、实测轮数/均值/波动、失败原因和下一步写回同名 `.md`；[Cactus 记录样本](docs/leaderboards/lb_cactus.md#2026-10-22-研究记录样本) 展示完整口径。`.py` 只保留当前确认最快的实现。
 
-`--request-only` 只投递请求，默认拒绝覆盖活动请求；明确替换须加 `--replace`，终态须先回收；它不负责持续监测或自动回收终态。长流程使用它时必须自行监看日志、按请求 ID 停止和确认终态，接口见 [协调器说明](tfwr_orchestrator/README.md)。常规等待命令会在超时或中断时请求停止当前任务。
+`--request-only` 只投递请求，默认拒绝覆盖活动请求；明确替换须加 `--replace`，终态须先回收；它不负责持续监测或自动回收终态。长流程使用它时必须自行监看日志、按请求 ID 停止和确认终态，接口见 [协调器说明](game_control/README.md)。常规等待命令会在超时或中断时请求停止当前任务。
 
 ## 三份输出
 
@@ -86,10 +92,11 @@ python3 tfwr_orchestrator/tools/run_real_game_script.py --status-only
 
 ## 开发入口
 
-- [Python 协调器](tfwr_orchestrator/README.md)：CLI、文件锁、取消与输出采集。
-- [模组](oracle_runner_mod/README.md)：Windows 构建、R2 安装和协议。
-- [动作模型](mechanism_model/README.md)：有界筛选命令及机制边界。
-- `tfwr_orchestrator/tools/refresh_decompiled_sources.py --help`：刷新反编译事实源。
-- `tfwr_orchestrator/tools/extract_unlock_snapshot.py --help`：提取科技事实表。
+- [项目结构与边界](docs/architecture.md)：各模块职责、脚本分类和数据流。
+- [Python 游戏控制](game_control/README.md)：CLI、文件锁、取消与输出采集。
+- [模组](game_mod/README.md)：Windows 构建、R2 安装和协议。
+- [动作模型](simulator/README.md)：有界筛选命令及机制边界。
+- `game_control/tools/refresh_decompiled_sources.py --help`：刷新反编译事实源。
+- `game_control/tools/extract_unlock_snapshot.py --help`：提取科技事实表。
 
 代理执行边界集中在 [AGENTS.md](AGENTS.md)。

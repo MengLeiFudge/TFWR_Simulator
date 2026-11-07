@@ -2,21 +2,21 @@
 
 ## 目标与事实源
 
-1. 主线是“本地模型筛选 → 真实游戏验证 → leaderboard 优化”。优先推进当前最有把握取得实际改善的方向，综合预期收益、证据可信度与实现/验证成本。排行榜只作参考；#10 不保证符合常规机制或可达，阶段目标随当前合规基线和新证据调整。只按游戏预期机制优化，不利用漏洞（包括在结算窗口内重复收取同一迷宫宝藏），不以异常前排成绩反推必须采用的策略。模型与轮内 ETA 只代表预期，不能当作实测成绩或排名。Python脚本模拟器按单个seed、同脚本与初始条件尽量复刻游戏；时间精度门槛与覆盖口径见mechanism_model/README.md“模拟精度与验收”，未经新鲜对照不能声称通过。误差和未覆盖机制必须明示。
+1. 主线是“本地模型筛选 → 真实游戏验证 → leaderboard 优化”。优先推进当前最有把握取得实际改善的方向，综合预期收益、证据可信度与实现/验证成本。排行榜只作参考；#10 不保证符合常规机制或可达，阶段目标随当前合规基线和新证据调整。只按游戏预期机制优化，不利用漏洞（包括在结算窗口内重复收取同一迷宫宝藏），不以异常前排成绩反推必须采用的策略。模型与轮内 ETA 只代表预期，不能当作实测成绩或排名。Python脚本模拟器按单个seed、同脚本与初始条件尽量复刻游戏；时间精度门槛与覆盖口径见simulator/README.md“模拟精度与验收”，未经新鲜对照不能声称通过。误差和未覆盖机制必须明示。
 2. 真实游戏结果优先，其后是 `output.txt`、BepInEx `LogOutput.log`、真实 `Save0/__builtins__.py` / 部署入口，最后才是仓库推断。Unity `Player.log` 用于核对引擎错误。冲突时修认知或工具，不覆盖真实结果。
-3. `references/leaderboard_scripts/lb_*.py` 及同名 `.md` 是策略真源；`gamesave/` 只是本机 Save0 链接。存档 `lb_start.py` 是部署生成物；仓库同名文件另作历史成绩索引。旧 `src/gamesimulator/` 不再是实现入口。
-4. 使用说明见根 `README.md`；共用优化方法见 `references/leaderboard_scripts/README.md`，之后读对应榜单 `.md`。本文件只保存代理边界，不重复安装步骤。
+3. `scripts/leaderboard/lb_*.py` 是排行榜脚本真源，对应策略文档在 `docs/leaderboards/lb_*.md`；`scripts/functional/` 保存持续生产、适配解锁进度的功能脚本，按资源名或 `资源_机制` 命名，运行约定见该目录 README。`gamesave/` 只是本机 Save0 链接。存档 `lb_start.py` 是部署生成物；仓库同名文件另作历史成绩索引。
+4. 使用说明见根 `README.md`，模块分工见 `docs/architecture.md`；共用优化方法见 `docs/leaderboards/README.md`，之后读对应榜单 `.md`。`references/` 保存来源事实，`docs/` 保存项目说明与研究结论；长期约定写入对应正式文档，草稿只保留进行中工作和引用。本文件只保存代理边界，不重复安装步骤。
 
 ## 路径、协议与代码边界
 
-1. 路径、环境变量及 WSL 路径转换统一放在 `tfwr_orchestrator/src/tfwr_orchestrator/config.py`。`TFWR_SAVE_ROOT` 推导 `output.txt` 和 `Player.log`；`TFWR_GAME_ROOT` 定位游戏；`TFWR_BEPINEX_ROOT` / `--bepinex-root` 推导模组日志和状态文件，未设置时回退游戏目录/BepInEx。其他文件不得硬编码用户路径。
-2. Python 执行工作流收口在 `config.py`、`leaderboard_sync.py`、`output_capture.py`、`real_game_runner.py`；公开排行榜抓取、缓存和成绩比较归 `leaderboard_cache.py`。`tools/*.py` 只接线。模组范围为请求状态机、窗口定位、leaderboard 日志与生命周期；本地动作模型归 `mechanism_model/`。
+1. 路径、环境变量及 WSL 路径转换统一放在 `game_control/src/tfwr_orchestrator/config.py`。`TFWR_SAVE_ROOT` 推导 `output.txt` 和 `Player.log`；`TFWR_GAME_ROOT` 定位游戏；`TFWR_BEPINEX_ROOT` / `--bepinex-root` 推导模组日志和状态文件，未设置时回退游戏目录/BepInEx。其他文件不得硬编码用户路径。
+2. Python 执行工作流收口在 `config.py`、`leaderboard_sync.py`、`output_capture.py`、`real_game_runner.py`；公开排行榜抓取、缓存和成绩比较归 `leaderboard_cache.py`。`tools/*.py` 只接线。模组范围为请求状态机、窗口定位、leaderboard 日志与生命周期；本地动作模型归 `simulator/`。
 3. `state.json` 只承载控制面。读改写必须通过协调器接口持有同名 `.lock`；请求 ID 分配、取消、确认终态均核对当前请求，旧请求不得覆盖新请求。不按锁龄自动抢锁。
 4. 输出保持独立：`output.txt` 是可清空重写的脚本输出；`LogOutput.log` 是追加式模组/成绩日志；`Player.log` 是 Unity 诊断。请求运行中不高频读 `output.txt`，结束后再回读；每次模组验证都检查后两份日志。
 
 ## 存档与部署
 
-1. 默认只部署已有的目标 `lb_xxx.py` 和派生 `lb_start.py`，统一请求运行 `lb_start`；不默认全量同步。
+1. 排行榜任务默认只部署已有的目标 `lb_xxx.py` 和派生 `lb_start.py`，统一请求运行 `lb_start`；不默认全量同步。功能脚本按自身入口运行，不通过排行榜入口包装；存档文件约束同样适用。
 2. 禁止向真实 Save0 / gamesave 添加或删除任何文件；用户明确要求恢复已删除的原有文件时例外。临时验证覆盖已有脚本前备份，结束后恢复；不得在 Save0 生成编译缓存。游戏测试或打榜从请求投递至终态确认并回到 idle 期间，冻结存档内全部 `.py`，不得同步、覆盖或恢复；可在不相交范围修改仓库内其他榜并做有界本地模拟。
 3. 新的外部 `.py` 必须先读内容和依赖，确认运行方式；打榜适配到已有 `lb_start` / `lb_xxx`，探针适配到已有 `test.py`。不得把外部文件直接复制成存档新依赖。
 4. `test.py`、`simulate.py`、`__builtins__.py` 属于外部游戏资源，默认不顺手修改。游戏会同步 `.env` 指向存档的外部修改，不无证据怀疑旧存档缓存。
@@ -25,7 +25,7 @@
 
 1. 引用公开成绩前只更新当前研究榜单的公开数据，保留来源和抓取时间；不得为了单榜研究全量刷新。现有缓存工具不支持目标榜时，仅查询该榜公开接口并保存证据。默认每榜前100名，展示#1/#10/#30/#100。离线报告保留原抓取时间，不把历史成绩当作当前成绩。缺少参考成绩可继续本地研究，但不得据此放宽实机准入。
 2. 预算落到主机制：伴生有效收获周期、reroll/support 成本、Dinosaur move/apple、Cactus move/swap/measure、Maze 节点/宝藏路径。伴生收益按真实 YieldFactor 和 companion 倍率计算。计入初始化、规划、动作、成熟和同步。本地有改善但未达到实机准入门槛的候选，只继续本地研究。
-3. 已有正式模型时先用 `mechanism_model/`，无模型才写有界探针。默认按游戏 API/方法及边界做对照，不为验收模拟器逐榜运行完整策略；记录返回值、状态/资源变化、随机数与时间误差。方法覆盖与组合机制覆盖分别报告，未实现接口不能标为通过；方法级通过不能代替单seed长程精度对照；候选差距接近误差时交给实机判定。具体口径见 `mechanism_model/README.md`。
+3. 已有正式模型时先用 `simulator/`，无模型才写有界探针。默认按游戏 API/方法及边界做对照，不为验收模拟器逐榜运行完整策略；记录返回值、状态/资源变化、随机数与时间误差。方法覆盖与组合机制覆盖分别报告，未实现接口不能标为通过；方法级通过不能代替单seed长程精度对照；候选差距接近误差时交给实机判定。具体口径见 `simulator/README.md`。
 4. 理论计算先用闭式估算、少量候选和剪枝；禁止无界全组合搜索。探针写成 `.codex/tests/*.py` 或正式脚本，设置输入/时间/移动上限和早停条件。预计超过 60 秒必须有进度；连续 30 秒无有效输出则停止并缩小输入。
 5. 探索脚本记录初始化、support 准备、reroll、成熟等待、移动补种、收割和资源补给等阶段，使用 `quick_print()`（0t）。`print()` 消耗约1游戏秒，不用于频繁阶段日志；根据实际主瓶颈决定结构改进与解释器费用优化的优先级；写实现时直接采用已验证、语义等价的便宜写法。
 6. 具体 `lb_xxx.py` 只保留当前确认最快的实现。固定结构：首行 `from __builtins__ import *`，紧接完整轮时间注释，第一个函数与文件同名，随后辅助方法，末尾 `if __name__ == "__main__":` 调用同名入口。

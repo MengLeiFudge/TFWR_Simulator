@@ -37,8 +37,8 @@ python3 -m pip install UnityPy TypeTreeGeneratorAPI
 然后在仓库根目录执行：
 
 ```bash
-python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format json --output references/unlocks/unlock_snapshot.json
-python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format markdown --output references/unlocks/unlock_snapshot.md
+python3 game_control/tools/extract_unlock_snapshot.py --format json --output references/unlocks/unlock_snapshot.json
+python3 game_control/tools/extract_unlock_snapshot.py --format markdown --output references/unlocks/unlock_snapshot.md
 ```
 
 如果不想修改当前 Python 环境，可以把依赖安装到临时目录，再临时设置
@@ -46,8 +46,8 @@ python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format markdown --o
 
 ```bash
 python3 -m pip install --target /tmp/tfwr_unitypy_deps UnityPy TypeTreeGeneratorAPI
-PYTHONPATH=/tmp/tfwr_unitypy_deps python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format json --output references/unlocks/unlock_snapshot.json
-PYTHONPATH=/tmp/tfwr_unitypy_deps python3 tfwr_orchestrator/tools/extract_unlock_snapshot.py --format markdown --output references/unlocks/unlock_snapshot.md
+PYTHONPATH=/tmp/tfwr_unitypy_deps python3 game_control/tools/extract_unlock_snapshot.py --format json --output references/unlocks/unlock_snapshot.json
+PYTHONPATH=/tmp/tfwr_unitypy_deps python3 game_control/tools/extract_unlock_snapshot.py --format markdown --output references/unlocks/unlock_snapshot.md
 ```
 
 刷新后应重点检查：
