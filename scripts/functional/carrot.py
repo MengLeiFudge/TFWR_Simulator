@@ -1,5 +1,6 @@
 from __builtins__ import *
 # 全科技功能初版；来源 lb_carrots.py，本地对照见docs/functional-validation.md。
+import production
 # Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
 # 来源：enihsyou/The-Farmer-Was-Replaced，blob 0f9dcb9479abcf8219819eaa38c0bd6f785196b3。
 
@@ -68,6 +69,8 @@ def work_drone_task():
     x_upper, y_upper = x_lower + 4, y_lower + 8
 
     def on_eachcell():
+        if not production.active(Items.Carrot):
+            return
         t = (get_pos_x(), get_pos_y())
 
         # 满足当前位置的种植需求
@@ -75,14 +78,16 @@ def work_drone_task():
             c = wants.pop(t)
             if get_entity_type() != c:
                 harvest()
-                plant(c)
+                if not plant(c):
+                    return True
             return
 
         if get_water() < W and num_items(Items.Water) > 32:
             use_item(Items.Water)
-        while True:
+        while production.active(Items.Carrot):
             harvest()
-            plant(Entities.Carrot)
+            if not plant(Entities.Carrot):
+                return True
             c, p = get_companion()
             x, y = p
             if x_lower <= x < x_upper and y_lower <= y < y_upper:
@@ -97,8 +102,10 @@ def work_drone_task():
         on_eachcell()
 
     def while_round():
-        on_eachcell()
-        return False
+        if on_eachcell():
+            quick_print("胡萝卜种植失败，本区域停止，等待补料后重新派工。")
+            return True
+        return not production.active(Items.Carrot)
 
     traverse_rectangle(first_round, 4, 8)
     while traverse_rectangle_if(while_round, 4, 8):

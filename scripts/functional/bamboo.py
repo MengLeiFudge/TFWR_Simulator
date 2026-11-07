@@ -1,4 +1,5 @@
 from __builtins__ import *
+import production
 
 
 # ================================================================
@@ -208,7 +209,7 @@ def work(lo, hi, size):
     hover(18)
     walk_to(tile_x(lo, size), tile_y(lo, size), size)
 
-    while True:
+    while production.active(Items.Bamboo):
         # 正向：lo -> hi-1
         if not service(lo, lo, size, states, due):
             return
@@ -288,14 +289,19 @@ def bamboo():
                 "通道行", lanes, "无人机", n,
                 "竹子株数", lanes * size * 2)
 
+    handles = []
     k = 1
     while k < n:
-        if spawn_drone(work, bounds[k], bounds[k + 1], size) == None:
+        handle = spawn_drone(work, bounds[k], bounds[k + 1], size)
+        if handle == None:
             quick_print("无人机数量到上限了，剩下的区域没有无人机。")
             break
+        handles.append(handle)
         k += 1
 
     work(bounds[0], bounds[1], size)
+    for handle in handles:
+        wait_for(handle)
 
 
 if __name__ == "__main__":

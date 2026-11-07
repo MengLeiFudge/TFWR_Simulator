@@ -1,16 +1,17 @@
 from __builtins__ import *
 # 来源lb_treasure_map.py；保留去环路径，普通地形使用Jump和浅层钻头定位。
+import production
 
 
 def gold_treasure_map():
-    jump(Unlocks.Treasure_Map)
+    production.jump_once(Unlocks.Treasure_Map)
     first = True
     size = get_world_size()
     offsets = {'N': size, 'E': 1, 'S': -size, 'W': -1, 'D': size * size}
     directions = {'N': North, 'E': East, 'S': South, 'W': West}
     cycle = -1
     empty = 0
-    while True:
+    while production.active(Items.Gold):
         deadline = get_time() + 7200
         cycle += 1
         if not first:

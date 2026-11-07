@@ -1,4 +1,5 @@
 from __builtins__ import *
+import production
 
 
 # 启动时跳到蘑菇附近；每片结束后回到地表重新寻找，持续采集。
@@ -11,10 +12,10 @@ def mushroom():
     if num_unlocked(Unlocks.Mushrooms) < 1 or num_unlocked(Unlocks.Jump) < 1:
         quick_print("请先解锁蘑菇和 Jump，再运行蘑菇采集。")
         return
-    jump(Unlocks.Mushrooms)
+    production.jump_once(Unlocks.Mushrooms)
     blocks = make_blocks()
     batches = 0
-    while True:
+    while production.active(Items.Mushroom):
         start = get_time()
         before = num_items(Items.Mushroom)
         change_hat(Hats.Mining_Hat)

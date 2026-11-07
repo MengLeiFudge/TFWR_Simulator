@@ -1,4 +1,5 @@
 from __builtins__ import *
+import production
 SIZE = get_world_size()
 HALF = SIZE // 2
 
@@ -12,7 +13,7 @@ def water_tile():
 
 # one tile: harvest -> dig used-up layer -> plant -> move on
 def sweep():
-    while True:
+    while production.active(Items.Rice):
 
         # harvest if possible; this also makes the clay layer used up
         if can_harvest():
@@ -68,7 +69,7 @@ def DRice():
 # ---------------- main ----------------
 
 def rice():
-    while True:
+    while production.active(Items.Rice):
         clear()
 
         i = 0

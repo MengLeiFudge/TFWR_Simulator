@@ -1,8 +1,9 @@
 from __builtins__ import *
 # 全科技功能初版；来源 lb_cactus.py，本地对照见docs/functional-validation.md。
+import production
 
 def cactus():
-    while True:
+    while production.active(Items.Cactus):
         dispatch_lines(0, max_drone_num, False)
         dispatch_lines(0, max_drone_num, True)
         goto(0, size - 1)

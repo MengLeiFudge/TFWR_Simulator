@@ -1,14 +1,15 @@
 from __builtins__ import *
 # 全科技功能初版；来源 lb_pyramids.py，普通地形有界找层。
+import production
 
 
 def power_pyramids():
     # Jump每次执行仅一次；后续重生用爆破钻清除远离塔体的浅覆盖层。
-    jump(Unlocks.Pyramid)
+    production.jump_once(Unlocks.Pyramid)
     first = True
     began = get_time()
     cycle = -1
-    while True:
+    while production.active(Items.Power):
         cycle += 1
         if first:
             first = False

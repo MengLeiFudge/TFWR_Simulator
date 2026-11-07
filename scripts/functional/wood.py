@@ -1,5 +1,6 @@
 from __builtins__ import *
 # 全科技功能初版；来源 lb_wood.py，本地对照见docs/functional-validation.md。
+import production
 # Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
 
 def wood():
@@ -75,6 +76,8 @@ def work_drone_task():
     wants = {}
 
     def on_eachcell():
+        if not production.active(Items.Wood):
+            return
         t = (get_pos_x(), get_pos_y())
 
         # 满足当前位置的种植需求
@@ -95,7 +98,7 @@ def work_drone_task():
             if get_water() < W and num_items(Items.Water) > 32:
                 # 每次巡田至多补一份水，并为并发调用保留库存。
                 use_item(Items.Water)
-            while True:
+            while production.active(Items.Wood):
                 harvest()
                 plant(Entities.Tree)
                 c, p = get_companion()
@@ -116,10 +119,12 @@ def work_drone_task():
 
     def while_round():
         on_eachcell()
-        return False
+        return not production.active(Items.Wood)
 
     traverse_rectangle(first_round, 4, 8)
     for _ in range(22):
+        if not production.active(Items.Wood):
+            break
         traverse_rectangle(range_round, 4, 8)
     while traverse_rectangle_if(while_round, 4, 8):
         continue

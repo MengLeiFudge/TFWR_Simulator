@@ -1,9 +1,11 @@
 from __builtins__ import *
 # 全科技功能初版；来源 lb_hay.py，本地对照见docs/functional-validation.md。
+import production
 
 def hay():
     set_world_size(FIELD_SIZE)
     pair_count = 0
+    handles = []
     for base_y in PAIR_BASE_YS:
         for base_x in PAIR_BASE_XS:
             if pair_count >= ACTIVE_PAIR_COUNT:
@@ -15,8 +17,11 @@ def hay():
                     quick_print("lb_hay stopped: dispatch failed", pair_count)
                     clear()
                     return
+                handles.append(worker)
             else:
                 start_pair_at(base_x, base_y)
+    for worker in handles:
+        wait_for(worker)
 
 FIELD_SIZE = 32
 GOAL_HAY = 2000000000
@@ -99,7 +104,7 @@ def run_pair_cycle(base_pos, north_pos):
     roll_bush_companion(base_pos)
     move(South)
 
-    while True:
+    while production.active(Items.Hay):
         harvest_ready_grass()
         roll_bush_companion(north_pos)
         move(North)
@@ -130,7 +135,7 @@ def water_pair_slot():
 
 
 def roll_bush_companion(blocked_pos):
-    while True:
+    while production.active(Items.Hay):
         companion_entity, companion_pos = get_companion()
         if companion_entity == Entities.Bush and companion_pos != blocked_pos:
             break

@@ -1,4 +1,5 @@
 from __builtins__ import *
+import production
 
 # 派工与按列沟挖来自lb_ores.py；普通全科技田加入单次Jump和爆破钻头。
 
@@ -7,9 +8,9 @@ def mine(item, kind, depth, unlock=None):
     workers = min(size, max_drones())
     first = unlock != None
     if first:
-        jump(unlock)
+        production.jump_once(unlock)
     empty = 0
-    while True:
+    while production.active(item):
         if not first:
             clear()
         first = False

@@ -1,4 +1,5 @@
 from __builtins__ import *
+import production
 # ==========================================================
 #  DigCoal v25  (final)
 #  - round 1 uses jump for a fast start
@@ -116,14 +117,14 @@ dy = SIZE // ROWS
 def coal():
     global first
     global round
-    while True:
+    while production.active(Items.Coal):
 
         round += 1
         clear()
 
         # only the very first round may jump (the game allows it once per execution)
         if first == 1:
-            jump(Unlocks.Coal)
+            production.jump_once(Unlocks.Coal)
             first = 0
 
         base = num_items(Items.Coal)

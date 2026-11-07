@@ -1,5 +1,6 @@
 from __builtins__ import *
 # 全科技功能初版；来源 lb_maze.py，本地对照见docs/functional-validation.md。
+import production
 # 算法来源：zzlg-git/TheFarmerWasReplaced_Maze_1min28s，commit e5d5e2d9c8df5c22fee0c1c591d70bd69d4a6629。
 # 保留32座小迷宫、出发点探墙与增量路由；许可信息见docs/leaderboards/lb_maze.md。
 
@@ -283,9 +284,9 @@ def solve_one(n, bx, by, grid, mapped, blank):
 				p, direction = hop[p]
 				move(direction)
 
-		# 达到复用上限后收掉本宫，再在固定中心生成下一代。
-		if relocations >= REUSE_LIMIT:
-			# 300次成功搬迁之后，走到最后一个箱子并harvest，本宫才会消失。
+		# 停止时先走到当前箱子并正常收宫；不留下未结算迷宫。
+		if relocations >= REUSE_LIMIT or not production.active(Items.Gold):
+			# 到达上限或调度结束时，正常 harvest 一次使本宫消失。
 			harvest()
 			return relocations + 1
 		use_item(Items.Weird_Substance, cost)
@@ -315,10 +316,10 @@ def worker(job, start_stock):
 	# 32台各用两次WS：感染再恢复。全场合计消耗64，构成到位计数。
 	for _ in range(2):
 		use_item(Items.Weird_Substance, 1)
-	while num_items(Items.Weird_Substance) > start_stock - 2 * DRONES:
+	while num_items(Items.Weird_Substance) > start_stock - 2 * DRONES and production.active(Items.Gold):
 		change_hat(Hats.Straw_Hat)
 
-	while True:
+	while production.active(Items.Gold) and num_items(Items.Weird_Substance) >= n * MULT:
 		go_home(cx, cy)
 		# 普通场地清理：有草才收，没有植物就直接种灌木。
 		if get_entity_type() != None:

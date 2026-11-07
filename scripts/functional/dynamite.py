@@ -1,4 +1,5 @@
 from __builtins__ import *
+import production
 
 
 # 持续向下采集：主机合并全图公开数字，子机按列开安全格；每盘独立重建缓存。
@@ -32,9 +33,9 @@ def dynamite(round_limit=0):
     initial = num_items(Items.Dynamite)
     change_hat(Hats.Mining_Hat)
     # jump每次执行只能用一次；后续沿当前地层下挖，不clear回地表。
-    jump(Unlocks.Dynamite)
+    production.jump_once(Unlocks.Dynamite)
     cycle = 0
-    while round_limit == 0 or cycle < round_limit:
+    while (round_limit == 0 or cycle < round_limit) and production.active(Items.Dynamite):
         began = get_time()
         before = num_items(Items.Dynamite)
         if not move_to(size // 2, size // 2, size) or not find_stratum():
