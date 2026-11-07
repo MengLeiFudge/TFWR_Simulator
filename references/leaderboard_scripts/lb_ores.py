@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：637.147秒（构建26462009，12轮官方完整统计；请求373）。
+# 完整轮时间：152.024秒（构建26462009，48轮官方完整统计；请求434）。
 
 def lb_ores():
     size = get_world_size()
@@ -15,12 +15,12 @@ def lb_ores():
         handles = []
         local = True
         for owner in range(1, workers):
-            handle = spawn_drone(ore_wells, owner, workers, size, 20000, deadline)
+            handle = spawn_drone(ore_trench, owner, workers, size, 20000, deadline)
             if handle == None:
                 local = False
                 break
             handles.append(handle)
-        if not ore_wells(0, workers, size, 20000, deadline):
+        if not ore_trench(0, workers, size, 20000, deadline):
             local = False
         for handle in handles:
             if not wait_for(handle):
@@ -40,20 +40,13 @@ def lb_ores():
     quick_print("ores_failed", "cycle_limit", get_time(), num_items(Items.Quartz))
 
 
-def ore_wells(first, stride, size, goal, deadline):
-    # 每个x仍只有一个挖掘者；延长32×32的批次以分摊clear和派发。
-    offsets = [0, 4]
-    if size == 32:
-        offsets = [0, 4, 16, 20]
+def ore_trench(first, stride, size, goal, deadline):
+    # 每个x由唯一工人向North推进；相邻已降低的柱帮助清除覆盖层。
+    # 只按公开高度和地面采掘，收益仅取实际dig库存，不把塌掉的矿计入产量。
     for x in range(first, size, stride):
-        y0 = ((x % 4) * 8 + (x // 4) % 4) % size
-        for offset in offsets:
-            y = (y0 + offset) % size
-            if num_items(Items.Quartz) >= goal:
-                return True
-            if not ore_move_to(x, y, size):
-                return False
-            # 官方首石英区块32..47，长8/9的针都穿过39；实际库存只计真实dig。
+        if not ore_move_to(x, 0, size):
+            return False
+        for y in range(size):
             while get_pos_z() > -39:
                 if num_items(Items.Quartz) >= goal:
                     return True
@@ -64,6 +57,8 @@ def ore_wells(first, stride, size, goal, deadline):
                     return True
                 if get_time() > deadline or not dig():
                     return False
+            if y + 1 < size and not move(North):
+                return False
     return True
 
 

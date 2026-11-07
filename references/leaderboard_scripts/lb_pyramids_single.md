@@ -1,28 +1,28 @@
 # 金字塔单机（pyramids_single）
 
-2026-11-07本地候选：固定5×5足印，角柱找基座，蛇形清土保沙，缓存稳定的非中心缺块、中心另行重读并留顶。三seed原目标均完成，预估1160.533896228/1152.184384184/1164.855402564秒，均值1159.191227659；当前脚本fresh seed1为3674.267794999，同seed缩短68.41%。通用保沙候选约2021秒均值，被固定足印方向取代。未实机、未替换下述正式实现与3647.784秒成绩。脚本`pyramids_single/fixed-five-candidate/lb_pyramids_single.py`及完整根路径、指纹、稳定性依据见[本地候选记录](underground_local_candidates.md)。
+2026-11-07：固定5×5足印的保沙修补候选已通过请求424完整7轮，1159.709秒，已迁入正式源码。通用保沙与彩块方案的比较见[本地候选记录](underground_local_candidates.md)。
 
 2026-11-06：新增可复核基线，目标为30000 Power。当前实现已完成三seed原目标模拟；普通场景对照保留为首版历史证据；已取得构建26462009的正式完整统计，见末节。
 
 ## 当前实现
 
-4格间隔采样定位Sand/Limestone，再从实际Limestone高度探测正方形边界。清空足印上方、在足印外补齐Block，按离边缘距离逐列放置彩块。清理和构造均让奇数列反向访问y，使相邻列首尾相接；只调整访问顺序，保留基座逐格核对。所有构造工人结束后才去中心验证、等待并收取Sunflower。
+设置5×5世界，利用最小金字塔足印固定的条件，角柱找Limestone后蛇形清土并保留Sand。非中心柱最高2层，清理不穿透基座，Sand稳定性2保证已露出的顶面不会继续塌落，可同时缓存缺块。中心3层单独重读，留最后顶块；依次补齐底部两层后放顶块并收取Sunflower。材料不足时保留已采Block重生。
 
-主要成员：`pyramid_find`、`pyramid_bounds`、`pyramid_materials`、`pyramid_dispatch`、`pyramid_build_column`。最多512片、14400游戏秒；找层每片最多128层/600秒。库存目标加100 Power缓冲，补偿末尾动作耗电。不能把模型预测写成官方成绩。
+主要成员：`lb_pyramids_single`、`pyramid_move_to`。最多512片，每柱清理最多17步，主流程14400游戏秒截止；目标留100 Power缓冲，补偿末尾动作耗电。
 
 ## 时间记录
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 3721.607757505 游戏秒 | 地下模型26410308；当前结构，原目标 |
+| 本地模拟预估时间 | 三seed均值 1159.191227659 游戏秒 | 当前结构，原目标；地下资源快照来源26410308 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 3647.784 游戏秒 | 构建26462009，请求386，2轮，正常完整结束 |
+| 游戏打榜时间 | 1162.559 游戏秒 | 构建26462009，请求438，7轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 3674.307466009 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/pyramids_single/column-serpentine-model-seed1/report.json` |
-| 2 | 3751.318099495 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/pyramids_single/column-serpentine-model-seed2/report.json` |
-| 3 | 3739.197707010 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/pyramids_single/column-serpentine-model-seed3/report.json` |
+| 1 | 1160.533896228 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/pyramids_single/fixed-five-model-seed1/report.json` |
+| 2 | 1152.184384184 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/pyramids_single/fixed-five-model-seed2/report.json` |
+| 3 | 1164.855402564 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/pyramids_single/fixed-five-model-seed3/report.json` |
 
 首版部署源码 SHA256：`b8896be7f9004d1a853d8ba2b3247577e71b2ff234fecd86cabfde406462e079`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
 
@@ -48,7 +48,7 @@
 
 ## 静态检查与后续
 
-AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前执行逻辑的字节副本已运行ty LSP：1项错误为外部Grounds类型桩缺少Block_Red，另有5条未使用局部变量提示；未修改外部桩。彩块类型是此前真实游戏已支持的既有调用，本次两次正式完整统计也均达标。
+当前执行源码与冻结模型、候选实机源码的AST一致，游戏语法检查通过。当前源码字节副本的ty LSP无诊断；已不再使用彩块重建接口。
 
 下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已确认最快或取得公开排名。
 
@@ -87,3 +87,15 @@ AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前�
 部署源码SHA256：`c1471276c5f91a0ff60850d256c6d40269c6d6a5c4ab2ddbc5d50a015eb5f543`。当前源码SHA256：`d3ffbefce85313cc1ac5bea72212bb3d83eb726f9b741a3be9f6389a7e39c6af`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/pyramids_single/column-serpentine-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：fixed-five-current-26462009
+
+<!-- official:fixed-five-current-26462009:438 -->
+
+请求438完整正常结束，共7轮。官方最终日志均值为 **19:22.559（1162.559游戏秒）**；逐轮日志重算均值为1162.559142857秒，保留两者的显示舍入口径。
+
+同构建前版完整均值3647.784000000秒/2轮；当前正式均值1162.559秒/7轮，缩短约68.13%。固定5×5足印，角柱读取基座，蛇形清土保沙；稳定性保证非中心缺块可缓存，中心单独重读，按层补齐并最后放顶块。
+
+部署源码SHA256：`df05b4cdcb7002892cdef98f50d2757a7ea4eb1d67caabd27722ec9c180afe3a`。当前源码SHA256：`6ebd3299ff3babd07d8389a69a6fa058dacf0cdc786b8e85828a66bde08407fb`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/pyramids_single/fixed-five-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。

@@ -4,7 +4,7 @@
 
 ## 当前实现
 
-单机找到Basalt并读地图坐标，到达Treasure_Map后只读一次路线。方向字典把N/E/S/W映射到公开move方向；仍按完整路线逐字符执行，保留回头路，每个D只挖一次，最后验证Underground_Treasure再harvest。
+单机每图正常重生，找到Basalt并读取地图坐标，到达Treasure_Map后只读一次路线。以实际x/y及相对深度编码坐标，保存每个坐标最后离开的方向，再沿最后出口走到终点；原串最后索引严格递增，移除闭环而保留全部下降。最后验证Underground_Treasure并收取。
 
 主要成员：`lb_treasure_map`、`treasure_map_move_to`。最多256张地图、7200游戏秒；每张Basalt搜索256步、地图定位32步，所有动作失败均明确停止。
 
@@ -12,15 +12,15 @@
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 289.540320540 游戏秒 | 地下模型26410308；当前结构，原目标 |
+| 本地模拟预估时间 | 三seed均值 37.948256610 游戏秒 | 当前结构，原目标；地下资源快照来源26410308 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 274.988 游戏秒 | 构建26462009，请求384，27轮，正常完整结束 |
+| 游戏打榜时间 | 38.186 游戏秒 | 构建26462009，请求432，189轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 290.074918950 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/treasure_map/direction-table-model-seed1/report.json` |
-| 2 | 279.835024680 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/treasure_map/direction-table-model-seed2/report.json` |
-| 3 | 298.711017990 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/treasure_map/direction-table-model-seed3/report.json` |
+| 1 | 34.584396390 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/treasure_map/last-exit-reset8-model-seed1/report.json` |
+| 2 | 42.404359050 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/treasure_map/last-exit-reset8-model-seed2/report.json` |
+| 3 | 36.856014390 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/treasure_map/last-exit-reset8-model-seed3/report.json` |
 
 首版部署源码 SHA256：`b39cf5aa09bb6a95e3347f8bd40e56b8b58e57ea51599511ffa76c7be39c9709`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
 
@@ -36,9 +36,9 @@
 
 ## 候选与已处理边界
 
-路线首个D已经处理地图块，额外预挖会改变路径状态。当前正式版本不压缩路线，不跨无人机交接，不在路径内clear或重定位。这里描述的是当前实现，不是禁止去环的游戏规则。
+路线首个D已经处理地图块，额外预挖会改变路径状态。去环保持公开路径成员关系，所有下降由同一无人机完成；激活地图后不clear、不定位跳转、不破坏未来路径。
 
-2026-11-07方向复核：当前构建26462009的Core.dll只读反编译确认，`TreasureMapController.CheckDronePosition`检查路径坐标及地块有效性，并以`TREASURE_OPTIMAL`奖励同层不重复访问格子。正常沿有效通路去环、逐层走到下行口有机制依据；此前把20ms完整性检查理解为“所有回头路都必须照走”是错误推断。下一方向比较线性去环、逐层最短路和选图收益，预算见[地下策略分析](underground_strategy_analysis.md)。这次仅修正研究约束，未修改正式代码，也未新增模型或实机成绩。
+2026-11-07方向复核：当前构建Core.dll的TreasureMapController.CheckDronePosition检查路径坐标及地块有效性，并以TREASURE_OPTIMAL奖励同层不重复访问。正常去环有机制依据；随后线性去环候选完成三seed本地原目标和请求421完整189轮，38.151秒，已迁入正式源码。方向比较见[地下策略分析](underground_strategy_analysis.md)。
 
 方向查表的三seed完整目标均比原分支版快约2.46–2.70游戏秒，均值从292.105493040降到289.540320540。为核对这一小收益，请求382在当前构建用同一seed、普通8×8、单机、40000 Gold目标成对运行：原版135.559956420秒，查表版134.631062190秒，省0.928894230秒。地图周期、路线长度、Block/Gold库存及最终坐标一致；本地配对得到同样的时间差，API次数也相同。两份simulate返回值各比独立本地脚本多8t入口分派，未把它当作模型零误差验收。
 
@@ -46,7 +46,7 @@
 
 ## 静态检查与后续
 
-AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前执行逻辑的字节副本已运行ty LSP：4项错误来自measure的联合返回类型无法静态区分Basalt坐标与地图字符串，另有2条None分支提示；未修改外部类型桩。方向查表未引入新接口或路线变换，当前构建另有同seed配对及两次完整正式统计。
+当前执行源码与冻结模型、候选实机源码的AST一致，游戏语法检查通过。ty LSP仍有7项measure联合类型无法按地面收窄的错误、2项None分支提示；未修改外部桩，不声明LSP通过。此前方向查表的普通同seed证据仅覆盖历史完整路径实现，不能作为当前去环版同seed精度证明。
 
 下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已确认最快或取得公开排名。
 
@@ -91,3 +91,15 @@ AST解析、仓库游戏语法、入口结构及禁止jump检查通过。当前�
 在公开地图路径内按三维坐标保留最后出口，删除回环而保留每次下降；8格世界每图重生。原目标三seed预估34.584396390/42.404359050/36.856014390秒，均值37.948256610；当前完整路线fresh三seed均值289.540320540，减少86.89%。全部原目标完成，未做实机验证，正式274.988秒不变。
 
 脚本为`.codex/leaderboard-sol/underground-official/treasure_map/last-exit-reset8-candidate/lb_treasure_map.py`。尺寸4/6、逐层BFS及按原串长度筛图的比较、源码指纹与检查限制见[本地候选记录](underground_local_candidates.md)。这是此前“必须照走回头路”错误约束被纠正后的结构收益，不是字符分派优化。
+
+## 构建26462009正式统计：last-exit-reset8-current-26462009
+
+<!-- official:last-exit-reset8-current-26462009:432 -->
+
+请求432完整正常结束，共189轮。官方最终日志均值为 **0:38.186（38.186游戏秒）**；逐轮日志重算均值为38.185497354秒，保留两者的显示舍入口径。
+
+同构建前版完整均值274.987629630秒/27轮；当前正式均值38.186秒/189轮，缩短约86.11%。读取公开地图后按三维坐标保留最后出口，沿有效通路去环并保留全部下降；每图正常重生，寻找与解析费用全部计入。
+
+部署源码SHA256：`5dea846904ad85477faabcff84a9892b6db865d93e08d6985ada2824332c1bc9`。当前源码SHA256：`81b1b22fa7ec8aeb2c71875982b0c78de3ededab29991e804e12791fe3300841`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/treasure_map/last-exit-reset8-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。

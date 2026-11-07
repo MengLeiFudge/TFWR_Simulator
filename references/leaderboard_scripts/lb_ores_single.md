@@ -1,28 +1,28 @@
 # 石英矿单机（ores_single）
 
-2026-11-07本地候选：实采Coal/Iron支付勘探，三个锚点全部准备后读最近石英距离，第一读数约束球面，其余读数排除球内位置；实际挖掘验证候选，不确定时回退全覆盖沟网。三seed均达4000 Quartz，预估538.476018030/626.642780130/552.588197940秒，均值572.568998700；当前四井fresh seed1为1068.142438080，同seed缩短49.59%。完整沟网约708秒均值，强求三球同矿首seed723.429秒，均不如当前候选。未实机、未替换下述正式实现与1069.625秒成绩。脚本`ores_single/sphere-exclusion-candidate/lb_ores_single.py`及完整根路径、指纹、筹资与回退成本见[本地候选记录](underground_local_candidates.md)。
+2026-11-07：实付筹资的最近距离排除候选已通过请求423完整14轮，534.068秒，已迁入正式源码。完整沟网及强求三球同矿的比较见[本地候选记录](underground_local_candidates.md)。
 
 2026-11-06：新增可复核基线，目标为4000 Quartz。当前实现已完成三seed原目标模拟；普通场景对照保留为首版历史证据；已取得构建26462009的正式完整统计，见末节。
 
 ## 当前实现
 
-每个x由单机依次处理。在8×8每片采用0/2/4/6四个不重复偏移，复用已经降低的地面；其他尺寸保留原双井方式。排行榜首石英区块为32–47，针长8/9，交叉层选39；实际dig收取沿途矿块，随后只追挖当前连续Quartz。
+先真实采煤，再支付方向勘探采铁，用铁支付Quartz距离查询。三个相邻锚点全部挖好后重读距离：第一读数约束候选在球面，其余读数只排除球内位置，不假设三次最近矿相同。按残差选择目标后实际挖掘确认；无解或未挖到矿时回退全覆盖沟网。
 
-主要成员：`ore_wells`、`ore_move_to`。最多512片、7200游戏秒；连续8片零收益明确失败。普通场景首石英区块48–63，因此实机诊断将交叉层单独改为55。
+主要成员：`ore_fund`、`ore_prepare`、`ore_locate`、`ore_trench`、`ore_move_to`。主流程最多128片，每片最多8次定位，筹铁最多64片，共用7200游戏秒截止。实际筹资、错误定位和回退费用全部计入。
 
 ## 时间记录
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 1050.260963520 游戏秒 | 地下模型26410308；当前结构，原目标 |
+| 本地模拟预估时间 | 三seed均值 572.568998700 游戏秒 | 当前结构，原目标；地下资源快照来源26410308 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 1069.625 游戏秒 | 构建26462009，请求376，7轮，正常完整结束 |
+| 游戏打榜时间 | 548.381 游戏秒 | 构建26462009，请求436，14轮，正常完整结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 1068.731577270 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/ores_single/four-wells-model-seed1/report.json` |
-| 2 | 998.528375250 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/ores_single/four-wells-model-seed2/report.json` |
-| 3 | 1083.522938040 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/ores_single/four-wells-model-seed3/report.json` |
+| 1 | 538.476018030 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/ores_single/sphere-exclusion-model-seed1/report.json` |
+| 2 | 626.642780130 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/ores_single/sphere-exclusion-model-seed2/report.json` |
+| 3 | 552.588197940 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/ores_single/sphere-exclusion-model-seed3/report.json` |
 
 首版部署源码 SHA256：`8d6b41dea5333b3e0807ab93a257304fa1694365cfc373cbb3169b8916c16392`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
 
@@ -44,7 +44,7 @@
 
 ## 静态检查与后续
 
-AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。与当前执行逻辑一致的源码副本的ty LSP无错误，仅1项spawn_drone类型桩把None分支标为不可达的提示。保留运行时失败处理，未修改外部游戏类型桩。
+当前执行源码与冻结模型、候选实机源码的AST一致，游戏语法检查通过。ty LSP无错误、2提示：未使用的attempt及prospect_iron返回None的运行时分支被外部桩判为不可达。未修改外部桩。
 
 下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已确认最快或取得公开排名。
 
@@ -95,3 +95,15 @@ AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查�
 部署源码SHA256：`c6f336094cefe20933a117e55268dcc94f1576a2f1241b1b9ed9fa4c59a81122`。当前源码SHA256：`cb07156b724b1c3ecce92cdd184d6ac0bbaa21d6fc6aca912d80fcd7da999d6b`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/ores_single/four-wells-current-confirm-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 构建26462009正式统计：sphere-exclusion-current-26462009
+
+<!-- official:sphere-exclusion-current-26462009:436 -->
+
+请求436完整正常结束，共14轮。官方最终日志均值为 **9:08.381（548.381游戏秒）**；逐轮日志重算均值为548.380785714秒，保留两者的显示舍入口径。
+
+同构建前版完整均值1069.624571429秒/7轮；当前正式均值548.381秒/14轮，缩短约48.73%。实采煤铁支付勘探；全部锚点准备后重读最近距离，以球面和球内排除约束选择目标，实际挖掘验证，失败回退沟网。
+
+部署源码SHA256：`bf4cff172302388f301a6f4270df835882c4f45eb17bd87ad3973a48b7d35164`。当前源码SHA256：`bbee2f6c2d2550eb688892e3c915d3c93df51070974f922c9b80ad33b1f420a4`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
+
+证据：`.codex/leaderboard-sol/underground-official/ores_single/sphere-exclusion-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
