@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：174.566秒（构建26462009，42轮官方完整统计；请求345）。
+# 完整轮时间：166.888秒（本地原目标三seed均值；当前补水版本未实机验证）。
 
 def lb_rice_single():
     size = get_world_size()
@@ -50,6 +50,8 @@ def rice_columns(first, stride, size, goal, deadline):
             if ground == Grounds.Clay:
                 if not plant(Entities.Rice):
                     return False
+                if get_water() < 0.25 and num_items(Items.Water) > 0:
+                    use_item(Items.Water)
                 planted.append((x, y))
             if not move(North):
                 return False
@@ -73,6 +75,8 @@ def rice_columns(first, stride, size, goal, deadline):
                 if get_ground_type() == Grounds.Clay:
                     if not plant(Entities.Rice):
                         return False
+                    if get_water() < 0.25 and num_items(Items.Water) > 0:
+                        use_item(Items.Water)
                     second.append((x, y))
     for x, y in second:
         if num_items(Items.Rice) >= goal:

@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：705.024秒（构建26462009，11轮官方完整统计；请求363）。
+# 完整轮时间：618.822秒（本地原目标三seed均值；当前补水版本未实机验证）。
 
 def lb_bamboo():
     clear()
@@ -106,6 +106,10 @@ def bamboo_fans(plan, goal, deadline):
                 back = DIRECTIONS[(d + 2) % 4]
                 if not move(direction):
                     return False
+                if get_water() < 0.25 and num_items(Items.Water) > 0:
+                    use_item(Items.Water)
+                    # 浇水会降低飞行高度；升高后再判断，避免挡住中途生长。
+                    hover(18)
                 if get_entity_type() != Entities.Bamboo:
                     if get_ground_type() != Grounds.Soil:
                         till()
