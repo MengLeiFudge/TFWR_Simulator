@@ -20,7 +20,7 @@
 
 路径统一由 `game_control/src/tfwr_orchestrator/config.py` 推导。排行榜同步读取 `scripts/leaderboard/`；公开成绩写入 `references/leaderboards/leaderboard_cache.json`；比较报告写入 `docs/leaderboards/leaderboard_targets.md`，仓库复跑成绩从 `scripts/leaderboard/lb_start.py` 读取。公开缓存和策略研究文档分别拥有来源事实与解释结论，不混作脚本依赖。
 
-功能脚本按资源名或 `资源_机制.py` 命名，例如 `rice.py`、`bone_dinosaur.py`；排行榜脚本保留 `lb_` 前缀。当前功能目录只有正式约定，尚无可交付实现，也没有专门的功能脚本同步命令。
+功能脚本按资源名或 `资源_机制.py` 命名，例如 `rice.py`、`bone_dinosaur.py`；排行榜脚本保留 `lb_` 前缀。功能模块拥有对应的持续入口与 `collect(goal)` 收集方法，`farm_support.py` 集中导航、补给路由和通用种植/开采。脚本之间只通过同目录模块补料，不依赖排行榜文件；完整清单、科技前提与验证边界见[功能脚本说明](../scripts/functional/README.md)。功能脚本部署仍遵守既有存档边界，现有同步命令只处理排行榜。
 
 ## 命名迁移
 

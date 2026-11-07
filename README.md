@@ -11,7 +11,7 @@
 | [simulator/](simulator/README.md) | 无需启动游戏的脚本模拟器，以及简化动作模型 |
 | [game_control/](game_control/README.md) | 路径配置、脚本部署、请求控制、结果采集和公开排行榜缓存 |
 | [game_mod/](game_mod/README.md) | BepInEx 模组，接收指令并在游戏内运行脚本 |
-| [scripts/functional/](scripts/functional/README.md) | 适配科技进度、持续生产资源的功能脚本；目前已建立约定，尚无实现 |
+| [scripts/functional/](scripts/functional/README.md) | 地上/地下资源与机制的持续生产脚本，按解锁、地图、无人机和材料选择可执行方式 |
 | [scripts/leaderboard/](scripts/leaderboard/README.md) | `lb_*.py` 排行榜脚本真源 |
 | [references/](references/README.md) | 游戏源码、资源与科技快照、公开成绩缓存等参考事实 |
 | [docs/](docs/README.md) | 项目架构、共用研究方法、各榜策略与验证记录 |
