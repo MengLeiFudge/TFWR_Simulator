@@ -1,299 +1,297 @@
 from __builtins__ import *
-# 完整轮时间：5561.376秒（构建26462009，2轮官方完整统计；请求367）。
+# 完整轮时间：1093.692秒（本地原目标三seed均值；当前版本未实机验证）。
+
 
 def lb_dynamite():
     size = get_world_size()
-    adjacent = []
+    near = []
     for cell in range(size * size):
-        adjacent.append(dynamite_neighbors(cell, size))
-    began = get_time()
-    for cycle in range(512):
+        near.append(neighbors(cell, size))
+    started = get_time()
+    for cycle in range(CYCLE_LIMIT):
         if num_items(Items.Dynamite) >= 10000000:
             quick_print("dynamite_done", True, get_time(), num_items(Items.Dynamite))
             return
-        clear()
-        covers = 0
-        while get_ground_type() != Grounds.Dynamite:
-            if covers >= 256 or get_time() - began > 24000 or not dig():
-                quick_print("dynamite_failed", "find_stratum", cycle)
-                return
-            covers += 1
-        depth = get_pos_z()
-        # 开局先逐列准备到同一顶面；此时还没有扫雷盘，不会挖到未知雷。
-        ready = dynamite_prepare(size, depth)
-        if not ready or not dynamite_move_to(1, 1, size) or not dig():
-            quick_print("dynamite_failed", "prepare", cycle)
+        if get_time() - started > 24000:
+            quick_print("dynamite_failed", "time_limit")
             return
+        began = get_time()
         before = num_items(Items.Dynamite)
-        status, guesses = dynamite_solve(size, depth, adjacent)
-        quick_print("dynamite_cycle", cycle, status, guesses, num_items(Items.Dynamite) - before, get_time(), num_items(Items.Dynamite))
-        if status == "error":
+        clear()
+        if not move_to(size // 2, size // 2, size) or not find_stratum():
+            quick_print("dynamite_failed", "find_stratum", cycle)
             return
-    quick_print("dynamite_failed", "cycle_limit", get_time(), num_items(Items.Dynamite))
+        depth = get_pos_z()
+        prepared = get_time()
+        status, number = open_ground(depth)
+        if status != "number":
+            quick_print("dynamite_failed", "first_cell", status)
+            return
+        known = []
+        for cell in range(size * size):
+            known.append(UNKNOWN)
+        known[(size // 2) * (size + 1)] = number
+        groups = min(max_drones(), size)
+        rounds = 0
+        for phase in range(PHASE_LIMIT):
+            results = dispatch(0, groups, groups, known, near, size, depth)
+            changed = False
+            status = "running"
+            for state, updates in results:
+                # 主机叶子也会修改known；以本批新事实判断进展。
+                if len(updates) > 0:
+                    changed = True
+                if state == "error" or state == "mine":
+                    status = state
+                elif state == "ended" and status == "running":
+                    status = state
+                for cell in updates:
+                    value = updates[cell]
+                    old = known[cell]
+                    if old == value or (old >= 0 and value == SAFE) or (old == DONE and value >= 0):
+                        continue
+                    if old == UNKNOWN or (old == SAFE and value >= 0) or (old >= 0 and value == DONE):
+                        known[cell] = value
+                    else:
+                        quick_print("dynamite_conflict", cell, old, value)
+                        return
+            rounds += 1
+            if status != "running" or not changed:
+                break
+        if status == "running":
+            status = settle(size, depth)
+        quick_print("dynamite_cycle", cycle, status, "phases", rounds,
+                    num_items(Items.Dynamite) - before, get_time(), num_items(Items.Dynamite),
+                    "prepare", prepared - began, "solve", get_time() - prepared)
+        if status != "ended":
+            return
+    quick_print("dynamite_failed", "cycle_limit")
 
 
-def dynamite_prepare(size, depth):
-    handles = []
-    ok = True
-    for x in range(size):
-        if num_drones() < max_drones():
-            handle = spawn_drone(dynamite_prepare_column, x, size, depth)
-            if handle != None:
-                handles.append(handle)
-                continue
-        if not dynamite_prepare_column(x, size, depth):
-            ok = False
-    for handle in handles:
-        if not wait_for(handle):
-            ok = False
-    return ok
+UNKNOWN = -2
+MINE = -1
+SAFE = -3
+# 已实际开挖且所有邻格均已证明；不再需要原数字，也不能重复挖掘。
+DONE = 9
+# 延续有限盘数和开挖保护；局部与全局批次均设置有限上限。
+CYCLE_LIMIT = 512
+DIG_LIMIT = 256
+PHASE_LIMIT = 256
 
 
-def dynamite_prepare_column(x, size, depth):
-    if not dynamite_move_to(x, 0, size):
-        return False
-    for _ in range(size):
-        while get_pos_z() > depth:
-            if not dig():
-                return False
-        if get_pos_z() != depth or get_ground_type() != Grounds.Dynamite:
+# 二叉派遣同时展开各层；容量不足时本机完成未派出的子树。
+def dispatch(lo, hi, groups, known, near, size, depth):
+    if hi - lo == 1:
+        return [work(lo, groups, known, near, size, depth)]
+    mid = (lo + hi) // 2
+    handle = spawn_drone(dispatch, mid, hi, groups, known, near, size, depth)
+    results = dispatch(lo, mid, groups, known, near, size, depth)
+    if handle == None:
+        right = dispatch(mid, hi, groups, known, near, size, depth)
+    else:
+        right = wait_for(handle)
+    for result in right:
+        results.append(result)
+    return results
+
+
+# 各区独立推理并连续开安全格；相邻区域只交换公开数字与确定证明。
+def work(group, groups, known, near, size, depth):
+    columns = min(8, groups)
+    rows = groups // columns
+    left = (group % columns) * size // columns
+    right = (group % columns + 1) * size // columns
+    bottom = (group // columns) * size // rows
+    top = (group // columns + 1) * size // rows
+    owned = []
+    for y in range(bottom, top):
+        if (y - bottom) % 2 == 0:
+            for x in range(left, right):
+                owned.append(x + y * size)
+        else:
+            for x in range(right - 1, left - 1, -1):
+                owned.append(x + y * size)
+    clues = set()
+    # 两格边界允许本区利用相邻数字约束，不取得邻区的开挖权。
+    for y in range(max(0, bottom - 2), min(size, top + 2)):
+        for x in range(max(0, left - 2), min(size, right + 2)):
+            cell = x + y * size
+            if known[cell] >= 0 and known[cell] != DONE:
+                clues.add(cell)
+    owned_set = set(owned)
+    updates = {}
+    for step in range(PHASE_LIMIT):
+        if not propagate(known, clues, near, updates):
+            return "error", updates
+        targets = []
+        for cell in owned:
+            if known[cell] == SAFE:
+                targets.append(cell)
+        if len(targets) == 0:
+            return "running", updates
+        while len(targets) > 0:
+            cell = targets.pop()
+            if not move_to(cell % size, cell // size, size):
+                return "error", updates
+            status, number = open_ground(depth)
+            if status != "number":
+                return status, updates
+            known[cell] = number
+            updates[cell] = number
+            if number == 0:
+                known[cell] = DONE
+                updates[cell] = DONE
+                for other in near[cell]:
+                    if known[other] == UNKNOWN:
+                        known[other] = SAFE
+                        updates[other] = SAFE
+                        if other in owned_set:
+                            targets.append(other)
+            else:
+                clues.add(cell)
+    return "error", updates
+
+
+# 局部状态变化唤醒相邻数字；解完的约束永久退出本盘推理。
+def propagate(known, active, near, updates):
+    pending = []
+    queued = set()
+    for clue in active:
+        pending.append(clue)
+        queued.add(clue)
+    while len(pending) > 0:
+        clue = pending.pop()
+        queued.remove(clue)
+        if clue not in active:
+            continue
+        remaining = known[clue]
+        unknown = []
+        for cell in near[clue]:
+            value = known[cell]
+            if value == MINE:
+                remaining -= 1
+            elif value == UNKNOWN:
+                unknown.append(cell)
+        if remaining < 0 or remaining > len(unknown):
             return False
-        if not move(North):
-            return False
+        if remaining != 0 and remaining != len(unknown):
+            continue
+        active.remove(clue)
+        known[clue] = DONE
+        updates[clue] = DONE
+        value = MINE
+        if remaining == 0:
+            value = SAFE
+        for cell in unknown:
+            known[cell] = value
+            updates[cell] = value
+            for other in near[cell]:
+                if other in active and other not in queued:
+                    pending.append(other)
+                    queued.add(other)
     return True
 
 
-def dynamite_solve(size, depth, adjacent):
-    known = []
-    for _ in range(size * size):
-        known.append(-2)
-    active = set()
-    jobs = []
-    for _ in range(size):
-        jobs.append([])
-    guesses = 0
-    for phase in range(2048):
-        status, facts = dynamite_phase(jobs, size, depth, known)
-        if status != "running":
-            return status, guesses
-        for cell in facts:
-            if known[cell] == -1:
-                quick_print("dynamite_failed", "contradiction", cell)
-                return "error", guesses
-            known[cell] = facts[cell]
-            active.add(cell)
-        constraints = []
-        for _ in range(16):
-            changed = False
-            closed = []
-            constraints = []
-            for clue in active:
-                remaining = known[clue]
-                unknown = set()
-                for other in adjacent[clue]:
-                    if known[other] == -1:
-                        remaining -= 1
-                    elif known[other] == -2:
-                        unknown.add(other)
-                if remaining < 0 or remaining > len(unknown):
-                    quick_print("dynamite_failed", "constraint", clue)
-                    return "error", guesses
-                if remaining == 0 or remaining == len(unknown):
-                    value = -1
-                    if remaining == 0:
-                        value = -3
-                    for other in unknown:
-                        known[other] = value
-                        changed = True
-                    closed.append(clue)
-                else:
-                    constraints.append((unknown, remaining))
-            for clue in closed:
-                active.remove(clue)
-            if not changed:
-                break
-        # 达到传播上限时重新读盘，再由完整快照建立约束。
-        if changed:
-            continue
-        safe = []
-        for cell in range(size * size):
-            if known[cell] == -3:
-                safe.append(cell)
-        if len(safe) == 0 and dynamite_subset(known, constraints):
-            for cell in range(size * size):
-                if known[cell] == -3:
-                    safe.append(cell)
-        jobs = []
-        for _ in range(size):
-            jobs.append([])
-        for cell in safe:
-            jobs[cell % size].append(cell)
-        if len(safe) > 0:
-            continue
-        # 没有确定安全格时先重新观察一次，接收零扩展公开揭开的数字。
-        if phase == 0 or len(facts) > 0:
-            continue
-        choice = dynamite_guess(known, constraints)
-        if choice == None or guesses >= 32:
-            for cell in range(size * size):
-                if known[cell] >= 0 and dynamite_move_to(cell % size, cell // size, size):
-                    if get_ground_type() == Grounds.Soot:
-                        dig()
-                        return "settled", guesses
-            return "error", guesses
-        if not dynamite_move_to(choice % size, choice // size, size):
-            return "error", guesses
-        if get_pos_z() == depth and get_ground_type() == Grounds.Dynamite:
-            dig()
-            guesses += 1
-        # 踩雷可能在dig返回前就完成爆炸；下一观察批次按真实地层识别终态。
-    return "error", guesses
+# 只准备首挖入口，其余柱的覆盖层按实际安全任务清理。
+def find_stratum():
+    for _ in range(DIG_LIMIT):
+        if get_ground_type() == Grounds.Dynamite:
+            return True
+        if get_hardness() >= 10000000 or not dig():
+            return False
+    return get_ground_type() == Grounds.Dynamite
 
 
-def dynamite_phase(jobs, size, depth, known):
-    # known在派发到wait完成之间只读，每列只执行自己的确定安全格。
-    handles = []
-    results = []
-    for x in range(size):
-        if num_drones() < max_drones():
-            handle = spawn_drone(dynamite_column, x, jobs[x], size, depth, known)
-            if handle != None:
-                handles.append(handle)
-                continue
-        results.append(dynamite_column(x, jobs[x], size, depth, known))
-    for handle in handles:
-        results.append(wait_for(handle))
-    status = "running"
-    facts = {}
-    for result in results:
-        if result[0] == "error":
-            status = "error"
-        elif result[0] == "ended" and status != "error":
-            status = "ended"
-        for cell in result[1]:
-            if cell in facts and facts[cell] != result[1][cell]:
-                quick_print("dynamite_failed", "observation_conflict", cell)
-                status = "error"
-            facts[cell] = result[1][cell]
-    return status, facts
-
-
-def dynamite_column(x, cells, size, depth, known):
-    facts = {}
-    for cell in cells:
-        if not dynamite_move_to(x, cell // size, size):
-            return "error", facts
-        if get_pos_z() == depth and get_ground_type() == Grounds.Dynamite:
-            if not dig():
-                return "error", facts
-    # 已知Soot也可用于检查数字表是否结算；不能只看未知格而漏掉终态。
+# 以真实地面、深度和数字表区分当前盘与已结束盘。
+def read_ground(depth):
     z = get_pos_z()
+    if z >= depth:
+        return "closed", None
     if z < depth - 1:
-        return "ended", facts
-    if z == depth - 1 and get_ground_type() == Grounds.Soot:
-        if measure() == None:
-            return "ended", facts
-    # 每格由本列观察一次；零扩展在其他工人稍后出现时由下一批补读。
-    for y in range(size):
-        cell = x + y * size
-        if known[cell] != -2 and known[cell] != -3:
-            continue
-        if not dynamite_move_to(x, y, size):
-            return "error", facts
-        z = get_pos_z()
-        if z < depth - 1:
-            return "ended", facts
-        if z == depth - 1 and get_ground_type() == Grounds.Soot:
-            number = measure()
-            if number == None:
-                return "ended", facts
-            facts[cell] = number
-    return "running", facts
+        return "ended", None
+    if get_ground_type() != Grounds.Soot:
+        return "error", None
+    if get_entity_type() == Entities.Dynamite:
+        return "mine", None
+    number = measure()
+    if number == None:
+        return "ended", None
+    if number not in range(9):
+        return "error", None
+    return "number", number
 
 
-def dynamite_subset(known, constraints):
-    # 只比较有限对约束；找不到证明就交给显式猜测，不把启发式当安全结论。
-    checked = 0
-    for first in range(len(constraints)):
-        for second in range(first + 1, len(constraints)):
-            checked += 1
-            if checked > 4096:
-                return False
-            small, a = constraints[first]
-            large, b = constraints[second]
-            if len(small) > len(large):
-                small, large = large, small
-                a, b = b, a
-            subset = True
-            for cell in small:
-                if cell not in large:
-                    subset = False
-                    break
-            if not subset:
-                continue
-            difference = []
-            for cell in large:
-                if cell not in small and known[cell] == -2:
-                    difference.append(cell)
-            remaining = b - a
-            if len(difference) > 0 and (remaining == 0 or remaining == len(difference)):
-                value = -1
-                if remaining == 0:
-                    value = -3
-                for cell in difference:
-                    known[cell] = value
-                return True
-    return False
+# 每个区域独占本区的开挖权，绝不在煤灰上为补读数字而再次dig。
+def open_ground(depth):
+    for _ in range(DIG_LIMIT):
+        if get_pos_z() <= depth:
+            break
+        if get_hardness() >= 10000000 or not dig():
+            return "error", None
+    z = get_pos_z()
+    if z > depth:
+        return "error", None
+    if z == depth:
+        if get_ground_type() != Grounds.Dynamite or not dig():
+            return "error", None
+    return read_ground(depth)
 
 
-def dynamite_guess(known, constraints):
-    risks = {}
-    for cells, count in constraints:
-        risk = count / len(cells)
-        for cell in cells:
-            if known[cell] == -2 and (cell not in risks or risk > risks[cell]):
-                risks[cell] = risk
-    best = None
-    least = 2
-    for cell in range(len(known)):
-        if known[cell] != -2:
-            continue
-        risk = 0.5
-        if cell in risks:
-            risk = risks[cell]
-        if risk < least:
-            best = cell
-            least = risk
-    return best
+# 所有工人已回收；在首挖入口的有效煤灰上只结算一次。
+def settle(size, depth):
+    if not move_to(size // 2, size // 2, size):
+        return "error"
+    status, number = read_ground(depth)
+    if status == "ended":
+        return status
+    if status != "number" or not dig():
+        return "error"
+    status, number = read_ground(depth)
+    if status != "ended":
+        return "error"
+    return status
 
 
-def dynamite_neighbors(cell, size):
+# 雷数八邻域不环绕，移动允许走农场边界的环绕最短路。
+def neighbors(cell, size):
     x = cell % size
     y = cell // size
     result = []
-    for ny in range(max(0, y - 1), min(size, y + 2)):
-        for nx in range(max(0, x - 1), min(size, x + 2)):
-            if nx != x or ny != y:
-                result.append(nx + ny * size)
+    if y > 0:
+        if x > 0:
+            result.append(cell - size - 1)
+        result.append(cell - size)
+        if x + 1 < size:
+            result.append(cell - size + 1)
+    if x > 0:
+        result.append(cell - 1)
+    if x + 1 < size:
+        result.append(cell + 1)
+    if y + 1 < size:
+        if x > 0:
+            result.append(cell + size - 1)
+        result.append(cell + size)
+        if x + 1 < size:
+            result.append(cell + size + 1)
     return result
 
 
-def dynamite_move_to(tx, ty, size):
+def move_to(tx, ty, size):
     dx = (tx - get_pos_x()) % size
-    direction = East
-    if dx > size // 2:
-        direction = West
-        dx = size - dx
-    for _ in range(dx):
-        if not move(direction):
-            return False
     dy = (ty - get_pos_y()) % size
-    direction = North
+    horizontal = East
+    vertical = North
+    if dx > size // 2:
+        dx = size - dx
+        horizontal = West
     if dy > size // 2:
-        direction = South
         dy = size - dy
+        vertical = South
+    for _ in range(dx):
+        if not move(horizontal):
+            return False
     for _ in range(dy):
-        if not move(direction):
+        if not move(vertical):
             return False
     return True
 

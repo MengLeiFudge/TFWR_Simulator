@@ -1,28 +1,28 @@
 # 炸药（dynamite）
 
-2026-11-06：新增可复核基线，目标为10000000 Dynamite。当前实现已完成三seed原目标模拟；普通场景对照保留为首版历史证据；已取得构建26462009的正式完整统计，见末节。
+目标为10000000 Dynamite。当前区域工人版已完成三个seed的本地原目标，均值1093.69232436游戏秒，尚未实机验证。旧版正式完整统计保留在末节，不能作为当前版本成绩。
 
 ## 当前实现
 
-逐列准备到同一Dynamite顶面，再由唯一协调机合并实际Soot数字并作确定性约束、有限子集推理。工人只挖自己列已证明安全的格子，随后仅回访本列尚无数字的格子，已知数字保留缓存；其他列稍后发生的零扩展由下一批补读。每批检查已知Soot的结算状态，全部wait完成后才合并事实。停滞后有限猜测，按实际结算库存决定收益。
+中心首挖后，将32×32盘划分为8×4个区域。`dispatch`用二叉树派机；每个`work`独占本区开挖，利用本区和两格边界的公开数字，连续执行基本确定规则和零格扩展。全体回收后主机合并事实，无新证明时在有效煤灰上正常结算并重开。全局合并保留冲突检查，不把未开安全格当作已开格。
 
-主要成员：`dynamite_prepare`、`dynamite_solve`、`dynamite_phase`、`dynamite_column`、`dynamite_subset`、`dynamite_guess`。最多512盘、24000游戏秒，每盘最多32次猜测与2048批；子集最多比较4096对。传播达到16轮时重建快照，避免拿过期约束作证明。公开启发式不作为安全证明，也不读取隐藏雷或随机状态。
+主要成员：`lb_dynamite`、`dispatch`、`work`、`propagate`、`open_ground`、`settle`。`DONE`只表示已实际挖开且邻格全已确定的数字；其约束永久退出本盘推理。区域内按蛇形组织任务，零格就地延伸安全任务；覆盖层只在实际要开格时准备。停滞后兑现已围雷的平方奖励，不继续猜测或做重型子集推理。最多512盘、24000游戏秒，每盘及局部推进最多256批，找层与单格准备各有256次开挖上限。所有工人回收后才结算或clear。
 
 ## 时间记录
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值 5554.525546020 游戏秒 | 修正前历史三seed；塌方修正后已另重算seed1，见候选记录 |
+| 本地模拟预估时间 | 三seed均值 1093.69232436 游戏秒 | 当前自包含源码，三次均完整达到10000000目标 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
-| 游戏打榜时间 | 5561.376 游戏秒 | 构建26462009，请求367，2轮，正常完整结束 |
+| 游戏打榜时间 | 未取得 | 旧版请求367的5561.376秒仅作历史记录 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 5436.202286790 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/dynamite/selective-observe-model-seed1/report.json` |
-| 2 | 5626.161732960 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/dynamite/selective-observe-model-seed2/report.json` |
-| 3 | 5601.212618310 | 已达到原目标 | `.codex/leaderboard-sol/underground-official/dynamite/selective-observe-model-seed3/report.json` |
+| 1 | 1076.05688688 | 10296320 Dynamite | `.codex/dynamite-leaderboard-optimization/final-seed1.json` |
+| 2 | 1149.25862466 | 10251088 Dynamite | `.codex/dynamite-leaderboard-optimization/final-seed2.json` |
+| 3 | 1055.76146154 | 10241840 Dynamite | `.codex/dynamite-leaderboard-optimization/final-seed3.json` |
 
-首版部署源码 SHA256：`824e5a96fcd969f5c7ffdf5357328c56546866672f19dd454bb40918569d1fa6`。地下模型元数据构建为26410308，基础模型字段保留26385848；报告分别保留两组来源指纹。资源榜专用地形的验证级别为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
+执行源码SHA256为`a006c1c753e7bb63db12c432d80ade031d3eb75fc0e45d665f0f465cdb9c162a`；迁入后仅更新时间与机制注释，SHA256为`210fd73cd37ecf01b1df0b67331046cde30b5610929d1242a5274bca9c8e15fc`，AST完全一致。地下模型元数据构建为26410308，基础模型字段保留26385848；资源榜专用地形仍为`asset_and_source_only`，固定seed预测不能重放正式榜的加密随机盘面。
 
 ## 首版普通场景实机对照（历史）
 
@@ -36,19 +36,19 @@
 
 ## 候选与已处理边界
 
-区域版与并行规划候选未表现出更低的本地游戏时间。当前版只改变观察路径，保留同批数字冲突检查与动作失败error。旧模型seed1需4052971次get_pos_z和2099691次move；只回访本列未知格的三seed原目标均完成。候选请求362的正式2轮均值5431.146秒；迁入真源后的请求367完整2轮为5561.376秒，当前采用复验结果，仍优于原6796.005秒。
+历史逐列观察版曾比较区域与并行规划，但未取得改善。其只改变观察路径，保留同批数字冲突检查与动作失败error；旧模型seed1需4052971次get_pos_z和2099691次move。只回访未知格的历史三seed时间为5436.202286790、5626.161732960、5601.212618310秒，均值5554.525546020秒。请求362正式2轮均值5431.146秒；迁入后的请求367完整2轮为5561.376秒，作为该旧版复验记录。
 
 成功结算可保留原深度下一格Soot，此时measure=None表示该盘数字表已移除，按ended收口。即使本列没有未知格，也先检查当前已知Soot；不能因只扫未知格而漏掉终态。
 
-2026-11-07按塌方修正后的模型重新完成当前版seed1，原10000000目标5436.202286790秒，与修前同seed相同。证据：`.codex/leaderboard-sol/underground-official/dynamite/selective-observe-cavein-model-seed1/report.json`；本表另外两个seed仍为历史预测。
+2026-11-07按塌方修正后的模型重新完成逐列观察旧版seed1，原10000000目标5436.202286790秒，与修前同seed相同。证据：`.codex/leaderboard-sol/underground-official/dynamite/selective-observe-cavein-model-seed1/report.json`。本轮同seed区域工人版1076.05688688秒，时间缩短80.21%。
 
 覆盖层按需准备另作多机候选，保留列唯一写者、全wait后合并、公开推理和原目标。候选在约8182350/10000000库存的进度样本中为4384.980游戏秒，邻近基线样本约8181250库存为4439.056秒；这是限频采样，进行中阶段和库存不完全相同，不能当作等库存完整对照。可见潜在收益较小，已提前停止并优先评估其他瓶颈；候选未完成原目标，不进入实机、不迁入，也未据此断言严格更慢。证据为`.codex/leaderboard-sol/underground-official/dynamite/lazy-cover-model-seed1/early-stop.json`及原进度日志。
 
 ## 静态检查与后续
 
-AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查通过。与当前执行逻辑一致的源码副本（仅时间注释不同）的ty LSP无错误，有2项measure()==None分支不可达提示：外部类型桩未包含结算后的None，保留已由实机证明必要的终态判断。
+当前版本的LSP无错误或警告，7项提示来自未用循环/解包变量及外部类型桩遗漏的None分支。执行脚本自包含，入口为同名函数，未使用jump、爆破钻头、隐藏雷/RNG或重复结算。三个完整报告的源码SHA一致，迁入真源后AST相同。普通持续版及真实存档未在本轮修改。
 
-下一步按[共用研究流程](README.md)继续比较结构候选；新版本仍须正式完整统计，只有官方正常结束结果才进入游戏打榜时间和成绩索引。当前记录不声明已确认最快或取得公开排名。
+本轮仅本地优化，当前版本未取得短时打榜或正式完整统计；历史成绩索引不更新。后续研究重点是边界信息传播和区域批次成本。新版本进入实机仍遵循[共用流程](README.md)的准入要求。
 
 ## 构建26462009正式统计：baseline-26462009
 
@@ -85,3 +85,19 @@ AST解析、仓库游戏语法检查、入口结构及禁止jump的静态检查�
 部署源码SHA256：`7e21667ee377efc45d6f2da085396fa35d5e145eb7e42d49235a4f3545c2c0d8`。当前源码SHA256：`35e1089fb396ba9b2fcbfc49eb4a2dc6e9ac771a89df0029944669819187295a`；最终仅更新时间注释，AST与实测部署版本相同。版本Core.dll为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。模型仍标地下构建26410308，以上正式成绩来自当前游戏，不能据此宣称新版本模型精度全面通过。
 
 证据：`.codex/leaderboard-sol/underground-official/dynamite/selective-observe-current-26462009/summary.json`及同目录完整请求、部署清单与restoration记录。双日志无新增Error/Exception，全部脚本正常达标返回；已有test.py/lb_start.py在同ID回idle后逐字节恢复，非目标存档Python文件未变。
+
+## 2026-11-07：区域工人本地优化
+
+上一阶段中心求解、按列派安全任务的三seed完整目标为2790.26164062、2765.61096390、2688.71718843秒，均值2748.19659765秒。当前区域工人版均值1093.69232436秒，整轮时间缩短60.20%，速度为此前的2.513倍。原目标和初始化、准备、移动、推理、派遣、结算费用均保留；新版本37/39/35盘完成，难盘提前结算导致单盘产量不同，因此以完整一千万目标比较。
+
+改善来自把推理和连续开格一同交给区域工人，减少主机逐小批次全图规划、远程派工和往返。二叉派机降低启动的串行路径，DONE状态减少重复约束，蛇形任务减少区域内移动。seed1的move由上一候选236908次降到73176次；spawn由10662次降到9083次。解释器计数是所有工人之和，本轮增至16791685t，但共享总时间显著下降，不能把多机累计工作量当作墙钟瓶颈。
+
+公开Dynamite榜ID21444631，本轮于2026-11-07T08:22:06Z单榜刷新，#1为335.314秒。当前本地均值为其3.26170倍，多758.3783秒；上一候选为8.19589倍。证据：`.codex/dynamite-leaderboard-optimization/leaderboard-current.json`与同目录生成报告。本地预测不等同游戏成绩或已提交排名。
+
+有界筛选失败记录：跳过已证明零的内部格增加判断与批次；16工人分区降低并行度；常驻工人的实地/方向边界读数传播收益偏低；递归分层收敛反复派机，前三盘818992炸药需244.2353秒；增量任务队列未显著优于简洁区域推进。仅本地筛选，截断报告没有计入最终三seed均值。阶段围雷数量表明后期仍有较高平方增益，因此未采用固定短时截止。详见同目录`regional-skip-zero-seed1.json`、`incremental16-seed1.json`、`autonomous-seed1.json`、`autonomous-scan-seed1.json`、`hierarchical-seed1.json`、`incremental-seed1.json`与`phase-budget-seed1.json`。
+
+完整运行：`python3 .codex/dynamite-leaderboard-optimization/run_model.py .codex/dynamite-leaderboard-optimization/final_candidate.py <report.json> --seed <1|2|3> --seconds 360`。每个模型外层370秒timeout，API600万次、检查点8000万，5秒进度；三个seed均正常完成，墙钟约123～132秒。没有新增或修改测试，没有启动真实游戏。
+
+Implementation deviations：None。
+
+新发现问题：无。
