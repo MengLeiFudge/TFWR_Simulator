@@ -76,6 +76,9 @@ class FarmWorld:
             if key not in UNLOCK_DATA or type(level) is not int or not 0 <= level <= UNLOCK_DATA[key]['max_unlock_level']:
                 raise ValueError(f'无效科技配置：{name}={level}')
             self.unlocks[key] = level
+        if self.leaderboard is not None:
+            # Core.StartLeaderboard 在创建正式榜单世界前移除爆破钻头科技。
+            self.unlocks['explosive_drill'] = 0
         self.items: dict[Items, int | float] = dict.fromkeys(Items, 0)
         if scenario.get('preset', 'max') == 'max':
             self.items.update({Items.Pumpkin: 1000000000, Items.Power: 1000000000})

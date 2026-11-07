@@ -70,7 +70,7 @@ JSONL 每行记录调用序号、无人机、API、参数、返回值、调用�
 python3 -m mechanism_model.local_simulator strategy.py --leaderboard mushrooms_single --seed 1 --timeout 30 --output result.json
 ```
 
-支持 Bamboo、Dynamite、Mushrooms、Ores、Pyramids、Rice 的单双机榜，以及 Treasure_Map 和 Fastest_Underground_Reset，共14榜。场景也可写 `{"leaderboard":"Mushrooms_Single"}`，并用 `items/unlocks/goal` 覆盖初始条件。默认库存、目标、地层规则和实测边界见[地下模拟与同种子对照](underground-validation.md)。本地命令只执行传入脚本，不生成策略、不提交成绩。
+支持 Bamboo、Dynamite、Mushrooms、Ores、Pyramids、Rice 的单双机榜，以及 Treasure_Map 和 Fastest_Underground_Reset，共14榜。场景也可写 `{"leaderboard":"Mushrooms_Single"}`，并用 `items/unlocks/goal` 覆盖初始条件。正式榜单场景初始化时统一移除 `Explosive_Drill` 科技，显式科技覆盖也不能保留它；这对齐游戏 `Core.StartLeaderboard` 对非 `simulation` 的过滤。普通场景不应用该规则，已解锁时仍可使用钻头。默认库存、目标、地层规则和实测边界见[地下模拟与同种子对照](underground-validation.md)。本地命令只执行传入脚本，不生成策略、不提交成绩。
 
 ## 机制与执行边界
 
