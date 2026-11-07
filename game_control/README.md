@@ -24,8 +24,6 @@
 - `tools/*.py`
   - CLI 入口
   - 只负责参数接线，不重复实现业务逻辑
-- `tests/`
-  - Python 测试
 
 当前核心实现文件：
 
@@ -224,10 +222,4 @@ python3 game_control/tools/run_real_game_script.py --help
 python3 game_control/tools/refresh_decompiled_sources.py --help
 python3 game_control/tools/extract_unlock_snapshot.py --help
 python3 game_control/tools/extract_leaderboard_snapshot.py --help
-```
-
-开发期测试：
-
-```bash
-PYTHONPATH=game_control/src python3 -m unittest discover -s game_control/tests -p 'test_*.py' -v
 ```

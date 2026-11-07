@@ -1,4 +1,3 @@
 <Solution>
   <Project Path="TFWROracleRunner.csproj" />
-  <Project Path="tests/TFWROracleRunner.Tests.csproj" />
 </Solution>

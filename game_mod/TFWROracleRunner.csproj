@@ -28,11 +28,6 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="tests/**/*.cs" />
-    <None Include="tests/**/*.cs" />
-  </ItemGroup>
-
   <ItemGroup Condition="Exists('$(TFWRManagedDir)')">
     <Reference Include="Core">
       <HintPath>$(TFWRManagedDir)/Core.dll</HintPath>
