@@ -18,6 +18,7 @@ from .world import FarmWorld, UnsupportedMechanism
 from .catalog import DATA, Direction, Entities, Grounds, Items, Hats, Unlocks, Leaderboards, UNDERGROUND
 from .language import BUILTINS, game_iter
 from .execution import Api, Drone, Request, Scheduler, API_NAMES, Module, ReturnedValue, attribute, compile_script, dispatch, elapsed, evaluate
+from .scenarios import save_scenario, unlock_overrides
 
 
 class BudgetExceeded(RuntimeError):
@@ -84,6 +85,9 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
     next_progress = started + 5
     code, source_hash = load_script(path)
     world = FarmWorld(seed, scenario)
+    initial_state = {'unlocks': dict(world.unlocks),
+                     'items': {item.name: amount for item, amount in world.items.items()},
+                     'width': world.width, 'size': world.size, 'max_drones': world.drone_limit()}
     trace_hash = hashlib.sha256() if trace else None
     calls = 0
     steps = 0
@@ -195,7 +199,7 @@ def run_script(path: Path, seed=1, max_calls=100000, max_steps=2000000, seconds=
         'kind': 'prediction', 'status': status, 'error': error,
         'model_version': DATA['game_version'], 'random_mode': 'seeded_simulate',
         'underground_model_version': UNDERGROUND['game_version'],
-        'scenario': scenario or 'max_unlocks', 'script': str(path),
+        'scenario': scenario or 'max_unlocks', 'initial_state': initial_state, 'script': str(path),
         'script_sha256': source_hash, 'seed': seed, 'stream_seeds': world.seeds,
         'module_dependencies': dependencies,
         'goal_reached': world.goal_reached(),
@@ -369,6 +373,10 @@ def main():
                         help='独立seed的工作进程数，须为正整数；默认可用逻辑CPU数（本机%(default)s），实际不超过seed数')
     parser.add_argument('--scenario', type=Path, help='JSON：preset、items、unlocks、goal；可含地下leaderboard名称')
     parser.add_argument('--leaderboard', help='地下排行榜名称，如 mushrooms_single；可用scenario覆盖库存、科技和目标')
+    initial_group = parser.add_mutually_exclusive_group()
+    initial_group.add_argument('--preset', choices=('max', 'all', 'reset'), help='基础满科技、含DLC满科技或初始科技；覆盖scenario中的preset')
+    initial_group.add_argument('--save', type=Path, help='只读save.json，导入科技和库存；不恢复地形/运行状态，scenario再覆盖')
+    parser.add_argument('--unlock', action='append', default=[], metavar='NAME=LEVEL', help='覆盖一项科技，可重复；名称如Expand、Unlocks.Mining')
     parser.add_argument('--trace', type=Path, help='写入逐 API JSONL；会覆盖指定文件')
     parser.add_argument('--output', type=Path, help='写入 JSON 报告；会覆盖指定文件')
     parser.add_argument('--max-api-calls', type=int, default=100000)
@@ -383,19 +391,38 @@ def main():
     if not (0 <= args.seed <= 2147483647 and 0 < args.timeout <= 75
             and args.max_api_calls > 0 and args.max_steps > 0):
         parser.error('seed 须为非负 Int32，timeout 须在 (0, 75] 内，调用/步数上限须为正数')
-    paths = [p.resolve() for p in (args.script, args.scenario, args.trace, args.output) if p is not None]
+    paths = [p.resolve() for p in (args.script, args.scenario, args.save, args.trace, args.output) if p is not None]
     if args.trace and args.seeds:
         paths.extend(args.trace.with_name(f'{args.trace.stem}.seed-{seed}{args.trace.suffix}').resolve() for seed in seeds)
     if len(paths) != len(set(paths)):
-        parser.error('脚本、轨迹和报告必须使用不同文件')
+        parser.error('脚本、场景/存档、轨迹和报告必须使用不同文件')
+    try:
+        scenario = json.loads(args.scenario.read_text(encoding='utf-8-sig')) if args.scenario else {}
+        if not isinstance(scenario, dict):
+            raise ValueError('场景JSON必须是对象')
+        if args.save:
+            saved = save_scenario(json.loads(args.save.read_text(encoding='utf-8-sig')))
+            for key in ('items', 'unlocks'):
+                saved[key].update(scenario.get(key, {}))
+            scenario = saved | {key: value for key, value in scenario.items() if key not in ('items', 'unlocks')}
+        if args.preset:
+            scenario['preset'] = args.preset
+        if args.unlock:
+            # 同一科技的不同拼写归一化，避免字典顺序覆盖CLI的最终值。
+            overrides = {name.removeprefix('Unlocks.').lower(): level for name, level in scenario.get('unlocks', {}).items()}
+            overrides.update(unlock_overrides(args.unlock))
+            scenario['unlocks'] = overrides
+        if args.leaderboard:
+            if 'leaderboard' in scenario:
+                raise ValueError('--leaderboard 与场景中的 leaderboard 不能同时设置')
+            scenario['leaderboard'] = args.leaderboard
+        if 'leaderboard' in scenario and (args.save or args.preset):
+            raise ValueError('排行榜场景不能与--save/--preset同时使用；请用--unlock覆盖单项科技')
+    except (OSError, ValueError, TypeError, AttributeError) as exc:
+        parser.error(f'初始配置无效：{exc}')
     options = {'path': args.script.resolve(), 'seed': args.seed, 'trace': args.trace,
                'max_calls': args.max_api_calls, 'max_steps': args.max_steps, 'seconds': args.timeout,
-               'scenario': json.loads(args.scenario.read_text()) if args.scenario else None}
-    if args.leaderboard:
-        scenario = options['scenario'] or {}
-        if not isinstance(scenario, dict) or 'leaderboard' in scenario:
-            parser.error('--leaderboard 与场景中的 leaderboard 不能同时设置')
-        options['scenario'] = dict(scenario, leaderboard=args.leaderboard)
+               'scenario': scenario or None}
     deadline = time.monotonic() + args.timeout
     report = run_workers(options, args.seeds, deadline, args.jobs)
     text = json.dumps(report, ensure_ascii=False, indent=2) + '\n'

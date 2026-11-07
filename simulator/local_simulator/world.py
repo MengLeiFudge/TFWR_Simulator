@@ -60,14 +60,15 @@ class FarmWorld:
         if not isinstance(scenario, dict) or set(scenario) - {'items', 'unlocks', 'preset', 'goal', 'leaderboard'}:
             raise ValueError('场景只接受 items、unlocks、preset、goal、leaderboard 字段')
         scenario, self.leaderboard = leaderboard_scenario(scenario)
-        if scenario.get('preset', 'max') not in ('max', 'reset'):
-            raise ValueError('preset 必须是 max 或 reset')
+        preset = scenario.get('preset', 'max')
+        if preset not in ('max', 'all', 'reset'):
+            raise ValueError('preset 必须是 max、all 或 reset')
         self.seeds = stream_seeds(seed)
         self.rng = {name: MonoRandom(value) for name, value in self.seeds.items()}
         self.random_rng = self.rng['random']
         self.script_rng = MonoRandom(self.random_rng.next())
         self.cactus_rng = self.rng['cactus']
-        self.unlocks = {key: (row['max_unlock_level'] if scenario.get('preset', 'max') == 'max' and key not in UNDERGROUND['unlocks'] else 0)
+        self.unlocks = {key: (row['max_unlock_level'] if preset == 'all' or (preset == 'max' and key not in UNDERGROUND['unlocks']) else 0)
                         for key, row in UNLOCK_DATA.items()}
         if scenario.get('preset') == 'reset':
             self.unlocks.update(dict.fromkeys(RESET_UNLOCKS, 1), grass=1)
@@ -80,7 +81,7 @@ class FarmWorld:
             # Core.StartLeaderboard 在创建正式榜单世界前移除爆破钻头科技。
             self.unlocks['explosive_drill'] = 0
         self.items: dict[Items, int | float] = dict.fromkeys(Items, 0)
-        if scenario.get('preset', 'max') == 'max':
+        if preset in ('max', 'all'):
             self.items.update({Items.Pumpkin: 1000000000, Items.Power: 1000000000})
         for name, amount in scenario.get('items', {}).items():
             item = Items(name if name.startswith('Items.') else 'Items.' + name)

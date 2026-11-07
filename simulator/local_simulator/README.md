@@ -34,17 +34,38 @@ python3 -m simulator.local_simulator scripts/leaderboard/lb_cactus_single.py --s
 
 报告为 `kind=prediction_batch`，包含 `reports` 和 `completed_seeds`；`reports` 始终按输入seed顺序排列，实时进度按各进程实际执行顺序显示。CLI在API检查点每隔至少5墙钟秒向stderr输出当前seed的虚拟游戏秒、API数和目标库存（若配置目标），每完成一个seed再报告所在工作进程的分组进度；stdout仍只承载JSON结果。进度不依赖脚本日志，也不增加游戏计费。若配置trace，分别写入 `名称.seed-N.扩展名`。
 
-用 `--scenario scenario.json` 指定初始库存、科技及可选目标。将下列JSON保存为 `scenario.json` 后传入；省略项保留默认值：
+## 科技与初始库存
+
+通过预设、场景JSON或只读存档快照选择科技组合。各选项都只影响本地世界，不会改写真实存档。
+
+| 输入 | 初始配置 |
+| --- | --- |
+| 默认或 `--preset max` | 基础科技满级、DLC科技为0；Pumpkin和Power各1e9，其他库存0 |
+| `--preset all` | 基础和DLC科技全部满级；库存默认值与max相同 |
+| `--preset reset` | Grass及基础语言/调试/感知接口已开启，生产科技与库存从零开始 |
+| `--save 路径/save.json` | 导入该文件的科技和库存；地形、作物、位置、无人机和计时仍按seed重新初始化 |
+| `--unlock 名称=等级` | 覆盖单项科技，可重复；支持 `Mining=3`、`Unlocks.Megafarm=0`，范围按资源表检查 |
+
+先选择预设或存档，再应用 `--scenario` 中的库存和科技，最后应用 `--unlock`。显式 `--preset` 覆盖场景中的preset；它与 `--save` 互斥。存档中的非科技解锁符号会忽略，`debug_2` 这类独立科技优先按完整名称识别。不会自动补齐被显式关闭的前置科技。
+
+```bash
+python3 -m simulator.local_simulator scripts/functional/carrot.py --preset reset --unlock Plant=1 --unlock Carrots=1 --unlock Expand=1 --timeout 10
+python3 -m simulator.local_simulator scripts/functional/rice.py --preset all --unlock Mining=3 --unlock Megafarm=0 --timeout 10
+python3 -m simulator.local_simulator scripts/functional/bamboo.py --save gamesave/save.json --unlock Megafarm=0 --timeout 10
+```
+
+用 `--scenario scenario.json` 指定初始库存、科技及可选目标。将下列JSON保存为 `scenario.json` 后传入；省略项保留所选预设或存档的值：
 
 ```json
 {"items":{"Hay":1000000,"Wood":1000000,"Carrot":1000000,"Cactus":1000000,"Water":100,"Fertilizer":100,"Weird_Substance":10000},"unlocks":{"Speed":4},"goal":{"item":"Cactus","amount":131072}}
 ```
 
-默认 `preset=max`：基础科技全满、DLC科技为0、32×32草地、Pumpkin和Power各1e9，其他库存0。各榜脚本需要的资源应通过场景明确提供；单无人机榜的地图/无人机限制也应显式设置，例如 `Expand=5`、`Megafarm=0`。`preset=reset` 使用原版初始科技：Grass和基础语言/调试/感知接口已开启，生产科技及库存从零开始；两种预设都可覆盖。地下资源榜直接用 `--leaderboard` 加载对应库存、全科技和单双机限制。低级Expand的1×3农田已支持；当前正式Fastest Reset已完成固定seed的完整对照，范围见验收记录。
+预设与JSON都支持 `preset=max/all/reset`。科技决定速度、产量、成本、地图和无人机容量，具体组合的机制覆盖仍以验收记录为准；语言解锁门槛尚未全面对齐。`Expand=1` 是1×3，其余地图尺寸随等级变化。地下资源榜用 `--leaderboard` 加载原版场景，可以用 `--unlock` 或JSON覆盖单项科技，与 `--save/--preset` 互斥；正式榜仍统一移除爆破钻头。普通功能脚本持续运行，API、检查点或墙钟上限会停止模拟；场景目标只记录达标状态，不会自动停止入口。
 
 | 报告字段 | 含义 |
 | --- | --- |
 | `kind: prediction` | 本地预测 |
+| `initial_state` | 实际初始unlocks、items、width、size和max_drones，先于任何脚本动作采集；用于确认科技组合实际生效 |
 | `model_version` / `underground_model_version` / `random_mode` | 基础/地下资源及机制快照的来源构建与Core/Utils哈希；当前代码的实机覆盖见验证记录。随机口径固定为`seeded_simulate` |
 | `status` / `error` | 脚本完成或被停止，以及失败原因、行号 |
 | `goal_reached` | 脚本结束时是否达到场景物品目标或解锁目标；未配置目标时为null。达到库存目标不会自动停止脚本。 |

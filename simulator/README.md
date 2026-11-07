@@ -25,7 +25,7 @@ Python 3.11+，无需启动游戏或安装依赖：
 python3 -m simulator.local_simulator scripts/leaderboard/lb_cactus_single.py --seed 1
 ```
 
-输出预测时间、API计数、目标库存和停止原因。可用 `--scenario` 提供初始库存/科技，或用 `--leaderboard mushrooms_single` 等选项加载地下榜场景；支持范围、轨迹保存、执行上限与实机误差见 [模拟器说明](local_simulator/README.md)。
+输出预测时间、API计数、目标库存和停止原因。用 `--preset max/all/reset` 选择科技预设，`--unlock Mining=3` 覆盖等级，`--save save.json` 只读导入存档科技/库存，或用 `--scenario` 指定组合；覆盖顺序见[科技与初始库存](local_simulator/README.md#科技与初始库存)。地下榜场景使用 `--leaderboard mushrooms_single` 等选项。支持范围、轨迹保存、执行上限与实机误差见模拟器说明。
 
 ## 运行 C# 动作模型
 
