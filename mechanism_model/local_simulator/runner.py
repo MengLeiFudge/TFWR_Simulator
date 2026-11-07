@@ -7,6 +7,7 @@ from contextlib import suppress
 from functools import lru_cache
 import json
 import multiprocessing
+from multiprocessing.connection import wait
 from pathlib import Path
 from typing import Any
 import sys
@@ -266,12 +267,90 @@ def worker(connection, options, deadline, seeds=None):
         connection.close()
 
 
+def run_workers(options, seeds, deadline, jobs):
+    """隔离seed分组并按输入顺序收集；所有进程共享截止时间且由本次调用回收。"""
+    context = multiprocessing.get_context('spawn')
+    count = min(jobs, len(seeds)) if seeds is not None else 1
+    processes = []
+    connections = []
+    pending = set()
+    reports = {}
+    summaries = []
+    error = None
+    try:
+        for index in range(count):
+            parent, child = context.Pipe(duplex=False)
+            connections.append(parent)
+            group = seeds[index::count] if seeds is not None else None
+            process = context.Process(target=worker, args=(child, options, deadline, group))
+            processes.append(process)
+            try:
+                process.start()
+            finally:
+                child.close()
+            pending.add(parent)
+        while pending:
+            remaining = deadline - time.monotonic()
+            ready = wait(pending, timeout=max(0, remaining)) if remaining > 0 else []
+            if not ready:
+                error = f'工作进程超过 {options["seconds"]:g}s，已终止'
+                break
+            for connection in pending.copy():
+                if connection not in ready:
+                    continue
+                try:
+                    message = connection.recv()
+                except EOFError:
+                    error = '工作进程异常退出'
+                    pending.remove(connection)
+                    connection.close()
+                    continue
+                if 'seed_report' in message:
+                    report = message['seed_report']
+                    reports[report['seed']] = report
+                else:
+                    summaries.append(message)
+                    if message.get('error') is not None:
+                        error = message['error']
+                    pending.remove(connection)
+                    connection.close()
+    finally:
+        for connection in connections:
+            connection.close()
+        # 先给正常退出留出短暂时间；终止信号发给全部进程后，再逐个等待回收。
+        for process in processes:
+            if process.pid is not None:
+                process.join(timeout=0.2)
+        for process in processes:
+            if process.is_alive():
+                process.terminate()
+        for process in processes:
+            if process.pid is not None:
+                process.join(timeout=1)
+                if process.is_alive():
+                    process.kill()
+                    process.join(timeout=1)
+                process.close()
+    if seeds is None:
+        return summaries[0] if summaries else {'kind': 'prediction', 'status': 'stopped', 'error': error}
+    ordered = [reports[seed] for seed in seeds if seed in reports]
+    complete = (error is None and len(ordered) == len(seeds) and len(summaries) == count
+                and all(report['status'] == 'completed' for report in ordered))
+    result = {'kind': 'prediction_batch', 'seeds': seeds,
+              'status': 'completed' if complete else 'stopped',
+              'reports': ordered, 'completed_seeds': len(ordered)}
+    if error is not None:
+        result['error'] = error
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description='本地运行农场 API 脚本，输出预测而非真实榜单成绩')
     parser.add_argument('script', type=Path)
     seed_group = parser.add_mutually_exclusive_group()
     seed_group.add_argument('--seed', type=int, default=1)
-    seed_group.add_argument('--seeds', type=int, nargs='+', help='顺序运行1～100个不同seed，复用编译缓存；共享timeout预算')
+    seed_group.add_argument('--seeds', type=int, nargs='+', help='运行1～100个不同seed，共享timeout预算；报告按输入顺序输出')
+    parser.add_argument('--jobs', type=int, default=1, help='独立seed的工作进程数，1～32，默认1；单seed仍由一个进程执行')
     parser.add_argument('--scenario', type=Path, help='JSON：preset、items、unlocks、goal；可含地下leaderboard名称')
     parser.add_argument('--leaderboard', help='地下排行榜名称，如 mushrooms_single；可用scenario覆盖库存、科技和目标')
     parser.add_argument('--trace', type=Path, help='写入逐 API JSONL；会覆盖指定文件')
@@ -283,6 +362,8 @@ def main():
     seeds = args.seeds or [args.seed]
     if len(seeds) > 100 or len(set(seeds)) != len(seeds) or any(not 0 <= seed <= 2147483647 for seed in seeds):
         parser.error('seeds须为1～100个不同的非负Int32')
+    if not 1 <= args.jobs <= 32:
+        parser.error('jobs须为1～32')
     if not (0 <= args.seed <= 2147483647 and 0 < args.timeout <= 75
             and args.max_api_calls > 0 and args.max_steps > 0):
         parser.error('seed 须为非负 Int32，timeout 须在 (0, 75] 内，调用/步数上限须为正数')
@@ -299,41 +380,8 @@ def main():
         if not isinstance(scenario, dict) or 'leaderboard' in scenario:
             parser.error('--leaderboard 与场景中的 leaderboard 不能同时设置')
         options['scenario'] = dict(scenario, leaderboard=args.leaderboard)
-    context = multiprocessing.get_context('spawn')
-    parent, child = context.Pipe(duplex=False)
     deadline = time.monotonic() + args.timeout
-    process = context.Process(target=worker, args=(child, options, deadline, args.seeds))
-    process.start()
-    child.close()
-    reports = []
-    try:
-        while True:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0 or not parent.poll(remaining):
-                report = {'kind': 'prediction', 'status': 'stopped', 'error': f'工作进程超过 {args.timeout:g}s，已终止'}
-                break
-            try:
-                message = parent.recv()
-            except EOFError:
-                report = {'kind': 'prediction', 'status': 'stopped', 'error': '工作进程异常退出'}
-                break
-            if 'seed_report' in message:
-                reports.append(message['seed_report'])
-            else:
-                report = message
-                break
-    finally:
-        parent.close()
-        process.join(timeout=0.2)
-        if process.is_alive():
-            process.terminate()
-            process.join(timeout=1)
-        if process.is_alive():
-            process.kill()
-            process.join(timeout=1)
-    if args.seeds:
-        report = {**report, 'kind': 'prediction_batch', 'seeds': args.seeds,
-                  'reports': reports, 'completed_seeds': len(reports)}
+    report = run_workers(options, args.seeds, deadline, args.jobs)
     text = json.dumps(report, ensure_ascii=False, indent=2) + '\n'
     if args.output:
         args.output.write_text(text, encoding='utf-8')

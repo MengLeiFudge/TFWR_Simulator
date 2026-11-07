@@ -26,7 +26,13 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cactus_single.py --seeds 0 1 123 --timeout 30 --output .codex/cactus-batch.json
 ```
 
-`--seeds` 接受1～100个不重复的非负Int32，与 `--seed` 互斥。在一个隔离进程内依次运行，复用源代码编译结果，各seed重建独立世界。报告为 `kind=prediction_batch`，包含 `reports` 和 `completed_seeds`；CLI在API检查点每隔至少5墙钟秒向stderr输出当前seed的虚拟游戏秒、API数和目标库存（若配置目标），每完成一个seed再报告批次进度；stdout仍只承载JSON结果。进度不依赖脚本日志，也不增加游戏计费。若配置trace，分别写入 `名称.seed-N.扩展名`。
+`--seeds` 接受1～100个不重复的非负Int32，与 `--seed` 互斥。默认 `--jobs 1` 在一个隔离进程内顺序运行，复用源代码编译结果，各seed重建独立世界。指定 `--jobs 3` 可用最多3个工作进程并行执行独立seed；有效进程数不超过seed数，允许值为1～32。单个seed内部仍按原有顺序调度无人机，农田状态与随机数不跨进程共享。
+
+```bash
+python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cactus_single.py --seeds 0 1 123 --jobs 3 --timeout 30 --output .codex/cactus-batch.json
+```
+
+报告为 `kind=prediction_batch`，包含 `reports` 和 `completed_seeds`；`reports` 始终按输入seed顺序排列，实时进度按各进程实际执行顺序显示。CLI在API检查点每隔至少5墙钟秒向stderr输出当前seed的虚拟游戏秒、API数和目标库存（若配置目标），每完成一个seed再报告所在工作进程的分组进度；stdout仍只承载JSON结果。进度不依赖脚本日志，也不增加游戏计费。若配置trace，分别写入 `名称.seed-N.扩展名`。
 
 用 `--scenario scenario.json` 指定初始库存、科技及可选目标。将下列JSON保存为 `scenario.json` 后传入；省略项保留默认值：
 
@@ -90,7 +96,9 @@ Power账不能直接用`(sum(api_ticks_by_function)+interpreter_ticks)/6000`代�
 
 ## 执行上限
 
-默认每个seed限制 100000 次 API 调用、2000000 个编译检查点，可用 `--max-api-calls`、`--max-steps` 修改。检查点位于源语句和循环边界，纯计算循环及递归也受限；不再开启 `sys.settrace`。`_budget`等内部执行函数及`_timing_`前缀属于运行器保留名称。检查本身不增加虚拟游戏时间。`--timeout` 默认10秒、最多75秒，包含子进程启动；批量模式所有seed共享这一墙钟上限。CLI在该预算内预留10%、最多1秒用于生成和回传停止报告，执行预算因此略短；正常触及预算时返回已有状态、阶段输出和调用统计。超出报告余量或卡在不可中断操作时，父进程仍强制终止并回收，只能保留超时摘要、已回传的seed报告和已写出的轨迹。失败返回非零退出码；回收进程另有有限等待，不计入游戏预测时间。
+默认每个seed限制 100000 次 API 调用、2000000 个编译检查点，可用 `--max-api-calls`、`--max-steps` 修改。检查点位于源语句和循环边界，纯计算循环及递归也受限；不再开启 `sys.settrace`。`_budget`等内部执行函数及`_timing_`前缀属于运行器保留名称。检查本身不增加虚拟游戏时间。`--timeout` 默认10秒、最多75秒，包含所有子进程启动；串行和并行批次中的所有seed共享这一墙钟截止时间。CLI在该预算内预留10%、最多1秒用于生成和回传停止报告，执行预算因此略短；正常触及预算时返回已有状态、阶段输出和调用统计。超出报告余量或卡在不可中断操作时，父进程终止并回收全部工作进程，保留超时摘要、已回传的seed报告和已写出的轨迹。失败返回非零退出码；回收进程另有有限等待，不计入游戏预测时间。
+
+并行影响本机计算时间、CPU和内存占用，不改变完整执行的单seed模拟结果。受墙钟限制而中途停止时，已完成seed数与停止位置可能不同；比较模拟一致性应让脚本正常结束，或使用相同API/检查点上限。
 
 输出超出保留容量时只丢弃最早的日志，不停止脚本。`quick_print()`仍计0t，`print()`仍按原版计费；无限输出循环由API、检查点和墙钟预算终止。
 
@@ -104,7 +112,7 @@ Power账不能直接用`(sum(api_ticks_by_function)+interpreter_ticks)/6000`代�
 
 向日葵按7～15瓣维护数量，收获倍率最多检查9种花瓣数，包含未成熟植株。仙人掌连锁收获只在本次遍历内缓存排序检查。苹果/恐龙数量随实体增删更新，用于空格数和骨头结算；生成苹果目标时按原版DFS顺序构造候选列表。
 
-脚本循环、API上限和进程墙钟限制保留。批量seed顺序执行。逐格随机衰减的成本随地图面积和游戏时长增长，不能省略干地抽取以加速，否则会改变后续随机轨迹。验证状态与历史结果见 [模拟与实机验收](validation.md)。
+脚本循环、API上限和进程墙钟限制保留。批量seed可通过 `--jobs` 分进程执行，每个工作进程内复用编译缓存；短任务可能因进程启动成本而无明显收益。逐格随机衰减的成本随地图面积和游戏时长增长，不能省略干地抽取以加速，否则会改变后续随机轨迹。验证状态与历史结果见 [模拟与实机验收](validation.md)。
 
 ## 方法级验证
 
