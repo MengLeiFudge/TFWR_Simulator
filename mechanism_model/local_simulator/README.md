@@ -26,7 +26,7 @@ python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cac
 python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cactus_single.py --seeds 0 1 123 --timeout 30 --output .codex/cactus-batch.json
 ```
 
-`--seeds` 接受1～100个不重复的非负Int32，与 `--seed` 互斥。默认 `--jobs 1` 在一个隔离进程内顺序运行，复用源代码编译结果，各seed重建独立世界。指定 `--jobs 3` 可用最多3个工作进程并行执行独立seed；有效进程数不超过seed数，允许值为1～32。单个seed内部仍按原有顺序调度无人机，农田状态与随机数不跨进程共享。
+`--seeds` 接受1～100个不重复的非负Int32，与 `--seed` 互斥。默认工作进程数取当前进程可用的逻辑CPU数与seed数的较小值，不区分大小核，不设置绑核；每个seed重建独立世界。CPU数量优先使用Python的进程可用CPU接口，旧Python读取进程亲和性；这些信息不可用时回退系统CPU数，仍无法获取则使用1。显式指定正整数 `--jobs` 可覆盖默认值，例如 `--jobs 3` 最多并行3个seed，`--jobs 1` 顺序执行并复用编译缓存。有效进程数始终不超过seed数，单个seed仍由一个进程按原有顺序调度无人机，农田状态与随机数不跨进程共享。
 
 ```bash
 python3 -m mechanism_model.local_simulator references/leaderboard_scripts/lb_cactus_single.py --seeds 0 1 123 --jobs 3 --timeout 30 --output .codex/cactus-batch.json

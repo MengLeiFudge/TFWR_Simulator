@@ -8,6 +8,7 @@ from functools import lru_cache
 import json
 import multiprocessing
 from multiprocessing.connection import wait
+import os
 from pathlib import Path
 from typing import Any
 import sys
@@ -344,13 +345,28 @@ def run_workers(options, seeds, deadline, jobs):
     return result
 
 
+def default_jobs():
+    """优先采用当前进程可用逻辑CPU数；旧Python按亲和性或系统CPU数回退。"""
+    process_count = getattr(os, 'process_cpu_count', None)
+    if process_count is not None:
+        return process_count() or 1
+    if hasattr(os, 'sched_getaffinity'):
+        try:
+            return len(os.sched_getaffinity(0)) or 1
+        except OSError:
+            # 接口可能存在但被运行环境限制，继续使用系统提供的CPU数。
+            pass
+    return os.cpu_count() or 1
+
+
 def main():
     parser = argparse.ArgumentParser(description='本地运行农场 API 脚本，输出预测而非真实榜单成绩')
     parser.add_argument('script', type=Path)
     seed_group = parser.add_mutually_exclusive_group()
     seed_group.add_argument('--seed', type=int, default=1)
     seed_group.add_argument('--seeds', type=int, nargs='+', help='运行1～100个不同seed，共享timeout预算；报告按输入顺序输出')
-    parser.add_argument('--jobs', type=int, default=1, help='独立seed的工作进程数，1～32，默认1；单seed仍由一个进程执行')
+    parser.add_argument('--jobs', type=int, default=default_jobs(),
+                        help='独立seed的工作进程数，须为正整数；默认可用逻辑CPU数（本机%(default)s），实际不超过seed数')
     parser.add_argument('--scenario', type=Path, help='JSON：preset、items、unlocks、goal；可含地下leaderboard名称')
     parser.add_argument('--leaderboard', help='地下排行榜名称，如 mushrooms_single；可用scenario覆盖库存、科技和目标')
     parser.add_argument('--trace', type=Path, help='写入逐 API JSONL；会覆盖指定文件')
@@ -362,8 +378,8 @@ def main():
     seeds = args.seeds or [args.seed]
     if len(seeds) > 100 or len(set(seeds)) != len(seeds) or any(not 0 <= seed <= 2147483647 for seed in seeds):
         parser.error('seeds须为1～100个不同的非负Int32')
-    if not 1 <= args.jobs <= 32:
-        parser.error('jobs须为1～32')
+    if args.jobs < 1:
+        parser.error('jobs须为正整数')
     if not (0 <= args.seed <= 2147483647 and 0 < args.timeout <= 75
             and args.max_api_calls > 0 and args.max_steps > 0):
         parser.error('seed 须为非负 Int32，timeout 须在 (0, 75] 内，调用/步数上限须为正数')
