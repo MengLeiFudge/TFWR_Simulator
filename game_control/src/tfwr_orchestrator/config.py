@@ -20,6 +20,9 @@ LEADERBOARD_SCRIPT_ROOT = REPO_ROOT / "scripts" / "leaderboard"
 LEADERBOARD_DOCS_ROOT = REPO_ROOT / "docs" / "leaderboards"
 LEADERBOARD_CACHE_PATH = REFERENCES_ROOT / "leaderboards" / "leaderboard_cache.json"
 LEADERBOARD_REPORT_PATH = LEADERBOARD_DOCS_ROOT / "leaderboard_targets.md"
+LEADERBOARD_PROGRESS_PATH = LEADERBOARD_DOCS_ROOT / "leaderboard_progress.md"
+LEADERBOARD_LOCAL_PROGRESS_PATH = LEADERBOARD_DOCS_ROOT / "leaderboard_progress.json"
+LEADERBOARD_SNAPSHOT_PATH = REFERENCES_ROOT / "leaderboards" / "status_snapshot.md"
 DECOMPILED_SOURCE_ROOT = REFERENCES_ROOT / "DecompiledSource"
 
 DEFAULT_ENV_FILE = REPO_ROOT / ".env"
@@ -149,6 +152,13 @@ def resolve_game_root(game_root: str | Path | None = None, required: bool = True
         required=required,
         missing_message=f"{GAME_ROOT_ENV_VAR} 未配置。请在 {DEFAULT_ENV_FILE} 中设置，或显式传入 game_root。",
     )
+
+
+def resolve_steam_manifest_path() -> Path:
+    """Steam安装清单与配置游戏所在的common目录同属steamapps。"""
+    root = resolve_game_root()
+    assert root is not None
+    return root.parent.parent / "appmanifest_2060160.acf"
 
 
 def resolve_bepinex_root(

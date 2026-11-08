@@ -14,6 +14,7 @@ authors = [
 
 [project.scripts]
 tfwr-orchestrator-run = "tfwr_orchestrator.real_game_runner:main"
+tfwr-leaderboards = "tfwr_orchestrator.leaderboard_cache:main"
 
 [tool.setuptools.package-dir]
 "" = "src"

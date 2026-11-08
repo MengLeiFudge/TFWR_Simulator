@@ -152,28 +152,35 @@ JSON任务接口的 `--status-lines` 默认每份输出显示最后80行。活�
 ### 排行榜缓存
 
 ```bash
+# 刷新当前研究榜，可重复--script；用户查询全榜时省略--script
+python3 game_control/tools/refresh_leaderboard_cache.py --script lb_maze
+python3 game_control/tools/refresh_leaderboard_cache.py --script lb_bamboo --script lb_bamboo_single
 python3 game_control/tools/refresh_leaderboard_cache.py
 python3 game_control/tools/refresh_leaderboard_cache.py --offline
 ```
 
-默认向 Steam 官方公开 XML 接口读取 16 个榜各自的前 100 名，每榜一个请求；无需 Steam 登录或 API key。`--limit` 可设 1..1000，超过 100 时每 100 条一页。单次响应上限 2 MiB；网络中断或临时服务错误最多尝试三次，超时由 `--timeout` 指定。
+项目内固定支持常规16榜和地下14榜。默认读取每榜前100名，无需Steam登录或API key；`--limit`允许1..1000，每100条分页。最多并发4个榜，单次响应上限2MiB，网络中断或临时服务错误最多尝试3次，每次网络超时由`--timeout`指定。请求带新查询标记和禁止缓存的请求头，每个成功榜保留实际UTC查询时间。
 
-输出按用途分开保存：
+当前账号从配置游戏安装目录对应Steam清单的`LastOwner`识别。先在已读排名中核对；账号不在已缓存范围时另查账号行，完整小榜没有该账号则记“未上榜”。无法识别账号时写“未核实”，不使用历史复跑或估计名次代替。缓存只保存账号身份摘要、名次和成绩，避免不同账号混用；不保存玩家姓名或Steam ID。
 
-- [references/leaderboards/leaderboard_cache.json](../references/leaderboards/leaderboard_cache.json)：每榜来源 URL、UTC 抓取时间、总条目数和连续前 N 名的排名/整数毫秒成绩；不保存玩家名称或 Steam ID。
-- [docs/leaderboards/leaderboard_targets.md](../docs/leaderboards/leaderboard_targets.md)：#1/#10/#30/#100、我们的复跑参考、估计位置、相对 #10 倍数、追平 #10 所需缩短比例。报告列用于比较，研究目标与实机准入按[共用策略约定](../docs/leaderboards/README.md)判断。缺少 #10 时不计算该列差距，不回退到 #1。
+数据与报告各有固定归属：
 
-本地成绩来自 [scripts/leaderboard/lb_start.py](../scripts/leaderboard/lb_start.py) 的“当前版本复跑”列；详细实测日期、轮数和版本证据见 `docs/leaderboards/` 下的同名策略文档。缺少记录时显示未知，超过缓存范围只显示“#N 之后”，同分显示范围。估计位置不表示该账户已提交成绩。
+- [公开事实缓存](../references/leaderboards/leaderboard_cache.json)：30榜来源、实际UTC查询时间、总人数、连续前N名以及账号核对记录。兼容读取旧16榜缓存；缺榜保持缺失。
+- [本地研究状态](../docs/leaderboards/leaderboard_progress.json)：每榜名称、`simulation_seconds`、`simulation_basis`、`evidence`及`direction`。已有更快有效模拟即更新，不要求完成整个原目标；批量机制须先兑现完整周期。时间保留报告原精度，具体观察窗口、源版本及范围归对应策略文档。
+- [排行榜进度](../docs/leaderboards/leaderboard_progress.md)与[目标报告](../docs/leaderboards/leaderboard_targets.md)：从上述两份JSON生成相同七列，按距#1倍率排序；进度中的“历史完整统计与研究”段原样保留。
+- [公开快照](../references/leaderboards/status_snapshot.md)：逐榜来源、原查询时间、账号核对时间及最近刷新错误。
 
-全部榜读取并校验成功后才原子替换 JSON；网络失败不覆盖旧缓存与报告。JSON 是缓存真源，报告写入失败可用 `--offline` 重建。离线模式使用缓存本身的 limit，保留原抓取时间，并结合最新复跑索引重算；不会把旧数据标为刚抓取。`--cache` / `--report` 可指定输出路径。
+报告固定展示“排行榜、#1、#10、实机、模拟、比例、改进方向”。实机取账号公开最高并附排名；#10缺失时显示末名时间及排名。比例按实机/模拟较快值相对#1计算，规则见[状态汇报](../docs/leaderboards/README.md#排行榜状态汇报)。`lb_start.py`继续只记录历史正式复跑，不参与当前账号或模拟列的生成。
 
-需要代理时显式传 `--proxy http://代理地址:端口`，也可使用系统/环境代理。在 WSL 中若代理仅监听 Windows 回环地址，可从仓库根目录运行 Windows Python：
+更新研究JSON后运行`--offline`，一次重建三份Markdown。联网时仅替换校验成功的榜单，失败榜保留旧数据和原日期并明确标为历史缓存；任一公开或账号查询失败时退出码为1。离线不更新公开查询日期。JSON是事实真源，文档写入中断后可离线重建。`--cache`、`--local-progress`、`--report`、`--progress`、`--snapshot`可分别指定路径。
+
+需要代理时传`--proxy http://代理地址:端口`，省略时使用系统/环境代理。代理仅监听Windows回环时，从仓库根目录使用Windows Python：
 
 ```bash
-py.exe -X utf8 game_control/tools/refresh_leaderboard_cache.py --proxy http://127.0.0.1:7890
+py.exe -X utf8 game_control/tools/refresh_leaderboard_cache.py --script lb_maze --proxy http://127.0.0.1:7890
 ```
 
-该命令只读取公开成绩并更新仓库缓存，不启动游戏、不修改 Save0、不提交 Steam 成绩。
+通过`pip install -e game_control`安装后也可运行`tfwr-leaderboards`，参数相同。抓榜命令只读取公开成绩并更新仓库数据，不启动游戏或运行存档脚本。
 
 ### 资源快照与反编译工具
 

@@ -48,13 +48,13 @@ python3 game_control/tools/run_real_game_script.py --status-only
 
 ## 日常优化流程
 
-1. 阅读[共用策略说明](docs/leaderboards/README.md)和目标榜单同名`.md`。先列策略方向并按机制淘汰，再估算完整成本。仅刷新当前研究榜单的#1及账号最高记录，以#1为目标制定预算，其他名次帮助观察分布；现有批量工具不支持指定榜单时，单独查询该榜并保存来源和抓取时间。已有缓存可离线重算：
+1. 阅读[共用策略说明](docs/leaderboards/README.md)和目标榜单同名`.md`。先列策略方向并按机制淘汰，再估算完整成本。用项目内`refresh_leaderboard_cache.py --script lb_xxx`刷新当前研究榜的#1及账号最高记录，以#1为目标制定预算。用户查询全榜时省略`--script`，刷新常规及地下全部30榜。更新本地研究JSON后离线重建进度：
 
    ```bash
    python3 game_control/tools/refresh_leaderboard_cache.py --offline
    ```
 
-   默认批量读取每榜前 100 名，报告展示 #1/#10/#30/#100、仓库复跑参考和大致位置。仅重算已有缓存用 `--offline`；代理和 Windows/WSL 用法见 [排行榜缓存](game_control/README.md#排行榜缓存)。
+   默认每榜前100名；统一生成“排行榜、#1、#10、实机、模拟、比例、改进方向”七列，实机为账号最高并附排名。公开事实与本地研究状态分别保存为JSON；进度、targets和来源快照同步生成。命令及Windows/WSL代理用法见[排行榜缓存](game_control/README.md#排行榜缓存)。
 2. 先用 [本地模型](simulator/README.md) 筛选，例如：
 
    ```bash

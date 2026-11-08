@@ -1,10 +1,11 @@
-"""读取 Steam 公开排行榜，只缓存排名/毫秒成绩，按与第十名的差距生成研究参考。"""
+"""读取常规和地下公开榜，核对当前账号，并从同一份数据生成进度文档。"""
 from __future__ import annotations
 
 import argparse
-from bisect import bisect_left, bisect_right
-from dataclasses import asdict, dataclass
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
+import hashlib
 import json
 import math
 import os
@@ -14,22 +15,26 @@ import sys
 import tempfile
 import time
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode, urlsplit
 from urllib.request import OpenerDirector, ProxyHandler, Request, build_opener
 import xml.etree.ElementTree as ET
 
 from .config import (
     LEADERBOARD_CACHE_PATH,
-    LEADERBOARD_SCRIPT_ROOT,
+    LEADERBOARD_DOCS_ROOT,
+    LEADERBOARD_LOCAL_PROGRESS_PATH,
+    LEADERBOARD_PROGRESS_PATH,
     LEADERBOARD_REPORT_PATH,
-    REPO_ROOT,
+    LEADERBOARD_SNAPSHOT_PATH,
     normalize_config_path,
+    resolve_steam_manifest_path,
 )
 
 APP_ID = 2060160
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 PAGE_SIZE = 100
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
-# Steam 社区榜单 ID；与游戏 Leaderboards 枚举和 lb_*.py 一一对应。
+# Steam社区榜单ID，与游戏Leaderboards枚举及lb_*.py对应。
 BOARD_IDS = {
     "lb_cactus": 17869881,
     "lb_cactus_single": 17827398,
@@ -47,238 +52,367 @@ BOARD_IDS = {
     "lb_sunflowers_single": 17827413,
     "lb_wood": 17869895,
     "lb_wood_single": 17827415,
+    "lb_bamboo": 21488263,
+    "lb_bamboo_single": 21444624,
+    "lb_rice": 21444638,
+    "lb_rice_single": 21444639,
+    "lb_ores": 21444636,
+    "lb_ores_single": 21444637,
+    "lb_mushrooms": 21444618,
+    "lb_mushrooms_single": 21444535,
+    "lb_dynamite": 21444631,
+    "lb_dynamite_single": 21444632,
+    "lb_pyramids": 21488014,
+    "lb_pyramids_single": 21488443,
+    "lb_treasure_map": 21469574,
+    "lb_fastest_underground_reset": 21444633,
 }
+RESET_BOARDS = {"lb_fastest_reset", "lb_fastest_underground_reset"}
+HISTORY_HEADING = "## 历史完整统计与研究\n"
 
 
 @dataclass(frozen=True)
 class RankEntry:
-    """公开排名及游戏时间，time_ms 为整数毫秒，不含玩家身份。"""
+    """公开排名及整数毫秒成绩，不含玩家身份。"""
 
     rank: int
     time_ms: int
 
 
 @dataclass(frozen=True)
+class AccountSnapshot:
+    """账号核对事实；identity仅为LastOwner摘要，用于阻止不同账号混用缓存。"""
+
+    status: str = "unverified"
+    retrieved_at: str | None = None
+    rank: int | None = None
+    time_ms: int | None = None
+    identity: str | None = None
+    refresh_error: str | None = None
+
+
+@dataclass(frozen=True)
 class BoardSnapshot:
-    """单榜连续前 N 名快照，保留来源、实际总人数及 UTC 抓取时间。"""
+    """连续前N名及实际抓取时间；刷新失败时保留原事实和日期。"""
 
     script: str
     source: str
     retrieved_at: str
     total_entries: int
     entries: tuple[RankEntry, ...]
+    limit: int = 100
+    account: AccountSnapshot = AccountSnapshot()
+    refresh_error: str | None = None
 
 
 @dataclass(frozen=True)
-class LocalResult:
-    """仓库复跑索引中的参考成绩及来源行；不表示本次重新实测。"""
+class LocalProgress:
+    """研究记录中的最好有效模拟时间、依据和下一步方向。"""
 
-    time_ms: int
-    line: int
+    label: str
+    simulation_seconds: float | None
+    simulation_basis: str
+    evidence: str
+    direction: str
 
 
 def board_url(script: str) -> str:
-    """从固定榜单映射生成 Steam 官方来源地址。"""
     return f"https://steamcommunity.com/stats/{APP_ID}/leaderboards/{BOARD_IDS[script]}/"
 
 
-def validate_snapshot(board: BoardSnapshot, limit: int) -> None:
-    """拒绝缺页、乱序和非法时间，防止不完整响应成为新的有效缓存。"""
-    if board.source != board_url(board.script):
-        raise ValueError(f"{board.script}: 缓存来源与榜单 ID 不一致，请重新刷新。")
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def validate_date(value: str) -> None:
+    if datetime.fromisoformat(value).utcoffset() is None:
+        raise ValueError("抓取时间必须包含时区。")
+
+
+def validate_snapshot(board: BoardSnapshot, limit: int | None = None) -> None:
+    """拒绝缺页、乱序、非法成绩及互相矛盾的账号记录。"""
+    if board.script not in BOARD_IDS or board.source != board_url(board.script):
+        raise ValueError(f"{board.script}: 来源与榜单ID不一致。")
+    limit = board.limit if limit is None else limit
+    if type(limit) is not int or not 1 <= limit <= 1000:
+        raise ValueError(f"{board.script}: limit必须在1..1000。")
     if type(board.total_entries) is not int or board.total_entries < 0:
-        raise ValueError(f"{board.script}: total_entries 必须是非负整数。")
-    if datetime.fromisoformat(board.retrieved_at).utcoffset() is None:
-        raise ValueError(f"{board.script}: retrieved_at 必须包含时区。")
+        raise ValueError(f"{board.script}: 总人数必须是非负整数。")
+    validate_date(board.retrieved_at)
     if len(board.entries) != min(limit, board.total_entries):
-        raise ValueError(f"{board.script}: 排名覆盖不完整，请保留旧缓存并重试刷新。")
+        raise ValueError(f"{board.script}: 排名覆盖不完整。")
     previous = 0
     for rank, entry in enumerate(board.entries, start=1):
         if type(entry.rank) is not int or entry.rank != rank:
-            raise ValueError(f"{board.script}: 排名必须从 1 连续递增，异常位置 {rank}。")
+            raise ValueError(f"{board.script}: 排名必须从1连续递增。")
         if type(entry.time_ms) is not int or entry.time_ms <= 0 or entry.time_ms < previous:
-            raise ValueError(f"{board.script}: #{rank} 成绩必须是正整数毫秒且按时间升序。")
+            raise ValueError(f"{board.script}: #{rank}成绩必须为正整数毫秒并按时间升序。")
         previous = entry.time_ms
+    account = board.account
+    if account.status not in {"listed", "not_listed", "unverified"}:
+        raise ValueError(f"{board.script}: 账号核对状态无效。")
+    if account.status == "unverified":
+        if any(value is not None for value in (account.rank, account.time_ms, account.retrieved_at, account.identity)):
+            raise ValueError(f"{board.script}: 未核实账号不能携带成绩或查询时间。")
+        return
+    if account.retrieved_at is None or account.identity is None or not re.fullmatch(r"[a-f0-9]{64}", account.identity):
+        raise ValueError(f"{board.script}: 已核实账号缺少日期或身份摘要。")
+    validate_date(account.retrieved_at)
+    if account.status == "not_listed":
+        if account.rank is not None or account.time_ms is not None:
+            raise ValueError(f"{board.script}: 未上榜账号不能携带成绩。")
+        return
+    if (type(account.rank) is not int or not 1 <= account.rank <= board.total_entries
+            or type(account.time_ms) is not int or account.time_ms <= 0):
+        raise ValueError(f"{board.script}: 账号成绩或名次无效。")
+    if account.rank <= len(board.entries) and board.entries[account.rank - 1].time_ms != account.time_ms:
+        raise ValueError(f"{board.script}: 账号成绩与公开排名不一致。")
 
 
 def read_public_page(opener: OpenerDirector, url: str, timeout: float) -> bytes:
-    """只对网络中断、限流和临时服务错误最多尝试三次；不重试格式错误。"""
-    request = Request(url, headers={"User-Agent": "TFWR-Orchestrator/0.1", "Accept": "application/xml"})
+    """有限重试只读请求；不在日志中输出含账号的请求地址。"""
+    request = Request(url, headers={
+        "User-Agent": "TFWR-Orchestrator/0.2", "Accept": "application/xml",
+        "Cache-Control": "no-cache", "Pragma": "no-cache",
+    })
     for attempt in range(3):
         try:
             with opener.open(request, timeout=timeout) as response:
                 payload = response.read(MAX_RESPONSE_BYTES + 1)
             if len(payload) > MAX_RESPONSE_BYTES:
-                raise ValueError("响应超过 2 MiB 上限")
+                raise ValueError("响应超过2MiB上限。")
             return payload
         except (OSError, URLError) as exc:
             if attempt == 2 or (isinstance(exc, HTTPError) and exc.code not in {429, 500, 502, 503, 504}):
                 raise
-            # 公开只读请求可重试；短退避避免瞬时 TLS 中断让整份缓存无法更新。
-            print(f"网络读取中断，将重试 {attempt + 2}/3：{url}；{exc}", file=sys.stderr, flush=True)
+            print(f"公开请求中断（{type(exc).__name__}），重试{attempt + 2}/3。", file=sys.stderr, flush=True)
             time.sleep(attempt + 1)
     raise AssertionError("unreachable retry state")
 
 
-def fetch_leaderboards(limit: int, timeout: float, proxy: str | None) -> tuple[BoardSnapshot, ...]:
-    """有界读取全部榜单；任一请求失败则向上传播，不写入部分刷新结果。"""
-    handler = ProxyHandler({"http": proxy, "https": proxy}) if proxy else ProxyHandler()
-    opener = build_opener(handler)
-    boards = []
-    for script in BOARD_IDS:
-        source = board_url(script)
-        entries: list[RankEntry] = []
-        total: int | None = None
-        for start in range(1, limit + 1, PAGE_SIZE):
-            end = min(limit, start + PAGE_SIZE - 1)
-            url = f"{source}?xml=1&start={start}&end={end}"
-            print(f"读取 {script} #{start}–#{end}", file=sys.stderr, flush=True)
-            try:
-                root = ET.fromstring(read_public_page(opener, url, timeout))
-                if root.findtext("appID") != str(APP_ID) or root.findtext("leaderboardID") != str(BOARD_IDS[script]):
-                    raise ValueError("返回内容不是请求的 TFWR 榜单")
-                page_total = int(root.findtext("totalLeaderboardEntries", ""))
-                page = tuple(
-                    RankEntry(int(row.findtext("rank", "")), int(row.findtext("score", "")))
-                    for row in root.findall("./entries/entry")
-                )
-                expected = max(0, min(end, page_total) - start + 1)
-                if len(page) != expected or int(root.findtext("resultCount", "")) != len(page):
-                    raise ValueError(f"响应缺页：预期 {expected} 条，实际 {len(page)} 条")
-                if total is not None and page_total != total:
-                    raise ValueError("分页期间榜单总条目数变化，请重新刷新")
-                total = page_total
-                entries.extend(page)
-                if end >= total:
-                    break
-            except (OSError, URLError, ValueError, ET.ParseError) as exc:
-                raise RuntimeError(f"读取 {url} 失败：{exc}；旧缓存未更新，可检查网络或 --proxy 后重试。") from exc
-        assert total is not None
-        board = BoardSnapshot(script, source, datetime.now(timezone.utc).isoformat(), total, tuple(entries))
-        validate_snapshot(board, limit)
-        boards.append(board)
-        print(f"已读取 {script}: {len(entries)}/{total} 条", file=sys.stderr, flush=True)
-    return tuple(boards)
+def read_entries(opener: OpenerDirector, script: str, query: dict[str, str | int], timeout: float) -> tuple[int, list[ET.Element]]:
+    """每次请求使用新查询标记，校验XML归属与返回条数后才读取成绩。"""
+    url = board_url(script) + "?" + urlencode({"xml": 1, **query, "refresh": time.time_ns()})
+    root = ET.fromstring(read_public_page(opener, url, timeout))
+    if root.findtext("appID") != str(APP_ID) or root.findtext("leaderboardID") != str(BOARD_IDS[script]):
+        raise ValueError("响应不是请求的TFWR榜单。")
+    total = int(root.findtext("totalLeaderboardEntries", ""))
+    rows = root.findall("./entries/entry")
+    if total < 0 or int(root.findtext("resultCount", "")) != len(rows):
+        raise ValueError("响应总人数或条目计数无效。")
+    return total, rows
 
 
-def load_cache(path: Path) -> tuple[int, tuple[BoardSnapshot, ...]]:
-    """加载并校验完整缓存；旧版或损坏内容明确失败，不冒充空榜。"""
+def account_identity(owner: str) -> str:
+    return hashlib.sha256(owner.encode("ascii")).hexdigest()
+
+
+def error_text(exc: Exception, owner: str | None) -> str:
+    text = f"{type(exc).__name__}: {exc}"
+    return text.replace(owner, "[account]") if owner else text
+
+
+def fetch_board(script: str, limit: int, timeout: float, proxy: str | None,
+                owner: str | None, previous: BoardSnapshot | None) -> BoardSnapshot:
+    """公开事实和账号核对独立更新；账号查询失败保留同身份的旧账号日期。"""
+    opener = build_opener(ProxyHandler({"http": proxy, "https": proxy}) if proxy else ProxyHandler())
+    entries: list[RankEntry] = []
+    own_rows: list[ET.Element] = []
+    total: int | None = None
+    for start in range(1, limit + 1, PAGE_SIZE):
+        end = min(limit, start + PAGE_SIZE - 1)
+        page_total, rows = read_entries(opener, script, {"start": start, "end": end}, timeout)
+        if len(rows) != max(0, min(end, page_total) - start + 1):
+            raise ValueError("公开响应缺页。")
+        if total is not None and total != page_total:
+            raise ValueError("分页期间榜单人数变化。")
+        total = page_total
+        entries.extend(RankEntry(int(row.findtext("rank", "")), int(row.findtext("score", ""))) for row in rows)
+        if owner:
+            own_rows.extend(row for row in rows if row.findtext("steamid") == owner)
+        if end >= total:
+            break
+    assert total is not None
+    board = BoardSnapshot(script, board_url(script), utc_now(), total, tuple(entries), limit)
+    validate_snapshot(board)
+    if not owner:
+        return board
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-        if raw["schema_version"] != SCHEMA_VERSION or raw["app_id"] != APP_ID:
-            raise ValueError("缓存版本或游戏 ID 不匹配")
-        limit = raw["limit"]
-        if type(limit) is not int or not 1 <= limit <= 1000:
-            raise ValueError("缓存 limit 必须在 1..1000")
-        boards = []
-        for row in raw["boards"]:
-            board = BoardSnapshot(
-                row["script"], row["source"], row["retrieved_at"], row["total_entries"],
-                tuple(RankEntry(entry["rank"], entry["time_ms"]) for entry in row["entries"]),
-            )
-            validate_snapshot(board, limit)
-            boards.append(board)
-        if len(boards) != len(BOARD_IDS) or {board.script for board in boards} != set(BOARD_IDS):
-            raise ValueError("缓存没有完整覆盖当前 16 个榜单")
-        return limit, tuple(boards)
-    except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
-        raise RuntimeError(f"读取排行榜缓存 {path} 失败：{exc}；请联网运行刷新命令。") from exc
+        if not own_rows and len(entries) < total:
+            account_total, rows = read_entries(opener, script, {"steamid": owner}, timeout)
+            if account_total != total:
+                raise ValueError("账号查询期间榜单人数变化。")
+            own_rows = [row for row in rows if row.findtext("steamid") == owner]
+            if rows and not own_rows:
+                raise ValueError("账号响应未包含请求的账号，不能判定未上榜。")
+        if len(own_rows) > 1:
+            raise ValueError("同榜出现多条当前账号记录。")
+        if own_rows:
+            row = own_rows[0]
+            account = AccountSnapshot("listed", utc_now(), int(row.findtext("rank", "")),
+                                      int(row.findtext("score", "")), account_identity(owner))
+        else:
+            account = AccountSnapshot("not_listed", utc_now(), identity=account_identity(owner))
+        board = replace(board, account=account)
+        validate_snapshot(board)
+    except (OSError, URLError, ValueError, ET.ParseError) as exc:
+        account = previous.account if previous and previous.account.identity == account_identity(owner) else AccountSnapshot()
+        # 旧名次可能已越界或与新公开成绩冲突；此时不能继续称为当前账号记录。
+        try:
+            validate_snapshot(replace(board, account=account))
+        except ValueError:
+            account = AccountSnapshot()
+        board = replace(board, account=replace(account, refresh_error=error_text(exc, owner)))
+    return board
 
 
-def load_local_results(path: Path) -> dict[str, LocalResult]:
-    """读取 lb_start.py 的当前版本复跑列，忽略左侧历史 #1，不执行脚本。"""
-    results: dict[str, LocalResult] = {}
-    script: str | None = None
-    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-        entry = re.search(r'leaderboard_run\(Leaderboards\.\w+,\s*"(lb_\w+)"', line)
-        if entry:
-            script = entry.group(1)
-        if line.startswith("# 用时（#1/当前版本复跑）："):
-            match = re.fullmatch(r"# 用时（#1/当前版本复跑）：[^/]+/\s*(\d+):([0-5]\d)\.(\d{3})\s*", line)
-            if match is None or script is None or script in results:
-                raise ValueError(f"复跑索引 {path}:{number} 格式无效或重复，请填写 分:秒.毫秒。")
-            minutes, seconds, milliseconds = map(int, match.groups())
-            value = minutes * 60_000 + seconds * 1000 + milliseconds
-            if value <= 0:
-                raise ValueError(f"复跑索引 {path}:{number} 成绩必须大于零。")
-            results[script] = LocalResult(value, number)
+def load_cache(path: Path, identity: str | None) -> dict[str, BoardSnapshot]:
+    """读取事实缓存；兼容旧16榜结构，缺榜保持缺失，不伪造空榜。"""
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if raw["schema_version"] not in {1, SCHEMA_VERSION} or raw["app_id"] != APP_ID:
+        raise ValueError("缓存版本或游戏ID不匹配。")
+    boards = {}
+    for row in raw["boards"]:
+        account = AccountSnapshot(**row.get("account", {}))
+        board = BoardSnapshot(
+            row["script"], row["source"], row["retrieved_at"], row["total_entries"],
+            tuple(RankEntry(**entry) for entry in row["entries"]), row.get("limit", raw.get("limit", 100)),
+            account, row.get("refresh_error"),
+        )
+        validate_snapshot(board)
+        if board.script in boards:
+            raise ValueError(f"重复缓存榜单：{board.script}。")
+        if identity is None or account.identity != identity:
+            board = replace(board, account=AccountSnapshot())
+        boards[board.script] = board
+    return boards
+
+
+def load_local_progress(path: Path) -> dict[str, LocalProgress]:
+    """只读取结构化研究状态，不把历史正式复跑当成账号成绩或模拟。"""
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if raw["schema_version"] != 1 or set(raw["boards"]) != set(BOARD_IDS):
+        raise ValueError("本地研究状态必须完整覆盖当前30榜。")
+    results = {}
+    for script, row in raw["boards"].items():
+        result = LocalProgress(**row)
+        seconds = result.simulation_seconds
+        if seconds is not None and (type(seconds) not in {int, float} or not math.isfinite(seconds) or seconds <= 0):
+            raise ValueError(f"{script}: 模拟时间须为正的有限游戏秒或null。")
+        if not all(isinstance(text, str) and text.strip() for text in
+                   (result.label, result.simulation_basis, result.evidence, result.direction)):
+            raise ValueError(f"{script}: 缺少榜名、模拟依据、证据或改进方向。")
+        results[script] = result
     return results
 
 
 def format_time(milliseconds: int) -> str:
-    """毫秒转为与游戏一致的 分:秒.毫秒，分钟允许超过 59。"""
     minutes, remainder = divmod(milliseconds, 60_000)
     seconds, fraction = divmod(remainder, 1000)
     return f"{minutes}:{seconds:02d}.{fraction:03d}"
 
 
-def estimate_rank(board: BoardSnapshot, time_ms: int) -> str:
-    """按缓存时间插入位置估计名次；同分显示区间，未覆盖的尾部只给下界。"""
-    times = [entry.time_ms for entry in board.entries]
-    if not times:
-        return "空榜，无参照"
-    lower = bisect_left(times, time_ms)
-    upper = bisect_right(times, time_ms)
-    if lower == len(times) and len(times) < board.total_entries:
-        return f"#{len(times)} 之后"
-    if lower < upper:
-        if upper == len(times) and len(times) < board.total_entries:
-            return f"约 #{lower + 1}–至少 #{upper}（同分）"
-        return f"约 #{lower + 1}–#{upper}（同分）" if upper - lower > 1 else f"约 #{lower + 1}（同分）"
-    return f"约 #{lower + 1}"
+def format_account(account: AccountSnapshot) -> str:
+    if account.status == "not_listed":
+        return "未上榜"
+    if account.time_ms is not None:
+        return f"{format_time(account.time_ms)}（#{account.rank}）"
+    return "未核实"
 
 
-def render_report(
-    boards: tuple[BoardSnapshot, ...], results: dict[str, LocalResult], limit: int, report_path: Path
-) -> str:
-    """生成差距降序报告；排名是成绩位置估计，不声称账户已提交该成绩。"""
-    def gap(board: BoardSnapshot) -> float:
-        """缺少本地或第十名成绩的榜单排在已知差距之后。"""
-        result = results.get(board.script)
-        return result.time_ms / board.entries[9].time_ms if result and len(board.entries) >= 10 else -1
+def checkpoint(board: BoardSnapshot | None, rank: int) -> str:
+    if board is None or not board.entries:
+        return "未取得"
+    if rank <= len(board.entries):
+        return format_time(board.entries[rank - 1].time_ms)
+    if rank > board.total_entries:
+        last = board.entries[-1]
+        return f"{format_time(last.time_ms)}（#{last.rank}，末名）"
+    return "未缓存"
 
-    dates = [datetime.fromisoformat(board.retrieved_at).astimezone(timezone.utc).isoformat() for board in boards]
-    index_link = Path(os.path.relpath(LEADERBOARD_SCRIPT_ROOT / "lb_start.py", report_path.parent)).as_posix()
-    docs_link = Path(os.path.relpath(REPO_ROOT / "game_control/README.md", report_path.parent)).as_posix()
-    lines = [
-        "# 排行榜成绩与提升空间", "",
-        "按“本地复跑参考 ÷ #10 时间”降序展示差距；排序仅便于比较，不代表研究优先级或候选准入线。",
-        "#1/#10/#30/#100 均为公开参考，不保证常规机制可达。阶段目标依据当前合规基线动态调整，研究选择综合预期收益、成功把握与实现/验证成本。缺少 #10 时不计算该列差距，不回退到 #1。", "",
-        f"公开数据抓取时间（UTC）：{min(dates)} 至 {max(dates)}。每榜最多前 {limit} 名；时间为游戏成绩。",
-        f"我们的时间读取自 [lb_start.py]({index_link}) 的“当前版本复跑”；这是仓库记录，非本次全榜重测。",
-        "估计位置按缓存中的更快成绩数量计算，不识别玩家账户；并列显示同分范围，超出缓存范围不外推。", "",
-        "| 榜单 | #1（参考） | #10（参考） | #30 | #100 | 我们的复跑参考 | 估计位置 | 相对 #10 | 追平 #10 需缩短 | 缓存/总条目 |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
-    ]
-    for board in sorted(boards, key=lambda item: (-gap(item), item.script)):
-        checkpoints = []
-        for rank in (1, 10, 30, 100):
-            if rank <= len(board.entries):
-                checkpoints.append(format_time(board.entries[rank - 1].time_ms))
-            else:
-                checkpoints.append("不足此名次" if rank > board.total_entries else "未缓存")
-        result = results.get(board.script)
-        if result:
-            ours = f"[{format_time(result.time_ms)}]({index_link}#L{result.line})"
-            position = estimate_rank(board, result.time_ms)
-        else:
-            ours, position = "未记录", "未知"
-        ratio = gap(board)
-        relative = f"{ratio:.3f}×" if ratio >= 0 else "—"
-        reduction = f"{max(0.0, 1 - 1 / ratio):.1%}" if ratio > 0 else "—"
-        name = board.script.removeprefix("lb_").replace("_", " ").title()
-        cells = [f"[{name}]({board.source})", *checkpoints, ours, position, relative, reduction,
-                 f"{len(board.entries)}/{board.total_entries}"]
-        lines.append("| " + " | ".join(cells) + " |")
-    lines.extend([
-        "", "此表由 `refresh_leaderboard_cache.py` 生成；修改复跑索引后可用 `--offline` 重新计算，联网刷新失败时保留旧缓存。",
-        f"读取方式、缓存位置和代理配置见 [协调器说明]({docs_link}#排行榜缓存)。", "",
-    ])
+
+def relative_time(board: BoardSnapshot | None, result: LocalProgress) -> float | None:
+    if board is None or not board.entries:
+        return None
+    values = [value for value in (result.simulation_seconds,
+              board.account.time_ms / 1000 if board.account.time_ms is not None else None) if value is not None]
+    return min(values) * 1000 / board.entries[0].time_ms if values else None
+
+
+def cell(text: str) -> str:
+    return text.replace("|", "\\|").replace("\n", " ").replace("\r", " ")
+
+
+def document_link(path: Path, output: Path) -> str:
+    return Path(os.path.relpath(path, output.parent)).as_posix()
+
+
+def render_report(boards: dict[str, BoardSnapshot], results: dict[str, LocalProgress],
+                  refreshed: set[str], output: Path, title: str, offline: bool,
+                  local_path: Path = LEADERBOARD_LOCAL_PROGRESS_PATH,
+                  snapshot_path: Path = LEADERBOARD_SNAPSHOT_PATH) -> str:
+    """同一数据生成两份七列表；门槛判断使用原精度，不用显示值舍入判断。"""
+    dates = sorted(datetime.fromisoformat(board.retrieved_at).astimezone(timezone.utc).isoformat() for board in boards.values())
+    ratios = {script: relative_time(boards.get(script), result) for script, result in results.items()}
+    reached = sum(ratio is not None and ratio <= 2 for script, ratio in ratios.items() if script not in RESET_BOARDS)
+    mode = "离线重建，公开值均为历史缓存" if offline else f"本次成功联网刷新{len(refreshed)}/30榜；其余行标为历史缓存"
+    lines = [f"# {title}", "", f"{mode}。公开数据UTC范围：{dates[0]} 至 {dates[-1]}。" if dates else f"{mode}，尚无有效公开数据。", "",
+             "时间为游戏时间`累计分钟:秒.毫秒`。实机是Steam安装清单LastOwner所对应账号的公开最高记录及排名，未核实与未上榜分别显示。#10不足时显示末名及排名。", "",
+             "比例为`(min(实机,模拟)/#1-1)×100%`，显示一位小数。模拟采用已有最好有效结果，可由实际采样推算；版本、窗口、进度与未覆盖阶段见各榜记录。", "",
+             f"全部榜以#1为目标。28个非重置榜中{reached}榜在2倍时间以内；阶段顺序见[三阶段计划]({document_link(LEADERBOARD_DOCS_ROOT / 'strategy_review.md', output)}#三阶段计划)。阶段内先按非重置榜的倍率差距研究，超过2倍先重列策略方向及完整成本。", "",
+             "本地证明更快即在idle等存档约束内同步对应已有脚本，无需完成整个原目标；批量机制仍须兑现完整周期。复制与游戏执行分别判断，实机运行须明确授权，或模拟≤2×#1且严格快于账号记录。", ""]
+    for underground, heading in ((False, "常规排行榜"), (True, "地下排行榜")):
+        lines.extend([f"## {heading}", "", "| 排行榜 | #1 | #10 | 实机 | 模拟 | 比例 | 改进方向 |",
+                      "| --- | ---: | ---: | ---: | ---: | ---: | --- |"])
+        scripts = [script for script in BOARD_IDS if (BOARD_IDS[script] >= 21000000) == underground]
+        scripts.sort(key=lambda script: (script in RESET_BOARDS, -(ratios[script] or -1), script))
+        for script in scripts:
+            board, result = boards.get(script), results[script]
+            first = checkpoint(board, 1)
+            if board is not None and script not in refreshed:
+                first += "（历史缓存）"
+            ratio = ratios[script]
+            simulation = format_time(round(result.simulation_seconds * 1000)) if result.simulation_seconds is not None else "未取得"
+            name = f"[{cell(result.label)}]({document_link(LEADERBOARD_DOCS_ROOT / (script + '.md'), output)})"
+            lines.append("| " + " | ".join((name, first, checkpoint(board, 10),
+                         format_account(board.account) if board else "未核实", simulation,
+                         f"{(ratio - 1) * 100:+.1f}%" if ratio is not None else "未取得", cell(result.direction))) + " |")
+        lines.append("")
+    lines.extend([f"公开来源、每榜实际查询日期、账号核对日期和刷新错误见[公开快照]({document_link(snapshot_path, output)})。引用历史账号记录时，以该页原日期为准。",
+                  f"本地模拟时间、依据与方向的编辑入口为[研究状态JSON]({document_link(local_path, output)})；更新后运行`refresh_leaderboard_cache.py --offline`重建两份七列表。历史正式统计继续归各榜文档和lb_start.py，不代填账号或模拟。", ""])
+    return "\n".join(lines)
+
+
+def render_snapshot(boards: dict[str, BoardSnapshot], refreshed: set[str], offline: bool,
+                    output: Path = LEADERBOARD_SNAPSHOT_PATH,
+                    cache_path: Path = LEADERBOARD_CACHE_PATH,
+                    progress_path: Path = LEADERBOARD_PROGRESS_PATH) -> str:
+    lines = ["# 排行榜公开成绩与当前账号快照", "",
+             f"由项目内refresh_leaderboard_cache.py生成。事实真源为[公开缓存]({document_link(cache_path, output)})；只保存排名、成绩、查询时间和账号身份摘要，不保存玩家姓名或Steam ID。", "",
+             "离线重建，全部公开值为历史缓存。" if offline else f"本次成功联网刷新{len(refreshed)}/30榜。未刷新榜保留原日期；失败项列在表后。",
+             "时间均为游戏时间。账号最高为已核实账号的公开记录；历史账号查询保留原日期，不当作本次核对。", "",
+             "| 脚本 | 公开来源 | 公开查询UTC | 公开人数 | #1 | #10 | 账号最高 | 账号核对UTC |",
+             "| --- | --- | --- | ---: | ---: | ---: | ---: | --- |"]
+    for script in BOARD_IDS:
+        board = boards.get(script)
+        if board is None:
+            lines.append(f"| {script} | [Steam]({board_url(script)}) | 未取得 | — | 未取得 | 未取得 | 未核实 | 未取得 |")
+            continue
+        account = board.account
+        status = "本次刷新" if script in refreshed else "历史缓存"
+        lines.append(f"| {script} | [Steam]({board.source}) | {board.retrieved_at}（{status}） | {board.total_entries} | "
+                     f"{checkpoint(board, 1)} | {checkpoint(board, 10)} | {format_account(account)} | {account.retrieved_at or '未核实'} |")
+    errors = [(script, kind, error) for script, board in boards.items()
+              for kind, error in (("公开成绩", board.refresh_error), ("账号核对", board.account.refresh_error)) if error]
+    if errors:
+        lines.extend(["", "最近刷新未完成的项目：", ""])
+        lines.extend(f"- {script} {kind}：{cell(error)}" for script, kind, error in errors)
+    lines.extend(["", f"模拟、距#1比例及改进方向见[排行榜进度]({document_link(progress_path, output)})。", ""])
     return "\n".join(lines)
 
 
 def write_atomic(path: Path, text: str) -> None:
-    """同目录临时文件写完后原子替换单个文件，异常时清理临时文件。"""
+    """同目录临时文件写完后原子替换；JSON是事实真源，文档可离线重建。"""
     path.parent.mkdir(parents=True, exist_ok=True)
     handle = tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", newline="\n", dir=path.parent, delete=False)
     temporary = Path(handle.name)
@@ -291,39 +425,89 @@ def write_atomic(path: Path, text: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """刷新完整公共缓存或离线重建报告；不启动游戏，也不提交排行榜成绩。"""
-    parser = argparse.ArgumentParser(description="缓存 TFWR 各榜前 N 名时间，比较 #1/#10/#30/#100 和本地复跑位置。")
-    parser.add_argument("--limit", type=int, default=100, help="每榜最多读取条数，默认 100，范围 1..1000。")
-    parser.add_argument("--offline", action="store_true", help="仅使用现有缓存和当前复跑索引重建报告，不联网。")
-    parser.add_argument("--timeout", type=float, default=20, help="每次网络操作超时秒数，默认 20，范围 (0,60]。")
-    parser.add_argument("--proxy", help="可选 HTTP/HTTPS 代理 URL；未指定时使用系统/环境代理。")
-    parser.add_argument("--cache", default=str(LEADERBOARD_CACHE_PATH), help="排行榜 JSON 缓存路径。")
-    parser.add_argument("--report", default=str(LEADERBOARD_REPORT_PATH), help="生成的 Markdown 报告路径。")
+    parser = argparse.ArgumentParser(description="刷新TFWR常规及地下30榜，核对账号并同步七列进度文档。")
+    parser.add_argument("--script", action="append", choices=tuple(BOARD_IDS), help="仅刷新指定榜，可重复；默认全部30榜。")
+    parser.add_argument("--limit", type=int, default=100, help="每榜前N名，默认100，范围1..1000。")
+    parser.add_argument("--offline", action="store_true", help="不联网，使用事实缓存及研究状态重建三份Markdown。")
+    parser.add_argument("--timeout", type=float, default=20, help="每次网络操作超时，默认20秒，范围(0,60]。")
+    parser.add_argument("--proxy", help="HTTP/HTTPS代理URL；省略时使用系统或环境代理。")
+    parser.add_argument("--cache", default=str(LEADERBOARD_CACHE_PATH), help="公开事实JSON路径。")
+    parser.add_argument("--report", default=str(LEADERBOARD_REPORT_PATH), help="目标报告Markdown路径。")
+    parser.add_argument("--progress", default=str(LEADERBOARD_PROGRESS_PATH), help="进度Markdown路径，保留历史统计段。")
+    parser.add_argument("--snapshot", default=str(LEADERBOARD_SNAPSHOT_PATH), help="公开来源及账号查询日期Markdown路径。")
+    parser.add_argument("--local-progress", default=str(LEADERBOARD_LOCAL_PROGRESS_PATH), help="本地模拟与研究方向JSON路径。")
     args = parser.parse_args(argv)
     if not 1 <= args.limit <= 1000:
-        parser.error("--limit 必须在 1..1000。")
+        parser.error("--limit必须在1..1000。")
     if not math.isfinite(args.timeout) or not 0 < args.timeout <= 60:
-        parser.error("--timeout 必须是 (0,60] 内的有限秒数。")
-    cache_path = normalize_config_path(args.cache)
-    report_path = normalize_config_path(args.report)
-    if cache_path.resolve() == report_path.resolve():
-        parser.error("--cache 与 --report 必须是不同文件。")
+        parser.error("--timeout必须是(0,60]内的有限秒数。")
+    if args.offline and args.script:
+        parser.error("--offline不接受--script；离线重建包含缓存中全部榜。")
+    if args.proxy and urlsplit(args.proxy).scheme not in {"http", "https"}:
+        parser.error("--proxy必须是HTTP/HTTPS代理URL。")
+    paths = [normalize_config_path(value) for value in (args.cache, args.report, args.progress, args.snapshot, args.local_progress)]
+    cache_path, report_path, progress_path, snapshot_path, local_path = paths
+    if len({path.resolve() for path in paths}) != len(paths):
+        parser.error("输入与输出路径必须互不相同。")
     try:
-        results = load_local_results(LEADERBOARD_SCRIPT_ROOT / "lb_start.py")
-        if args.offline:
-            limit, boards = load_cache(cache_path)
-        else:
-            limit = args.limit
-            boards = fetch_leaderboards(limit, args.timeout, args.proxy)
-        # 先准备并验证全部内容，网络失败不会破坏已有缓存。JSON 是真源，报告可离线重建。
-        report = render_report(boards, results, limit, report_path)
+        results = load_local_progress(local_path)
+        history = HISTORY_HEADING
+        if progress_path.exists():
+            existing = progress_path.read_text(encoding="utf-8")
+            _, separator, tail = existing.partition(HISTORY_HEADING)
+            if not separator:
+                raise ValueError("进度文档缺少历史统计标题，停止覆盖以保留现有内容。")
+            history = separator + tail
+        owner = None
+        try:
+            match = re.search(r'"LastOwner"\s+"([0-9]{17})"', resolve_steam_manifest_path().read_text(encoding="utf-8"))
+            owner = match.group(1) if match else None
+            if owner is None:
+                print("安装清单缺少LastOwner，账号成绩显示未核实。", file=sys.stderr)
+        except (OSError, RuntimeError) as exc:
+            print(f"无法读取当前账号：{exc}；公开榜仍可读取。", file=sys.stderr)
+        if args.offline and not cache_path.is_file():
+            raise FileNotFoundError(f"离线模式缺少公开缓存：{cache_path}；请先联网刷新。")
+        boards = load_cache(cache_path, account_identity(owner) if owner else None) if cache_path.exists() else {}
+        refreshed: set[str] = set()
+        failures = 0
+        attempted_at = utc_now()
         if not args.offline:
-            payload = {"schema_version": SCHEMA_VERSION, "app_id": APP_ID, "limit": limit,
-                       "boards": [asdict(board) for board in boards]}
+            selected = list(dict.fromkeys(args.script or BOARD_IDS))
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                pending = {pool.submit(fetch_board, script, args.limit, args.timeout, args.proxy,
+                                       owner, boards.get(script)): script for script in selected}
+                for future in as_completed(pending):
+                    script = pending[future]
+                    try:
+                        board = future.result()
+                        boards[script] = board
+                        refreshed.add(script)
+                        if board.account.refresh_error:
+                            failures += 1
+                        print(f"已刷新{script}：{len(board.entries)}/{board.total_entries}条，账号{board.account.status}。", flush=True)
+                    except (OSError, URLError, ValueError, ET.ParseError) as exc:
+                        failures += 1
+                        error = error_text(exc, owner)
+                        if script in boards:
+                            boards[script] = replace(boards[script], refresh_error=error)
+                        print(f"{script}刷新失败，保留旧数据及日期：{error}", file=sys.stderr, flush=True)
+        if not boards:
+            raise RuntimeError("没有有效公开缓存；既有报告未改写。请检查网络或--proxy后刷新。")
+        report = render_report(boards, results, refreshed, report_path, "排行榜成绩与提升目标", args.offline,
+                               local_path, snapshot_path)
+        progress = render_report(boards, results, refreshed, progress_path, "排行榜进度", args.offline,
+                                 local_path, snapshot_path) + "\n" + history
+        snapshot = render_snapshot(boards, refreshed, args.offline, snapshot_path, cache_path, progress_path)
+        if not args.offline:
+            payload = {"schema_version": SCHEMA_VERSION, "app_id": APP_ID, "last_attempt_at": attempted_at,
+                       "boards": [asdict(boards[script]) for script in BOARD_IDS if script in boards]}
             write_atomic(cache_path, json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
         write_atomic(report_path, report)
-    except (OSError, ValueError, RuntimeError) as exc:
+        write_atomic(progress_path, progress)
+        write_atomic(snapshot_path, snapshot)
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError) as exc:
         print(f"排行榜更新失败：{exc}", file=sys.stderr)
         return 1
-    print(f"排行榜缓存：{cache_path}\n比较报告：{report_path}\n榜单数：{len(boards)}；每榜上限：{limit}")
-    return 0
+    print(f"公开缓存：{cache_path}\n目标报告：{report_path}\n进度：{progress_path}\n公开快照：{snapshot_path}\n有效缓存：{len(boards)}/30榜；本次联网刷新：{len(refreshed)}榜。")
+    return 1 if failures else 0

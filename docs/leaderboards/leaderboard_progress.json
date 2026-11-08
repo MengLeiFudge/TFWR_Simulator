@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "boards": {
+    "lb_dinosaur": {
+      "label": "恐龙",
+      "simulation_seconds": 775.38,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_dinosaur.md",
+      "direction": "重新比较追果与蛇身路径组织，压低每个苹果的移动预算。"
+    },
+    "lb_cactus_single": {
+      "label": "仙人掌·单机",
+      "simulation_seconds": 20.192,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_cactus_single.md",
+      "direction": "重列构盘与排序方向，寻找更少必需交换的结构。"
+    },
+    "lb_maze": {
+      "label": "迷宫·多机",
+      "simulation_seconds": 84.74419098,
+      "simulation_basis": "maze-stop-after-goal-v6-s1原目标完整完成；实际Gold达标后主机正常clear结束子机尾段，未做新实机。",
+      "evidence": "lb_maze.md",
+      "direction": "比较迷宫规模与独立实例分工；达标后正常收尾以减少工人尾段等待。"
+    },
+    "lb_cactus": {
+      "label": "仙人掌·多机",
+      "simulation_seconds": 34.753,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_cactus.md",
+      "direction": "研究减少交换数的构盘与并行排序，先核算动作下界。"
+    },
+    "lb_sunflowers_single": {
+      "label": "向日葵·单机",
+      "simulation_seconds": 294.007,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_sunflowers_single.md",
+      "direction": "比较支撑与分批生产布局，降低重种和成熟等待。"
+    },
+    "lb_sunflowers": {
+      "label": "向日葵·多机",
+      "simulation_seconds": 207.419,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_sunflowers.md",
+      "direction": "改进批次流水，减少全田同步与未成熟花阻塞。"
+    },
+    "lb_wood_single": {
+      "label": "木头·单机",
+      "simulation_seconds": 313.238,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_wood_single.md",
+      "direction": "降低伴生请求冲突和重复支撑改写，保持成熟兑现。"
+    },
+    "lb_maze_single": {
+      "label": "迷宫·单机",
+      "simulation_seconds": 128.237,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_maze_single.md",
+      "direction": "利用已拆墙增量更新路径，减少规划与重复访问。"
+    },
+    "lb_wood": {
+      "label": "木头·多机",
+      "simulation_seconds": 277.998,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_wood.md",
+      "direction": "调整生产/支撑布局及请求归属，减少重抽和支撑等待。"
+    },
+    "lb_carrots": {
+      "label": "胡萝卜·多机",
+      "simulation_seconds": 231.9,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_carrots.md",
+      "direction": "改进局部支撑承接与生产布局，减少重抽和成熟等待。"
+    },
+    "lb_pumpkins_single": {
+      "label": "南瓜·单机",
+      "simulation_seconds": 440.873,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_pumpkins_single.md",
+      "direction": "减少种植、补种和成熟巡查的总路程。"
+    },
+    "lb_carrots_single": {
+      "label": "胡萝卜·单机",
+      "simulation_seconds": 251.84,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_carrots_single.md",
+      "direction": "比较生产位/支撑格组织，减少请求队列空访。"
+    },
+    "lb_pumpkins": {
+      "label": "南瓜·多机",
+      "simulation_seconds": 373.17,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_pumpkins.md",
+      "direction": "比较分区和修补调度，减少死株长尾及最慢区等待。"
+    },
+    "lb_hay": {
+      "label": "干草·多机",
+      "simulation_seconds": 112.697,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_hay.md",
+      "direction": "重排生产与支撑布局，减少伴生重抽和支撑改写。"
+    },
+    "lb_hay_single": {
+      "label": "干草·单机",
+      "simulation_seconds": 178.35,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_hay_single.md",
+      "direction": "减少伴生重抽、成熟空访与支撑往返。"
+    },
+    "lb_fastest_reset": {
+      "label": "快速重置",
+      "simulation_seconds": 3069.529,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_fastest_reset.md",
+      "direction": "先复用非重置榜的成熟优化，再重算金币/骨头筹资科技路线。"
+    },
+    "lb_mushrooms": {
+      "label": "蘑菇·多机",
+      "simulation_seconds": 320.57940162,
+      "simulation_basis": "常驻工人、同高中转冻结版，原240k目标三seed完整均值。",
+      "evidence": "lb_mushrooms.md",
+      "direction": "重新比较配对空间、同色块汇集与开层/兑现组织。"
+    },
+    "lb_mushrooms_single": {
+      "label": "蘑菇·单机",
+      "simulation_seconds": 818.99883816,
+      "simulation_basis": "gravity-v1b单机原30k目标三seed完整均值；实际30176/30032/30176；失败多机版本不参与。",
+      "evidence": "lb_mushrooms_single.md",
+      "direction": "重列配对与开层方向，比较同色块汇集的动作下界。"
+    },
+    "lb_dynamite": {
+      "label": "炸药·多机",
+      "simulation_seconds": 1093.6923,
+      "simulation_basis": "区域自治版三seed原10M目标完整均值；新分块候选未取得改善。",
+      "evidence": "lb_dynamite.md",
+      "direction": "比较围雷目标规划、区域自治与动态结算，重算整盘预算。"
+    },
+    "lb_dynamite_single": {
+      "label": "炸药·单机",
+      "simulation_seconds": 258.42239127,
+      "simulation_basis": "原100k目标三seed完整均值；缓存约束、全盘计数、就近正常结算。",
+      "evidence": "lb_dynamite_single.md",
+      "direction": "缓存约束、全盘计数与就近结算已达阶段门槛；继续比较可兑现收益与开格预算。"
+    },
+    "lb_treasure_map": {
+      "label": "藏宝图",
+      "simulation_seconds": 37.948,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_treasure_map.md",
+      "direction": "分解找图、解析和行走成本，比较合法去环后的路径收益。"
+    },
+    "lb_bamboo": {
+      "label": "竹子·多机",
+      "simulation_seconds": 321.35817153,
+      "simulation_basis": "普通if/else语法修正版，原500M目标三seed完整均值，全部工人回收；game_syntax_validation.json。",
+      "evidence": "lb_bamboo.md",
+      "direction": "统一花节批量保桩已达阶段门槛；继续核算供水、生长间隔与收尾长尾。"
+    },
+    "lb_bamboo_single": {
+      "label": "竹子·单机",
+      "simulation_seconds": 265.38555888,
+      "simulation_basis": "普通if/else语法修正版，原25M目标三seed完整均值；game_syntax_validation.json。",
+      "evidence": "lb_bamboo_single.md",
+      "direction": "统一花节批量保桩已达阶段门槛；继续比较选种成本与更密巡回。"
+    },
+    "lb_pyramids": {
+      "label": "金字塔·多机",
+      "simulation_seconds": 1338.123,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_pyramids.md",
+      "direction": "减少找塔、覆土清理和人为缺口；主机提前到中心等待。"
+    },
+    "lb_pyramids_single": {
+      "label": "金字塔·单机",
+      "simulation_seconds": 1072.629,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_pyramids_single.md",
+      "direction": "减少入口与覆土开挖，按几何直接补缺，中心最后补尖。"
+    },
+    "lb_ores_single": {
+      "label": "石英矿·单机",
+      "simulation_seconds": 572.569,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_ores_single.md",
+      "direction": "减少锚点准备和错误定位回退，不假设多次最近矿相同。"
+    },
+    "lb_ores": {
+      "label": "石英矿·多机",
+      "simulation_seconds": 154.667,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_ores.md",
+      "direction": "比较勘探后区域自主采矿与沟网覆盖，计入榜内真实筹资。"
+    },
+    "lb_rice": {
+      "label": "稻米·多机",
+      "simulation_seconds": 140.076,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_rice.md",
+      "direction": "增加两层种植/成熟重叠，减少跨列回访和最慢工人等待。"
+    },
+    "lb_rice_single": {
+      "label": "稻米·单机",
+      "simulation_seconds": 166.888,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_rice_single.md",
+      "direction": "优化两层清单访问顺序，减少成熟空等和回访。"
+    },
+    "lb_fastest_underground_reset": {
+      "label": "地下重置",
+      "simulation_seconds": 11912.122,
+      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "evidence": "lb_fastest_underground_reset.md",
+      "direction": "先承接矿采、扫雷等单项突破，再重算地上筹资和科技路线。"
+    }
+  }
+}

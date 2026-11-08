@@ -18,7 +18,7 @@
 
 实机路径是“脚本 → game_control 部署至已有存档文件 → 请求状态文件 → game_mod → 游戏执行 → 三份日志 → game_control 采集”。`gamesave/` 只是本机 Save0 链接，不是源码目录。运行期间冻结存档脚本，终态确认后才能再次部署。
 
-路径统一由 `game_control/src/tfwr_orchestrator/config.py` 推导。排行榜同步读取 `scripts/leaderboard/`；公开成绩写入 `references/leaderboards/leaderboard_cache.json`；比较报告写入 `docs/leaderboards/leaderboard_targets.md`，仓库复跑成绩从 `scripts/leaderboard/lb_start.py` 读取。公开缓存和策略研究文档分别拥有来源事实与解释结论，不混作脚本依赖。
+路径统一由 `game_control/src/tfwr_orchestrator/config.py` 推导。排行榜同步读取 `scripts/leaderboard/`；公开成绩写入 `references/leaderboards/leaderboard_cache.json`；本地模拟及方向写入`docs/leaderboards/leaderboard_progress.json`。`leaderboard_cache.py`读取这两份JSON，一次生成进度、`leaderboard_targets.md`和公开来源快照；账号最高取公开查询，`scripts/leaderboard/lb_start.py`只保留历史正式复跑。公开缓存和策略研究文档分别拥有来源事实与解释结论，不混作脚本依赖。
 
 功能脚本按资源名或 `资源_机制.py` 命名，例如 `rice.py`、`bone_dinosaur.py`；排行榜脚本保留 `lb_` 前缀。功能初版以科技全解为前提，优先迁入用户已有功能脚本，没有对应实现时使用成熟多机排行榜算法。每个资源入口使用 `入口(target=-1)`：无参持续生产，有限目标由入口及子机按实际库存判断，正常结算后返回。`resources.py` 负责目标配置、材料补给和跨资源调用；`production.py` 提供库存判断与整次执行的Jump额度。保留原算法的并行、路径、同步与热路径。`mining.py` 只集中普通地形开采的共用函数。水、化肥自动获取，不设功能脚本。
 
