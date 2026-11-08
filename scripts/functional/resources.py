@@ -170,6 +170,9 @@ def materials(item):
     if item in depths:
         # 爆破钻头每次扣一份炸药；为覆盖层及矿层留出一批完整沟挖的库存。
         needed[Items.Dynamite] = plots * (depths[item] + 16)
+    if item == Items.Iron:
+        # 铁入口用Coal支付方向查询；缺料返回后由调度补齐再继续。
+        needed[Items.Coal] = plots * 4
     return needed
 
 

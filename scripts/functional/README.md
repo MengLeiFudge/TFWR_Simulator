@@ -2,7 +2,7 @@
 
 本目录的初版以**科技全解、32×32农场、32台无人机**为运行前提，持续生产对应资源。Fastest Reset类脚本仍归排行榜目录，使用各自的重置初始条件。运行与文件同名的入口即可，例如打开 `rice.py` 执行。
 
-有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，当前地下算法、三seed数据及材料见[本轮地下效率](../../docs/underground-functional-validation.md)。
+有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，地下批次见[效率记录](../../docs/underground-functional-validation.md)，铁与石英的勘探对照见[勘探记录](../../docs/underground-prospecting.md)。
 
 ## 按库存目标补齐
 
@@ -48,20 +48,20 @@ TARGETS = {
 | 藏宝图产金币 | [gold_treasure_map.py](gold_treasure_map.py) | `lb_treasure_map.py`，按层去环，适配普通地形入口 |
 | 金字塔产能量 | [power_pyramids.py](power_pyramids.py) | `lb_pyramids.py`修补主体，普通田使用Jump和浅层爆破钻头 |
 | 建材 | [block.py](block.py) | 单爆破钻、四格间距蛇形浅层开孔 |
-| 铁 | [iron.py](iron.py) | 同一稀疏开孔结构，Jump后按铁目标深度爆破收取 |
-| 石英 | [quartz.py](quartz.py) | 同上，保留石英深度与矿层终止条件 |
+| 铁 | [iron.py](iron.py) | 已露矿及邻柱追脉，否则支付Coal读取铁方向，主机单钻定点开采 |
+| 石英 | [quartz.py](quartz.py) | 单爆破钻、四格间距蛇形开孔，保留石英深度与矿层终止条件 |
 | 石化南瓜 | [pumpkin_petrified.py](pumpkin_petrified.py) | 同上，Jump至石化层附近后收取真实爆破掉落 |
 | 怪异物质 | [weird_substance.py](weird_substance.py) | `lb_fastest_reset.py`的并行伴生树苗圃 |
 
-水和肥料由游戏自动补给，不设生产脚本。`mining.py`集中四项矿采的固定稀疏孔、钻头和导航，不是独立生产入口。仅一台钻头实际爆破，子机默认帽；爆破消耗Dynamite，只计真实入库。单入口效率预备了材料，未计入重新生产炸药、能量或种子的时间，净消耗见效率记录。
+水和肥料由游戏自动补给，不设生产脚本。`mining.py`集中建材、石英和石化南瓜的稀疏钻孔及导航，不是独立生产入口。铁的方向勘探直接由 `iron.py` 保存；`resources.materials` 为其准备Coal查询储备。爆破只计真实入库，勘探结果不直接记作产量。
 
 ## 运行与依赖
 
-- 资源生产持续运行，直到用户停止、原算法检测到材料不足或出现动作错误。种子、肥料、怪异物质、煤/铁勘探消耗品以及爆破所需炸药，须按所选机制准备；不要用无成本资源假设估算实际净收益。
-- 完整周期型在正常结算并回收子机后检查库存目标。矿采按整片、蘑菇按整片、炸药按整盘检查，因此最终库存可能超过目标。竹子已有Jump额度时采用地表星形，未用时先保留可达珍珠岩；不会为保土假设全图增产。
+- 独立功能入口以其他资源库存充足为前提；效率按目标资源的实际净增长/游戏秒比较，不另计生产Coal、Iron、Dynamite等材料的时间。游戏动作仍正常扣材料，耗尽或动作失败时返回原因；库存调度按材料表准备和补齐。
+- 完整周期型在正常结算并回收子机后检查库存目标。稀疏矿采按整片、蘑菇按整片、炸药按整盘检查，铁勘探在每次追矿或开挖前检查，因此最终库存可能略超目标。竹子已有Jump额度时采用地表星形，未用时先保留可达珍珠岩。
 - 多数入口会整理或重生农田，运行前确认当前农田可被清理。Jump每次执行只能使用一次，后续循环按原算法继续或重生。
 - 金字塔只同时修一座，底层就绪后再补高层，主机在中心放最后顶块。爆破钻头只用于远离塔区的浅覆盖层，接近塔区前换回采矿帽；结果须以实际模拟记录为准。
-- `block.py`、`iron.py`、`quartz.py`、`pumpkin_petrified.py`还需要同目录的 `mining.py`。各入口保存对应成熟算法，运行时不导入 `lb_*.py`。
+- `block.py`、`quartz.py`、`pumpkin_petrified.py`需要同目录的 `mining.py`；铁入口依赖 `production.py`。各入口保存本地验证算法，运行时不导入 `lb_*.py`。
 
 MIT来源的木材、胡萝卜、南瓜和恐龙脚本保留作者声明及 [enihsyou_LICENSE.txt](enihsyou_LICENSE.txt)。迷宫上游来源和本地使用边界见[迷宫策略文档](../../docs/leaderboards/lb_maze.md)。
 
@@ -75,4 +75,4 @@ python3 -m simulator.local_simulator scripts/functional/bamboo.py --preset all -
 
 恐龙等批量结算机制必须跑完至少一个完整周期，收益以实际入库为准；未结算时不把0当作周期效率。持续脚本可通过本地有限入口调用原有完整生产周期，保留算法与依赖哈希，不在真实存档新增入口。材料消耗、首次Jump、初始化及后续周期都要记录。
 
-只有通过本地正确性和效率对照、且效率严格高于当前存档对应版本时，才允许覆盖该文件。同效迁入、批量尚未结算、错误或对照不足都保留当前存档。运行前确认4个矿物入口所需的 `mining.py`已在同目录；检查[游戏语言静态规则](../../simulator/local_simulator/syntax-validation.md)，语法不合格的模型产量不能作为替换依据。
+只有通过本地正确性和效率对照、且效率严格高于当前存档对应版本时，才允许覆盖该文件。同效迁入、批量尚未结算、错误或对照不足都保留当前存档。运行前核对同目录依赖；检查[游戏语言静态规则](../../simulator/local_simulator/syntax-validation.md)，语法不合格的模型产量不能作为替换依据。
