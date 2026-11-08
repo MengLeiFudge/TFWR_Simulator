@@ -2881,6 +2881,979 @@
         }
       ],
       "conclusion": "promoted: original-goal forecast uses only complete cycles within fixed 30s wall budget; unfinished cycle excluded"
+    },
+    "mushroom-star-wells-v1-single-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-star-wells-v1-single-s1/report.json",
+      "report_sha256": "2a0f017771d961db1da8a0419686d9b41c4a4a9e40185cafdb210073e7d27376",
+      "script_sha256": "194d62e596c341dc1d28595b9d7e1d4201e513cd3a6940cda255b7101c613196",
+      "frozen_source_raw_sha256": "194d62e596c341dc1d28595b9d7e1d4201e513cd3a6940cda255b7101c613196",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 1113.23734758,
+      "wall_seconds": 3.24187888414599,
+      "item": "Mushroom",
+      "net_change": 30000,
+      "net_per_game_second": 26.948431136644135,
+      "api_counts": {
+        "move": 15390,
+        "swap": 0,
+        "dig": 6761,
+        "push": 3342,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 635453,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 26.89875549,
+          "cumulative": 688
+        },
+        {
+          "cycle": 1,
+          "seconds": 53.98401411,
+          "cumulative": 1424
+        },
+        {
+          "cycle": 2,
+          "seconds": 88.39606383,
+          "cumulative": 2496
+        },
+        {
+          "cycle": 3,
+          "seconds": 123.39478359,
+          "cumulative": 3376
+        },
+        {
+          "cycle": 4,
+          "seconds": 155.64583323,
+          "cumulative": 4272
+        },
+        {
+          "cycle": 5,
+          "seconds": 183.50821566,
+          "cumulative": 5024
+        },
+        {
+          "cycle": 6,
+          "seconds": 213.44583636,
+          "cumulative": 5808
+        },
+        {
+          "cycle": 7,
+          "seconds": 243.39860118,
+          "cumulative": 6672
+        },
+        {
+          "cycle": 8,
+          "seconds": 269.94525588,
+          "cumulative": 7440
+        },
+        {
+          "cycle": 9,
+          "seconds": 296.23199139,
+          "cumulative": 8144
+        },
+        {
+          "cycle": 10,
+          "seconds": 324.0133857,
+          "cumulative": 8784
+        },
+        {
+          "cycle": 11,
+          "seconds": 358.64798814,
+          "cumulative": 9744
+        },
+        {
+          "cycle": 12,
+          "seconds": 385.61999508,
+          "cumulative": 10480
+        },
+        {
+          "cycle": 13,
+          "seconds": 418.20865983,
+          "cumulative": 11472
+        },
+        {
+          "cycle": 14,
+          "seconds": 445.51778805,
+          "cumulative": 12016
+        },
+        {
+          "cycle": 15,
+          "seconds": 479.67452766,
+          "cumulative": 13040
+        },
+        {
+          "cycle": 16,
+          "seconds": 506.16965943,
+          "cumulative": 13808
+        },
+        {
+          "cycle": 17,
+          "seconds": 533.61409707,
+          "cumulative": 14512
+        },
+        {
+          "cycle": 18,
+          "seconds": 566.09313156,
+          "cumulative": 15536
+        },
+        {
+          "cycle": 19,
+          "seconds": 592.70381955,
+          "cumulative": 16224
+        },
+        {
+          "cycle": 20,
+          "seconds": 619.48273896,
+          "cumulative": 16928
+        },
+        {
+          "cycle": 21,
+          "seconds": 654.73495812,
+          "cumulative": 17888
+        },
+        {
+          "cycle": 22,
+          "seconds": 689.08248072,
+          "cumulative": 18752
+        },
+        {
+          "cycle": 23,
+          "seconds": 718.58701251,
+          "cumulative": 19632
+        },
+        {
+          "cycle": 24,
+          "seconds": 745.64939034,
+          "cumulative": 20320
+        },
+        {
+          "cycle": 25,
+          "seconds": 772.9608231,
+          "cumulative": 20896
+        },
+        {
+          "cycle": 26,
+          "seconds": 807.76629072,
+          "cumulative": 21792
+        },
+        {
+          "cycle": 27,
+          "seconds": 839.37223377,
+          "cumulative": 22752
+        },
+        {
+          "cycle": 28,
+          "seconds": 874.82165571,
+          "cumulative": 23648
+        },
+        {
+          "cycle": 29,
+          "seconds": 903.98478636,
+          "cumulative": 24528
+        },
+        {
+          "cycle": 30,
+          "seconds": 939.72128814,
+          "cumulative": 25488
+        },
+        {
+          "cycle": 31,
+          "seconds": 966.83387202,
+          "cumulative": 26192
+        },
+        {
+          "cycle": 32,
+          "seconds": 1000.86320349,
+          "cumulative": 27136
+        },
+        {
+          "cycle": 33,
+          "seconds": 1033.37120934,
+          "cumulative": 28064
+        },
+        {
+          "cycle": 34,
+          "seconds": 1063.02734694,
+          "cumulative": 28848
+        },
+        {
+          "cycle": 35,
+          "seconds": 1095.43724523,
+          "cumulative": 29600
+        },
+        {
+          "cycle": 36,
+          "seconds": 1113.23652453,
+          "cumulative": 30000
+        }
+      ],
+      "conclusion": "rejected: complete original goal 1113.237s; 37 fields, movement and discarded material exceed the fixed-well budget"
+    },
+    "mushroom-ready-edges-v1-single-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-ready-edges-v1-single-s1/report.json",
+      "report_sha256": "5c2c93f74d049684a0c93cdf552928a3a870116eafc9ce23972390f93935ee43",
+      "script_sha256": "fb87e21f17868158ad9b1bc7157c52552aa70c1e135a5c93f0093509ea6d3fbf",
+      "frozen_source_raw_sha256": "fb87e21f17868158ad9b1bc7157c52552aa70c1e135a5c93f0093509ea6d3fbf",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 944.21728107,
+      "wall_seconds": 4.354358879150823,
+      "item": "Mushroom",
+      "net_change": 30000,
+      "net_per_game_second": 31.772347955762456,
+      "api_counts": {
+        "move": 10793,
+        "swap": 0,
+        "dig": 6202,
+        "push": 1875,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 1145291,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 25.99504659,
+          "cumulative": 592
+        },
+        {
+          "cycle": 1,
+          "seconds": 50.43189492,
+          "cumulative": 1280
+        },
+        {
+          "cycle": 2,
+          "seconds": 92.95131636,
+          "cumulative": 2848
+        },
+        {
+          "cycle": 3,
+          "seconds": 135.51106725,
+          "cumulative": 4496
+        },
+        {
+          "cycle": 4,
+          "seconds": 173.26420614,
+          "cumulative": 5584
+        },
+        {
+          "cycle": 5,
+          "seconds": 198.86007348,
+          "cumulative": 6272
+        },
+        {
+          "cycle": 6,
+          "seconds": 230.05975905,
+          "cumulative": 7216
+        },
+        {
+          "cycle": 7,
+          "seconds": 260.52709473,
+          "cumulative": 8224
+        },
+        {
+          "cycle": 8,
+          "seconds": 284.94007461,
+          "cumulative": 8768
+        },
+        {
+          "cycle": 9,
+          "seconds": 309.37050315,
+          "cumulative": 9376
+        },
+        {
+          "cycle": 10,
+          "seconds": 334.48570929,
+          "cumulative": 9936
+        },
+        {
+          "cycle": 11,
+          "seconds": 376.08496083,
+          "cumulative": 11616
+        },
+        {
+          "cycle": 12,
+          "seconds": 399.52789398,
+          "cumulative": 12400
+        },
+        {
+          "cycle": 13,
+          "seconds": 436.82308785,
+          "cumulative": 13632
+        },
+        {
+          "cycle": 14,
+          "seconds": 462.5491617,
+          "cumulative": 14288
+        },
+        {
+          "cycle": 15,
+          "seconds": 504.16454502,
+          "cumulative": 16080
+        },
+        {
+          "cycle": 16,
+          "seconds": 530.03810943,
+          "cumulative": 16592
+        },
+        {
+          "cycle": 17,
+          "seconds": 555.63298911,
+          "cumulative": 17264
+        },
+        {
+          "cycle": 18,
+          "seconds": 592.22463984,
+          "cumulative": 18656
+        },
+        {
+          "cycle": 19,
+          "seconds": 618.12651717,
+          "cumulative": 19232
+        },
+        {
+          "cycle": 20,
+          "seconds": 642.68879832,
+          "cumulative": 19888
+        },
+        {
+          "cycle": 21,
+          "seconds": 685.86715359,
+          "cumulative": 21440
+        },
+        {
+          "cycle": 22,
+          "seconds": 728.67974544,
+          "cumulative": 22944
+        },
+        {
+          "cycle": 23,
+          "seconds": 760.03663356,
+          "cumulative": 23840
+        },
+        {
+          "cycle": 24,
+          "seconds": 784.60089003,
+          "cumulative": 24544
+        },
+        {
+          "cycle": 25,
+          "seconds": 809.34078537,
+          "cumulative": 25024
+        },
+        {
+          "cycle": 26,
+          "seconds": 851.80275792,
+          "cumulative": 26656
+        },
+        {
+          "cycle": 27,
+          "seconds": 888.42749526,
+          "cumulative": 27872
+        },
+        {
+          "cycle": 28,
+          "seconds": 930.178188,
+          "cumulative": 29648
+        },
+        {
+          "cycle": 29,
+          "seconds": 944.21645802,
+          "cumulative": 30000
+        }
+      ],
+      "conclusion": "rejected: complete original goal 944.217s; 6202 digs, 10793 moves, no improvement over the prior local queue"
+    },
+    "mushroom-small-world-v1-single-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-small-world-v1-single-s1/report.json",
+      "report_sha256": "112bed02384b4a26c2638038d5bc97938b57218f6e92d9832ca455d0b71139f0",
+      "script_sha256": "a75c69cbe6acbd8d4f10abbfc4d66875062cd3463ce8bcd603c7f5eb62479b92",
+      "frozen_source_raw_sha256": "a75c69cbe6acbd8d4f10abbfc4d66875062cd3463ce8bcd603c7f5eb62479b92",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 959.77193841,
+      "wall_seconds": 5.162819861900061,
+      "item": "Mushroom",
+      "net_change": 30080,
+      "net_per_game_second": 31.340778779000185,
+      "api_counts": {
+        "move": 11089,
+        "swap": 0,
+        "dig": 3969,
+        "push": 2760,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 1436107,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 6.88382559,
+          "cumulative": 176
+        },
+        {
+          "cycle": 1,
+          "seconds": 19.81361187,
+          "cumulative": 576
+        },
+        {
+          "cycle": 2,
+          "seconds": 32.17104918,
+          "cumulative": 1008
+        },
+        {
+          "cycle": 3,
+          "seconds": 43.308891,
+          "cumulative": 1392
+        },
+        {
+          "cycle": 4,
+          "seconds": 50.70514752,
+          "cumulative": 1568
+        },
+        {
+          "cycle": 5,
+          "seconds": 60.40643787,
+          "cumulative": 1840
+        },
+        {
+          "cycle": 6,
+          "seconds": 69.70015386,
+          "cumulative": 2096
+        },
+        {
+          "cycle": 7,
+          "seconds": 76.14447075,
+          "cumulative": 2240
+        },
+        {
+          "cycle": 8,
+          "seconds": 82.96376922,
+          "cumulative": 2464
+        },
+        {
+          "cycle": 9,
+          "seconds": 90.05105277,
+          "cumulative": 2672
+        },
+        {
+          "cycle": 10,
+          "seconds": 103.08931704,
+          "cumulative": 3184
+        },
+        {
+          "cycle": 11,
+          "seconds": 109.84392378,
+          "cumulative": 3360
+        },
+        {
+          "cycle": 12,
+          "seconds": 120.95970786,
+          "cumulative": 3744
+        },
+        {
+          "cycle": 13,
+          "seconds": 128.45884563,
+          "cumulative": 3952
+        },
+        {
+          "cycle": 14,
+          "seconds": 141.17068827,
+          "cumulative": 4448
+        },
+        {
+          "cycle": 15,
+          "seconds": 147.78373041,
+          "cumulative": 4640
+        },
+        {
+          "cycle": 16,
+          "seconds": 154.97126145,
+          "cumulative": 4848
+        },
+        {
+          "cycle": 17,
+          "seconds": 166.19601735,
+          "cumulative": 5184
+        },
+        {
+          "cycle": 18,
+          "seconds": 172.68461433,
+          "cumulative": 5392
+        },
+        {
+          "cycle": 19,
+          "seconds": 179.29436427,
+          "cumulative": 5600
+        },
+        {
+          "cycle": 20,
+          "seconds": 193.29032952,
+          "cumulative": 6080
+        },
+        {
+          "cycle": 21,
+          "seconds": 206.44760682,
+          "cumulative": 6512
+        },
+        {
+          "cycle": 22,
+          "seconds": 215.37654705,
+          "cumulative": 6800
+        },
+        {
+          "cycle": 23,
+          "seconds": 222.67272069,
+          "cumulative": 6992
+        },
+        {
+          "cycle": 24,
+          "seconds": 229.45415886,
+          "cumulative": 7168
+        },
+        {
+          "cycle": 25,
+          "seconds": 242.37555003,
+          "cumulative": 7664
+        },
+        {
+          "cycle": 26,
+          "seconds": 252.95075487,
+          "cumulative": 8032
+        },
+        {
+          "cycle": 27,
+          "seconds": 266.33272482,
+          "cumulative": 8480
+        },
+        {
+          "cycle": 28,
+          "seconds": 275.21853723,
+          "cumulative": 8784
+        },
+        {
+          "cycle": 29,
+          "seconds": 288.47556819,
+          "cumulative": 9184
+        },
+        {
+          "cycle": 30,
+          "seconds": 295.68170016,
+          "cumulative": 9360
+        },
+        {
+          "cycle": 31,
+          "seconds": 308.19996144,
+          "cumulative": 9760
+        },
+        {
+          "cycle": 32,
+          "seconds": 319.42438812,
+          "cumulative": 10128
+        },
+        {
+          "cycle": 33,
+          "seconds": 328.3195833,
+          "cumulative": 10432
+        },
+        {
+          "cycle": 34,
+          "seconds": 339.47273385,
+          "cumulative": 10768
+        },
+        {
+          "cycle": 35,
+          "seconds": 350.28777546,
+          "cumulative": 11056
+        },
+        {
+          "cycle": 36,
+          "seconds": 362.73871125,
+          "cumulative": 11472
+        },
+        {
+          "cycle": 37,
+          "seconds": 374.471289,
+          "cumulative": 11840
+        },
+        {
+          "cycle": 38,
+          "seconds": 383.87084922,
+          "cumulative": 12128
+        },
+        {
+          "cycle": 39,
+          "seconds": 391.10002659,
+          "cumulative": 12272
+        },
+        {
+          "cycle": 40,
+          "seconds": 397.7504352,
+          "cumulative": 12464
+        },
+        {
+          "cycle": 41,
+          "seconds": 409.24992519,
+          "cumulative": 12848
+        },
+        {
+          "cycle": 42,
+          "seconds": 417.75795765,
+          "cumulative": 13136
+        },
+        {
+          "cycle": 43,
+          "seconds": 426.66994305,
+          "cumulative": 13392
+        },
+        {
+          "cycle": 44,
+          "seconds": 439.43610699,
+          "cumulative": 13840
+        },
+        {
+          "cycle": 45,
+          "seconds": 447.00800238,
+          "cumulative": 14048
+        },
+        {
+          "cycle": 46,
+          "seconds": 457.71357834,
+          "cumulative": 14416
+        },
+        {
+          "cycle": 47,
+          "seconds": 464.97962835,
+          "cumulative": 14624
+        },
+        {
+          "cycle": 48,
+          "seconds": 474.38445609,
+          "cumulative": 14912
+        },
+        {
+          "cycle": 49,
+          "seconds": 485.36443692,
+          "cumulative": 15280
+        },
+        {
+          "cycle": 50,
+          "seconds": 496.12647411,
+          "cumulative": 15600
+        },
+        {
+          "cycle": 51,
+          "seconds": 506.59978536,
+          "cumulative": 15968
+        },
+        {
+          "cycle": 52,
+          "seconds": 517.16429055,
+          "cumulative": 16336
+        },
+        {
+          "cycle": 53,
+          "seconds": 528.1923375,
+          "cumulative": 16656
+        },
+        {
+          "cycle": 54,
+          "seconds": 536.9775732,
+          "cumulative": 16896
+        },
+        {
+          "cycle": 55,
+          "seconds": 547.5224898,
+          "cumulative": 17248
+        },
+        {
+          "cycle": 56,
+          "seconds": 555.07397355,
+          "cumulative": 17488
+        },
+        {
+          "cycle": 57,
+          "seconds": 565.65740889,
+          "cumulative": 17840
+        },
+        {
+          "cycle": 58,
+          "seconds": 572.83193574,
+          "cumulative": 18064
+        },
+        {
+          "cycle": 59,
+          "seconds": 582.27264846,
+          "cumulative": 18384
+        },
+        {
+          "cycle": 60,
+          "seconds": 590.84800641,
+          "cumulative": 18624
+        },
+        {
+          "cycle": 61,
+          "seconds": 603.61532262,
+          "cumulative": 19120
+        },
+        {
+          "cycle": 62,
+          "seconds": 617.05457685,
+          "cumulative": 19552
+        },
+        {
+          "cycle": 63,
+          "seconds": 624.28029741,
+          "cumulative": 19664
+        },
+        {
+          "cycle": 64,
+          "seconds": 634.99031784,
+          "cumulative": 20032
+        },
+        {
+          "cycle": 65,
+          "seconds": 647.67384756,
+          "cumulative": 20496
+        },
+        {
+          "cycle": 66,
+          "seconds": 656.71603947,
+          "cumulative": 20720
+        },
+        {
+          "cycle": 67,
+          "seconds": 668.36038626,
+          "cumulative": 21088
+        },
+        {
+          "cycle": 68,
+          "seconds": 677.30578749,
+          "cumulative": 21360
+        },
+        {
+          "cycle": 69,
+          "seconds": 684.49183704,
+          "cumulative": 21488
+        },
+        {
+          "cycle": 70,
+          "seconds": 691.82932779,
+          "cumulative": 21584
+        },
+        {
+          "cycle": 71,
+          "seconds": 699.44221107,
+          "cumulative": 21776
+        },
+        {
+          "cycle": 72,
+          "seconds": 710.8337169,
+          "cumulative": 22112
+        },
+        {
+          "cycle": 73,
+          "seconds": 724.51560627,
+          "cumulative": 22576
+        },
+        {
+          "cycle": 74,
+          "seconds": 735.04472031,
+          "cumulative": 22928
+        },
+        {
+          "cycle": 75,
+          "seconds": 746.75458188,
+          "cumulative": 23248
+        },
+        {
+          "cycle": 76,
+          "seconds": 757.49933502,
+          "cumulative": 23600
+        },
+        {
+          "cycle": 77,
+          "seconds": 766.92243447,
+          "cumulative": 23840
+        },
+        {
+          "cycle": 78,
+          "seconds": 777.79690029,
+          "cumulative": 24208
+        },
+        {
+          "cycle": 79,
+          "seconds": 790.6399371,
+          "cumulative": 24736
+        },
+        {
+          "cycle": 80,
+          "seconds": 799.09545897,
+          "cumulative": 25024
+        },
+        {
+          "cycle": 81,
+          "seconds": 807.68151657,
+          "cumulative": 25280
+        },
+        {
+          "cycle": 82,
+          "seconds": 816.92617878,
+          "cumulative": 25552
+        },
+        {
+          "cycle": 83,
+          "seconds": 829.18320399,
+          "cumulative": 25920
+        },
+        {
+          "cycle": 84,
+          "seconds": 840.50787816,
+          "cumulative": 26240
+        },
+        {
+          "cycle": 85,
+          "seconds": 849.96077202,
+          "cumulative": 26480
+        },
+        {
+          "cycle": 86,
+          "seconds": 858.78255114,
+          "cumulative": 26752
+        },
+        {
+          "cycle": 87,
+          "seconds": 870.2535636,
+          "cumulative": 27056
+        },
+        {
+          "cycle": 88,
+          "seconds": 878.62101912,
+          "cumulative": 27312
+        },
+        {
+          "cycle": 89,
+          "seconds": 891.28133883,
+          "cumulative": 27792
+        },
+        {
+          "cycle": 90,
+          "seconds": 903.20799177,
+          "cumulative": 28272
+        },
+        {
+          "cycle": 91,
+          "seconds": 911.41314183,
+          "cumulative": 28576
+        },
+        {
+          "cycle": 92,
+          "seconds": 922.18884165,
+          "cumulative": 28896
+        },
+        {
+          "cycle": 93,
+          "seconds": 932.86363554,
+          "cumulative": 29264
+        },
+        {
+          "cycle": 94,
+          "seconds": 945.60741252,
+          "cumulative": 29664
+        },
+        {
+          "cycle": 95,
+          "seconds": 954.5421141,
+          "cumulative": 29904
+        },
+        {
+          "cycle": 96,
+          "seconds": 959.77111536,
+          "cumulative": 30080
+        }
+      ],
+      "conclusion": "rejected: complete original goal 959.772s; 97 fields, more fixed preparation and lower per-field utilization"
+    },
+    "dynamite-global-cap-v1-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-global-cap-v1-s1-window120/report.json",
+      "report_sha256": "639caac1f212ebad4276ab9e8ee2740381f0932286fd52478cb3cfa03cd5142a",
+      "script_sha256": "4b1810a2d92c254c60d3916990c480c57296792ef93683d439349adc9f273811",
+      "frozen_source_raw_sha256": "4b1810a2d92c254c60d3916990c480c57296792ef93683d439349adc9f273811",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 290
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00496986,
+      "wall_seconds": 12.219092132057995,
+      "item": "Dynamite",
+      "net_change": 1199408,
+      "net_per_game_second": 9994.652733126397,
+      "api_counts": {
+        "move": 8493,
+        "swap": 0,
+        "dig": 3913,
+        "push": 0,
+        "spawn_drone": 868
+      },
+      "interpreter_ticks": 1876570,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 34.24036149,
+          "cumulative": 318880
+        },
+        {
+          "cycle": 1,
+          "seconds": 56.75571729,
+          "cumulative": 590896
+        },
+        {
+          "cycle": 2,
+          "seconds": 86.05234665,
+          "cumulative": 879616
+        },
+        {
+          "cycle": 3,
+          "seconds": 116.35424928,
+          "cumulative": 1198496
+        }
+      ],
+      "conclusion": "rejected: four completed cycles 1198496 in 116.354s versus 112.030s; both cap closures mark zero new safe cells"
+    },
+    "dinosaur-phase-budget-v1-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/dinosaur-phase-budget-v1-s1/report.json",
+      "report_sha256": "1f38c9d39228bdb62aab841d64b34290bc5a030935cb1b138ba3096028f1bbba",
+      "script_sha256": "96e73dae448ca60c4453d0ae6bce69e92f90142d510b9ac2b380e593e50eb14e",
+      "frozen_source_raw_sha256": "96e73dae448ca60c4453d0ae6bce69e92f90142d510b9ac2b380e593e50eb14e",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 776.51557605,
+      "wall_seconds": 9.656484878854826,
+      "item": "Bone",
+      "net_change": 33488928,
+      "net_per_game_second": 43127.181260616,
+      "api_counts": {
+        "move": 108303,
+        "swap": 0,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 786476,
+      "completed_cycles": [],
+      "conclusion": "diagnostic only: complete original goal; 256 to 769 tail length consumes 477.347s, near-full restart cannot solve the main gap"
     }
   },
   "dynamite_forecast": {
@@ -3187,5 +4160,49 @@
     "yield_factor": 16,
     "maximum_dynamite_per_cycle": 318880,
     "superseded_budget": "The initial 410000-per-cycle target at fixed cycle duration exceeds this bound and is withdrawn. Higher solving completeness alone cannot achieve the 670.628s threshold; cycle duration must fall too."
+  },
+  "dinosaur_phase_budget": {
+    "report": ".codex/nonreset-100-20261108/reports/dinosaur-phase-budget-v1-s1/report.json",
+    "seed": 1,
+    "phases": [
+      {
+        "tail_length": 128,
+        "seconds": 156.28534308
+      },
+      {
+        "tail_length": 256,
+        "seconds": 230.06667267
+      },
+      {
+        "tail_length": 512,
+        "seconds": 479.87288271
+      },
+      {
+        "tail_length": 769,
+        "seconds": 707.41345032
+      },
+      {
+        "tail_length": 896,
+        "seconds": 757.92188889
+      },
+      {
+        "tail_length": 964,
+        "seconds": 772.2036171
+      },
+      {
+        "tail_length": 1008,
+        "seconds": 776.03211648
+      },
+      {
+        "tail_length": 1023,
+        "seconds": 776.48265405
+      }
+    ],
+    "original_goal_reached": true,
+    "diagnostic_seconds": 776.51557605,
+    "unchanged_strategy_prediction_seconds": 775.38042549,
+    "diagnostic_overhead_seconds": 1.1351505600000564,
+    "middle_256_to_769_seconds": 477.34677765000004,
+    "conclusion": "The diagnostic is not a new prediction. Time has already exceeded the 629.8s threshold at L769; making the entire remaining suffix free cannot achieve phase-one acceptance. No asymmetric near-full restart implementation is justified by these measurements."
   }
 }
