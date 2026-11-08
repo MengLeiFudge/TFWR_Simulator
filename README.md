@@ -102,7 +102,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
 - `game_control/tools/refresh_decompiled_sources.py --help`：刷新反编译事实源。
 - `game_control/tools/extract_unlock_snapshot.py --help`：提取科技事实表。
 
-XERJ 项目索引范围由 [.xerjignore](.xerjignore) 限定。自动生成的功能效率JSON由对应Markdown说明承载检索，图标和.NET框架反编译产物也排除；游戏源码、项目实现和模型资源JSON保留。进入仓库后运行 `xerj-project index` 增量更新，使用 `xerj-project search "查询"` 或 `xerj-project def 符号` 定位。
+XERJ 项目索引范围由 [.xerjignore](.xerjignore) 限定。`docs/*-validation.json` 自动生成报告由对应Markdown说明承载检索，图标和.NET框架反编译产物也排除；游戏源码、项目实现和模型资源JSON保留。进入仓库后运行 `xerj-project index` 增量更新，使用 `xerj-project search "查询"` 或 `xerj-project def 符号` 定位。
 
 若新增结构文件报 `no frozen dataset accepts family`，表示旧索引的字段或格式集合已冻结。不要改写源JSON迎合缓存，也不要用 `--fresh` 清除旧记录；备份本项目的索引记录和journal后，仅重建本项目对应prefix的缓存，保留其他项目。重建后再运行普通增量命令，确认退出码为0且检索命中当前源码。
 

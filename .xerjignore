@@ -1,7 +1,6 @@
-# 自动生成的效率报告会扩展 JSON 字段；其结论由同目录 Markdown 说明承载。
+# 自动生成的验证报告会扩展 JSON 字段；其结论由同目录 Markdown 说明承载。
 # XERJ 的增量索引不支持为已冻结的数据集扩展结构，保留源码和模型资源 JSON。
-/docs/functional-validation.json
-/docs/functional-rate-validation.json
+/docs/*-validation.json
 
 # 图标没有可提取文本；.NET 框架反编译产物不属于项目实现。
 /game_mod/icon.png
