@@ -1,61 +1,84 @@
 from __builtins__ import *
-# 完整轮时间：未取得（Morton顺序西南插入；本地完整目标已验证）。
-# Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
+# 完整轮时间：未取得（47+44株稀疏连通田；本地完整目标已验证）。
+# Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt（move_to）。
 
 def lb_cactus_single():
     global s
-    global m
     global board
     set_world_size(8)
     clear()
     s = get_world_size()
-    m = s - 1
-    board = {}
-    # Morton顺序保持西南前驱均已种植，减少同层选点和跨田巡航。
-    positions = [
-        (0, 0), (1, 0), (0, 1), (1, 1), (2, 0), (3, 0), (2, 1), (3, 1),
-        (0, 2), (1, 2), (0, 3), (1, 3), (2, 2), (3, 2), (2, 3), (3, 3),
-        (4, 0), (5, 0), (4, 1), (5, 1), (6, 0), (7, 0), (6, 1), (7, 1),
-        (4, 2), (5, 2), (4, 3), (5, 3), (6, 2), (7, 2), (6, 3), (7, 3),
-        (0, 4), (1, 4), (0, 5), (1, 5), (2, 4), (3, 4), (2, 5), (3, 5),
-        (0, 6), (1, 6), (0, 7), (1, 7), (2, 6), (3, 6), (2, 7), (3, 7),
-        (4, 4), (5, 4), (4, 5), (5, 5), (6, 4), (7, 4), (6, 5), (7, 5),
-        (4, 6), (5, 6), (4, 7), (5, 7), (6, 6),
+    # 两张田均连通，西南偏序最长链为5；第二张只用第一张已翻好的土壤。
+    layouts = [
+        [
+            (0, 0), (1, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0),
+            (0, 1), (2, 1), (3, 1), (5, 1), (6, 1),
+            (0, 2), (1, 2), (2, 2), (4, 2), (5, 2), (7, 2),
+            (0, 3), (1, 3), (3, 3), (4, 3), (6, 3), (7, 3),
+            (0, 4), (2, 4), (3, 4), (5, 4), (6, 4), (7, 4),
+            (1, 5), (2, 5), (4, 5), (5, 5), (7, 5),
+            (0, 6), (1, 6), (3, 6), (4, 6), (6, 6), (7, 6),
+            (0, 7), (1, 7), (2, 7), (3, 7), (5, 7), (6, 7),
+        ],
+        [
+            (3, 0), (4, 0), (5, 0), (6, 0), (7, 0),
+            (0, 1), (2, 1), (3, 1), (5, 1), (6, 1),
+            (0, 2), (1, 2), (2, 2), (4, 2), (5, 2), (7, 2),
+            (0, 3), (1, 3), (3, 3), (4, 3), (6, 3), (7, 3),
+            (0, 4), (2, 4), (3, 4), (5, 4), (6, 4), (7, 4),
+            (1, 5), (2, 5), (4, 5), (5, 5), (7, 5),
+            (0, 6), (1, 6), (3, 6), (4, 6), (6, 6), (7, 6),
+            (0, 7), (1, 7), (2, 7), (3, 7), (6, 7),
+        ],
     ]
-    last_plant_time = 0
-    for x, y in positions:
-        move_to(x, y)
-        till()
-        plant(Entities.Cactus)
+    for batch in range(2):
+        board = {}
         last_plant_time = get_time()
-        perform_insertion_sort()
-    # 留出最后三株先种后排；先从草取得治愈材料，费用计入本轮。
-    move_to(m, m - 1)
-    use_item(Items.Fertilizer)
-    harvest()
-    till()
-    plant(Entities.Cactus)
-    use_item(Items.Fertilizer)
-    move(West)
-    move(North)
-    till()
-    plant(Entities.Cactus)
-    use_item(Items.Fertilizer)
-    move(East)
-    till()
-    plant(Entities.Cactus)
-    use_item(Items.Fertilizer)
-    use_item(Items.Weird_Substance)
-    move(South)
-    perform_insertion_sort()
-    move_to(m - 1, m)
-    perform_insertion_sort()
-    move_to(m, m)
-    perform_insertion_sort()
-    # 前61株满足无水1秒成熟界；末三株由肥料加速并完成治愈。
-    while get_time() - last_plant_time < 1:
-        continue
-    harvest()
+        for x, y in layouts[batch]:
+            move_to(x, y)
+            if batch == 0:
+                till()
+            plant(Entities.Cactus)
+            last_plant_time = get_time()
+            insert_value(x, y)
+        while get_time() - last_plant_time < 1:
+            continue
+        harvest()
+        quick_print("cactus_batch", batch, get_time(), num_items(Items.Cactus))
+
+
+# 只向已种植的较大前驱插入；末次交换后无须跟随时留在原格。
+def insert_value(x, y):
+    value = measure()
+    while True:
+        west = (x - 1, y)
+        south = (x, y - 1)
+        previous = None
+        previous_value = -1
+        direction = West
+        if west in board and board[west] > value:
+            previous = west
+            previous_value = board[west]
+        if south in board and board[south] > value and board[south] > previous_value:
+            previous = south
+            previous_value = board[south]
+            direction = South
+        if previous == None:
+            board[(x, y)] = value
+            return
+        board[(x, y)] = previous_value
+        board[previous] = value
+        swap(direction)
+        px, py = previous
+        more = False
+        if (px - 1, py) in board and board[(px - 1, py)] > value:
+            more = True
+        if (px, py - 1) in board and board[(px, py - 1)] > value:
+            more = True
+        if not more:
+            return
+        move(direction)
+        x, y = previous
 
 
 def move_to(tx, ty):
@@ -78,76 +101,6 @@ def move_to(tx, ty):
     else:
         for _ in range(dy_south):
             move(South)
-
-
-# 本例只对已种植的仙人掌调用，measure返回0至9；通用类型桩另含苹果坐标。
-def perform_insertion_sort():
-    while True:
-        v = measure()
-        x, y = get_pos_x(), get_pos_y()
-
-        if x > 0:
-            vw = measure(West)
-            if v < vw:  # ty: ignore[unsupported-operator]
-                vs = measure(South)
-                if y > 0 and vw < vs:  # ty: ignore[unsupported-operator]
-                    board[(x, y - 1)] = v
-                    board[(x, y)] = vs
-                    swap(South)
-                    # 判断移动到下一个位置后，是否还需要继续交换
-                    if (
-                        board[(x - 1, y - 1)] > v  # 还能和左边交换
-                    ) or (
-                        y > 1 and board[(x, y - 2)] > v  # 还能和下面交换
-                    ):
-                        move(South)
-                    else:
-                        break
-                else:
-                    board[(x - 1, y)] = v
-                    board[(x, y)] = vw
-                    swap(West)
-                    if (
-                        y > 0 and board[(x - 1, y - 1)] > v  # 还能和下面交换
-                    ) or (
-                        x > 1 and board[(x - 2, y)] > v  # 还能和左边交换
-                    ):
-                        move(West)
-                    else:
-                        break
-                continue
-
-        if y > 0:
-            vs = measure(South)
-            if v < vs:  # ty: ignore[unsupported-operator]
-                if x > 0 and vs < vw:  # ty: ignore[unsupported-operator]
-                    board[(x - 1, y)] = v
-                    board[(x, y)] = vw
-                    swap(West)
-                    if (
-                        board[(x - 1, y - 1)] > v  # 还能和下面交换
-                    ) or (
-                        x > 1 and board[(x - 2, y)] > v  # 还能和左边交换
-                    ):
-                        move(West)
-                    else:
-                        break
-                else:
-                    board[(x, y - 1)] = v
-                    board[(x, y)] = vs
-                    swap(South)
-                    if (
-                        x > 0 and board[(x - 1, y - 1)] > v  # 还能和左边交换
-                    ) or (
-                        y > 1 and board[(x, y - 2)] > v  # 还能和下面交换
-                    ):
-                        move(South)
-                    else:
-                        break
-                continue
-
-        board[(x, y)] = v
-        break
 
 
 if __name__ == "__main__":

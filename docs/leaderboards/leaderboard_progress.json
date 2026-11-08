@@ -10,10 +10,10 @@
     },
     "lb_cactus_single": {
       "label": "仙人掌·单机",
-      "simulation_seconds": 19.10611809,
-      "simulation_basis": "Morton顺序西南插入；三seed完整131072目标19.80159534/19.48669641/18.03006252，均快于实际存档同条件。prepare449已备份同步；未取得新版本实机成绩。",
+      "simulation_seconds": 15.93578436,
+      "simulation_basis": "47+44株稀疏连通田，两次完整收获132640；三seed原131072目标16.52404563/15.78297141/15.50033604，均快于实际存档Morton版本。prepare450已备份同步，仅本地模型、未实机；证据structure_screening.json。",
       "evidence": "lb_cactus_single.md",
-      "direction": "寻找更少交换的构盘；Morton已迁入，首seed只少3步移动，主要省选点费用，仍需新的动作结构。"
+      "direction": "稀疏连通两轮已进入历史两倍线；保留土壤复用和短偏序链，后续核算成熟收尾与更多结构。"
     },
     "lb_maze": {
       "label": "迷宫·多机",

@@ -3854,6 +3854,252 @@
       "interpreter_ticks": 786476,
       "completed_cycles": [],
       "conclusion": "diagnostic only: complete original goal; 256 to 769 tail length consumes 477.347s, near-full restart cannot solve the main gap"
+    },
+    "cactus-sparse-connected-v1-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-sparse-connected-v1-s1/report.json",
+      "report_sha256": "72cf42ef9ad9d672ebb9f77a1cee06e0e9a292afd718d303e6b2478619327e6e",
+      "script_sha256": "5e76c73eeac37345cf28fa66be59d6c45b69a65ef75b080326f8327854cba130",
+      "frozen_source_raw_sha256": "5e76c73eeac37345cf28fa66be59d6c45b69a65ef75b080326f8327854cba130",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 16.52404563,
+      "wall_seconds": 0.1164841540157795,
+      "item": "Cactus",
+      "net_change": 132640.0,
+      "net_per_game_second": 8027.08991308928,
+      "api_counts": {
+        "plant": 91,
+        "till": 47,
+        "move": 199,
+        "swap": 70,
+        "harvest": 2,
+        "clear": 1,
+        "use_item": 0
+      },
+      "interpreter_ticks": 17907,
+      "harvests": [
+        {
+          "at_ns": 9427543920,
+          "entity": "Entities.Cactus",
+          "plants": 47,
+          "gain": 70688.0
+        },
+        {
+          "at_ns": 16490959020,
+          "entity": "Entities.Cactus",
+          "plants": 44,
+          "gain": 61952.0
+        }
+      ],
+      "immature_harvests": {},
+      "conclusion": "selected: two complete connected harvests, 47 and 44 plants; source adapted into canonical entry"
+    },
+    "cactus-sparse-connected-v1-s2": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-sparse-connected-v1-s2/report.json",
+      "report_sha256": "c6c3a2f25b5434df278be8544c3411da92f841ab8f9b1305b5fe281ada6c0254",
+      "script_sha256": "5e76c73eeac37345cf28fa66be59d6c45b69a65ef75b080326f8327854cba130",
+      "frozen_source_raw_sha256": "5e76c73eeac37345cf28fa66be59d6c45b69a65ef75b080326f8327854cba130",
+      "seed": 2,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 15.78297141,
+      "wall_seconds": 0.11992111103609204,
+      "item": "Cactus",
+      "net_change": 132640.0,
+      "net_per_game_second": 8403.994188062716,
+      "api_counts": {
+        "plant": 91,
+        "till": 47,
+        "move": 187,
+        "swap": 61,
+        "harvest": 2,
+        "clear": 1,
+        "use_item": 0
+      },
+      "interpreter_ticks": 17605,
+      "harvests": [
+        {
+          "at_ns": 8574041070,
+          "entity": "Entities.Cactus",
+          "plants": 47,
+          "gain": 70688.0
+        },
+        {
+          "at_ns": 15749884800,
+          "entity": "Entities.Cactus",
+          "plants": 44,
+          "gain": 61952.0
+        }
+      ],
+      "immature_harvests": {},
+      "conclusion": "selected: two complete connected harvests, 47 and 44 plants; source adapted into canonical entry"
+    },
+    "cactus-sparse-connected-v1-s3": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-sparse-connected-v1-s3/report.json",
+      "report_sha256": "4e35a39448b6a8285dca6b4ae06b6f0bcd5c5d7bfad97ec88e2da1970cf44be1",
+      "script_sha256": "5e76c73eeac37345cf28fa66be59d6c45b69a65ef75b080326f8327854cba130",
+      "frozen_source_raw_sha256": "5e76c73eeac37345cf28fa66be59d6c45b69a65ef75b080326f8327854cba130",
+      "seed": 3,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 15.50033604,
+      "wall_seconds": 0.1187957669608295,
+      "item": "Cactus",
+      "net_change": 132640.0,
+      "net_per_game_second": 8557.233834009188,
+      "api_counts": {
+        "plant": 91,
+        "till": 47,
+        "move": 179,
+        "swap": 61,
+        "harvest": 2,
+        "clear": 1,
+        "use_item": 0
+      },
+      "interpreter_ticks": 17488,
+      "harvests": [
+        {
+          "at_ns": 8656346070,
+          "entity": "Entities.Cactus",
+          "plants": 47,
+          "gain": 70688.0
+        },
+        {
+          "at_ns": 15467249430,
+          "entity": "Entities.Cactus",
+          "plants": 44,
+          "gain": 61952.0
+        }
+      ],
+      "immature_harvests": {},
+      "conclusion": "selected: two complete connected harvests, 47 and 44 plants; source adapted into canonical entry"
+    },
+    "promote-cactus-sparse-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/promote-cactus-sparse-s1/report.json",
+      "report_sha256": "26189fc72a57104bdbb062030f8b5c3622b3508f5cdb72c1774b651ba3b49957",
+      "script_sha256": "e78751dc55305afd9bdc254af1abd441647868f3cf83ccdc4bc12f8fa6bf5a74",
+      "frozen_source_raw_sha256": "72acf340e00b6f5ee0d214823536aac08fe2df8e72fecff91e6447dda4ff209d",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 16.52404563,
+      "wall_seconds": 0.1273129319306463,
+      "item": "Cactus",
+      "net_change": 132640.0,
+      "net_per_game_second": 8027.08991308928,
+      "api_counts": {
+        "plant": 91,
+        "till": 47,
+        "move": 199,
+        "swap": 70,
+        "harvest": 2,
+        "clear": 1,
+        "use_item": 0
+      },
+      "interpreter_ticks": 17907,
+      "harvests": [
+        {
+          "at_ns": 9427543920,
+          "entity": "Entities.Cactus",
+          "plants": 47,
+          "gain": 70688.0
+        },
+        {
+          "at_ns": 16490959020,
+          "entity": "Entities.Cactus",
+          "plants": 44,
+          "gain": 61952.0
+        }
+      ],
+      "immature_harvests": {},
+      "conclusion": "promoted: complete original 131072 target in all seeds; 132640 Cactus, no immature harvests or warnings"
+    },
+    "promote-cactus-sparse-s2": {
+      "report": ".codex/nonreset-100-20261108/reports/promote-cactus-sparse-s2/report.json",
+      "report_sha256": "181dc207976900a7a2bf2d638e6a418952d13133732c07877589b28b43b3803d",
+      "script_sha256": "e78751dc55305afd9bdc254af1abd441647868f3cf83ccdc4bc12f8fa6bf5a74",
+      "frozen_source_raw_sha256": "72acf340e00b6f5ee0d214823536aac08fe2df8e72fecff91e6447dda4ff209d",
+      "seed": 2,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 15.78297141,
+      "wall_seconds": 0.12869721604511142,
+      "item": "Cactus",
+      "net_change": 132640.0,
+      "net_per_game_second": 8403.994188062716,
+      "api_counts": {
+        "plant": 91,
+        "till": 47,
+        "move": 187,
+        "swap": 61,
+        "harvest": 2,
+        "clear": 1,
+        "use_item": 0
+      },
+      "interpreter_ticks": 17605,
+      "harvests": [
+        {
+          "at_ns": 8574041070,
+          "entity": "Entities.Cactus",
+          "plants": 47,
+          "gain": 70688.0
+        },
+        {
+          "at_ns": 15749884800,
+          "entity": "Entities.Cactus",
+          "plants": 44,
+          "gain": 61952.0
+        }
+      ],
+      "immature_harvests": {},
+      "conclusion": "promoted: complete original 131072 target in all seeds; 132640 Cactus, no immature harvests or warnings"
+    },
+    "promote-cactus-sparse-s3": {
+      "report": ".codex/nonreset-100-20261108/reports/promote-cactus-sparse-s3/report.json",
+      "report_sha256": "229c4a41fe06134139a3ce0043c472c2f27210adf196f95c95a58a3c377c2aa8",
+      "script_sha256": "e78751dc55305afd9bdc254af1abd441647868f3cf83ccdc4bc12f8fa6bf5a74",
+      "frozen_source_raw_sha256": "72acf340e00b6f5ee0d214823536aac08fe2df8e72fecff91e6447dda4ff209d",
+      "seed": 3,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 15.50033604,
+      "wall_seconds": 0.11346300784498453,
+      "item": "Cactus",
+      "net_change": 132640.0,
+      "net_per_game_second": 8557.233834009188,
+      "api_counts": {
+        "plant": 91,
+        "till": 47,
+        "move": 179,
+        "swap": 61,
+        "harvest": 2,
+        "clear": 1,
+        "use_item": 0
+      },
+      "interpreter_ticks": 17488,
+      "harvests": [
+        {
+          "at_ns": 8656346070,
+          "entity": "Entities.Cactus",
+          "plants": 47,
+          "gain": 70688.0
+        },
+        {
+          "at_ns": 15467249430,
+          "entity": "Entities.Cactus",
+          "plants": 44,
+          "gain": 61952.0
+        }
+      ],
+      "immature_harvests": {},
+      "conclusion": "promoted: complete original 131072 target in all seeds; 132640 Cactus, no immature harvests or warnings"
     }
   },
   "dynamite_forecast": {
@@ -4010,129 +4256,104 @@
     },
     "cactus_single": {
       "source": "scripts/leaderboard/lb_cactus_single.py",
-      "source_sha256": "cba9dc2f8a22d2d279ef58aca85a365aa0867f8e47bc6bbef77d0516ab7d3eca",
-      "prediction_seconds": 19.10611809,
+      "source_sha256": "72acf340e00b6f5ee0d214823536aac08fe2df8e72fecff91e6447dda4ff209d",
+      "prediction_seconds": 15.93578436,
       "full_original_goal_completed": true,
       "original_goal": 131072,
+      "achieved_each_seed": 132640,
       "seed_seconds": [
+        16.52404563,
+        15.78297141,
+        15.50033604
+      ],
+      "baseline_seed_seconds": [
         19.80159534,
         19.48669641,
         18.03006252
       ],
-      "baseline_seed_seconds": [
-        20.19172104,
-        20.21805864,
-        18.51500358
+      "baseline_mean_seconds": 19.10611809,
+      "harvest_sizes": [
+        47,
+        44
       ],
-      "baseline_mean_seconds": 19.64159442,
+      "yield_factor": 32,
+      "formula": "(47**2 + 44**2) * 32",
+      "first_round_till": 47,
+      "second_round_till": 0,
+      "plant_count": 91,
+      "clear_count": 1,
+      "maturity_bound_game_seconds": 1,
       "lsp_errors": 0,
       "lsp_hints": 0,
-      "lsp_note": "Four exact operator suppressions: this helper only measures Cactus 0..9; the generic Measure stub also includes Apple coordinate tuples. Execution AST unchanged.",
       "short_leaderboard_test_seconds": null,
       "game_leaderboard_seconds": null
     }
   },
   "latest_deployment": {
-    "deployed_at_utc": "20261108T214629Z",
-    "prepare_request_id": 449,
+    "deployed_at_utc": "20261108T225454Z",
+    "prepare_request_id": 450,
     "state": "idle",
     "game_scripts_run": false,
-    "archive": ".codex/deployments/nonreset-100-20261108T214629Z",
-    "files": {
-      "lb_cactus_single.py": {
-        "before_sha256": "d38b3b24588373c5c474407d206465e859057b132987f485d8b7c450ed3e4d53",
-        "source_sha256": "cba9dc2f8a22d2d279ef58aca85a365aa0867f8e47bc6bbef77d0516ab7d3eca",
-        "comparison": [
-          {
-            "seed": 1,
-            "baseline_report": ".codex/nonreset-100-20261108/reports/actual-save-cactus-s1-fresh/report.json",
-            "baseline_report_sha256": "20bd5287ed9d3a9c83b42d41691c60c481a02de179873c6505e35635f877f816",
-            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s1/report.json",
-            "candidate_report_sha256": "d2b67245311ed3427ce88f22b47ed1ac8427970a78d2087d45192e48d230a68e",
-            "candidate_report_script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
-            "candidate_execution_ast_equal": true,
-            "old_seconds": 20.19172104,
-            "new_seconds": 19.80159534,
-            "original_goal_completed": true
-          },
-          {
-            "seed": 2,
-            "baseline_report": ".codex/nonreset-100-20261108/reports/cactus-current-s2/report.json",
-            "baseline_report_sha256": "4907266cadee65a8df8e3347e3f58afd5ac455e2126ec22b3adf2dd656faa893",
-            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s2/report.json",
-            "candidate_report_sha256": "b290c92ab5e48baf23478a01e799e30142485e37e3d371aaa13aeea4cc85a632",
-            "candidate_report_script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
-            "candidate_execution_ast_equal": true,
-            "old_seconds": 20.21805864,
-            "new_seconds": 19.48669641,
-            "original_goal_completed": true
-          },
-          {
-            "seed": 3,
-            "baseline_report": ".codex/nonreset-100-20261108/reports/cactus-current-s3/report.json",
-            "baseline_report_sha256": "4c454c612eaf74f8fc034718fe73fa2a851d8e3203bfa1ecb330159efe76d950",
-            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s3/report.json",
-            "candidate_report_sha256": "e8233868f534735368a68f5dfd924d062494d23cb2d876e2554e0ff4a972b723",
-            "candidate_report_script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
-            "candidate_execution_ast_equal": true,
-            "old_seconds": 18.51500358,
-            "new_seconds": 18.03006252,
-            "original_goal_completed": true
-          }
-        ]
+    "archive": ".codex/deployments/nonreset-100-20261108T225454Z",
+    "file": "lb_cactus_single.py",
+    "before_sha256": "cba9dc2f8a22d2d279ef58aca85a365aa0867f8e47bc6bbef77d0516ab7d3eca",
+    "source_sha256": "72acf340e00b6f5ee0d214823536aac08fe2df8e72fecff91e6447dda4ff209d",
+    "comparisons": [
+      {
+        "seed": 1,
+        "baseline_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s1/report.json",
+        "baseline_report_sha256": "d2b67245311ed3427ce88f22b47ed1ac8427970a78d2087d45192e48d230a68e",
+        "baseline_seconds": 19.80159534,
+        "baseline_execution_ast_equal": true,
+        "new_report": ".codex/nonreset-100-20261108/reports/promote-cactus-sparse-s1/report.json",
+        "new_report_sha256": "26189fc72a57104bdbb062030f8b5c3622b3508f5cdb72c1774b651ba3b49957",
+        "new_seconds": 16.52404563,
+        "new_execution_ast_equal": true,
+        "harvest_sizes": [
+          47,
+          44
+        ],
+        "net_cactus": 132640,
+        "original_goal": 131072,
+        "original_goal_completed": true
       },
-      "lb_dynamite.py": {
-        "before_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
-        "source_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
-        "comparison": [
-          {
-            "seed": 1,
-            "baseline_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-merge-s1-window120/report.json",
-            "baseline_report_sha256": "550fe0b656bcca724a79c8c67c20e49eb5495140ffc586a91a62c306e8d7820e",
-            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s1-wall30/report.json",
-            "candidate_report_sha256": "55ee2399669c032412377e9450186f0ab78e7a186c4e7c13a3a4f2e701cf8ff8",
-            "candidate_report_script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
-            "candidate_execution_ast_equal": true,
-            "compared_completed_cycles": 4,
-            "old_completed_seconds": 115.05728709,
-            "new_completed_seconds": 112.02977997,
-            "old_cumulative": 1116064,
-            "new_cumulative": 1198496,
-            "original_goal_completed": false
-          },
-          {
-            "seed": 2,
-            "baseline_report": ".codex/nonreset-100-20261108/reports/dynamite-current-s2-window120/report.json",
-            "baseline_report_sha256": "9facb28465c19c1f432f60ee2f1f913cb406ac3d76bd7ccb8174124cd1c943ec",
-            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s2-wall30/report.json",
-            "candidate_report_sha256": "8776c1fd327b0a6c171b20174e2e1f9ec52ff01b9b7cd6a45c81b8a97813e692",
-            "candidate_report_script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
-            "candidate_execution_ast_equal": true,
-            "compared_completed_cycles": 3,
-            "old_completed_seconds": 96.82656498,
-            "new_completed_seconds": 84.07472211,
-            "old_cumulative": 939152,
-            "new_cumulative": 956640,
-            "original_goal_completed": false
-          },
-          {
-            "seed": 3,
-            "baseline_report": ".codex/nonreset-100-20261108/reports/dynamite-current-s3-window120/report.json",
-            "baseline_report_sha256": "d53d961a9474441cedbd5288408387871a976e21aeecc6363eb00d886d26d1dd",
-            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s3-wall30/report.json",
-            "candidate_report_sha256": "06fbe8142cef390f2b3b9577d52a9f6baec5dd229a0e8b1e1fc1e22004f37141",
-            "candidate_report_script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
-            "candidate_execution_ast_equal": true,
-            "compared_completed_cycles": 3,
-            "old_completed_seconds": 88.6556538,
-            "new_completed_seconds": 82.18039023,
-            "old_cumulative": 889616,
-            "new_cumulative": 956640,
-            "original_goal_completed": false
-          }
-        ]
+      {
+        "seed": 2,
+        "baseline_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s2/report.json",
+        "baseline_report_sha256": "b290c92ab5e48baf23478a01e799e30142485e37e3d371aaa13aeea4cc85a632",
+        "baseline_seconds": 19.48669641,
+        "baseline_execution_ast_equal": true,
+        "new_report": ".codex/nonreset-100-20261108/reports/promote-cactus-sparse-s2/report.json",
+        "new_report_sha256": "181dc207976900a7a2bf2d638e6a418952d13133732c07877589b28b43b3803d",
+        "new_seconds": 15.78297141,
+        "new_execution_ast_equal": true,
+        "harvest_sizes": [
+          47,
+          44
+        ],
+        "net_cactus": 132640,
+        "original_goal": 131072,
+        "original_goal_completed": true
+      },
+      {
+        "seed": 3,
+        "baseline_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s3/report.json",
+        "baseline_report_sha256": "e8233868f534735368a68f5dfd924d062494d23cb2d876e2554e0ff4a972b723",
+        "baseline_seconds": 18.03006252,
+        "baseline_execution_ast_equal": true,
+        "new_report": ".codex/nonreset-100-20261108/reports/promote-cactus-sparse-s3/report.json",
+        "new_report_sha256": "229c4a41fe06134139a3ce0043c472c2f27210adf196f95c95a58a3c377c2aa8",
+        "new_seconds": 15.50033604,
+        "new_execution_ast_equal": true,
+        "harvest_sizes": [
+          47,
+          44
+        ],
+        "net_cactus": 132640,
+        "original_goal": 131072,
+        "original_goal_completed": true
       }
-    },
+    ],
     "file_list_unchanged": true,
     "other_python_files_unchanged": true,
     "lb_start_unchanged": true,
@@ -4204,5 +4425,551 @@
     "diagnostic_overhead_seconds": 1.1351505600000564,
     "middle_256_to_769_seconds": 477.34677765000004,
     "conclusion": "The diagnostic is not a new prediction. Time has already exceeded the 629.8s threshold at L769; making the entire remaining suffix free cannot achieve phase-one acceptance. No asymmetric near-full restart implementation is justified by these measurements."
-  }
+  },
+  "previous_cactus_promotions": [
+    {
+      "source": "scripts/leaderboard/lb_cactus_single.py",
+      "source_sha256": "cba9dc2f8a22d2d279ef58aca85a365aa0867f8e47bc6bbef77d0516ab7d3eca",
+      "prediction_seconds": 19.10611809,
+      "full_original_goal_completed": true,
+      "original_goal": 131072,
+      "seed_seconds": [
+        19.80159534,
+        19.48669641,
+        18.03006252
+      ],
+      "baseline_seed_seconds": [
+        20.19172104,
+        20.21805864,
+        18.51500358
+      ],
+      "baseline_mean_seconds": 19.64159442,
+      "lsp_errors": 0,
+      "lsp_hints": 0,
+      "lsp_note": "Four exact operator suppressions: this helper only measures Cactus 0..9; the generic Measure stub also includes Apple coordinate tuples. Execution AST unchanged.",
+      "short_leaderboard_test_seconds": null,
+      "game_leaderboard_seconds": null,
+      "frozen_source": ".codex/nonreset-100-20261108/actual-save-sparse-cactus-baseline/lb_cactus_single.py"
+    }
+  ],
+  "previous_deployments": [
+    {
+      "deployed_at_utc": "20261108T214629Z",
+      "prepare_request_id": 449,
+      "state": "idle",
+      "game_scripts_run": false,
+      "archive": ".codex/deployments/nonreset-100-20261108T214629Z",
+      "files": {
+        "lb_cactus_single.py": {
+          "before_sha256": "d38b3b24588373c5c474407d206465e859057b132987f485d8b7c450ed3e4d53",
+          "source_sha256": "cba9dc2f8a22d2d279ef58aca85a365aa0867f8e47bc6bbef77d0516ab7d3eca",
+          "comparison": [
+            {
+              "seed": 1,
+              "baseline_report": ".codex/nonreset-100-20261108/reports/actual-save-cactus-s1-fresh/report.json",
+              "baseline_report_sha256": "20bd5287ed9d3a9c83b42d41691c60c481a02de179873c6505e35635f877f816",
+              "candidate_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s1/report.json",
+              "candidate_report_sha256": "d2b67245311ed3427ce88f22b47ed1ac8427970a78d2087d45192e48d230a68e",
+              "candidate_report_script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
+              "candidate_execution_ast_equal": true,
+              "old_seconds": 20.19172104,
+              "new_seconds": 19.80159534,
+              "original_goal_completed": true
+            },
+            {
+              "seed": 2,
+              "baseline_report": ".codex/nonreset-100-20261108/reports/cactus-current-s2/report.json",
+              "baseline_report_sha256": "4907266cadee65a8df8e3347e3f58afd5ac455e2126ec22b3adf2dd656faa893",
+              "candidate_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s2/report.json",
+              "candidate_report_sha256": "b290c92ab5e48baf23478a01e799e30142485e37e3d371aaa13aeea4cc85a632",
+              "candidate_report_script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
+              "candidate_execution_ast_equal": true,
+              "old_seconds": 20.21805864,
+              "new_seconds": 19.48669641,
+              "original_goal_completed": true
+            },
+            {
+              "seed": 3,
+              "baseline_report": ".codex/nonreset-100-20261108/reports/cactus-current-s3/report.json",
+              "baseline_report_sha256": "4c454c612eaf74f8fc034718fe73fa2a851d8e3203bfa1ecb330159efe76d950",
+              "candidate_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s3/report.json",
+              "candidate_report_sha256": "e8233868f534735368a68f5dfd924d062494d23cb2d876e2554e0ff4a972b723",
+              "candidate_report_script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
+              "candidate_execution_ast_equal": true,
+              "old_seconds": 18.51500358,
+              "new_seconds": 18.03006252,
+              "original_goal_completed": true
+            }
+          ]
+        },
+        "lb_dynamite.py": {
+          "before_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+          "source_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+          "comparison": [
+            {
+              "seed": 1,
+              "baseline_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-merge-s1-window120/report.json",
+              "baseline_report_sha256": "550fe0b656bcca724a79c8c67c20e49eb5495140ffc586a91a62c306e8d7820e",
+              "candidate_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s1-wall30/report.json",
+              "candidate_report_sha256": "55ee2399669c032412377e9450186f0ab78e7a186c4e7c13a3a4f2e701cf8ff8",
+              "candidate_report_script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+              "candidate_execution_ast_equal": true,
+              "compared_completed_cycles": 4,
+              "old_completed_seconds": 115.05728709,
+              "new_completed_seconds": 112.02977997,
+              "old_cumulative": 1116064,
+              "new_cumulative": 1198496,
+              "original_goal_completed": false
+            },
+            {
+              "seed": 2,
+              "baseline_report": ".codex/nonreset-100-20261108/reports/dynamite-current-s2-window120/report.json",
+              "baseline_report_sha256": "9facb28465c19c1f432f60ee2f1f913cb406ac3d76bd7ccb8174124cd1c943ec",
+              "candidate_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s2-wall30/report.json",
+              "candidate_report_sha256": "8776c1fd327b0a6c171b20174e2e1f9ec52ff01b9b7cd6a45c81b8a97813e692",
+              "candidate_report_script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+              "candidate_execution_ast_equal": true,
+              "compared_completed_cycles": 3,
+              "old_completed_seconds": 96.82656498,
+              "new_completed_seconds": 84.07472211,
+              "old_cumulative": 939152,
+              "new_cumulative": 956640,
+              "original_goal_completed": false
+            },
+            {
+              "seed": 3,
+              "baseline_report": ".codex/nonreset-100-20261108/reports/dynamite-current-s3-window120/report.json",
+              "baseline_report_sha256": "d53d961a9474441cedbd5288408387871a976e21aeecc6363eb00d886d26d1dd",
+              "candidate_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s3-wall30/report.json",
+              "candidate_report_sha256": "06fbe8142cef390f2b3b9577d52a9f6baec5dd229a0e8b1e1fc1e22004f37141",
+              "candidate_report_script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+              "candidate_execution_ast_equal": true,
+              "compared_completed_cycles": 3,
+              "old_completed_seconds": 88.6556538,
+              "new_completed_seconds": 82.18039023,
+              "old_cumulative": 889616,
+              "new_cumulative": 956640,
+              "original_goal_completed": false
+            }
+          ]
+        }
+      },
+      "file_list_unchanged": true,
+      "other_python_files_unchanged": true,
+      "lb_start_unchanged": true,
+      "mod_log_errors": [],
+      "unity_log_errors": []
+    }
+  ],
+  "cactus_sparse_geometry": {
+    "path": ".codex/nonreset-100-20261108/cactus-sparse-connected-v1/geometry.json",
+    "sha256": "3b3a2b055e87f68d9553fa7069096b11ab1224b1f8d3802e8c6d958884e28232",
+    "first_count": 47,
+    "second_count": 44,
+    "connected": true,
+    "second_subset_of_first": true,
+    "maximum_predecessor_chain": 5,
+    "yield_factor": 32,
+    "expected_total": 132640,
+    "layouts": [
+      [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          7,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          6,
+          3
+        ],
+        [
+          7,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          5,
+          4
+        ],
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          7,
+          5
+        ],
+        [
+          0,
+          6
+        ],
+        [
+          1,
+          6
+        ],
+        [
+          3,
+          6
+        ],
+        [
+          4,
+          6
+        ],
+        [
+          6,
+          6
+        ],
+        [
+          7,
+          6
+        ],
+        [
+          0,
+          7
+        ],
+        [
+          1,
+          7
+        ],
+        [
+          2,
+          7
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          5,
+          7
+        ],
+        [
+          6,
+          7
+        ]
+      ],
+      [
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          7,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          6,
+          3
+        ],
+        [
+          7,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          5,
+          4
+        ],
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          7,
+          5
+        ],
+        [
+          0,
+          6
+        ],
+        [
+          1,
+          6
+        ],
+        [
+          3,
+          6
+        ],
+        [
+          4,
+          6
+        ],
+        [
+          6,
+          6
+        ],
+        [
+          7,
+          6
+        ],
+        [
+          0,
+          7
+        ],
+        [
+          1,
+          7
+        ],
+        [
+          2,
+          7
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          6,
+          7
+        ]
+      ]
+    ]
+  },
+  "upstream_screens": [
+    {
+      "repository": "https://github.com/tmosest/TheFarmerWasReplaced",
+      "commit": "2851f18c8c5a8216ef1d96842b53737602d39aba",
+      "declared_license": null,
+      "license_file_found": false,
+      "manifest": ".codex/nonreset-100-20261108/upstream/tmosest/2851f18c8c5a8216ef1d96842b53737602d39aba/blob-manifest.json",
+      "read_scope": "three Mushroom files, complete dino.py, README; Dynamite files only structural headers/helpers",
+      "run": false,
+      "conclusion": "Mushroom is manual or blind pushing; long-distance entry requires prohibited jump. Dino switches to fixed Hamiltonian successor after about 120 tail length, leaving an estimated thousand-second suffix even at minimum move cost. No stronger candidate selected."
+    },
+    {
+      "repository": "https://github.com/santiagosayshey/the-farmer-was-replaced",
+      "commit": "9b481047382b02311077ace136764edc4133d439",
+      "declared_license": null,
+      "license_file_found": false,
+      "read_scope": "README, full dino.py and util.py; config downloaded but not run",
+      "run": false,
+      "conclusion": "Fixed loop-order shortcuts and successor suffix; does not add the continuous-body recovery invariant missing in already rejected local representatives. No demonstrated improvement; not selected."
+    },
+    {
+      "repository": "https://github.com/Farraelll/TheFarmerWasReplaced",
+      "commit": "baa39a75eeafdebe1e8ac727142f802248b0c280",
+      "declared_license": null,
+      "license_file_found": false,
+      "read_scope": "directory and Minerar.py",
+      "run": false,
+      "conclusion": "Continuous column digging only; no stronger algorithm for the three target mechanisms."
+    }
+  ]
 }
