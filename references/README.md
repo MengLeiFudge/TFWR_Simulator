@@ -7,6 +7,6 @@
 | `DecompiledSource/` | 游戏反编译源码及 `source-manifest.json` 来源清单 |
 | [unlocks/](unlocks/README.md) | 科技前置、成本和解锁事实快照 |
 | [leaderboards/leaderboard_cache.json](leaderboards/leaderboard_cache.json) | 公开排行榜来源、抓取时间和成绩缓存 |
-| [leaderboards/status_snapshot.md](leaderboards/status_snapshot.md) | 六列状态总表所用的30榜公开#1/#10、人数及当前账号最高记录，逐榜保留查询时间 |
+| [leaderboards/status_snapshot.md](leaderboards/status_snapshot.md) | 七列状态总表所用的30榜公开#1、#10或末名、人数及当前账号最高记录和排名，逐榜保留查询时间 |
 
 排行榜可执行脚本位于 [scripts/leaderboard](../scripts/leaderboard/README.md)，策略记录和生成的成绩比较报告位于 [docs/leaderboards](../docs/leaderboards/README.md)。模拟器执行所依赖的资源表随 `simulator/local_simulator/` 保存，避免执行模型依赖研究文档。

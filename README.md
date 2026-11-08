@@ -2,7 +2,7 @@
 
 本项目包含无需启动游戏的本地模拟器、连接真实游戏的控制工具与模组，以及功能脚本和排行榜脚本。本地模拟是脚本的主要验证方式；覆盖范围与误差须按具体机制确认。
 
-工作流是：本地模型粗筛策略 → 真实游戏验证候选 → 按完整轮成绩更新策略记录。优先推进预期收益明确、成功把握高且实现与验证成本合理的方向。排行榜只作参考，阶段目标依据当前合规基线动态调整；#10 不保证常规或可达，也不是候选准入线。模拟器按同脚本、初始条件与单seed对齐执行和计时，记录误差与覆盖范围，具体见 [模拟精度与验收](simulator/README.md#模拟精度与验收)。模型结果和轮内 ETA 都是预测，排名结论以真实游戏结算为准。
+工作流是：本地模型粗筛策略 → 真实游戏验证 → 记录账号最高成绩与策略证据。所有排行榜以当前公开#1为目标，#10或末名只作参照。先按距#1的倍率差距从大到小研究非快速重置榜，再将成熟方法迁入快速重置；已有较好时间仍超过2×#1时，优先重列策略方向和完整成本，不继续旧脚本的小修。只按游戏预期机制优化。模拟精度与范围见[验收说明](simulator/README.md#模拟精度与验收)；模型与ETA仍是预测，账号名次以公开记录为准。
 
 ## 仓库分工
 
@@ -48,7 +48,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
 
 ## 日常优化流程
 
-1. 阅读 [共用策略说明](docs/leaderboards/README.md) 和目标榜单的同名 `.md`。先列出策略方向并按机制淘汰，再估算完整成本。仅刷新当前研究榜单的公开成绩，结合前排分布、当前瓶颈和可用算法制定预算；现有批量缓存工具不支持指定榜单时，单独查询该榜并保存来源和抓取时间。已有缓存的报告可离线重算：
+1. 阅读[共用策略说明](docs/leaderboards/README.md)和目标榜单同名`.md`。先列策略方向并按机制淘汰，再估算完整成本。仅刷新当前研究榜单的#1及账号最高记录，以#1为目标制定预算，其他名次帮助观察分布；现有批量工具不支持指定榜单时，单独查询该榜并保存来源和抓取时间。已有缓存可离线重算：
 
    ```bash
    python3 game_control/tools/refresh_leaderboard_cache.py --offline
@@ -63,7 +63,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
    ```
 
    限制样本数、移动数和命令时间。模型比较的是动作成本、完成率或命中率，不能把动作下界直接写成真实成绩。
-3. 先满足[脚本验证与替换准入](docs/script-validation.md)，再检查打榜门槛：完整目标的本地模拟预估时间不超过对应榜单当前公开 #1 的 1.5 倍，或用户明确指定实机运行该脚本后，才部署单个目标脚本及派生入口。用户指定脚本只豁免#1倍数门槛。完整打榜规则见 [共用策略说明](docs/leaderboards/README.md#固定效率闭环)：
+3. 按[脚本验证与替换准入](docs/script-validation.md)准备脚本。排行榜进入实机满足任一条件：用户明确授权该实机任务；或有效模拟预估时间≤当前公开#1的2倍，且严格快于当前账号公开最高记录。模拟可采用有依据的短程预估，不要求完整跑完目标。随后部署单个目标脚本及派生入口；具体证据与缺失口径见[共用策略说明](docs/leaderboards/README.md#固定效率闭环)：
 
    ```bash
    python3 game_control/tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single
@@ -77,7 +77,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
    python3 game_control/tools/run_real_game_script.py --status-only --status-lines 20
    ```
 
-   `estimated_total_game_seconds` 是本轮预计总游戏时间；`eta_game_seconds` 是预计剩余时间。应以前者比较同版本基线和阶段目标，公开排名时间仅供参考。库存线性增长才能估算；Cactus/Dinosaur 等批量结算前可能长期 0%，需结合阶段日志，不能直接判为卡住。Fastest Reset 不使用资源比例估算。
+   `estimated_total_game_seconds`是本轮预计总游戏时间；`eta_game_seconds`是预计剩余时间。用前者对照#1目标和当前账号记录；它仍是预测。库存线性增长时才能按库存估算，Cactus/Dinosaur等批量结算前可能长期0%，须看阶段进度和完整生产周期。Fastest Reset按阶段预算推算，不套资源比例。
 5. 把预测、实测轮数/均值/波动、失败原因和下一步写回同名 `.md`；[Cactus 记录样本](docs/leaderboards/lb_cactus.md#2026-10-22-研究记录样本) 展示完整口径。`.py` 只保留当前确认最快的实现。
 
 `--request-only` 只投递请求，默认拒绝覆盖活动请求；明确替换须加 `--replace`，终态须先回收；它不负责持续监测或自动回收终态。长流程使用它时必须自行监看日志、按请求 ID 停止和确认终态，接口见 [协调器说明](game_control/README.md)。常规等待命令会在超时或中断时请求停止当前任务。
