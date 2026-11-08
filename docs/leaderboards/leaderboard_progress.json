@@ -18,7 +18,7 @@
     "lb_maze": {
       "label": "迷宫·多机",
       "simulation_seconds": 84.74419098,
-      "simulation_basis": "maze-stop-after-goal-v6-s1原目标完整完成；实际Gold达标后主机正常clear结束子机尾段，未做新实机。",
+      "simulation_basis": "已迁入真源并备份同步已有存档；新原版语法前置层下seed1原目标完整84.74419098秒。 证据local_promotion_validation.json；本版未实机打榜。",
       "evidence": "lb_maze.md",
       "direction": "比较迷宫规模与独立实例分工；达标后正常收尾以减少工人尾段等待。"
     },
@@ -116,14 +116,14 @@
     "lb_mushrooms": {
       "label": "蘑菇·多机",
       "simulation_seconds": 320.57940162,
-      "simulation_basis": "常驻工人、同高中转冻结版，原240k目标三seed完整均值。",
+      "simulation_basis": "已迁入常驻分片工人并备份同步已有存档；三seed原目标均值，另经新语法层80秒同条件效率对照。 证据local_promotion_validation.json；本版未实机打榜。",
       "evidence": "lb_mushrooms.md",
       "direction": "重新比较配对空间、同色块汇集与开层/兑现组织。"
     },
     "lb_mushrooms_single": {
       "label": "蘑菇·单机",
       "simulation_seconds": 818.99883816,
-      "simulation_basis": "gravity-v1b单机原30k目标三seed完整均值；实际30176/30032/30176；失败多机版本不参与。",
+      "simulation_basis": "已迁入重力中转算法并备份同步已有存档；三seed原目标均值，另经新语法层seed1完整复核。 证据local_promotion_validation.json；本版未实机打榜。",
       "evidence": "lb_mushrooms_single.md",
       "direction": "重列配对与开层方向，比较同色块汇集的动作下界。"
     },

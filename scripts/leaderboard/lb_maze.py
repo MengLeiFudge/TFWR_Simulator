@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：1:26.965（2026-11-03，build26385848，官方完整83轮，request257）。
+# 完整轮时间：未取得（当前算法仅完成本地效率验证）。
 # 算法来源：zzlg-git/TheFarmerWasReplaced_Maze_1min28s，commit e5d5e2d9c8df5c22fee0c1c591d70bd69d4a6629。
 # 保留32座小迷宫、出发点探墙与增量路由；初始表改为对称构建，许可信息见同名文档。
 
@@ -17,35 +17,15 @@ MULT = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
 # ---------- 1. 开放地面移动与固定排布 ----------
 
 def lb_maze():
-	# 已达标直接退出。
-	if num_items(Items.Gold) >= TARGET_GOLD:
-		return
-	jobs = make_jobs()
-	stock = num_items(Items.Weird_Substance)
-	set_world_size(WORLD)
-	clear()
-	set_execution_speed(0)
-	t0 = get_time()
-	records = deploy(jobs, stock)
-	elapsed = get_time() - t0
-
-	# 全场结束后统计，可删除。
-	generations = 0
-	total_boxes = 0
-	for n, count, boxes in records:
-		generations += count
-		total_boxes += boxes
-	quick_print("结束，秒:", elapsed, "黄金:", num_items(Items.Gold), "版本: V7-clean")
-	quick_print("无人机结果数:", len(records), "建图代数:", generations, "宝箱总数:", total_boxes)
-	for side in [5, 6, 7]:
-		count = 0
-		boxes = 0
-		for n, gen, b in records:
-			if n == side:
-				count += 1
-				boxes += b
-		quick_print("边长:", side, "台数:", count, "宝箱:", boxes,
-					"每机黄金:", boxes * side * side * MULT / count)
+    if num_items(Items.Gold) >= TARGET_GOLD:
+        return
+    jobs = make_jobs()
+    stock = num_items(Items.Weird_Substance)
+    set_world_size(WORLD)
+    clear()
+    set_execution_speed(0)
+    deploy(jobs, stock, True)
+    quick_print("maze_done", get_time(), num_items(Items.Gold))
 
 
 def go_empty(tx, ty):
@@ -363,28 +343,24 @@ def worker(job, start_stock):
 	return (n, generations, boxes)
 
 
-def deploy(jobs, start_stock):
-	# 二叉分发：每个参与分发的无人机最终也负责一个任务。
-	# 32个任务恰好需要31次spawn。
-	handles = []
-	while len(jobs) > 1:
-		middle = len(jobs) // 2
-		left = []
-		right = []
-		for i in range(middle):
-			left.append(jobs[i])
-		for i in range(middle, len(jobs)):
-			right.append(jobs[i])
-		h = spawn_drone(deploy, right, start_stock)  # ty: ignore[invalid-argument-type]  游戏支持转交args，类型桩仅声明无参Callable。
-		handles.append(h)
-		jobs = left
-	records = [worker(jobs[0], start_stock)]
-	# 主机完成本宫任务后仍要等后代退出，不让旧无人机残留到下一次运行。
-	for h in handles:
-		batch = wait_for(h)
-		for rec in batch:  # ty: ignore[not-iterable]  本句柄对应deploy，返回记录列表。
-			records.append(rec)
-	return records
+def deploy(jobs, start_stock, root=False):
+    handles = []
+    while len(jobs) > 1:
+        middle = len(jobs) // 2
+        left = []
+        right = []
+        for i in range(middle):
+            left.append(jobs[i])
+        for i in range(middle, len(jobs)):
+            right.append(jobs[i])
+        handles.append(spawn_drone(deploy, right, start_stock))
+        jobs = left
+    worker(jobs[0], start_stock)
+    if root and num_items(Items.Gold) >= TARGET_GOLD:
+        clear()
+        return
+    for handle in handles:
+        wait_for(handle)
 
 
 
