@@ -1,6 +1,6 @@
 {
   "date": "2026-11-08",
-  "scope": "non-reset structural alternatives and Dynamo monotone-proof promotion",
+  "scope": "non-reset structural alternatives, monotone proof merge and adjacent-clue difference promotions",
   "public_reference": "2026-11-08T09:20:07Z through 09:24:58Z; subsequent urllib and Windows curl TLS failures retained; not a fresh public query",
   "game_scripts_run": false,
   "budgets": {
@@ -593,6 +593,2294 @@
       },
       "interpreter_ticks": 462597,
       "conclusion": "fresh baseline first-cycle API trace; one completed puzzle cycle"
+    },
+    "mushroom-hybrid-highest-v4-single-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-hybrid-highest-v4-single-s1/report.json",
+      "report_sha256": "48c4accdd23ca69f27cbe23086abe63b2bcf8689d34465d9e988ead3b8de36c2",
+      "script_sha256": "7483b082ea8f1d33cc86d476e334f8d54908795f56706feeec64c0960b653b42",
+      "frozen_source_raw_sha256": "7483b082ea8f1d33cc86d476e334f8d54908795f56706feeec64c0960b653b42",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 1069.59693204,
+      "wall_seconds": 6.98676748201251,
+      "item": "Mushroom",
+      "net_change": 30032,
+      "net_per_game_second": 28.077866624693055,
+      "api_counts": {
+        "move": 9187,
+        "swap": 0,
+        "dig": 2940,
+        "push": 2693,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 2957556,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 37.64202714,
+          "cumulative": 928
+        },
+        {
+          "cycle": 1,
+          "seconds": 75.23039142,
+          "cumulative": 1840
+        },
+        {
+          "cycle": 2,
+          "seconds": 149.20645464,
+          "cumulative": 4144
+        },
+        {
+          "cycle": 3,
+          "seconds": 224.90565534,
+          "cumulative": 6464
+        },
+        {
+          "cycle": 4,
+          "seconds": 292.21369668,
+          "cumulative": 8336
+        },
+        {
+          "cycle": 5,
+          "seconds": 328.44040704,
+          "cumulative": 9184
+        },
+        {
+          "cycle": 6,
+          "seconds": 379.02012174,
+          "cumulative": 10576
+        },
+        {
+          "cycle": 7,
+          "seconds": 427.58583309,
+          "cumulative": 11952
+        },
+        {
+          "cycle": 8,
+          "seconds": 460.83458394,
+          "cumulative": 12816
+        },
+        {
+          "cycle": 9,
+          "seconds": 495.27988488,
+          "cumulative": 13696
+        },
+        {
+          "cycle": 10,
+          "seconds": 534.80850723,
+          "cumulative": 14560
+        },
+        {
+          "cycle": 11,
+          "seconds": 604.00199151,
+          "cumulative": 16816
+        },
+        {
+          "cycle": 12,
+          "seconds": 641.50624008,
+          "cumulative": 17712
+        },
+        {
+          "cycle": 13,
+          "seconds": 702.92124342,
+          "cumulative": 19568
+        },
+        {
+          "cycle": 14,
+          "seconds": 739.10581362,
+          "cumulative": 20464
+        },
+        {
+          "cycle": 15,
+          "seconds": 809.1667926,
+          "cumulative": 22768
+        },
+        {
+          "cycle": 16,
+          "seconds": 844.34526648,
+          "cumulative": 23632
+        },
+        {
+          "cycle": 17,
+          "seconds": 883.15948143,
+          "cumulative": 24592
+        },
+        {
+          "cycle": 18,
+          "seconds": 940.18746366,
+          "cumulative": 26480
+        },
+        {
+          "cycle": 19,
+          "seconds": 974.5010766,
+          "cumulative": 27376
+        },
+        {
+          "cycle": 20,
+          "seconds": 1006.96134555,
+          "cumulative": 28176
+        },
+        {
+          "cycle": 21,
+          "seconds": 1069.59577977,
+          "cumulative": 30032
+        }
+      ],
+      "conclusion": "rejected: full goal 1069.597s; even zero interpreter cost leaves about 583s of API costs, above the 525.904s threshold"
+    },
+    "mushroom-parity-waves-v1-single-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-parity-waves-v1-single-s1/report.json",
+      "report_sha256": "ef423da94e879885fe22ff9f613dcf67c6541101f4265a34aedbf86f8e8f0444",
+      "script_sha256": "a76eda340effd71eeb05407fac3e6c17a1e2ae5410492c95ac29201d6c604ee8",
+      "frozen_source_raw_sha256": "a76eda340effd71eeb05407fac3e6c17a1e2ae5410492c95ac29201d6c604ee8",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 2890.59406938,
+      "wall_seconds": 7.045007035136223,
+      "item": "Mushroom",
+      "net_change": 30368,
+      "net_per_game_second": 10.505798901923852,
+      "api_counts": {
+        "move": 67209,
+        "swap": 0,
+        "dig": 7322,
+        "push": 1898,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 1067758,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 77.15780991,
+          "cumulative": 480
+        },
+        {
+          "cycle": 1,
+          "seconds": 149.30505603,
+          "cumulative": 1024
+        },
+        {
+          "cycle": 2,
+          "seconds": 256.22764614,
+          "cumulative": 2512
+        },
+        {
+          "cycle": 3,
+          "seconds": 355.74755994,
+          "cumulative": 4080
+        },
+        {
+          "cycle": 4,
+          "seconds": 457.05810132,
+          "cumulative": 5120
+        },
+        {
+          "cycle": 5,
+          "seconds": 529.98872643,
+          "cumulative": 5744
+        },
+        {
+          "cycle": 6,
+          "seconds": 625.46022189,
+          "cumulative": 6640
+        },
+        {
+          "cycle": 7,
+          "seconds": 720.10850274,
+          "cumulative": 7568
+        },
+        {
+          "cycle": 8,
+          "seconds": 796.70894319,
+          "cumulative": 8128
+        },
+        {
+          "cycle": 9,
+          "seconds": 870.94393794,
+          "cumulative": 8720
+        },
+        {
+          "cycle": 10,
+          "seconds": 948.38026797,
+          "cumulative": 9248
+        },
+        {
+          "cycle": 11,
+          "seconds": 1049.84241516,
+          "cumulative": 10800
+        },
+        {
+          "cycle": 12,
+          "seconds": 1135.65327894,
+          "cumulative": 11376
+        },
+        {
+          "cycle": 13,
+          "seconds": 1227.70335555,
+          "cumulative": 12528
+        },
+        {
+          "cycle": 14,
+          "seconds": 1299.86064288,
+          "cumulative": 13200
+        },
+        {
+          "cycle": 15,
+          "seconds": 1417.242717,
+          "cumulative": 14704
+        },
+        {
+          "cycle": 16,
+          "seconds": 1489.67638452,
+          "cumulative": 15168
+        },
+        {
+          "cycle": 17,
+          "seconds": 1567.06333155,
+          "cumulative": 15760
+        },
+        {
+          "cycle": 18,
+          "seconds": 1668.11461218,
+          "cumulative": 17120
+        },
+        {
+          "cycle": 19,
+          "seconds": 1742.62664556,
+          "cumulative": 17648
+        },
+        {
+          "cycle": 20,
+          "seconds": 1810.08102519,
+          "cumulative": 18176
+        },
+        {
+          "cycle": 21,
+          "seconds": 1917.33102459,
+          "cumulative": 19712
+        },
+        {
+          "cycle": 22,
+          "seconds": 2020.38626736,
+          "cumulative": 21152
+        },
+        {
+          "cycle": 23,
+          "seconds": 2119.80939048,
+          "cumulative": 22032
+        },
+        {
+          "cycle": 24,
+          "seconds": 2192.65425378,
+          "cumulative": 22576
+        },
+        {
+          "cycle": 25,
+          "seconds": 2269.69354449,
+          "cumulative": 23072
+        },
+        {
+          "cycle": 26,
+          "seconds": 2372.08903038,
+          "cumulative": 24608
+        },
+        {
+          "cycle": 27,
+          "seconds": 2477.86527645,
+          "cumulative": 25680
+        },
+        {
+          "cycle": 28,
+          "seconds": 2599.61807529,
+          "cumulative": 27136
+        },
+        {
+          "cycle": 29,
+          "seconds": 2689.9825455,
+          "cumulative": 27936
+        },
+        {
+          "cycle": 30,
+          "seconds": 2801.54779605,
+          "cumulative": 29344
+        },
+        {
+          "cycle": 31,
+          "seconds": 2878.65161388,
+          "cumulative": 29920
+        },
+        {
+          "cycle": 32,
+          "seconds": 2890.59308172,
+          "cumulative": 30368
+        }
+      ],
+      "conclusion": "rejected: full goal 2890.594s; 33 fields and expensive nonproductive sweeps"
+    },
+    "mushroom-cross-cover-v1-single-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v1-single-s1/report.json",
+      "report_sha256": "0aa4d10e03c1b6bd6921c4687410eec0cfe452c83689a0bedbe4e32d3726dc77",
+      "script_sha256": "9b6e59ab1c082eb7e7e57f5d5ebb992b7c53e63a136fa5ff9e6d7ee6344c195f",
+      "frozen_source_raw_sha256": "9b6e59ab1c082eb7e7e57f5d5ebb992b7c53e63a136fa5ff9e6d7ee6344c195f",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 823.63288401,
+      "wall_seconds": 4.941448212834075,
+      "item": "Mushroom",
+      "net_change": 30080,
+      "net_per_game_second": 36.5211255936629,
+      "api_counts": {
+        "move": 9643,
+        "swap": 0,
+        "dig": 2751,
+        "push": 2749,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 1372770,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 25.3976769,
+          "cumulative": 800
+        },
+        {
+          "cycle": 1,
+          "seconds": 52.0249905,
+          "cumulative": 1600
+        },
+        {
+          "cycle": 2,
+          "seconds": 105.42875436,
+          "cumulative": 3824
+        },
+        {
+          "cycle": 3,
+          "seconds": 155.56846653,
+          "cumulative": 5904
+        },
+        {
+          "cycle": 4,
+          "seconds": 201.25300905,
+          "cumulative": 7472
+        },
+        {
+          "cycle": 5,
+          "seconds": 229.98848292,
+          "cumulative": 8336
+        },
+        {
+          "cycle": 6,
+          "seconds": 267.60104487,
+          "cumulative": 9616
+        },
+        {
+          "cycle": 7,
+          "seconds": 304.68208113,
+          "cumulative": 10992
+        },
+        {
+          "cycle": 8,
+          "seconds": 327.94015725,
+          "cumulative": 11808
+        },
+        {
+          "cycle": 9,
+          "seconds": 351.9575793,
+          "cumulative": 12576
+        },
+        {
+          "cycle": 10,
+          "seconds": 381.04877538,
+          "cumulative": 13408
+        },
+        {
+          "cycle": 11,
+          "seconds": 430.58914254,
+          "cumulative": 15408
+        },
+        {
+          "cycle": 12,
+          "seconds": 456.29760312,
+          "cumulative": 16240
+        },
+        {
+          "cycle": 13,
+          "seconds": 502.34445225,
+          "cumulative": 18032
+        },
+        {
+          "cycle": 14,
+          "seconds": 530.30510685,
+          "cumulative": 18928
+        },
+        {
+          "cycle": 15,
+          "seconds": 580.25666979,
+          "cumulative": 21136
+        },
+        {
+          "cycle": 16,
+          "seconds": 603.69054939,
+          "cumulative": 21968
+        },
+        {
+          "cycle": 17,
+          "seconds": 631.62239724,
+          "cumulative": 22784
+        },
+        {
+          "cycle": 18,
+          "seconds": 676.69310907,
+          "cumulative": 24544
+        },
+        {
+          "cycle": 19,
+          "seconds": 700.73703333,
+          "cumulative": 25344
+        },
+        {
+          "cycle": 20,
+          "seconds": 723.98045916,
+          "cumulative": 26080
+        },
+        {
+          "cycle": 21,
+          "seconds": 777.48628122,
+          "cumulative": 28176
+        },
+        {
+          "cycle": 22,
+          "seconds": 823.63206096,
+          "cumulative": 30080
+        }
+      ],
+      "conclusion": "not promoted: three-seed mean 828.444s is slower than current 818.999s"
+    },
+    "mushroom-cross-cover-v1-single-s2": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v1-single-s2/report.json",
+      "report_sha256": "9f3d2aed3bb6def08f1380baf8cc3572bc3633306853fbdad67d27a97bf2f26f",
+      "script_sha256": "9b6e59ab1c082eb7e7e57f5d5ebb992b7c53e63a136fa5ff9e6d7ee6344c195f",
+      "frozen_source_raw_sha256": "9b6e59ab1c082eb7e7e57f5d5ebb992b7c53e63a136fa5ff9e6d7ee6344c195f",
+      "seed": 2,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 840.152979,
+      "wall_seconds": 5.096537237986922,
+      "item": "Mushroom",
+      "net_change": 30048,
+      "net_per_game_second": 35.764915141722064,
+      "api_counts": {
+        "move": 9589,
+        "swap": 0,
+        "dig": 2934,
+        "push": 2761,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 1394981,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 35.65073997,
+          "cumulative": 1168
+        },
+        {
+          "cycle": 1,
+          "seconds": 72.62675505,
+          "cumulative": 2352
+        },
+        {
+          "cycle": 2,
+          "seconds": 100.78461243,
+          "cumulative": 3200
+        },
+        {
+          "cycle": 3,
+          "seconds": 128.63168613,
+          "cumulative": 4032
+        },
+        {
+          "cycle": 4,
+          "seconds": 182.18820807,
+          "cumulative": 6288
+        },
+        {
+          "cycle": 5,
+          "seconds": 219.58875234,
+          "cumulative": 7520
+        },
+        {
+          "cycle": 6,
+          "seconds": 243.8351469,
+          "cumulative": 8368
+        },
+        {
+          "cycle": 7,
+          "seconds": 288.78980868,
+          "cumulative": 10064
+        },
+        {
+          "cycle": 8,
+          "seconds": 332.83960929,
+          "cumulative": 11744
+        },
+        {
+          "cycle": 9,
+          "seconds": 378.77057298,
+          "cumulative": 13456
+        },
+        {
+          "cycle": 10,
+          "seconds": 424.34614368,
+          "cumulative": 15072
+        },
+        {
+          "cycle": 11,
+          "seconds": 458.44806816,
+          "cumulative": 16288
+        },
+        {
+          "cycle": 12,
+          "seconds": 486.14633442,
+          "cumulative": 17008
+        },
+        {
+          "cycle": 13,
+          "seconds": 523.22490153,
+          "cumulative": 18256
+        },
+        {
+          "cycle": 14,
+          "seconds": 578.29978611,
+          "cumulative": 20352
+        },
+        {
+          "cycle": 15,
+          "seconds": 627.9822117,
+          "cumulative": 22368
+        },
+        {
+          "cycle": 16,
+          "seconds": 682.51980924,
+          "cumulative": 24448
+        },
+        {
+          "cycle": 17,
+          "seconds": 728.17488657,
+          "cumulative": 25968
+        },
+        {
+          "cycle": 18,
+          "seconds": 756.80040096,
+          "cumulative": 26832
+        },
+        {
+          "cycle": 19,
+          "seconds": 808.93600938,
+          "cumulative": 28912
+        },
+        {
+          "cycle": 20,
+          "seconds": 840.15215595,
+          "cumulative": 30048
+        }
+      ],
+      "conclusion": "not promoted: three-seed mean 828.444s is slower than current 818.999s"
+    },
+    "mushroom-cross-cover-v1-single-s3": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v1-single-s3/report.json",
+      "report_sha256": "979fe7a9085efad7b8aee512e8ccfabfbf0c654be03e07d93a4fef69b8660e9e",
+      "script_sha256": "9b6e59ab1c082eb7e7e57f5d5ebb992b7c53e63a136fa5ff9e6d7ee6344c195f",
+      "frozen_source_raw_sha256": "9b6e59ab1c082eb7e7e57f5d5ebb992b7c53e63a136fa5ff9e6d7ee6344c195f",
+      "seed": 3,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 821.54562921,
+      "wall_seconds": 5.024072665954009,
+      "item": "Mushroom",
+      "net_change": 30128,
+      "net_per_game_second": 36.67233922109859,
+      "api_counts": {
+        "move": 9643,
+        "swap": 0,
+        "dig": 2691,
+        "push": 2797,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 1371659,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 42.03563265,
+          "cumulative": 1664
+        },
+        {
+          "cycle": 1,
+          "seconds": 94.92976395,
+          "cumulative": 3808
+        },
+        {
+          "cycle": 2,
+          "seconds": 132.38561718,
+          "cumulative": 5184
+        },
+        {
+          "cycle": 3,
+          "seconds": 186.65654652,
+          "cumulative": 7296
+        },
+        {
+          "cycle": 4,
+          "seconds": 211.16483559,
+          "cumulative": 8176
+        },
+        {
+          "cycle": 5,
+          "seconds": 257.90288211,
+          "cumulative": 9856
+        },
+        {
+          "cycle": 6,
+          "seconds": 293.05320768,
+          "cumulative": 11024
+        },
+        {
+          "cycle": 7,
+          "seconds": 333.8850474,
+          "cumulative": 12688
+        },
+        {
+          "cycle": 8,
+          "seconds": 388.71894294,
+          "cumulative": 14688
+        },
+        {
+          "cycle": 9,
+          "seconds": 412.90558407,
+          "cumulative": 15536
+        },
+        {
+          "cycle": 10,
+          "seconds": 458.65712286,
+          "cumulative": 17216
+        },
+        {
+          "cycle": 11,
+          "seconds": 495.87840684,
+          "cumulative": 18416
+        },
+        {
+          "cycle": 12,
+          "seconds": 549.13270482,
+          "cumulative": 20656
+        },
+        {
+          "cycle": 13,
+          "seconds": 573.03078462,
+          "cumulative": 21520
+        },
+        {
+          "cycle": 14,
+          "seconds": 601.91243217,
+          "cumulative": 22352
+        },
+        {
+          "cycle": 15,
+          "seconds": 625.23174321,
+          "cumulative": 23232
+        },
+        {
+          "cycle": 16,
+          "seconds": 680.60687643,
+          "cumulative": 25392
+        },
+        {
+          "cycle": 17,
+          "seconds": 717.87523887,
+          "cumulative": 26512
+        },
+        {
+          "cycle": 18,
+          "seconds": 745.6750695,
+          "cumulative": 27312
+        },
+        {
+          "cycle": 19,
+          "seconds": 800.66007702,
+          "cumulative": 29344
+        },
+        {
+          "cycle": 20,
+          "seconds": 821.54480616,
+          "cumulative": 30128
+        }
+      ],
+      "conclusion": "not promoted: three-seed mean 828.444s is slower than current 818.999s"
+    },
+    "mushroom-cross-cover-v1-multi-s1-window80": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v1-multi-s1-window80/report.json",
+      "report_sha256": "fe1192f9cf335284a6db1230a426e299b4771724d2293e0a9cbeef191bc989fb",
+      "script_sha256": "0c7da8cfccf89e3347f25ae0c049afa2bde358a35f35010f6ccf805738524012",
+      "frozen_source_raw_sha256": "0c7da8cfccf89e3347f25ae0c049afa2bde358a35f35010f6ccf805738524012",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 80s",
+        "line": 172
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 80.00013078,
+      "wall_seconds": 15.810028676176444,
+      "item": "Mushroom",
+      "net_change": 59712,
+      "net_per_game_second": 746.3987798245946,
+      "api_counts": {
+        "move": 25914,
+        "swap": 0,
+        "dig": 7514,
+        "push": 5507,
+        "spawn_drone": 248
+      },
+      "interpreter_ticks": 3536715,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 17.65211796,
+          "cumulative": 11440
+        },
+        {
+          "cycle": 1,
+          "seconds": 35.27625222,
+          "cumulative": 22976
+        },
+        {
+          "cycle": 2,
+          "seconds": 68.24549529,
+          "cumulative": 51648
+        }
+      ],
+      "conclusion": "screening only: short-window inventory is phase biased; no promotion"
+    },
+    "mushroom-cross-cover-v2-single-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v2-single-s1/report.json",
+      "report_sha256": "8af75c590c7c4174169a19656b4bca8c0b92b28884f5dfc2ea3ccfb412e8a5bf",
+      "script_sha256": "852d921d80d4e449eb7eccce440ea270731773871894875b3b1e5d16d138112f",
+      "frozen_source_raw_sha256": "852d921d80d4e449eb7eccce440ea270731773871894875b3b1e5d16d138112f",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 838.99791063,
+      "wall_seconds": 4.958586770808324,
+      "item": "Mushroom",
+      "net_change": 30080,
+      "net_per_game_second": 35.852294289282625,
+      "api_counts": {
+        "move": 10103,
+        "swap": 0,
+        "dig": 2773,
+        "push": 2749,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 1364278,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 25.98813297,
+          "cumulative": 800
+        },
+        {
+          "cycle": 1,
+          "seconds": 53.20590264,
+          "cumulative": 1600
+        },
+        {
+          "cycle": 2,
+          "seconds": 107.27946459,
+          "cumulative": 3824
+        },
+        {
+          "cycle": 3,
+          "seconds": 158.00963283,
+          "cumulative": 5904
+        },
+        {
+          "cycle": 4,
+          "seconds": 204.44331546,
+          "cumulative": 7472
+        },
+        {
+          "cycle": 5,
+          "seconds": 233.96694201,
+          "cumulative": 8336
+        },
+        {
+          "cycle": 6,
+          "seconds": 272.32864407,
+          "cumulative": 9616
+        },
+        {
+          "cycle": 7,
+          "seconds": 310.15882044,
+          "cumulative": 10992
+        },
+        {
+          "cycle": 8,
+          "seconds": 334.00735263,
+          "cumulative": 11808
+        },
+        {
+          "cycle": 9,
+          "seconds": 358.61523075,
+          "cumulative": 12576
+        },
+        {
+          "cycle": 10,
+          "seconds": 388.45556694,
+          "cumulative": 13408
+        },
+        {
+          "cycle": 11,
+          "seconds": 438.58639017,
+          "cumulative": 15408
+        },
+        {
+          "cycle": 12,
+          "seconds": 464.96464884,
+          "cumulative": 16240
+        },
+        {
+          "cycle": 13,
+          "seconds": 511.76063808,
+          "cumulative": 18032
+        },
+        {
+          "cycle": 14,
+          "seconds": 540.47043279,
+          "cumulative": 18928
+        },
+        {
+          "cycle": 15,
+          "seconds": 591.0124518,
+          "cumulative": 21136
+        },
+        {
+          "cycle": 16,
+          "seconds": 615.03678747,
+          "cumulative": 21968
+        },
+        {
+          "cycle": 17,
+          "seconds": 643.71777543,
+          "cumulative": 22784
+        },
+        {
+          "cycle": 18,
+          "seconds": 689.53762737,
+          "cumulative": 24544
+        },
+        {
+          "cycle": 19,
+          "seconds": 714.1720077,
+          "cumulative": 25344
+        },
+        {
+          "cycle": 20,
+          "seconds": 738.0058896,
+          "cumulative": 26080
+        },
+        {
+          "cycle": 21,
+          "seconds": 792.26085177,
+          "cumulative": 28176
+        },
+        {
+          "cycle": 22,
+          "seconds": 838.99708758,
+          "cumulative": 30080
+        }
+      ],
+      "conclusion": "rejected: three-seed full-goal mean 843.154s"
+    },
+    "mushroom-cross-cover-v2-single-s2": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v2-single-s2/report.json",
+      "report_sha256": "2c92b3a0c0754691c2df05181a13328177f569139df3c5b07b59306d146c24e8",
+      "script_sha256": "852d921d80d4e449eb7eccce440ea270731773871894875b3b1e5d16d138112f",
+      "frozen_source_raw_sha256": "852d921d80d4e449eb7eccce440ea270731773871894875b3b1e5d16d138112f",
+      "seed": 2,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 854.69479101,
+      "wall_seconds": 5.10005268198438,
+      "item": "Mushroom",
+      "net_change": 30048,
+      "net_per_game_second": 35.15640941778997,
+      "api_counts": {
+        "move": 10009,
+        "swap": 0,
+        "dig": 2961,
+        "push": 2761,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 1387262,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 36.24119604,
+          "cumulative": 1168
+        },
+        {
+          "cycle": 1,
+          "seconds": 73.96635123,
+          "cumulative": 2352
+        },
+        {
+          "cycle": 2,
+          "seconds": 102.7940067,
+          "cumulative": 3200
+        },
+        {
+          "cycle": 3,
+          "seconds": 131.39022051,
+          "cumulative": 4032
+        },
+        {
+          "cycle": 4,
+          "seconds": 185.69588256,
+          "cumulative": 6288
+        },
+        {
+          "cycle": 5,
+          "seconds": 223.84556694,
+          "cumulative": 7520
+        },
+        {
+          "cycle": 6,
+          "seconds": 248.68241757,
+          "cumulative": 8368
+        },
+        {
+          "cycle": 7,
+          "seconds": 294.38621946,
+          "cumulative": 10064
+        },
+        {
+          "cycle": 8,
+          "seconds": 339.02647614,
+          "cumulative": 11744
+        },
+        {
+          "cycle": 9,
+          "seconds": 385.62723792,
+          "cumulative": 13456
+        },
+        {
+          "cycle": 10,
+          "seconds": 431.95194873,
+          "cumulative": 15072
+        },
+        {
+          "cycle": 11,
+          "seconds": 466.64432928,
+          "cumulative": 16288
+        },
+        {
+          "cycle": 12,
+          "seconds": 495.01239363,
+          "cumulative": 17008
+        },
+        {
+          "cycle": 13,
+          "seconds": 532.84010085,
+          "cumulative": 18256
+        },
+        {
+          "cycle": 14,
+          "seconds": 588.66412554,
+          "cumulative": 20352
+        },
+        {
+          "cycle": 15,
+          "seconds": 638.9370072,
+          "cumulative": 22368
+        },
+        {
+          "cycle": 16,
+          "seconds": 694.22374485,
+          "cumulative": 24448
+        },
+        {
+          "cycle": 17,
+          "seconds": 740.54862027,
+          "cumulative": 25968
+        },
+        {
+          "cycle": 18,
+          "seconds": 769.92327477,
+          "cumulative": 26832
+        },
+        {
+          "cycle": 19,
+          "seconds": 822.72868128,
+          "cumulative": 28912
+        },
+        {
+          "cycle": 20,
+          "seconds": 854.69396796,
+          "cumulative": 30048
+        }
+      ],
+      "conclusion": "rejected: three-seed full-goal mean 843.154s"
+    },
+    "mushroom-cross-cover-v2-single-s3": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v2-single-s3/report.json",
+      "report_sha256": "f9de565806e6973a977f31add6cb2d9ec4dd96c0e28dd87754928effa69ba946",
+      "script_sha256": "852d921d80d4e449eb7eccce440ea270731773871894875b3b1e5d16d138112f",
+      "frozen_source_raw_sha256": "852d921d80d4e449eb7eccce440ea270731773871894875b3b1e5d16d138112f",
+      "seed": 3,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 835.77007314,
+      "wall_seconds": 5.3221034849993885,
+      "item": "Mushroom",
+      "net_change": 30128,
+      "net_per_game_second": 36.048191922939615,
+      "api_counts": {
+        "move": 10063,
+        "swap": 0,
+        "dig": 2714,
+        "push": 2797,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 1363920,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 42.62608872,
+          "cumulative": 1664
+        },
+        {
+          "cycle": 1,
+          "seconds": 96.11067609,
+          "cumulative": 3808
+        },
+        {
+          "cycle": 2,
+          "seconds": 134.31566943,
+          "cumulative": 5184
+        },
+        {
+          "cycle": 3,
+          "seconds": 189.33573888,
+          "cumulative": 7296
+        },
+        {
+          "cycle": 4,
+          "seconds": 214.43448402,
+          "cumulative": 8176
+        },
+        {
+          "cycle": 5,
+          "seconds": 261.92167065,
+          "cumulative": 9856
+        },
+        {
+          "cycle": 6,
+          "seconds": 297.66245229,
+          "cumulative": 11024
+        },
+        {
+          "cycle": 7,
+          "seconds": 339.08474808,
+          "cumulative": 12688
+        },
+        {
+          "cycle": 8,
+          "seconds": 394.66778373,
+          "cumulative": 14688
+        },
+        {
+          "cycle": 9,
+          "seconds": 419.44488093,
+          "cumulative": 15536
+        },
+        {
+          "cycle": 10,
+          "seconds": 465.94555983,
+          "cumulative": 17216
+        },
+        {
+          "cycle": 11,
+          "seconds": 503.91598392,
+          "cumulative": 18416
+        },
+        {
+          "cycle": 12,
+          "seconds": 557.76073797,
+          "cumulative": 20656
+        },
+        {
+          "cycle": 13,
+          "seconds": 582.24927384,
+          "cumulative": 21520
+        },
+        {
+          "cycle": 14,
+          "seconds": 611.8800615,
+          "cumulative": 22352
+        },
+        {
+          "cycle": 15,
+          "seconds": 635.78982861,
+          "cumulative": 23232
+        },
+        {
+          "cycle": 16,
+          "seconds": 691.91410194,
+          "cumulative": 25392
+        },
+        {
+          "cycle": 17,
+          "seconds": 729.93160449,
+          "cumulative": 26512
+        },
+        {
+          "cycle": 18,
+          "seconds": 758.48057523,
+          "cumulative": 27312
+        },
+        {
+          "cycle": 19,
+          "seconds": 814.21472286,
+          "cumulative": 29344
+        },
+        {
+          "cycle": 20,
+          "seconds": 835.76925009,
+          "cumulative": 30128
+        }
+      ],
+      "conclusion": "rejected: three-seed full-goal mean 843.154s"
+    },
+    "mushroom-cross-cover-v2-multi-s1-window80": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v2-multi-s1-window80/report.json",
+      "report_sha256": "4bd7b08449ddf3557b915868af2d8a2d7bee0f2cc0310ecbade08ff03a9f7647",
+      "script_sha256": "58edc6e7ba0342dad96888d756ecc426ae99a4b7f58b057acbfd5f82758159c0",
+      "frozen_source_raw_sha256": "58edc6e7ba0342dad96888d756ecc426ae99a4b7f58b057acbfd5f82758159c0",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 80s",
+        "line": 185
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 80.00013078,
+      "wall_seconds": 16.76927970093675,
+      "item": "Mushroom",
+      "net_change": 60400,
+      "net_per_game_second": 754.9987657657676,
+      "api_counts": {
+        "move": 26346,
+        "swap": 0,
+        "dig": 7562,
+        "push": 5572,
+        "spawn_drone": 248
+      },
+      "interpreter_ticks": 3559397,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 17.59335219,
+          "cumulative": 11440
+        },
+        {
+          "cycle": 1,
+          "seconds": 34.8413526,
+          "cumulative": 22976
+        },
+        {
+          "cycle": 2,
+          "seconds": 67.67248788,
+          "cumulative": 51648
+        }
+      ],
+      "conclusion": "screening only: completed-cycle comparisons supersede inventory at 80s"
+    },
+    "mushroom-current-multi-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-current-multi-s1-window120/report.json",
+      "report_sha256": "df88b90123e0f3ab578e60505e4ac002e03acfb9514a3485b094ee3ed95a0383",
+      "script_sha256": "9c150fa25ba50c1ee245a7cc2603ada0cc2fd7d9d31748722316157b38992096",
+      "frozen_source_raw_sha256": "9c150fa25ba50c1ee245a7cc2603ada0cc2fd7d9d31748722316157b38992096",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 315
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00003156,
+      "wall_seconds": 24.219985619885847,
+      "item": "Mushroom",
+      "net_change": 92176,
+      "net_per_game_second": 768.1331313143198,
+      "api_counts": {
+        "move": 37073,
+        "swap": 0,
+        "dig": 10972,
+        "push": 8635,
+        "spawn_drone": 310
+      },
+      "interpreter_ticks": 5290585,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 18.63599193,
+          "cumulative": 12128
+        },
+        {
+          "cycle": 1,
+          "seconds": 37.19165418,
+          "cumulative": 24416
+        },
+        {
+          "cycle": 2,
+          "seconds": 70.98378264,
+          "cumulative": 53840
+        },
+        {
+          "cycle": 3,
+          "seconds": 104.59187712,
+          "cumulative": 83040
+        }
+      ],
+      "conclusion": "fresh current-source reference: four completed fields through batch index 3"
+    },
+    "mushroom-current-multi-s2-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-current-multi-s2-window120/report.json",
+      "report_sha256": "88a910b09e344fbeb760dfea220446b6f60bf1793373251d34797763532b3caa",
+      "script_sha256": "9c150fa25ba50c1ee245a7cc2603ada0cc2fd7d9d31748722316157b38992096",
+      "frozen_source_raw_sha256": "9c150fa25ba50c1ee245a7cc2603ada0cc2fd7d9d31748722316157b38992096",
+      "seed": 2,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 13
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.04908534,
+      "wall_seconds": 24.28810847387649,
+      "item": "Mushroom",
+      "net_change": 89328,
+      "net_per_game_second": 744.0956317743487,
+      "api_counts": {
+        "move": 36080,
+        "swap": 0,
+        "dig": 10883,
+        "push": 8486,
+        "spawn_drone": 310
+      },
+      "interpreter_ticks": 5169452,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 23.7071322,
+          "cumulative": 17472
+        },
+        {
+          "cycle": 1,
+          "seconds": 47.82430791,
+          "cumulative": 35632
+        },
+        {
+          "cycle": 2,
+          "seconds": 66.62161764,
+          "cumulative": 48016
+        },
+        {
+          "cycle": 3,
+          "seconds": 85.3025481,
+          "cumulative": 60176
+        },
+        {
+          "cycle": 4,
+          "seconds": 119.77714962,
+          "cumulative": 89328
+        }
+      ],
+      "conclusion": "fresh current-source reference: compare equal completed-field counts"
+    },
+    "mushroom-current-multi-s3-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-current-multi-s3-window120/report.json",
+      "report_sha256": "40548923abaee2e01a73fb9bd82adde17f19b3816719e727682d0e3dc03f44ca",
+      "script_sha256": "9c150fa25ba50c1ee245a7cc2603ada0cc2fd7d9d31748722316157b38992096",
+      "frozen_source_raw_sha256": "9c150fa25ba50c1ee245a7cc2603ada0cc2fd7d9d31748722316157b38992096",
+      "seed": 3,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 13
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.02241852,
+      "wall_seconds": 26.59460402512923,
+      "item": "Mushroom",
+      "net_change": 98624,
+      "net_per_game_second": 821.7131533936365,
+      "api_counts": {
+        "move": 38246,
+        "swap": 0,
+        "dig": 10475,
+        "push": 9285,
+        "spawn_drone": 248
+      },
+      "interpreter_ticks": 5789163,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 28.32757029,
+          "cumulative": 23824
+        },
+        {
+          "cycle": 1,
+          "seconds": 61.64726805,
+          "cumulative": 52272
+        },
+        {
+          "cycle": 2,
+          "seconds": 86.36559948,
+          "cumulative": 70160
+        },
+        {
+          "cycle": 3,
+          "seconds": 119.98850886,
+          "cumulative": 98624
+        }
+      ],
+      "conclusion": "fresh current-source reference: four completed fields through batch index 3"
+    },
+    "mushroom-cross-cover-v2-multi-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v2-multi-s1-window120/report.json",
+      "report_sha256": "7594174c345f3b173d7ca1027ed0bd83d3ac61dbd9008992d0d3702edc067b58",
+      "script_sha256": "58edc6e7ba0342dad96888d756ecc426ae99a4b7f58b057acbfd5f82758159c0",
+      "frozen_source_raw_sha256": "58edc6e7ba0342dad96888d756ecc426ae99a4b7f58b057acbfd5f82758159c0",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 236
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00003156,
+      "wall_seconds": 25.525569377001375,
+      "item": "Mushroom",
+      "net_change": 95200,
+      "net_per_game_second": 793.3331246867216,
+      "api_counts": {
+        "move": 39598,
+        "swap": 0,
+        "dig": 11583,
+        "push": 8805,
+        "spawn_drone": 310
+      },
+      "interpreter_ticks": 5647566,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 17.59335219,
+          "cumulative": 11440
+        },
+        {
+          "cycle": 1,
+          "seconds": 34.8413526,
+          "cumulative": 22976
+        },
+        {
+          "cycle": 2,
+          "seconds": 67.67248788,
+          "cumulative": 51648
+        },
+        {
+          "cycle": 3,
+          "seconds": 98.68583493,
+          "cumulative": 80064
+        }
+      ],
+      "conclusion": "not promoted: three-seed matched-field forecasts 315.485s versus current 311.497s; current full-goal record unchanged"
+    },
+    "mushroom-cross-cover-v2-multi-s2-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v2-multi-s2-window120/report.json",
+      "report_sha256": "98d76dc54a2002ba395df7c45c43025d2fc0ef52ea83b852063cfdf5f767d280",
+      "script_sha256": "58edc6e7ba0342dad96888d756ecc426ae99a4b7f58b057acbfd5f82758159c0",
+      "frozen_source_raw_sha256": "58edc6e7ba0342dad96888d756ecc426ae99a4b7f58b057acbfd5f82758159c0",
+      "seed": 2,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 306
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00069,
+      "wall_seconds": 23.992592367809266,
+      "item": "Mushroom",
+      "net_change": 85216,
+      "net_per_game_second": 710.1292500901453,
+      "api_counts": {
+        "move": 36289,
+        "swap": 0,
+        "dig": 14172,
+        "push": 7950,
+        "spawn_drone": 310
+      },
+      "interpreter_ticks": 5133317,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 22.76704449,
+          "cumulative": 16624
+        },
+        {
+          "cycle": 1,
+          "seconds": 48.30101847,
+          "cumulative": 33952
+        },
+        {
+          "cycle": 2,
+          "seconds": 66.90556989,
+          "cumulative": 45744
+        },
+        {
+          "cycle": 3,
+          "seconds": 85.72526658,
+          "cumulative": 57360
+        }
+      ],
+      "conclusion": "not promoted: three-seed matched-field forecasts 315.485s versus current 311.497s; current full-goal record unchanged"
+    },
+    "mushroom-cross-cover-v2-multi-s3-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-cross-cover-v2-multi-s3-window120/report.json",
+      "report_sha256": "61a47bed14126b8067290dc1638bb4dbf3c3acfeeb338aedbf58fa85f44da447",
+      "script_sha256": "58edc6e7ba0342dad96888d756ecc426ae99a4b7f58b057acbfd5f82758159c0",
+      "frozen_source_raw_sha256": "58edc6e7ba0342dad96888d756ecc426ae99a4b7f58b057acbfd5f82758159c0",
+      "seed": 3,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 115
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00036078,
+      "wall_seconds": 26.28288924205117,
+      "item": "Mushroom",
+      "net_change": 96080,
+      "net_per_game_second": 800.6642594695707,
+      "api_counts": {
+        "move": 39638,
+        "swap": 0,
+        "dig": 12310,
+        "push": 8916,
+        "spawn_drone": 279
+      },
+      "interpreter_ticks": 5761650,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 25.65841914,
+          "cumulative": 23072
+        },
+        {
+          "cycle": 1,
+          "seconds": 57.82815144,
+          "cumulative": 50800
+        },
+        {
+          "cycle": 2,
+          "seconds": 83.40871005,
+          "cumulative": 68128
+        },
+        {
+          "cycle": 3,
+          "seconds": 116.87770908,
+          "cumulative": 96080
+        }
+      ],
+      "conclusion": "not promoted: three-seed matched-field forecasts 315.485s versus current 311.497s; current full-goal record unchanged"
+    },
+    "dynamite-local-subsets-v1-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-local-subsets-v1-s1-window120/report.json",
+      "report_sha256": "ee19d0a9f7281bb2cca361dda59552df4dc418cc1d0b019d332955e7adb29e35",
+      "script_sha256": "9544024700797901c4f6784fafa4fbbc14d3d47578b6573afc518595447bd5a9",
+      "frozen_source_raw_sha256": "9544024700797901c4f6784fafa4fbbc14d3d47578b6573afc518595447bd5a9",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 270
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00282993,
+      "wall_seconds": 12.354396765120327,
+      "item": "Dynamite",
+      "net_change": 1199728,
+      "net_per_game_second": 9997.497564847636,
+      "api_counts": {
+        "move": 8548,
+        "swap": 0,
+        "dig": 3927,
+        "push": 0,
+        "spawn_drone": 961
+      },
+      "interpreter_ticks": 1933579,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 33.02043678,
+          "cumulative": 318880
+        },
+        {
+          "cycle": 1,
+          "seconds": 56.09661885,
+          "cumulative": 590896
+        },
+        {
+          "cycle": 2,
+          "seconds": 85.90123467,
+          "cumulative": 879616
+        },
+        {
+          "cycle": 3,
+          "seconds": 114.52279842,
+          "cumulative": 1198496
+        }
+      ],
+      "conclusion": "valid improvement, superseded by stronger adjacent-clue difference bounds"
+    },
+    "dynamite-local-differences-v2-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-local-differences-v2-s1-window120/report.json",
+      "report_sha256": "0a005ef538b6207e8f3979c0b2b980c8c5ec5e7bc3844a5433f77154ff4e2cea",
+      "script_sha256": "c5c5453ecb508fe464af115de1fca12fe691e6272b4d9b3bd1b6bcf31b178493",
+      "frozen_source_raw_sha256": "c5c5453ecb508fe464af115de1fca12fe691e6272b4d9b3bd1b6bcf31b178493",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 277
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.01748022,
+      "wall_seconds": 12.619405755074695,
+      "item": "Dynamite",
+      "net_change": 1203024,
+      "net_per_game_second": 10023.739856850663,
+      "api_counts": {
+        "move": 8918,
+        "swap": 0,
+        "dig": 4149,
+        "push": 0,
+        "spawn_drone": 899
+      },
+      "interpreter_ticks": 1937392,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 32.9121234,
+          "cumulative": 318880
+        },
+        {
+          "cycle": 1,
+          "seconds": 54.5665689,
+          "cumulative": 590896
+        },
+        {
+          "cycle": 2,
+          "seconds": 83.02418109,
+          "cumulative": 879616
+        },
+        {
+          "cycle": 3,
+          "seconds": 112.02977997,
+          "cumulative": 1198496
+        }
+      ],
+      "conclusion": "selected: more settled resources per completed cycle; final source renames the helper and changes the timing comment"
+    },
+    "dynamite-local-differences-v2-s2-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-local-differences-v2-s2-window120/report.json",
+      "report_sha256": "0673f23567df45dfc5754148db59e6343891946b71a7c35dc5f3d8ea6a3a3892",
+      "script_sha256": "c5c5453ecb508fe464af115de1fca12fe691e6272b4d9b3bd1b6bcf31b178493",
+      "frozen_source_raw_sha256": "c5c5453ecb508fe464af115de1fca12fe691e6272b4d9b3bd1b6bcf31b178493",
+      "seed": 2,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 262
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00052539,
+      "wall_seconds": 11.273940401151776,
+      "item": "Dynamite",
+      "net_change": 1279680,
+      "net_per_game_second": 10663.953310546418,
+      "api_counts": {
+        "move": 8793,
+        "swap": 0,
+        "dig": 4131,
+        "push": 0,
+        "spawn_drone": 837
+      },
+      "interpreter_ticks": 1881897,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 34.1483445,
+          "cumulative": 318880
+        },
+        {
+          "cycle": 1,
+          "seconds": 55.7237772,
+          "cumulative": 637760
+        },
+        {
+          "cycle": 2,
+          "seconds": 84.07472211,
+          "cumulative": 956640
+        },
+        {
+          "cycle": 3,
+          "seconds": 108.52194087,
+          "cumulative": 1275520
+        }
+      ],
+      "conclusion": "selected: higher settled-cycle throughput, no mine guesses"
+    },
+    "dynamite-local-differences-v2-s3-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-local-differences-v2-s3-window120/report.json",
+      "report_sha256": "3c5063c3bd46d8d89db1f5f7f19b0b46f018fe33dbd6d646b2f0bfbb27bae905",
+      "script_sha256": "c5c5453ecb508fe464af115de1fca12fe691e6272b4d9b3bd1b6bcf31b178493",
+      "frozen_source_raw_sha256": "c5c5453ecb508fe464af115de1fca12fe691e6272b4d9b3bd1b6bcf31b178493",
+      "seed": 3,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 344
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00118383,
+      "wall_seconds": 11.685755043989047,
+      "item": "Dynamite",
+      "net_change": 1284672,
+      "net_per_game_second": 10705.494387621493,
+      "api_counts": {
+        "move": 9596,
+        "swap": 0,
+        "dig": 4399,
+        "push": 0,
+        "spawn_drone": 899
+      },
+      "interpreter_ticks": 2055791,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 33.48710613,
+          "cumulative": 318880
+        },
+        {
+          "cycle": 1,
+          "seconds": 57.42288162,
+          "cumulative": 637760
+        },
+        {
+          "cycle": 2,
+          "seconds": 82.18039023,
+          "cumulative": 956640
+        },
+        {
+          "cycle": 3,
+          "seconds": 106.1652195,
+          "cumulative": 1275520
+        }
+      ],
+      "conclusion": "selected: higher settled-cycle throughput, no mine guesses"
+    },
+    "dynamite-current-s2-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-current-s2-window120/report.json",
+      "report_sha256": "9facb28465c19c1f432f60ee2f1f913cb406ac3d76bd7ccb8174124cd1c943ec",
+      "script_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+      "frozen_source_raw_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+      "seed": 2,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 284
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00513447,
+      "wall_seconds": 11.643514505121857,
+      "item": "Dynamite",
+      "net_change": 952928,
+      "net_per_game_second": 7940.72690479941,
+      "api_counts": {
+        "move": 8346,
+        "swap": 0,
+        "dig": 3824,
+        "push": 0,
+        "spawn_drone": 992
+      },
+      "interpreter_ticks": 1859070,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 37.19297106,
+          "cumulative": 301392
+        },
+        {
+          "cycle": 1,
+          "seconds": 62.27574903,
+          "cumulative": 620272
+        },
+        {
+          "cycle": 2,
+          "seconds": 96.82656498,
+          "cumulative": 939152
+        }
+      ],
+      "conclusion": "fresh actual-save source reference for seed 2"
+    },
+    "dynamite-current-s3-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-current-s3-window120/report.json",
+      "report_sha256": "d53d961a9474441cedbd5288408387871a976e21aeecc6363eb00d886d26d1dd",
+      "script_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+      "frozen_source_raw_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+      "seed": 3,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 287
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00974355,
+      "wall_seconds": 11.501538768876344,
+      "item": "Dynamite",
+      "net_change": 902544,
+      "net_per_game_second": 7520.589356346475,
+      "api_counts": {
+        "move": 8299,
+        "swap": 0,
+        "dig": 3668,
+        "push": 0,
+        "spawn_drone": 1023
+      },
+      "interpreter_ticks": 1905842,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 34.91229951,
+          "cumulative": 251856
+        },
+        {
+          "cycle": 1,
+          "seconds": 58.9550715,
+          "cumulative": 570736
+        },
+        {
+          "cycle": 2,
+          "seconds": 88.6556538,
+          "cumulative": 889616
+        }
+      ],
+      "conclusion": "fresh actual-save source reference for seed 3"
+    },
+    "cactus-morton-v1-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-morton-v1-s1/report.json",
+      "report_sha256": "6f289930d2796ed242d290d38d6d970992eb0ecf537e2afddff63751d72cb231",
+      "script_sha256": "af9b406aca3eec230b7cdeaa3d6e71b58ab27b32ef366cde67124e501b3e9d0d",
+      "frozen_source_raw_sha256": "af9b406aca3eec230b7cdeaa3d6e71b58ab27b32ef366cde67124e501b3e9d0d",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 19.80159534,
+      "wall_seconds": 0.07485307799652219,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 6619.264647592784,
+      "api_counts": {
+        "move": 273,
+        "swap": 158,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 5722,
+      "completed_cycles": [],
+      "conclusion": "selected: full goal, faster; final source changes only formatting, timing comment and justified LSP suppressions"
+    },
+    "cactus-morton-v1-s2": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-morton-v1-s2/report.json",
+      "report_sha256": "9ab51cbc7b5a797b053c2e8cfa55186ef5908da55070100de4ce4474d8d46116",
+      "script_sha256": "af9b406aca3eec230b7cdeaa3d6e71b58ab27b32ef366cde67124e501b3e9d0d",
+      "frozen_source_raw_sha256": "af9b406aca3eec230b7cdeaa3d6e71b58ab27b32ef366cde67124e501b3e9d0d",
+      "seed": 2,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 19.48669641,
+      "wall_seconds": 0.07134522986598313,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 6726.229897682282,
+      "api_counts": {
+        "move": 265,
+        "swap": 156,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 5788,
+      "completed_cycles": [],
+      "conclusion": "selected: full goal, faster; final source changes only formatting, timing comment and justified LSP suppressions"
+    },
+    "cactus-morton-v1-s3": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-morton-v1-s3/report.json",
+      "report_sha256": "48fe8a84f3bbce6e9b62dc8acb8e6ea98e112e7f255b26f8ac036cdc1bd2d25b",
+      "script_sha256": "af9b406aca3eec230b7cdeaa3d6e71b58ab27b32ef366cde67124e501b3e9d0d",
+      "frozen_source_raw_sha256": "af9b406aca3eec230b7cdeaa3d6e71b58ab27b32ef366cde67124e501b3e9d0d",
+      "seed": 3,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 18.03006252,
+      "wall_seconds": 0.07125366805121303,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 7269.636467128567,
+      "api_counts": {
+        "move": 244,
+        "swap": 136,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 5240,
+      "completed_cycles": [],
+      "conclusion": "selected: full goal, faster; final source changes only formatting, timing comment and justified LSP suppressions"
+    },
+    "cactus-current-s2": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-current-s2/report.json",
+      "report_sha256": "4907266cadee65a8df8e3347e3f58afd5ac455e2126ec22b3adf2dd656faa893",
+      "script_sha256": "368448d05e6f3c82e3e5bd20919014dbe8b5f84f3c4a1261bab55281e29a2463",
+      "frozen_source_raw_sha256": "d38b3b24588373c5c474407d206465e859057b132987f485d8b7c450ed3e4d53",
+      "seed": 2,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 20.21805864,
+      "wall_seconds": 0.07977350591681898,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 6482.917194664938,
+      "api_counts": {
+        "move": 282,
+        "swap": 153,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 7338,
+      "completed_cycles": [],
+      "conclusion": "fresh actual-save source reference for seed 2"
+    },
+    "cactus-current-s3": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-current-s3/report.json",
+      "report_sha256": "4c454c612eaf74f8fc034718fe73fa2a851d8e3203bfa1ecb330159efe76d950",
+      "script_sha256": "368448d05e6f3c82e3e5bd20919014dbe8b5f84f3c4a1261bab55281e29a2463",
+      "frozen_source_raw_sha256": "d38b3b24588373c5c474407d206465e859057b132987f485d8b7c450ed3e4d53",
+      "seed": 3,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 18.51500358,
+      "wall_seconds": 0.08272891701199114,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 7079.231685463169,
+      "api_counts": {
+        "move": 257,
+        "swap": 130,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 6724,
+      "completed_cycles": [],
+      "conclusion": "fresh actual-save source reference for seed 3"
+    },
+    "actual-save-cactus-s1-fresh": {
+      "report": ".codex/nonreset-100-20261108/reports/actual-save-cactus-s1-fresh/report.json",
+      "report_sha256": "20bd5287ed9d3a9c83b42d41691c60c481a02de179873c6505e35635f877f816",
+      "script_sha256": "368448d05e6f3c82e3e5bd20919014dbe8b5f84f3c4a1261bab55281e29a2463",
+      "frozen_source_raw_sha256": "d38b3b24588373c5c474407d206465e859057b132987f485d8b7c450ed3e4d53",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 20.19172104,
+      "wall_seconds": 0.07862635399214923,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 6491.373357444126,
+      "api_counts": {
+        "move": 276,
+        "swap": 158,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 7378,
+      "completed_cycles": [],
+      "conclusion": "fresh actual-save source reference; legacy report lacked initial_state, so it was not used for the deployment gate"
+    },
+    "promote-cactus-morton-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s1/report.json",
+      "report_sha256": "d2b67245311ed3427ce88f22b47ed1ac8427970a78d2087d45192e48d230a68e",
+      "script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
+      "frozen_source_raw_sha256": "3c6599de594ff204f812f03293cd115a501d529f66d0f38aad60854c0d0197f7",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 19.80159534,
+      "wall_seconds": 0.0702825749758631,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 6619.264647592784,
+      "api_counts": {
+        "move": 273,
+        "swap": 158,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 5722,
+      "completed_cycles": [],
+      "conclusion": "promoted: completed original target; final source AST identical, only static-check comments added after these reports"
+    },
+    "promote-dynamite-differences-s1-wall30": {
+      "report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s1-wall30/report.json",
+      "report_sha256": "55ee2399669c032412377e9450186f0ab78e7a186c4e7c13a3a4f2e701cf8ff8",
+      "script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+      "frozen_source_raw_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到墙钟上限 28.7338s",
+        "line": 80
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 277.29245862,
+      "wall_seconds": 28.737748049898073,
+      "item": "Dynamite",
+      "net_change": 3075872,
+      "net_per_game_second": 11092.519483968937,
+      "api_counts": {
+        "move": 21114,
+        "swap": 0,
+        "dig": 9781,
+        "push": 0,
+        "spawn_drone": 2087
+      },
+      "interpreter_ticks": 4477746,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 32.9121234,
+          "cumulative": 318880
+        },
+        {
+          "cycle": 1,
+          "seconds": 54.5665689,
+          "cumulative": 590896
+        },
+        {
+          "cycle": 2,
+          "seconds": 83.02418109,
+          "cumulative": 879616
+        },
+        {
+          "cycle": 3,
+          "seconds": 112.02977997,
+          "cumulative": 1198496
+        },
+        {
+          "cycle": 4,
+          "seconds": 140.06236914,
+          "cumulative": 1478784
+        },
+        {
+          "cycle": 5,
+          "seconds": 165.10728681,
+          "cumulative": 1797664
+        },
+        {
+          "cycle": 6,
+          "seconds": 191.23863048,
+          "cumulative": 2116544
+        },
+        {
+          "cycle": 7,
+          "seconds": 215.77523247,
+          "cumulative": 2435424
+        },
+        {
+          "cycle": 8,
+          "seconds": 240.99677667,
+          "cumulative": 2754304
+        },
+        {
+          "cycle": 9,
+          "seconds": 269.37356535,
+          "cumulative": 3073184
+        }
+      ],
+      "conclusion": "promoted: original-goal forecast uses only complete cycles within fixed 30s wall budget; unfinished cycle excluded"
+    },
+    "promote-cactus-morton-s2": {
+      "report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s2/report.json",
+      "report_sha256": "b290c92ab5e48baf23478a01e799e30142485e37e3d371aaa13aeea4cc85a632",
+      "script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
+      "frozen_source_raw_sha256": "3c6599de594ff204f812f03293cd115a501d529f66d0f38aad60854c0d0197f7",
+      "seed": 2,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 19.48669641,
+      "wall_seconds": 0.0690387028735131,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 6726.229897682282,
+      "api_counts": {
+        "move": 265,
+        "swap": 156,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 5788,
+      "completed_cycles": [],
+      "conclusion": "promoted: completed original target; final source AST identical, only static-check comments added after these reports"
+    },
+    "promote-dynamite-differences-s2-wall30": {
+      "report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s2-wall30/report.json",
+      "report_sha256": "8776c1fd327b0a6c171b20174e2e1f9ec52ff01b9b7cd6a45c81b8a97813e692",
+      "script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+      "frozen_source_raw_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+      "seed": 2,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到墙钟上限 28.7339s",
+        "line": 257
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 271.64880477,
+      "wall_seconds": 28.735121175879613,
+      "item": "Dynamite",
+      "net_change": 3193424,
+      "net_per_game_second": 11755.707899041972,
+      "api_counts": {
+        "move": 22105,
+        "swap": 0,
+        "dig": 10183,
+        "push": 0,
+        "spawn_drone": 2139
+      },
+      "interpreter_ticks": 4534111,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 34.1483445,
+          "cumulative": 318880
+        },
+        {
+          "cycle": 1,
+          "seconds": 55.7237772,
+          "cumulative": 637760
+        },
+        {
+          "cycle": 2,
+          "seconds": 84.07472211,
+          "cumulative": 956640
+        },
+        {
+          "cycle": 3,
+          "seconds": 108.52194087,
+          "cumulative": 1275520
+        },
+        {
+          "cycle": 4,
+          "seconds": 134.30924964,
+          "cumulative": 1589984
+        },
+        {
+          "cycle": 5,
+          "seconds": 156.49324551,
+          "cumulative": 1908864
+        },
+        {
+          "cycle": 6,
+          "seconds": 183.38459355,
+          "cumulative": 2227744
+        },
+        {
+          "cycle": 7,
+          "seconds": 209.66490927,
+          "cumulative": 2546624
+        },
+        {
+          "cycle": 8,
+          "seconds": 212.90147109,
+          "cumulative": 2546768
+        },
+        {
+          "cycle": 9,
+          "seconds": 235.50670395,
+          "cumulative": 2865648
+        },
+        {
+          "cycle": 10,
+          "seconds": 257.79802554,
+          "cumulative": 3184528
+        }
+      ],
+      "conclusion": "promoted: original-goal forecast uses only complete cycles within fixed 30s wall budget; unfinished cycle excluded"
+    },
+    "promote-cactus-morton-s3": {
+      "report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s3/report.json",
+      "report_sha256": "e8233868f534735368a68f5dfd924d062494d23cb2d876e2554e0ff4a972b723",
+      "script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
+      "frozen_source_raw_sha256": "3c6599de594ff204f812f03293cd115a501d529f66d0f38aad60854c0d0197f7",
+      "seed": 3,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 18.03006252,
+      "wall_seconds": 0.07133809220977128,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 7269.636467128567,
+      "api_counts": {
+        "move": 244,
+        "swap": 136,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 5240,
+      "completed_cycles": [],
+      "conclusion": "promoted: completed original target; final source AST identical, only static-check comments added after these reports"
+    },
+    "promote-dynamite-differences-s3-wall30": {
+      "report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s3-wall30/report.json",
+      "report_sha256": "06fbe8142cef390f2b3b9577d52a9f6baec5dd229a0e8b1e1fc1e22004f37141",
+      "script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+      "frozen_source_raw_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+      "seed": 3,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到墙钟上限 28.5982s",
+        "line": 80
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 279.84391362,
+      "wall_seconds": 28.600811269832775,
+      "item": "Dynamite",
+      "net_change": 3174400,
+      "net_per_game_second": 11343.466287819705,
+      "api_counts": {
+        "move": 22350,
+        "swap": 0,
+        "dig": 10293,
+        "push": 0,
+        "spawn_drone": 2234
+      },
+      "interpreter_ticks": 4814047,
+      "completed_cycles": [
+        {
+          "cycle": 0,
+          "seconds": 33.48710613,
+          "cumulative": 318880
+        },
+        {
+          "cycle": 1,
+          "seconds": 57.42288162,
+          "cumulative": 637760
+        },
+        {
+          "cycle": 2,
+          "seconds": 82.18039023,
+          "cumulative": 956640
+        },
+        {
+          "cycle": 3,
+          "seconds": 106.1652195,
+          "cumulative": 1275520
+        },
+        {
+          "cycle": 4,
+          "seconds": 127.84567338,
+          "cumulative": 1594400
+        },
+        {
+          "cycle": 5,
+          "seconds": 154.79084889,
+          "cumulative": 1913280
+        },
+        {
+          "cycle": 6,
+          "seconds": 182.38557546,
+          "cumulative": 2210464
+        },
+        {
+          "cycle": 7,
+          "seconds": 205.89369417,
+          "cumulative": 2529344
+        },
+        {
+          "cycle": 8,
+          "seconds": 231.68083833,
+          "cumulative": 2848224
+        },
+        {
+          "cycle": 9,
+          "seconds": 260.68330962,
+          "cumulative": 3162688
+        }
+      ],
+      "conclusion": "promoted: original-goal forecast uses only complete cycles within fixed 30s wall budget; unfinished cycle excluded"
     }
   },
   "dynamite_forecast": {
@@ -707,5 +2995,197 @@
     "lb_start_unchanged": true,
     "mod_log_errors": [],
     "unity_log_errors": []
+  },
+  "current_promotions": {
+    "dynamite": {
+      "source": "scripts/leaderboard/lb_dynamite.py",
+      "source_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+      "prediction_seconds": 821.0345455752362,
+      "full_original_goal_completed": false,
+      "original_goal": 10000000,
+      "initialization_seconds": 7.20020601,
+      "initialization_source_prefix_ast_equal": true,
+      "formula": "startup + (last_completed_cycle_seconds - startup) * original_goal / last_completed_cycle_cumulative; arithmetic mean over three seeds",
+      "seed_forecasts": [
+        {
+          "seed": 1,
+          "completed_cycles": 10,
+          "completed_seconds": 269.37356535,
+          "cumulative": 3073184,
+          "prediction_seconds": 860.3003111127208
+        },
+        {
+          "seed": 2,
+          "completed_cycles": 11,
+          "completed_seconds": 257.79802554,
+          "cumulative": 3184528,
+          "prediction_seconds": 794.1231645457705
+        },
+        {
+          "seed": 3,
+          "completed_cycles": 10,
+          "completed_seconds": 260.68330962,
+          "cumulative": 3162688,
+          "prediction_seconds": 808.6801610672171
+        }
+      ],
+      "unfinished_cycles_excluded": true,
+      "lsp_errors": 0,
+      "lsp_hints": 9,
+      "short_leaderboard_test_seconds": null,
+      "game_leaderboard_seconds": null
+    },
+    "cactus_single": {
+      "source": "scripts/leaderboard/lb_cactus_single.py",
+      "source_sha256": "cba9dc2f8a22d2d279ef58aca85a365aa0867f8e47bc6bbef77d0516ab7d3eca",
+      "prediction_seconds": 19.10611809,
+      "full_original_goal_completed": true,
+      "original_goal": 131072,
+      "seed_seconds": [
+        19.80159534,
+        19.48669641,
+        18.03006252
+      ],
+      "baseline_seed_seconds": [
+        20.19172104,
+        20.21805864,
+        18.51500358
+      ],
+      "baseline_mean_seconds": 19.64159442,
+      "lsp_errors": 0,
+      "lsp_hints": 0,
+      "lsp_note": "Four exact operator suppressions: this helper only measures Cactus 0..9; the generic Measure stub also includes Apple coordinate tuples. Execution AST unchanged.",
+      "short_leaderboard_test_seconds": null,
+      "game_leaderboard_seconds": null
+    }
+  },
+  "latest_deployment": {
+    "deployed_at_utc": "20261108T214629Z",
+    "prepare_request_id": 449,
+    "state": "idle",
+    "game_scripts_run": false,
+    "archive": ".codex/deployments/nonreset-100-20261108T214629Z",
+    "files": {
+      "lb_cactus_single.py": {
+        "before_sha256": "d38b3b24588373c5c474407d206465e859057b132987f485d8b7c450ed3e4d53",
+        "source_sha256": "cba9dc2f8a22d2d279ef58aca85a365aa0867f8e47bc6bbef77d0516ab7d3eca",
+        "comparison": [
+          {
+            "seed": 1,
+            "baseline_report": ".codex/nonreset-100-20261108/reports/actual-save-cactus-s1-fresh/report.json",
+            "baseline_report_sha256": "20bd5287ed9d3a9c83b42d41691c60c481a02de179873c6505e35635f877f816",
+            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s1/report.json",
+            "candidate_report_sha256": "d2b67245311ed3427ce88f22b47ed1ac8427970a78d2087d45192e48d230a68e",
+            "candidate_report_script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
+            "candidate_execution_ast_equal": true,
+            "old_seconds": 20.19172104,
+            "new_seconds": 19.80159534,
+            "original_goal_completed": true
+          },
+          {
+            "seed": 2,
+            "baseline_report": ".codex/nonreset-100-20261108/reports/cactus-current-s2/report.json",
+            "baseline_report_sha256": "4907266cadee65a8df8e3347e3f58afd5ac455e2126ec22b3adf2dd656faa893",
+            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s2/report.json",
+            "candidate_report_sha256": "b290c92ab5e48baf23478a01e799e30142485e37e3d371aaa13aeea4cc85a632",
+            "candidate_report_script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
+            "candidate_execution_ast_equal": true,
+            "old_seconds": 20.21805864,
+            "new_seconds": 19.48669641,
+            "original_goal_completed": true
+          },
+          {
+            "seed": 3,
+            "baseline_report": ".codex/nonreset-100-20261108/reports/cactus-current-s3/report.json",
+            "baseline_report_sha256": "4c454c612eaf74f8fc034718fe73fa2a851d8e3203bfa1ecb330159efe76d950",
+            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-cactus-morton-s3/report.json",
+            "candidate_report_sha256": "e8233868f534735368a68f5dfd924d062494d23cb2d876e2554e0ff4a972b723",
+            "candidate_report_script_sha256": "e8db5870b962a8f24a4c73b01902964388e53972f3dc7986084734c2b0356557",
+            "candidate_execution_ast_equal": true,
+            "old_seconds": 18.51500358,
+            "new_seconds": 18.03006252,
+            "original_goal_completed": true
+          }
+        ]
+      },
+      "lb_dynamite.py": {
+        "before_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+        "source_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+        "comparison": [
+          {
+            "seed": 1,
+            "baseline_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-merge-s1-window120/report.json",
+            "baseline_report_sha256": "550fe0b656bcca724a79c8c67c20e49eb5495140ffc586a91a62c306e8d7820e",
+            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s1-wall30/report.json",
+            "candidate_report_sha256": "55ee2399669c032412377e9450186f0ab78e7a186c4e7c13a3a4f2e701cf8ff8",
+            "candidate_report_script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+            "candidate_execution_ast_equal": true,
+            "compared_completed_cycles": 4,
+            "old_completed_seconds": 115.05728709,
+            "new_completed_seconds": 112.02977997,
+            "old_cumulative": 1116064,
+            "new_cumulative": 1198496,
+            "original_goal_completed": false
+          },
+          {
+            "seed": 2,
+            "baseline_report": ".codex/nonreset-100-20261108/reports/dynamite-current-s2-window120/report.json",
+            "baseline_report_sha256": "9facb28465c19c1f432f60ee2f1f913cb406ac3d76bd7ccb8174124cd1c943ec",
+            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s2-wall30/report.json",
+            "candidate_report_sha256": "8776c1fd327b0a6c171b20174e2e1f9ec52ff01b9b7cd6a45c81b8a97813e692",
+            "candidate_report_script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+            "candidate_execution_ast_equal": true,
+            "compared_completed_cycles": 3,
+            "old_completed_seconds": 96.82656498,
+            "new_completed_seconds": 84.07472211,
+            "old_cumulative": 939152,
+            "new_cumulative": 956640,
+            "original_goal_completed": false
+          },
+          {
+            "seed": 3,
+            "baseline_report": ".codex/nonreset-100-20261108/reports/dynamite-current-s3-window120/report.json",
+            "baseline_report_sha256": "d53d961a9474441cedbd5288408387871a976e21aeecc6363eb00d886d26d1dd",
+            "candidate_report": ".codex/nonreset-100-20261108/reports/promote-dynamite-differences-s3-wall30/report.json",
+            "candidate_report_sha256": "06fbe8142cef390f2b3b9577d52a9f6baec5dd229a0e8b1e1fc1e22004f37141",
+            "candidate_report_script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+            "candidate_execution_ast_equal": true,
+            "compared_completed_cycles": 3,
+            "old_completed_seconds": 88.6556538,
+            "new_completed_seconds": 82.18039023,
+            "old_cumulative": 889616,
+            "new_cumulative": 956640,
+            "original_goal_completed": false
+          }
+        ]
+      }
+    },
+    "file_list_unchanged": true,
+    "other_python_files_unchanged": true,
+    "lb_start_unchanged": true,
+    "mod_log_errors": [],
+    "unity_log_errors": []
+  },
+  "prerequisite_rejections": [
+    {
+      "direction": "single-board expansion to sparse Cactus layout",
+      "result": "not feasible; no script or runtime probe",
+      "native_evidence": "Core.decompiled.cs: Farm.UnlockOrUpgrade singleDrone rejects megafarm and expand",
+      "model_evidence": "world.py: api_unlock already has the same leaderboard restriction"
+    },
+    {
+      "direction": "infected Cactus as doubled Cactus yield",
+      "result": "false premise; no script or runtime probe",
+      "native_evidence": "Core.decompiled.cs: Cactus.GetDrops converts half the infected yield to Weird Substance"
+    }
+  ],
+  "dynamite_per_cycle_bound": {
+    "native_evidence": "Core.decompiled.cs: SweeperController.GetMineRatio, GeneratePuzzle, GetYieldFactor, OnDig and ClearAndScorePuzzle",
+    "world_size": 32,
+    "board_mine_ratio": 0.135,
+    "maximum_mines": 138,
+    "yield_factor": 16,
+    "maximum_dynamite_per_cycle": 318880,
+    "superseded_budget": "The initial 410000-per-cycle target at fixed cycle duration exceeds this bound and is withdrawn. Higher solving completeness alone cannot achieve the 670.628s threshold; cycle duration must fall too."
   }
 }

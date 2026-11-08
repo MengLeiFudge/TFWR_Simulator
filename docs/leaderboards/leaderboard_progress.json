@@ -10,10 +10,10 @@
     },
     "lb_cactus_single": {
       "label": "仙人掌·单机",
-      "simulation_seconds": 20.19172104,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_seconds": 19.10611809,
+      "simulation_basis": "Morton顺序西南插入；三seed完整131072目标19.80159534/19.48669641/18.03006252，均快于实际存档同条件。prepare449已备份同步；未取得新版本实机成绩。",
       "evidence": "lb_cactus_single.md",
-      "direction": "寻找更少交换且规划便宜的构盘；全盘桶运输、交换依赖图和逆序边代表均未回本。"
+      "direction": "寻找更少交换的构盘；Morton已迁入，首seed只少3步移动，主要省选点费用，仍需新的动作结构。"
     },
     "lb_maze": {
       "label": "迷宫·多机",
@@ -118,21 +118,21 @@
       "simulation_seconds": 320.57940162,
       "simulation_basis": "已迁入常驻分片工人并备份同步已有存档；三seed原目标均值，另经新语法层80秒同条件效率对照。 证据local_promotion_validation.json；本版未实机打榜。",
       "evidence": "lb_mushrooms.md",
-      "direction": "重列配对、开层与运输的完整预算；随机滑块及输送带未回本，不能只调中转阈值。"
+      "direction": "重新比较配对与运输结构；十字揭盖减少挖掘也损失产量，多seed完整场次未回本，不能用窗口阶段差异声称提速。"
     },
     "lb_mushrooms_single": {
       "label": "蘑菇·单机",
       "simulation_seconds": 818.99883816,
       "simulation_basis": "已迁入重力中转算法并备份同步已有存档；三seed原目标均值，另经新语法层seed1完整复核。 证据local_promotion_validation.json；本版未实机打榜。",
       "evidence": "lb_mushrooms_single.md",
-      "direction": "减少必需开孔与搬运；一次push配对队列因挖掘6175次未回本。"
+      "direction": "寻找更少搬运与开孔的配对结构；最高柱、黑白格与十字揭盖代表均已关闭，不调原阈值。"
     },
     "lb_dynamite": {
       "label": "炸药·多机",
-      "simulation_seconds": 976.0319772483359,
-      "simulation_basis": "单调事实合并，固定30秒现实预算内9盘正常结算2551424；按完整周期加初始化外推原一千万目标，原目标未完整完成。证据structure_screening.json；已备份同步已有存档，未实机。",
+      "simulation_seconds": 821.0345455752362,
+      "simulation_basis": "相邻数字差集确定推理；三seed各固定30现实秒，共31盘正常结算，仅按完整周期加初始化外推原一千万目标。原目标未完整跑完；structure_screening.json记录源/报告、公式与prepare449部署，未实机。",
       "evidence": "lb_dynamite.md",
-      "direction": "重新设计证据交换和开格组织；现场轮询与集中批次未回本，单调归并仅保留可兑现改善。"
+      "direction": "继续改变开格与证据交换的关键路径；差集规则已提高单盘兑现，但仍超过两倍线，不扩大旧轮询/集中协议预算。"
     },
     "lb_dynamite_single": {
       "label": "炸药·单机",

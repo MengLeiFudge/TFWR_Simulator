@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（单调事实合并；本地固定窗口已验证）。
+# 完整轮时间：未取得（相邻数字差集确定推理；本地完整盘已验证）。
 
 
 def lb_dynamite():
@@ -121,6 +121,11 @@ def work(group, groups, known, near, size, depth):
             if known[cell] == SAFE:
                 targets.append(cell)
         if len(targets) == 0:
+            found = propagate_differences(known, clues, near, updates)
+            if found < 0:
+                return "error", updates
+            if found > 0:
+                continue
             return "running", updates
         while len(targets) > 0:
             cell = targets.pop()
@@ -183,6 +188,58 @@ def propagate(known, active, near, updates):
                     pending.append(other)
                     queued.add(other)
     return True
+
+
+# 仅在基本规则停滞时比较相邻公开数字；所有差集事实来自同一盘。
+def propagate_differences(known, active, near, updates):
+    constraints = {}
+    for clue in active:
+        remaining = known[clue]
+        cells = set()
+        for cell in near[clue]:
+            if known[cell] == MINE:
+                remaining -= 1
+            elif known[cell] == UNKNOWN:
+                cells.add(cell)
+        constraints[clue] = (remaining, cells)
+    facts = {}
+    for clue in constraints:
+        mines_a, cells_a = constraints[clue]
+        for other in near[clue]:
+            if other <= clue or other not in constraints:
+                continue
+            mines_b, cells_b = constraints[other]
+            only_a = []
+            only_b = []
+            for cell in cells_a:
+                if cell not in cells_b:
+                    only_a.append(cell)
+            for cell in cells_b:
+                if cell not in cells_a:
+                    only_b.append(cell)
+            difference = mines_a - mines_b
+            value_a = UNKNOWN
+            value_b = UNKNOWN
+            if difference == len(only_a):
+                value_a = MINE
+                value_b = SAFE
+            elif -difference == len(only_b):
+                value_a = SAFE
+                value_b = MINE
+            else:
+                continue
+            for cell in only_a:
+                if cell in facts and facts[cell] != value_a:
+                    return -1
+                facts[cell] = value_a
+            for cell in only_b:
+                if cell in facts and facts[cell] != value_b:
+                    return -1
+                facts[cell] = value_b
+    for cell in facts:
+        known[cell] = facts[cell]
+        updates[cell] = facts[cell]
+    return len(facts)
 
 
 # 只准备首挖入口，其余柱的覆盖层按实际安全任务清理。
