@@ -1,4 +1,4 @@
-"""对齐游戏解析后的无意义表达式检查；保留括号节点对规则的影响。"""
+"""对齐已实现的游戏语法与无意义表达式检查；保留括号节点对规则的影响。"""
 import ast
 from bisect import bisect_left, bisect_right
 import io
@@ -14,7 +14,7 @@ class GameSyntaxError(SyntaxError):
 
 
 class SyntaxChecks(ast.NodeVisitor):
-    """对应Core中三个CheckForNonsensicalCode覆写，不作常量传播。"""
+    """校验调用参数语法与三个CheckForNonsensicalCode覆写，不作常量传播。"""
 
     def __init__(self, source, filename):
         self.filename = filename
@@ -62,6 +62,16 @@ class SyntaxChecks(ast.NodeVisitor):
         location = (self.filename, start[0], start[1] + 1, self.lines[start[0] - 1],
                     end[0], end[1] + 1)
         raise GameSyntaxError(code, message, location)
+
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        if node.keywords:
+            keyword = node.keywords[0]
+            begin = bisect_left(self.starts, self.position(keyword))
+            end = bisect_left(self.starts, self.position(keyword.value))
+            operator = next((token for token in self.tokens[begin:end] if token.string in ('=', '**')), None)
+            code = 'error_expected_close_token' if keyword.arg is not None else 'error_invalid_expression'
+            self.fail(keyword, code, '游戏函数调用只支持位置参数；请按参数顺序传值。', operator)
 
     def visit_BoolOp(self, node):
         self.generic_visit(node)

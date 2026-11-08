@@ -8,11 +8,13 @@
 
 [resources.py](../scripts/functional/resources.py) 按最终库存目标调用 `入口(target=-1)`：先补齐有限目标，再持续调用无限目标。资源入口与生产子机显式接收目标；[production.py](../scripts/functional/production.py) 只保留库存判断和共享Jump额度。调度不按固定时长中断入口，炸药在一次调用内复用邻接表，逐盘正常结算后再检查目标。缺料返回后的材料补给与异常停止规则见[功能目录](../scripts/functional/README.md)。
 
-静态证据：23个功能模块通过游戏语法编译；20个资源入口均有默认 `target=-1`，44处库存判断均显式传入物品与目标；ty LSP为0错误、0警告，保留58项既有提示。自审覆盖目标传递、完整周期结算、缺料返回及切换前的子机回收。
+库存接口改动时，20个资源入口均有默认 `target=-1`，44处库存判断均显式传入物品与目标；ty LSP为0错误、0警告，保留58项既有提示。自审覆盖目标传递、完整周期结算、缺料返回及切换前的子机回收。当时编译器漏报了 `block.py` 的关键字调用，旧的23模块编译通过记录不能作为该写法符合游戏语法的依据。
 
 当前目标调度未运行本地模拟或游戏脚本。此前地下单入口、炸药完整两盘及竹子有限返回的模拟见[对应版本记录](underground-functional-validation.md)；这些数据不覆盖当前目标传参、材料补给闭环与跨资源串联，不能当作当前调度效率或正确性已验证。
 
 2026-11-08，用户在获知上述验证范围后明确要求更新存档。已同步 `203e54c` 对应的23个已有Python文件，保留原 `TARGETS` 配置和换行约定。覆盖前备份全部62个存档Python文件；覆盖后23个部署文件及其余39个文件均通过SHA256核对，未新增或删除存档文件。模组prepare请求443正常结束并回到idle，未执行生产脚本。备份、冻结候选与逐文件哈希见[本机部署记录](../.codex/deployments/functional-resources-20261108T053650996280Z/manifest.json)。同步后仓库新增的未提交铁勘探改动不属于该冻结版本。
+
+同日，用户游戏截图确认 `block.py` 的 `target=target` 调用在等号处被拒绝。现改为 `mining.mine(Items.Block, None, 16, None, target)`，并在[调用语法检查](../simulator/local_simulator/syntax-validation.md#调用参数规则)中拒绝关键字调用。冻结的旧存档源码现在返回 `GameSyntaxError/error_expected_close_token`，定位第6行第46列；修正后的23个功能模块及冻结候选通过静态编译，目录内未发现其他关键字调用。修改文件的LSP无诊断。prepare请求444回到idle后只同步既有 `block.py` 的这一行，其余61个Python文件哈希不变；未新增或删除存档文件，未执行生产脚本。[修复备份与静态证据](../.codex/deployments/block-positional-20261108T063506843382Z/manifest.json)保存旧源码、候选与校验结果。
 
 下文数值对应历史JSON冻结源码与依赖。当前新增控制条件和地下算法会改变解释器费用及生产边界；本页历史数据保留来源与时间归属。
 
