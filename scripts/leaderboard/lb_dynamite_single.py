@@ -1,193 +1,184 @@
 from __builtins__ import *
-# 完整轮时间：354.964秒（本地原目标三seed均值；当前增量求解版本未实机验证）。
-
+# 完整轮时间：未取得（缓存约束、就近开格与原地结算；本地原目标已通过）。
 
 def lb_dynamite_single():
     size = get_world_size()
     near = []
     for cell in range(size * size):
         near.append(neighbors(cell, size))
+    routes = []
+    for cell in range(size * size):
+        route = []
+        for dx, dy in [(0,1),(1,0),(0,-1),(-1,0),(1,1),(1,-1),(-1,-1),(-1,1),(0,2),(2,0),(0,-2),(-2,0)]:
+            route.append((cell % size + dx) % size + ((cell // size + dy) % size) * size)
+        routes.append(route)
     started = get_time()
-    for cycle in range(CYCLE_LIMIT):
+    for cycle in range(512):
         if num_items(Items.Dynamite) >= 100000:
             quick_print("dynamite_done", True, get_time(), num_items(Items.Dynamite))
             return
         if get_time() - started > 14400:
             quick_print("dynamite_failed", "time_limit")
             return
-        began = get_time()
-        before = num_items(Items.Dynamite)
         clear()
         if not move_to(size // 2, size // 2, size) or not find_stratum():
-            quick_print("dynamite_failed", "find_stratum", cycle)
+            quick_print("dynamite_failed", "find", cycle)
             return
         depth = get_pos_z()
-        prepared = get_time()
         status, number = open_ground(depth)
         if status != "number":
-            quick_print("dynamite_failed", "first_cell", status)
+            quick_print("dynamite_failed", "first", status)
             return
-        known = []
-        for cell in range(size * size):
-            known.append(UNKNOWN)
-        known[(size // 2) * (size + 1)] = number
-        groups = min(max_drones(), size)
-        rounds = 0
-        for phase in range(PHASE_LIMIT):
-            results = dispatch(0, groups, groups, known, near, size, depth)
-            changed = False
-            status = "running"
-            for state, updates in results:
-                if len(updates) > 0:
-                    changed = True
-                if state == "error":
-                    status = state
-                elif state == "mine" and status != "error":
-                    status = state
-                elif state == "ended" and status == "running":
-                    status = state
-                for cell in updates:
-                    value = updates[cell]
-                    old = known[cell]
-                    if old == value or (old >= 0 and value == SAFE) or (old == DONE and value >= 0):
-                        continue
-                    if old == UNKNOWN or (old == SAFE and value >= 0) or (old >= 0 and value == DONE):
-                        known[cell] = value
-                    else:
-                        quick_print("dynamite_conflict", cell, old, value)
-                        return
-            rounds += 1
-            if status != "running" or not changed:
-                break
+        before = num_items(Items.Dynamite)
+        status = solve_cached((size // 2) * (size + 1), number, near, routes, size, depth)
         if status == "running":
-            status = settle(size, depth)
-        quick_print("dynamite_cycle", cycle, status, "phases", rounds,
-                    num_items(Items.Dynamite) - before, get_time(), num_items(Items.Dynamite),
-                    "prepare", prepared - began, "solve", get_time() - prepared)
+            # 当前格已正常打开；直接在本格煤灰结算一次，无需绕回首挖入口。
+            status, number = read_ground(depth)
+            if status == "number" and dig():
+                status, number = read_ground(depth)
+        quick_print("dynamite_cycle", cycle, status, num_items(Items.Dynamite) - before,
+                    get_time(), num_items(Items.Dynamite))
         if status != "ended":
             return
     quick_print("dynamite_failed", "cycle_limit")
 
 
+def solve_cached(start, number, near, routes, size, depth):
+    known = [UNKNOWN] * (size * size)
+    unseen = set(range(size * size))
+    mines = set()
+    constraints = {}
+    pending = []
+    targets = []
+    known[start] = SAFE
+    unseen.remove(start)
+    store_number(start, number, known, near, constraints, pending, targets, unseen, mines)
+    cursor = start
+    for _ in range(16384):
+        while len(pending) > 0:
+            clue = pending.pop()
+            if clue not in constraints:
+                continue
+            remaining, unknown = constraints[clue]
+            if remaining != 0 and remaining != len(unknown):
+                continue
+            constraints.pop(clue)
+            known[clue] = DONE
+            value = SAFE
+            if remaining > 0:
+                value = MINE
+            for cell in unknown:
+                set_fact(cell, value, known, near, constraints, pending, targets, unseen, mines)
+        if len(targets) == 0:
+            if refine_cached(known, near, constraints, pending, targets, unseen, mines, size):
+                continue
+            return "running"
+        cell = -1
+        for other in routes[cursor]:
+            if known[other] == SAFE:
+                cell = other
+                break
+        if cell < 0:
+            cell = targets.pop()
+        if known[cell] != SAFE:
+            continue
+        cursor = cell
+        if not move_to(cell % size, cell // size, size):
+            return "error"
+        status, number = open_ground(depth)
+        if status != "number":
+            return status
+        store_number(cell, number, known, near, constraints, pending, targets, unseen, mines)
+    return "error"
+
+
+def set_fact(cell, value, known, near, constraints, pending, targets, unseen, mines):
+    if known[cell] != UNKNOWN:
+        return
+    known[cell] = value
+    unseen.remove(cell)
+    if value == MINE:
+        mines.add(cell)
+    else:
+        targets.append(cell)
+    # 每个新事实只删除相邻约束里的这一格，不重新扫描全部旧数字。
+    for clue in near[cell]:
+        if clue not in constraints:
+            continue
+        state = constraints[clue]
+        if cell not in state[1]:
+            continue
+        state[1].remove(cell)
+        if value == MINE:
+            state[0] -= 1
+        if state[0] == 0 or state[0] == len(state[1]):
+            pending.append(clue)
+
+
+def store_number(cell, number, known, near, constraints, pending, targets, unseen, mines):
+    known[cell] = number
+    if number == 0:
+        known[cell] = DONE
+        for other in near[cell]:
+            set_fact(other, SAFE, known, near, constraints, pending, targets, unseen, mines)
+        return
+    remaining = number
+    unknown = set()
+    for other in near[cell]:
+        if known[other] == MINE:
+            remaining -= 1
+        elif known[other] == UNKNOWN:
+            unknown.add(other)
+    if len(unknown) == 0:
+        known[cell] = DONE
+        return
+    constraints[cell] = [remaining, unknown]
+    if remaining == 0 or remaining == len(unknown):
+        pending.append(cell)
+
+
+def refine_cached(known, near, constraints, pending, targets, unseen, mines, size):
+    # 资源榜原生雷率固定为0.135；8×8按原版四舍五入生成9颗雷。
+    remaining = (size * size * 135 + 500) // 1000 - len(mines)
+    if len(unseen) > 0 and (remaining == 0 or remaining == len(unseen)):
+        value = SAFE
+        if remaining > 0:
+            value = MINE
+        for cell in list(unseen):
+            set_fact(cell, value, known, near, constraints, pending, targets, unseen, mines)
+        return True
+    for ca in constraints:
+        ra, a = constraints[ca]
+        for cb in constraints:
+            rb, b = constraints[cb]
+            count = len(b) - len(a)
+            if count <= 0 or (rb != ra and rb - ra != count):
+                continue
+            subset = True
+            for cell in a:
+                if cell not in b:
+                    subset = False
+                    break
+            if not subset:
+                continue
+            difference = []
+            for cell in b:
+                if cell not in a:
+                    difference.append(cell)
+            value = SAFE
+            if rb != ra:
+                value = MINE
+            for cell in difference:
+                set_fact(cell, value, known, near, constraints, pending, targets, unseen, mines)
+            return True
+    return False
+
+
 UNKNOWN = -2
 MINE = -1
 SAFE = -3
-# 已开格且所有邻格均已证明，退出本盘约束队列。
 DONE = 9
-CYCLE_LIMIT = 512
 DIG_LIMIT = 256
-PHASE_LIMIT = 256
-
-
-def dispatch(lo, hi, groups, known, near, size, depth):
-    if hi - lo == 1:
-        return [work(lo, groups, known, near, size, depth)]
-    mid = (lo + hi) // 2
-    handle = spawn_drone(dispatch, mid, hi, groups, known, near, size, depth)
-    results = dispatch(lo, mid, groups, known, near, size, depth)
-    if handle == None:
-        right = dispatch(mid, hi, groups, known, near, size, depth)
-    else:
-        right = wait_for(handle)
-    for result in right:
-        results.append(result)
-    return results
-
-
-# 单机负责全盘；只维护变化数字，推理停滞后正常结算一次。
-def work(group, groups, known, near, size, depth):
-    columns = min(8, groups)
-    rows = groups // columns
-    left = (group % columns) * size // columns
-    right = (group % columns + 1) * size // columns
-    bottom = (group // columns) * size // rows
-    top = (group // columns + 1) * size // rows
-    owned = []
-    for y in range(bottom, top):
-        if (y - bottom) % 2 == 0:
-            for x in range(left, right):
-                owned.append(x + y * size)
-        else:
-            for x in range(right - 1, left - 1, -1):
-                owned.append(x + y * size)
-    clues = set()
-    for y in range(max(0, bottom - 2), min(size, top + 2)):
-        for x in range(max(0, left - 2), min(size, right + 2)):
-            cell = x + y * size
-            if known[cell] >= 0 and known[cell] != DONE:
-                clues.add(cell)
-    owned_set = set(owned)
-    updates = {}
-    for step in range(PHASE_LIMIT):
-        if not propagate(known, clues, near, updates):
-            return "error", updates
-        targets = []
-        for cell in owned:
-            if known[cell] == SAFE:
-                targets.append(cell)
-        if len(targets) == 0:
-            return "running", updates
-        while len(targets) > 0:
-            cell = targets.pop()
-            if not move_to(cell % size, cell // size, size):
-                return "error", updates
-            status, number = open_ground(depth)
-            if status != "number":
-                return status, updates
-            known[cell] = number
-            updates[cell] = number
-            if number == 0:
-                known[cell] = DONE
-                updates[cell] = DONE
-                for other in near[cell]:
-                    if known[other] == UNKNOWN:
-                        known[other] = SAFE
-                        updates[other] = SAFE
-                        if other in owned_set:
-                            targets.append(other)
-            else:
-                clues.add(cell)
-    return "error", updates
-
-
-# 一个新事实只唤醒相邻数字，已完成约束不再扫描。
-def propagate(known, active, near, updates):
-    pending = []
-    queued = set()
-    for clue in active:
-        pending.append(clue)
-        queued.add(clue)
-    while len(pending) > 0:
-        clue = pending.pop()
-        queued.remove(clue)
-        if clue not in active:
-            continue
-        remaining = known[clue]
-        unknown = []
-        for cell in near[clue]:
-            value = known[cell]
-            if value == MINE:
-                remaining -= 1
-            elif value == UNKNOWN:
-                unknown.append(cell)
-        if remaining < 0 or remaining > len(unknown):
-            return False
-        if remaining != 0 and remaining != len(unknown):
-            continue
-        active.remove(clue)
-        known[clue] = DONE
-        updates[clue] = DONE
-        value = MINE
-        if remaining == 0:
-            value = SAFE
-        for cell in unknown:
-            known[cell] = value
-            updates[cell] = value
-            for other in near[cell]:
-                if other in active and other not in queued:
-                    pending.append(other)
-                    queued.add(other)
-    return True
 
 
 def find_stratum():
@@ -233,18 +224,7 @@ def open_ground(depth):
     return read_ground(depth)
 
 
-def settle(size, depth):
-    if not move_to(size // 2, size // 2, size):
-        return "error"
-    status, number = read_ground(depth)
-    if status == "ended":
-        return status
-    if status != "number" or not dig():
-        return "error"
-    status, number = read_ground(depth)
-    if status != "ended":
-        return "error"
-    return status
+
 
 
 # 雷数八邻域不环绕，常规移动允许经过农场边界。

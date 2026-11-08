@@ -4,7 +4,18 @@
   "target": "min(account public best, valid prediction) <= 2 * public #1",
   "public_snapshot": "references/leaderboards/status_snapshot.md; 2026-11-08T09:20:07Z through 09:24:58Z",
   "game_run": false,
-  "save_files_changed": false,
+  "save_files_changed": true,
+  "deployment": {
+    "deployed_at_utc": "2026-11-08T17:32:32Z",
+    "prepare_request_id": 445,
+    "state": "idle",
+    "scripts": ["lb_bamboo.py", "lb_bamboo_single.py", "lb_dynamite_single.py"],
+    "manifest": ".codex/deployments/nonreset-100-20261108T173232Z/manifest.json",
+    "file_list_unchanged": true,
+    "other_python_files_unchanged": true,
+    "lb_start_unchanged": true,
+    "game_scripts_run": false
+  },
   "reset_boards_changed": false,
   "model": {
     "unchanged_from_git": "fe3fc67",
@@ -48,6 +59,24 @@
       {"seed": 2, "seconds": 320.83558965, "bamboo": 515719040, "report": ".codex/nonreset-100-20261108/reports/bamboo-final-multi-s2/report.json", "report_sha256": "91339142ecd9cd6f15d6da40b89fb8b7e7edbc21c50556a1ac169b5ad45780fd"},
       {"seed": 3, "seconds": 322.010082, "bamboo": 515564416, "report": ".codex/nonreset-100-20261108/reports/bamboo-final-multi-s3/report.json", "report_sha256": "eee98ad988d384e64b4d6d6f85eb8b377296062f2f441cd391c32c86cfb9accf"}
     ]
+  },
+  "dynamite_single": {
+    "source": "scripts/leaderboard/lb_dynamite_single.py",
+    "source_sha256": "10c26d7fef1413124082b413f2efcfce893ad9c289c32563fd8ed47f9f77f654",
+    "world_size": 8,
+    "max_drones": 1,
+    "goal": 100000,
+    "initial_items": {"Power": 1000000000},
+    "public_first_seconds": 141.199,
+    "threshold_seconds": 282.398,
+    "prediction_mean_seconds": 258.42239127,
+    "status": "three complete original targets; copied to existing save file; not game verified",
+    "runs": [
+      {"seed": 1, "seconds": 256.31456022, "dynamite": 101872, "report": ".codex/nonreset-100-20261108/reports/dynamite-final-single-s1/report.json", "report_sha256": "bb13e6d0356d02d4e3df0e962e2b8cb17f05d6bee8b984cc1f8697d14014f035"},
+      {"seed": 2, "seconds": 257.40427842, "dynamite": 100800, "report": ".codex/nonreset-100-20261108/reports/dynamite-final-single-s2/report.json", "report_sha256": "3f7c17463143df8fb67ab55a46d4d5fb223f91be462deea63383af8c028f416e"},
+      {"seed": 3, "seconds": 261.54833517, "dynamite": 101232, "report": ".codex/nonreset-100-20261108/reports/dynamite-final-single-s3/report.json", "report_sha256": "0bbd797f365b892f9ae25220926df8377520ae7280a0d135d33c3c1e57e6d86c"}
+    ],
+    "static_checks": {"game_syntax": "passed by simulator load", "lsp": "ty: zero errors; three hints"}
   },
   "budgets": {"wall_seconds_per_seed": 30, "max_api_calls": 5000000, "max_source_checkpoints": 50000000},
   "initial_items": {"Power": 1000000000, "Rice": 1000000000, "Water": 0, "Fertilizer": 0},
