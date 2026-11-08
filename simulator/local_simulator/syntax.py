@@ -1,22 +1,20 @@
-"""对齐已实现的游戏语法与无意义表达式检查；保留括号节点对规则的影响。"""
+"""先检查原版游戏语法，再应用解析后的无意义表达式规则。"""
 import ast
 from bisect import bisect_left, bisect_right
 import io
 import tokenize
 
 from .catalog import Direction, Entities, Grounds, Hats, Items, Leaderboards, Unlocks
-
-
-class GameSyntaxError(SyntaxError):
-    def __init__(self, code, message, location):
-        super().__init__(message, location)
-        self.code = code
+from .game_parser import GameSyntaxError, validate_grammar
 
 
 class SyntaxChecks(ast.NodeVisitor):
-    """校验调用参数语法与三个CheckForNonsensicalCode覆写，不作常量传播。"""
+    """对齐三个CheckForNonsensicalCode覆写及赋值目标，不作常量传播。"""
 
-    def __init__(self, source, filename):
+    def __init__(self, source, filename, function_names=()):
+        self.function_names = frozenset(function_names)
+        self.variables = [set()]
+        self.global_variables = [set()]
         self.filename = filename
         self.lines = source.splitlines(keepends=True)
         ignored = {tokenize.COMMENT, tokenize.NL, tokenize.NEWLINE, tokenize.INDENT,
@@ -63,15 +61,61 @@ class SyntaxChecks(ast.NodeVisitor):
                     end[0], end[1] + 1)
         raise GameSyntaxError(code, message, location)
 
-    def visit_Call(self, node):
+    def check_target(self, node):
+        if isinstance(node, (ast.Tuple, ast.List)):
+            for child in node.elts:
+                self.check_target(child)
+        elif isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Slice):
+            self.fail(node, 'error_invalid_assign_expr', '游戏不支持给切片赋值；请逐项修改。')
+        elif isinstance(node, ast.Name):
+            constants = {'Entities', 'Grounds', 'Hats', 'Items', 'Leaderboards', 'Unlocks'}
+            if node.id in constants or node.id in Direction.__members__:
+                self.fail(node, 'error_invalid_assign_expr', '游戏常量不能作为赋值目标。')
+            if node.id not in self.global_variables[-1]:
+                self.variables[-1].add(node.id)
+
+    def visit_Assign(self, node):
+        for target in node.targets:
+            self.check_target(target)
         self.generic_visit(node)
-        if node.keywords:
-            keyword = node.keywords[0]
-            begin = bisect_left(self.starts, self.position(keyword))
-            end = bisect_left(self.starts, self.position(keyword.value))
-            operator = next((token for token in self.tokens[begin:end] if token.string in ('=', '**')), None)
-            code = 'error_expected_close_token' if keyword.arg is not None else 'error_invalid_expression'
-            self.fail(keyword, code, '游戏函数调用只支持位置参数；请按参数顺序传值。', operator)
+
+    def visit_AugAssign(self, node):
+        self.check_target(node.target)
+        self.generic_visit(node)
+
+    def visit_For(self, node):
+        self.check_target(node.target)
+        self.generic_visit(node)
+
+    def visit_FunctionDef(self, node):
+        for default in node.args.defaults:
+            self.visit(default)
+        self.variables.append({argument.arg for argument in node.args.args})
+        self.global_variables.append(set())
+        for statement in node.body:
+            self.visit(statement)
+        self.variables.pop()
+        self.global_variables.pop()
+        if node.name not in self.global_variables[-1]:
+            self.variables[-1].add(node.name)
+
+    def visit_Import(self, node):
+        for alias in node.names:
+            if alias.name != '*' and alias.name not in self.global_variables[-1]:
+                self.variables[-1].add(alias.name)
+
+    visit_ImportFrom = visit_Import
+
+    def visit_Global(self, node):
+        for name in node.names:
+            if name in self.variables[-1]:
+                self.fail(node, 'error_assign_before_global', '同一作用域内必须先声明global，再赋值。')
+            self.global_variables[-1].add(name)
+
+    def visit_Expr(self, node):
+        if isinstance(node.value, ast.Name) and node.value.id in self.function_names:
+            self.fail(node.value, 'error_not_a_statement2', '内置函数作为语句时必须带调用括号。')
+        self.generic_visit(node)
 
     def visit_BoolOp(self, node):
         self.generic_visit(node)
@@ -118,5 +162,6 @@ class SyntaxChecks(ast.NodeVisitor):
                       f'{ast.unparse(node)}不能把物品、实体或科技常量当作数量比较。')
 
 
-def validate_syntax(tree, source, filename):
-    SyntaxChecks(source, filename).visit(tree)
+def validate_syntax(tree, source, filename, function_names=()):
+    validate_grammar(source, filename)
+    SyntaxChecks(source, filename, function_names).visit(tree)

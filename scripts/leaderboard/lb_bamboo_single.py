@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（统一花节批量保桩；本地原目标已通过，详见同名文档）。
+# 完整轮时间：未取得（统一花节批量保桩；当前版本未实机验证）。
 
 def lb_bamboo_single():
     clear()
@@ -63,7 +63,10 @@ def bamboo_batch(y0, rows, goal, water_level, interval):
                 do_a_flip()
             last = get_time()
             hover(height)
-            bamboo_sweep(rows, water_level if height == 1 else -1)
+            if height == 1:
+                bamboo_sweep(rows, water_level)
+            else:
+                bamboo_sweep(rows, -1)
         cycles += 1
         if cycles % 4 == 0:
             quick_print("bamboo_batch", y0, cycles, get_time(), num_items(Items.Bamboo))

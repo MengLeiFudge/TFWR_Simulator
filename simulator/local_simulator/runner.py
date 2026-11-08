@@ -20,6 +20,7 @@ from .language import BUILTINS, game_iter
 from .execution import Api, Drone, Request, Scheduler, API_NAMES, Module, ReturnedValue, attribute, compile_script, dispatch, elapsed, evaluate
 from .scenarios import save_scenario, unlock_overrides
 from .syntax import validate_syntax
+from .game_parser import validate_grammar
 
 
 class BudgetExceeded(RuntimeError):
@@ -43,10 +44,10 @@ ALLOWED_NODES = (
     ast.AugAssign, ast.Expr, ast.If, ast.For, ast.While, ast.Break, ast.Continue,
     ast.Pass, ast.Name, ast.Constant, ast.Load, ast.Store, ast.Call, ast.keyword,
     ast.Attribute, ast.List, ast.Tuple, ast.Dict, ast.Set, ast.Subscript, ast.Slice,
-    ast.BinOp, ast.UnaryOp, ast.BoolOp, ast.Compare, ast.IfExp,
+    ast.BinOp, ast.UnaryOp, ast.BoolOp, ast.Compare,
     ast.Add, ast.Sub, ast.Mult, ast.Div, ast.FloorDiv, ast.Mod, ast.Pow,
     ast.USub, ast.UAdd, ast.Not, ast.And, ast.Or, ast.Eq, ast.NotEq,
-    ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.Is, ast.IsNot, ast.In, ast.NotIn,
+    ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn,
 )
 
 
@@ -60,12 +61,25 @@ def load_script(path: Path):
 def compile_source(source, filename):
     """以源码内容和路径为键复用编译产物；源码变化自动失效，每轮执行环境仍独立。"""
     path = Path(filename)
-    tree = ast.parse(source, filename=filename)
+    try:
+        tree = ast.parse(source, filename=filename)
+    except SyntaxError as exc:
+        # 先报告原版语法错误；原版能解析但CPython不能表示的写法属于本地覆盖缺口。
+        validate_grammar(source, filename)
+        raise UnsupportedMechanism(f'{filename}:{exc.lineno}：本地Python后端无法表示该语法：{exc.msg}') from exc
+    functions = set(BUILTINS) | set(API_NAMES)
+    functions.update(name[4:] for name in dir(FarmWorld) if name.startswith('api_'))
+    validate_syntax(tree, source, filename, functions)
     tree.body = [node for node in tree.body if not (
         isinstance(node, ast.ImportFrom) and node.module in ('__builtins__', 'builtins'))]
     for node in ast.walk(tree):
         if not isinstance(node, ALLOWED_NODES):
             raise UnsupportedMechanism(f'第 {getattr(node, "lineno", "?")} 行：尚未支持 {type(node).__name__}')
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            # 原版PyString直接取引号中原文，不解释Python转义。前置解析已排除前缀及拼接。
+            literal = ast.get_source_segment(source, node)
+            assert literal is not None, 'AST字符串缺少源码位置'
+            node.value = literal[1:-1]
         if isinstance(node, ast.Attribute) and node.attr.startswith('_'):
             raise UnsupportedMechanism(f'第 {node.lineno} 行：尚未支持属性 {node.attr}')
         if isinstance(node, (ast.Import, ast.ImportFrom)):
@@ -87,7 +101,7 @@ def compile_source(source, filename):
             raise UnsupportedMechanism(f'第 {node.lineno} 行：尚未支持模块属性赋值')
         if isinstance(node, ast.FunctionDef) and (node.decorator_list or node.returns):
             raise UnsupportedMechanism(f'第 {node.lineno} 行：不支持装饰器或返回类型注解')
-    validate_syntax(tree, source, filename)
+    # 后端计费转换可以生成IfExp等内部节点，但游戏源代码必须先通过上面的语法关口。
     return compile_script(tree, path), hashlib.sha256(source.encode()).hexdigest()
 
 

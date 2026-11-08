@@ -2,7 +2,7 @@
 
 `simulator/` 提供本地策略预测：Python 农场 API 脚本模拟，以及 C# 的 Dinosaur、Cactus、Companion 简化动作模型。
 
-无需打开游戏即可运行，是脚本的主要验证方式。不同入口的能力与精度分别说明：
+无需打开游戏即可运行，是脚本的主要验证方式。游戏源文件使用原版Tokenizer/Parser支持的语法子集，不能按标准Python能力放行；前置语法检查、拒绝边界和错误位置见[游戏语言检查](local_simulator/syntax-validation.md)。不同入口的能力与精度分别说明：
 
 - [农场API模拟](local_simulator/README.md)执行受支持脚本，已适配基础作物、恐龙、迷宫、水肥、科技与无人机调度，并实现地下地形、作物、解谜和14个地下排行榜场景。基础游戏更新与验收见[更新对齐记录](local_simulator/game-update-26385848.md)。地下的资源快照来自26410308；构建26462009已修正塌方传播坐标筛选，当前Reset源码seed1完整19716.483046656秒对照误差0ns，方法和历史边界见[地下对照记录](local_simulator/underground-validation.md)。专用排行榜盘面仍单列源码核对范围。
 - 下文的 C# 模型验证简化机制和动作预算，不执行脚本，也不模拟 Unity / BepInEx / leaderboard 停表。

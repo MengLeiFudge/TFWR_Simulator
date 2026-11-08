@@ -1,0 +1,391 @@
+{
+  "date": "2026-11-08T18:48:59.119610+00:00",
+  "scope": "Game source grammar parity and Bamboo IfExp fix; no leaderboard game run",
+  "authority": {
+    "source": "references/DecompiledSource/Core/Core.decompiled.cs",
+    "sha256": "ebb0bf14c8b1ec2a04cb231729869d885070d51d1a6a7cfb94421808ef32c872",
+    "classes": [
+      "Tokenizer",
+      "Parser",
+      "CodeWindow.Parse / CheckForNonsensicalCode"
+    ]
+  },
+  "implementation": {
+    "simulator/local_simulator/game_parser.py": "a2972dd466902f22af233e25aaf108c6d70f0e245967553da3c2c59e9da71bc9",
+    "simulator/local_simulator/syntax.py": "5b045d6f8830b578bb111bde310648bcaceea60bd0c907b43463746d2022a485",
+    "simulator/local_simulator/runner.py": "b6aa7b84041957d87942781fc975f844cb9ea39c44fb6dc9bcb99e477fb6b722"
+  },
+  "static_compilation": {
+    "game_sources": 54,
+    "compiled": 54,
+    "report": ".codex/game-syntax-parity-20261108/all-scripts-static.json",
+    "report_sha256": "0d84a259ebb78159fb3fff6d747eb12feb008b6beb7eea5b309fbe763cd7b477",
+    "grammar_forms": 48,
+    "game_syntax_rejections": 38,
+    "valid_forms_compiled": 9,
+    "local_coverage_gaps": 1,
+    "forms_report": ".codex/game-syntax-parity-20261108/static-compilation.json",
+    "forms_report_sha256": "7654d36f308209329289b9c15a595af3a6d91b3fd293ff9ba51685baaa809761",
+    "forms": [
+      {
+        "name": "conditional_argument",
+        "status": "rejected",
+        "error": "error_expected_close_token"
+      },
+      {
+        "name": "conditional_assignment",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "list_comprehension",
+        "status": "rejected",
+        "error": "error_expected_close_token"
+      },
+      {
+        "name": "dict_comprehension",
+        "status": "rejected",
+        "error": "error_expected_close_token"
+      },
+      {
+        "name": "generator_expression",
+        "status": "rejected",
+        "error": "error_expected_close_token"
+      },
+      {
+        "name": "lambda",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "formatted_string",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "walrus",
+        "status": "rejected",
+        "error": "error_unexpected_token"
+      },
+      {
+        "name": "star_call",
+        "status": "rejected",
+        "error": "error_invalid_expression"
+      },
+      {
+        "name": "double_star_call",
+        "status": "rejected",
+        "error": "error_invalid_expression"
+      },
+      {
+        "name": "keyword_call",
+        "status": "rejected",
+        "error": "error_expected_close_token"
+      },
+      {
+        "name": "variadic_definition",
+        "status": "rejected",
+        "error": "error_unexpected_token"
+      },
+      {
+        "name": "keyword_only_definition",
+        "status": "rejected",
+        "error": "error_unexpected_token"
+      },
+      {
+        "name": "positional_only_definition",
+        "status": "rejected",
+        "error": "error_unexpected_token"
+      },
+      {
+        "name": "decorator",
+        "status": "rejected",
+        "error": "error_invalid_expression"
+      },
+      {
+        "name": "class",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "exception_statement",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "context_manager",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "identity_comparison",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "loop_else",
+        "status": "rejected",
+        "error": "error_invalid_expression"
+      },
+      {
+        "name": "while_else",
+        "status": "rejected",
+        "error": "error_invalid_expression"
+      },
+      {
+        "name": "chained_assignment",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "power_assignment",
+        "status": "rejected",
+        "error": "error_invalid_expression"
+      },
+      {
+        "name": "bit_operation",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "scientific_number",
+        "status": "rejected",
+        "error": "error_invalid_expression"
+      },
+      {
+        "name": "underscored_number",
+        "status": "rejected",
+        "error": "error_invalid_expression"
+      },
+      {
+        "name": "hexadecimal_number",
+        "status": "rejected",
+        "error": "error_invalid_expression"
+      },
+      {
+        "name": "raw_string",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "multiline_string",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "implicit_string_join",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "semicolon",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "inline_block",
+        "status": "rejected",
+        "error": "error_no_statements"
+      },
+      {
+        "name": "multiple_global",
+        "status": "rejected",
+        "error": "error_code_after_block"
+      },
+      {
+        "name": "import_alias",
+        "status": "rejected",
+        "error": "error_invalid_import"
+      },
+      {
+        "name": "slice_assignment",
+        "status": "rejected",
+        "error": "error_invalid_assign_expr"
+      },
+      {
+        "name": "constant_assignment",
+        "status": "rejected",
+        "error": "error_invalid_assign_expr"
+      },
+      {
+        "name": "bare_builtin",
+        "status": "rejected",
+        "error": "error_not_a_statement2"
+      },
+      {
+        "name": "valid_if_else",
+        "status": "compiled",
+        "error": null
+      },
+      {
+        "name": "valid_default_and_position",
+        "status": "compiled",
+        "error": null
+      },
+      {
+        "name": "valid_tuple_assignment",
+        "status": "compiled",
+        "error": null
+      },
+      {
+        "name": "valid_literals_slices",
+        "status": "compiled",
+        "error": null
+      },
+      {
+        "name": "valid_while_true",
+        "status": "compiled",
+        "error": null
+      },
+      {
+        "name": "valid_parenthesized_or",
+        "status": "compiled",
+        "error": null
+      },
+      {
+        "name": "valid_raw_backslash_value",
+        "status": "compiled",
+        "error": null
+      },
+      {
+        "name": "valid_import",
+        "status": "compiled",
+        "error": null
+      },
+      {
+        "name": "game_return_annotation",
+        "status": "rejected",
+        "error": "UnsupportedMechanism"
+      },
+      {
+        "name": "assignment_before_global",
+        "status": "rejected",
+        "error": "error_assign_before_global"
+      },
+      {
+        "name": "valid_global_before_assignment",
+        "status": "compiled",
+        "error": null
+      }
+    ]
+  },
+  "old_source_cli_replay": {
+    "exit_code": 1,
+    "error_type": "GameSyntaxError",
+    "error_code": "error_expected_close_token",
+    "line": 66,
+    "column": 44,
+    "predicted_game_seconds": null,
+    "efficiency": null,
+    "goal_reached": null,
+    "report": ".codex/game-syntax-parity-20261108/rejected-old-source.json",
+    "report_sha256": "fcd25d833b4a7b2ab1a46dbcb53805c7a28ebc0657538b593d0e8e3197de7965"
+  },
+  "deployment": {
+    "archive": ".codex/deployments/game-syntax-20261108T183510Z",
+    "prepare_request_id": 446,
+    "state": "idle",
+    "changed_files": [
+      "lb_bamboo.py",
+      "lb_bamboo_single.py"
+    ],
+    "file_list_unchanged": true,
+    "other_python_files_unchanged": true,
+    "lb_start_unchanged": true,
+    "game_scripts_run": false,
+    "mod_and_unity_logs_checked": true,
+    "new_log_errors": []
+  },
+  "lsp": {
+    "host_python_files": "zero errors / zero hints",
+    "scope": [
+      "simulator/local_simulator/game_parser.py",
+      "simulator/local_simulator/syntax.py",
+      "simulator/local_simulator/runner.py"
+    ],
+    "note": "isolated standard Python workspace; repository game typings would shadow host builtins"
+  },
+  "game_compile_verified": false,
+  "model_limitations": "Leaderboard ground assets/source only; no new real-game parser or timing parity run. Backend coverage gaps fail explicitly.",
+  "bamboo_single": {
+    "source": "scripts/leaderboard/lb_bamboo_single.py",
+    "source_sha256": "f9471850970b49ee2dcc313845d153e5d7be35546e4bb3ee20b08d8251c203d3",
+    "original_goal": 25000000,
+    "prediction_mean_seconds": 265.38555888,
+    "runs": [
+      {
+        "seed": 1,
+        "seconds": 270.84155733,
+        "bamboo": 25357312.0,
+        "report": ".codex/nonreset-100-20261108/reports/bamboo-game-syntax-fixed-bamboo_single-s1/report.json",
+        "report_sha256": "2038bf0f5975b94807d912261c45c9cfb3c5a7cd578864837da0b397015980cb"
+      },
+      {
+        "seed": 2,
+        "seconds": 264.37814568,
+        "bamboo": 25972224.0,
+        "report": ".codex/nonreset-100-20261108/reports/bamboo-game-syntax-fixed-bamboo_single-s2/report.json",
+        "report_sha256": "afe8c18efd8e4967f10db53776b7f5731da1649b88d36c5c9513d80eab502562"
+      },
+      {
+        "seed": 3,
+        "seconds": 260.93697363,
+        "bamboo": 25289728.0,
+        "report": ".codex/nonreset-100-20261108/reports/bamboo-game-syntax-fixed-bamboo_single-s3/report.json",
+        "report_sha256": "cdeeffd1b50737f14a2d2bc40a5c23c3360e04385df137ada50b667d6f0e8bea"
+      }
+    ],
+    "public_first_seconds": 153.304,
+    "public_reference_period": "2026-11-08T09:20Z to 09:24Z; latest online refresh failed",
+    "gap_percent": 73.1106552209988,
+    "retracted_previous": {
+      "source_sha256": "e5a6d4b32310450c1a65e3cc39428224d57c79ace849a87f11770fa07fd8bf19",
+      "prediction_mean_seconds": 265.46352915,
+      "reason": "unsupported IfExp was erroneously accepted by previous Python AST whitelist",
+      "valid_for_deployment_or_progress": false
+    },
+    "short_leaderboard_test_seconds": null,
+    "full_game_leaderboard_seconds": null
+  },
+  "bamboo": {
+    "source": "scripts/leaderboard/lb_bamboo.py",
+    "source_sha256": "e8e69abbbe334c5d1d07532194acd493aaea1cf461e7ebae4b7997fe47a07474",
+    "original_goal": 500000000,
+    "prediction_mean_seconds": 321.35817153,
+    "runs": [
+      {
+        "seed": 1,
+        "seconds": 321.16678497,
+        "bamboo": 516564992.0,
+        "report": ".codex/nonreset-100-20261108/reports/bamboo-game-syntax-fixed-bamboo-s1/report.json",
+        "report_sha256": "5cfc9a0892e719101dd29655b4065f9883010e0d4c1e6ce6599e94f48ae7d5ea"
+      },
+      {
+        "seed": 2,
+        "seconds": 320.81616567,
+        "bamboo": 515732992.0,
+        "report": ".codex/nonreset-100-20261108/reports/bamboo-game-syntax-fixed-bamboo-s2/report.json",
+        "report_sha256": "e70da07a226fcaa82c3ebffdc8aa57f8ce11f923077cbcdf8573250be6cf0b08"
+      },
+      {
+        "seed": 3,
+        "seconds": 322.09156395,
+        "bamboo": 515645184.0,
+        "report": ".codex/nonreset-100-20261108/reports/bamboo-game-syntax-fixed-bamboo-s3/report.json",
+        "report_sha256": "c3ac9ca25451fa2d8920a4463ffff69c1e93e301f1d0e996bb873471c1f38154"
+      }
+    ],
+    "public_first_seconds": 169.942,
+    "public_reference_period": "2026-11-08T09:20Z to 09:24Z; latest online refresh failed",
+    "gap_percent": 89.09873458591753,
+    "retracted_previous": {
+      "source_sha256": "552cfd3e2c77548be632c9124bd21a7ea3a64a2942b9edacf224026fcef10266",
+      "prediction_mean_seconds": 321.37704681,
+      "reason": "unsupported IfExp was erroneously accepted by previous Python AST whitelist",
+      "valid_for_deployment_or_progress": false
+    },
+    "short_leaderboard_test_seconds": null,
+    "full_game_leaderboard_seconds": null
+  },
+  "model_file_map_sha256": "eafff33dd4e21f7f114dfd43449786d2d806c3c5ae49d78707431cb2e4ec55b4"
+}
