@@ -129,10 +129,10 @@ def bamboo_fans(plan):
                         height = measure()
                         if not move(back):
                             return False
-                        hover(height)
+                        hover(height)  # ty: ignore[invalid-argument-type]  当前是成熟竹子，measure返回花朵整数高度。
                         if not move(direction):
                             return False
-                        if measure() <= height:
+                        if measure() <= height:  # ty: ignore[unsupported-operator]  两次测量均为竹子高度。
                             quick_print("bamboo_failed", "flower_not_cut", x, y, d)
                             return False
                         phases[k][i] += 1

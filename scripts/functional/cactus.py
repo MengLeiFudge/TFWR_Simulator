@@ -68,13 +68,14 @@ def plant_and_sort_x():
                 till()
             plant(Entities.Cactus)
         # 利用本行铺田的既有访问先消除左邻逆序。
-        if get_pos_x() > 0 and measure(West) > measure():
+        if get_pos_x() > 0 and measure(West) > measure():  # ty: ignore[unsupported-operator]  已铺仙人掌，测量值为整数。
             swap(West)
         move(East)
     # sort x
     sort_one_way("x")
 
 
+# 调用前已完成仙人掌铺田；各排序窗口的measure结果都是整数大小。
 def sort_one_way(dir="y"):
     if dir == "x":
         forward = East
@@ -118,15 +119,15 @@ def sort_one_way(dir="y"):
             a = measure(backward)
             b = measure()
             c = measure(forward)
-            if a > b:
+            if a > b:  # ty: ignore[unsupported-operator]
                 swap(backward)
                 swap_pos_last = max(swap_pos_last, i)
                 a, b = b, a
-            if b > c:
+            if b > c:  # ty: ignore[unsupported-operator]
                 swap(forward)
                 swap_pos_last = max(swap_pos_last, i + 1)
                 b, c = c, b
-                if a > b:
+                if a > b:  # ty: ignore[unsupported-operator]
                     swap(backward)
         if swap_pos_last == -1:  # no update
             break
@@ -145,15 +146,15 @@ def sort_one_way(dir="y"):
             a = measure(backward)
             b = measure()
             c = measure(forward)
-            if b > c:
+            if b > c:  # ty: ignore[unsupported-operator]
                 swap(forward)
                 swap_pos_first = min(swap_pos_first, i)
                 b, c = c, b
-            if a > b:
+            if a > b:  # ty: ignore[unsupported-operator]
                 swap(backward)
                 swap_pos_first = min(swap_pos_first, i - 1)
                 a, b = b, a
-                if b > c:
+                if b > c:  # ty: ignore[unsupported-operator]
                     swap(forward)
         if swap_pos_first == size:  # no update
             break
@@ -166,7 +167,7 @@ def sort_one_way(dir="y"):
         # sort window 2
         a = measure()
         b = measure(forward)
-        if a > b:
+        if a > b:  # ty: ignore[unsupported-operator]
             swap(forward)
 
 

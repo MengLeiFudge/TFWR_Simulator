@@ -98,6 +98,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
 - [Python 游戏控制](game_control/README.md)：CLI、文件锁、取消与输出采集。
 - [模组](game_mod/README.md)：Windows 构建、R2 安装和协议。
 - [动作模型](simulator/README.md)：有界筛选命令及机制边界。
+- [游戏脚本类型检查](typings/README.md)：仓库类型声明、ty/LSP配置和游戏语言的静态边界。
 - `game_control/tools/refresh_decompiled_sources.py --help`：刷新反编译事实源。
 - `game_control/tools/extract_unlock_snapshot.py --help`：提取科技事实表。
 

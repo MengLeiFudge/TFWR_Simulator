@@ -114,14 +114,14 @@ def tracked_move(direction):
 
 def chase_step():
     x, y = get_pos_x(), get_pos_y()
-    wx, wy = tracked_target
-    if x < wx and tracked_move(East):
+    wx, wy = tracked_target  # ty: ignore[not-iterable]  tracked_target只由苹果测量更新，为整数坐标。
+    if x < wx and tracked_move(East):  # ty: ignore[unsupported-operator]
         return True
-    if x > wx and tracked_move(West):
+    if x > wx and tracked_move(West):  # ty: ignore[unsupported-operator]
         return True
-    if y < wy and tracked_move(North):
+    if y < wy and tracked_move(North):  # ty: ignore[unsupported-operator]
         return True
-    if y > wy and tracked_move(South):
+    if y > wy and tracked_move(South):  # ty: ignore[unsupported-operator]
         return True
     return tracked_move(North) or tracked_move(East) or tracked_move(South) or tracked_move(West)
 
@@ -180,7 +180,7 @@ def cycle_loop(snake, wx, wy):
         x, y = get_pos_x(), get_pos_y()
         if get_entity_type() == Entities.Apple:
             snake += 1
-            wx, wy = measure()  # ty: ignore
+            wx, wy = measure()  # ty: ignore[not-iterable]  苹果测量返回下一苹果的整数坐标。
 
         # 后期优先填满成对列间的空隙，缩小苹果可生成的区域。
         if snake > l:
@@ -194,13 +194,13 @@ def cycle_loop(snake, wx, wy):
         # 访问中心区域的果子
         if x != 0 and x != m:  # 不在左右两侧
             if (x == wx or x + 1 == wx) and x % 2 == 1:
-                if can_move(North) and wy > y and wy != m:  # 向北可以到达苹果
-                    for _ in range(wy - y):
+                if can_move(North) and wy > y and wy != m:  # ty: ignore[unsupported-operator]  向北可以到达苹果。
+                    for _ in range(wy - y):  # ty: ignore[unsupported-operator]
                         move(North)
                     continue
             if (x == wx or x - 1 == wx) and x % 2 == 0:
-                if can_move(South) and y > wy and wy != 0:  # 向南可以前往苹果
-                    for _ in range(y - wy):
+                if can_move(South) and y > wy and wy != 0:  # ty: ignore[unsupported-operator]  向南可以前往苹果。
+                    for _ in range(y - wy):  # ty: ignore[unsupported-operator]
                         move(South)
                     continue
 
@@ -216,8 +216,8 @@ def cycle_loop(snake, wx, wy):
                 break
             continue
         if dir == West:
-            if y == m and can_move(dir) and x > wx + 1:
-                for _ in range(x - wx - 1 - 1):  # 考虑到奇偶性，多减 1
+            if y == m and can_move(dir) and x > wx + 1:  # ty: ignore[unsupported-operator]
+                for _ in range(x - wx - 1 - 1):  # ty: ignore[unsupported-operator]  考虑到奇偶性，多减1。
                     move(dir)  # 快速移过最北边, 因为那是回程的线
             if y != m and can_move(North):
                 while move(North) and get_entity_type() != Entities.Apple:

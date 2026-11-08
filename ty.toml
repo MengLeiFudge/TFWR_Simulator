@@ -1,0 +1,10 @@
+[environment]
+# 游戏类型声明随仓库保存，检查源码时无需连接真实存档。
+extra-paths = ["typings"]
+
+[[overrides]]
+include = ["scripts/functional/**", "scripts/leaderboard/**"]
+
+[overrides.rules]
+# 游戏 global 沿父作用域寻找绑定，无法套用 Python 的模块级绑定告警。
+unresolved-global = "ignore"

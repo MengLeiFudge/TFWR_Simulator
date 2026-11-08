@@ -25,8 +25,9 @@ def gold_treasure_map():
                 return
             continue
         map_z = get_pos_z() - 1
+        # 玄武岩测量给出地图的整数坐标；地图本体测量给出N/E/S/W/D路径字符串。
         location = measure()
-        if location == None or not treasure_map_move_to(location[0], location[1]):
+        if location == None or not treasure_map_move_to(location[0], location[1]):  # ty: ignore[not-subscriptable]
             quick_print('treasure_map_failed', 'map_location', cycle)
             return
         if not treasure_map_find(Grounds.Treasure_Map, map_z - 1, map_z + 16, deadline):
@@ -40,9 +41,9 @@ def gold_treasure_map():
         start = get_pos_x() + size * get_pos_y()
         point = start
         exits = {}
-        for step in path:
+        for step in path:  # ty: ignore[not-iterable]
             exits[point] = step
-            point += offsets[step]
+            point += offsets[step]  # ty: ignore[invalid-argument-type]
         goal = point
         point = start
         planned = get_time()
@@ -55,17 +56,17 @@ def gold_treasure_map():
             if step == 'D':
                 ok = dig()
             else:
-                ok = move(directions[step])
+                ok = move(directions[step])  # ty: ignore[invalid-argument-type]
             if not ok:
                 quick_print('treasure_map_failed', 'action', cycle, step)
                 return
-            point += offsets[step]
+            point += offsets[step]  # ty: ignore[invalid-argument-type]
             steps += 1
         if get_entity_type() != Entities.Underground_Treasure or not harvest():
             quick_print('treasure_map_failed', 'treasure', cycle, get_pos_x(), get_pos_y(), get_pos_z())
             return
         empty = 0
-        quick_print('treasure_map_cycle', cycle, len(path), steps, began, planned, get_time(), num_items(Items.Gold))
+        quick_print('treasure_map_cycle', cycle, len(path), steps, began, planned, get_time(), num_items(Items.Gold))  # ty: ignore[invalid-argument-type]
 
 
 def treasure_map_find(kind, limit, drill_to, deadline):

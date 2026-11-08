@@ -345,14 +345,14 @@ def deploy(jobs, start_stock):
 			left.append(jobs[i])
 		for i in range(middle, len(jobs)):
 			right.append(jobs[i])
-		h = spawn_drone(deploy, right, start_stock)  # ty: ignore[invalid-argument-type]  游戏支持转交args，类型桩仅声明无参Callable。
+		h = spawn_drone(deploy, right, start_stock)
 		handles.append(h)
 		jobs = left
 	records = [worker(jobs[0], start_stock)]
 	# 主机完成本宫任务后仍要等后代退出，不让旧无人机残留到下一次运行。
 	for h in handles:
 		batch = wait_for(h)
-		for rec in batch:  # ty: ignore[not-iterable]  本句柄对应deploy，返回记录列表。
+		for rec in batch:
 			records.append(rec)
 	return records
 
