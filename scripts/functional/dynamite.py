@@ -2,8 +2,10 @@ from __builtins__ import *
 import production
 
 
-# 多机榜区域求解器；普通田单次Jump后连续找层，每盘结束才检查调度边界。
-def dynamite(round_limit=0):
+# 多机榜区域求解器；邻接表每次调用只建一次，每盘结算后检查库存目标。
+def dynamite(target=-1, round_limit=0):
+    if not production.active(Items.Dynamite, target):
+        return
     started = get_time()
     size = get_world_size()
     if size < 4:
@@ -20,7 +22,7 @@ def dynamite(round_limit=0):
     change_hat(Hats.Mining_Hat)
     production.jump_once(Unlocks.Dynamite)
     cycle = 0
-    while (round_limit == 0 or cycle < round_limit) and production.active(Items.Dynamite):
+    while (round_limit == 0 or cycle < round_limit) and production.active(Items.Dynamite, target):
         began = get_time()
         before = num_items(Items.Dynamite)
         if not move_to(size // 2, size // 2, size) or not find_stratum():

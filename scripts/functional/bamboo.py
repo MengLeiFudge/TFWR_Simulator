@@ -3,7 +3,9 @@ import production
 
 
 # 星形四邻布局；首次Jump保留天然珍珠岩，后续调度用地表布局，浇水后恢复高飞。
-def bamboo():
+def bamboo(target=-1):
+    if not production.active(Items.Bamboo, target):
+        return
     prepare = not production.JUMP_USED
     if prepare:
         production.jump_once(Unlocks.Special_Soils)
@@ -72,12 +74,12 @@ def bamboo():
     handles = []
     results = []
     for owner in range(1, len(plans)):
-        handle = spawn_drone(bamboo_fans, plans[owner])
+        handle = spawn_drone(bamboo_fans, plans[owner], target)
         if handle == None:
-            results.append(bamboo_fans(plans[owner]))
+            results.append(bamboo_fans(plans[owner], target))
         else:
             handles.append(handle)
-    results.append(bamboo_fans(plans[0]))
+    results.append(bamboo_fans(plans[0], target))
     for handle in handles:
         results.append(wait_for(handle))
     ok = True
@@ -87,7 +89,7 @@ def bamboo():
     quick_print("bamboo_done", ok, get_time(), num_items(Items.Bamboo))
 
 
-def bamboo_fans(plan):
+def bamboo_fans(plan, target):
     size = get_world_size()
     phases = []
     for x, y, directions in plan:
@@ -97,7 +99,7 @@ def bamboo_fans(plan):
         phases.append(local)
     hover(18)
     laps = 0
-    while production.active(Items.Bamboo):
+    while production.active(Items.Bamboo, target):
         for k in range(len(plan)):
             x, y, directions = plan[k]
             if not bamboo_move_to(x, y, size):

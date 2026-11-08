@@ -16,13 +16,15 @@ MULT = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
 
 # ---------- 1. 开放地面移动与固定排布 ----------
 
-def gold_maze():
+def gold_maze(target=-1):
+	if not production.active(Items.Gold, target):
+		return
 	# 固定布局，所有无人机持续收取各自的小迷宫。
 	jobs = make_jobs()
 	stock = num_items(Items.Weird_Substance)
 	set_world_size(WORLD)
 	clear()
-	deploy(jobs, stock)
+	deploy(jobs, stock, target)
 
 
 def go_empty(tx, ty):
@@ -265,7 +267,7 @@ def scan_departure(p, links, walls, grid, routes):
 	walls[p] = remaining
 
 
-def solve_one(n, bx, by, grid, mapped, blank):
+def solve_one(n, bx, by, grid, mapped, blank, target):
 	p, links, walls, tree = mapped
 	cost = n * MULT
 	routes = build_all_routes(tree, blank)
@@ -285,8 +287,8 @@ def solve_one(n, bx, by, grid, mapped, blank):
 				move(direction)
 
 		# 停止时先走到当前箱子并正常收宫；不留下未结算迷宫。
-		if relocations >= REUSE_LIMIT or not production.active(Items.Gold):
-			# 到达上限或调度结束时，正常 harvest 一次使本宫消失。
+		if relocations >= REUSE_LIMIT or not production.active(Items.Gold, target) or num_items(Items.Weird_Substance) < cost:
+			# 达标、达到复用上限或材料不足时，正常 harvest 一次使本宫消失。
 			harvest()
 			return relocations + 1
 		use_item(Items.Weird_Substance, cost)
@@ -296,7 +298,7 @@ def solve_one(n, bx, by, grid, mapped, blank):
 
 # ---------- 5. 每台机的生命周期与全场部署屏障 ----------
 
-def worker(job, start_stock):
+def worker(job, start_stock, target):
 	n, cx, cy = job
 	generations = 0
 	boxes = 0
@@ -316,10 +318,10 @@ def worker(job, start_stock):
 	# 32台各用两次WS：感染再恢复。全场合计消耗64，构成到位计数。
 	for _ in range(2):
 		use_item(Items.Weird_Substance, 1)
-	while num_items(Items.Weird_Substance) > start_stock - 2 * DRONES and production.active(Items.Gold):
+	while num_items(Items.Weird_Substance) > start_stock - 2 * DRONES and production.active(Items.Gold, target):
 		change_hat(Hats.Straw_Hat)
 
-	while production.active(Items.Gold) and num_items(Items.Weird_Substance) >= n * MULT:
+	while production.active(Items.Gold, target) and num_items(Items.Weird_Substance) >= n * MULT:
 		go_home(cx, cy)
 		# 普通场地清理：有草才收，没有植物就直接种灌木。
 		if get_entity_type() != None:
@@ -328,12 +330,12 @@ def worker(job, start_stock):
 		use_item(Items.Weird_Substance, n * MULT)
 		mapped = explore(n, grid, home)
 		generations += 1
-		boxes += solve_one(n, bx, by, grid, mapped, blank)
+		boxes += solve_one(n, bx, by, grid, mapped, blank, target)
 		# 完整收掉本宫后才进入下一代；下次go_home仍然回同一个固定中心。
 	return (n, generations, boxes)
 
 
-def deploy(jobs, start_stock):
+def deploy(jobs, start_stock, target):
 	# 二叉分发：每个参与分发的无人机最终也负责一个任务。
 	# 32个任务恰好需要31次spawn。
 	handles = []
@@ -345,10 +347,10 @@ def deploy(jobs, start_stock):
 			left.append(jobs[i])
 		for i in range(middle, len(jobs)):
 			right.append(jobs[i])
-		h = spawn_drone(deploy, right, start_stock)
+		h = spawn_drone(deploy, right, start_stock, target)
 		handles.append(h)
 		jobs = left
-	records = [worker(jobs[0], start_stock)]
+	records = [worker(jobs[0], start_stock, target)]
 	# 主机完成本宫任务后仍要等后代退出，不让旧无人机残留到下一次运行。
 	for h in handles:
 		batch = wait_for(h)

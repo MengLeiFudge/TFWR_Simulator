@@ -9,14 +9,16 @@ DIRECTIONS = [North, East, South, West]
 BACKS = [South, West, North, East]
 
 
-def mushroom():
+def mushroom(target=-1):
+    if not production.active(Items.Mushroom, target):
+        return
     if num_unlocked(Unlocks.Mushrooms) < 1 or num_unlocked(Unlocks.Jump) < 1:
         quick_print("请先解锁蘑菇和 Jump，再运行蘑菇采集。")
         return
     production.jump_once(Unlocks.Mushrooms)
     blocks = make_blocks()
     batches = 0
-    while production.active(Items.Mushroom):
+    while production.active(Items.Mushroom, target):
         start = get_time()
         before = num_items(Items.Mushroom)
         change_hat(Hats.Mining_Hat)

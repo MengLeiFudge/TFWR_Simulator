@@ -3,7 +3,9 @@ from __builtins__ import *
 import production
 
 
-def gold_treasure_map():
+def gold_treasure_map(target=-1):
+    if not production.active(Items.Gold, target):
+        return
     production.jump_once(Unlocks.Treasure_Map)
     first = True
     size = get_world_size()
@@ -11,7 +13,7 @@ def gold_treasure_map():
     directions = {'N': North, 'E': East, 'S': South, 'W': West}
     cycle = -1
     empty = 0
-    while production.active(Items.Gold):
+    while production.active(Items.Gold, target):
         deadline = get_time() + 7200
         cycle += 1
         if not first:

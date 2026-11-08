@@ -2,10 +2,12 @@ from __builtins__ import *
 import production
 
 
-def weird_substance():
+def weird_substance(target=-1):
     # 并行伴生树苗圃，成熟后感染并收获怪异物质。
-    while production.active(Items.Weird_Substance):
-        goal = production.goal(Items.Weird_Substance, num_items(Items.Weird_Substance) + 1000000)
+    while production.active(Items.Weird_Substance, target):
+        goal = num_items(Items.Weird_Substance) + 1000000
+        if target != -1:
+            goal = min(target, goal)
         if not parallel_nursery_stock(Items.Weird_Substance, goal, True):
             return
 

@@ -2,9 +2,9 @@ from __builtins__ import *
 # 全科技功能初版；来源 lb_sunflowers.py，本地对照见docs/functional-validation.md。
 import production
 
-def power_sunflower():
+def power_sunflower(target=-1):
     # 保留完整排行榜生产周期，正常结算后开始下一轮。
-    while production.active(Items.Power):
+    while production.active(Items.Power, target):
         before = num_items(Items.Power)
         production_cycle()
         if num_items(Items.Power) <= before:

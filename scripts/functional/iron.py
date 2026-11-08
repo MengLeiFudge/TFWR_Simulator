@@ -2,8 +2,8 @@ from __builtins__ import *
 import mining
 
 
-def iron():
-    mining.mine(Items.Iron, Grounds.Iron, 64, Unlocks.Iron)
+def iron(target=-1):
+    mining.mine(Items.Iron, Grounds.Iron, 64, Unlocks.Iron, target)
 
 
 if __name__ == "__main__":

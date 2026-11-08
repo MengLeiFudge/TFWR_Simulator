@@ -3,22 +3,22 @@ import production
 
 
 # 来源lb_rice.py：两层粘土流水，成功收割后再下挖；只在全部工人回收后换田。
-def rice():
+def rice(target=-1):
     size = get_world_size()
     workers = min(size, max_drones())
     batch = 0
-    while production.active(Items.Rice):
+    while production.active(Items.Rice, target):
         deadline = get_time() + 3600
         clear()
         handles = []
         local = True
         for column in range(1, workers):
-            handle = spawn_drone(rice_columns, column, workers, size, deadline)
+            handle = spawn_drone(rice_columns, column, workers, size, deadline, target)
             if handle == None:
                 local = False
                 break
             handles.append(handle)
-        if not rice_columns(0, workers, size, deadline):
+        if not rice_columns(0, workers, size, deadline, target):
             local = False
         for handle in handles:
             if not wait_for(handle):
@@ -30,13 +30,13 @@ def rice():
         batch += 1
 
 
-def rice_columns(first, stride, size, deadline):
+def rice_columns(first, stride, size, deadline, target):
     planted = []
     for x in range(first, size, stride):
         if not rice_move_to(x, 0, size):
             return False
         for y in range(size):
-            if not production.active(Items.Rice):
+            if not production.active(Items.Rice, target):
                 return True
             ground = get_ground_type()
             digs = 0
@@ -55,7 +55,7 @@ def rice_columns(first, stride, size, deadline):
                 return False
     second = []
     for x, y in planted:
-        if not production.active(Items.Rice):
+        if not production.active(Items.Rice, target):
             return True
         if not rice_move_to(x, y, size):
             return False
@@ -66,7 +66,7 @@ def rice_columns(first, stride, size, deadline):
         if get_entity_type() == Entities.Rice:
             if not harvest():
                 return False
-            if production.active(Items.Rice) and get_ground_type() == Grounds.Dry_Rice_Terrace:
+            if production.active(Items.Rice, target) and get_ground_type() == Grounds.Dry_Rice_Terrace:
                 if get_time() > deadline or not dig():
                     return False
                 if get_ground_type() == Grounds.Clay:
@@ -76,7 +76,7 @@ def rice_columns(first, stride, size, deadline):
                         use_item(Items.Water)
                     second.append((x, y))
     for x, y in second:
-        if not production.active(Items.Rice):
+        if not production.active(Items.Rice, target):
             return True
         if not rice_move_to(x, y, size):
             return False

@@ -3,13 +3,15 @@ from __builtins__ import *
 import production
 
 
-def power_pyramids():
+def power_pyramids(target=-1):
+    if not production.active(Items.Power, target):
+        return
     # Jump每次执行仅一次；后续重生用爆破钻清除远离塔体的浅覆盖层。
     production.jump_once(Unlocks.Pyramid)
     first = True
     began = get_time()
     cycle = -1
-    while production.active(Items.Power):
+    while production.active(Items.Power, target):
         cycle += 1
         if first:
             first = False
@@ -65,8 +67,8 @@ def power_pyramids():
             return
         needed = 0
         for holes in counts:
-            for x, y, z, target in holes:
-                needed += target - z
+            for x, y, z, height_target in holes:
+                needed += height_target - z
         if not pyramid_materials(bounds, needed):
             quick_print('pyramid_materials_missing', cycle, needed, num_items(Items.Block))
             continue

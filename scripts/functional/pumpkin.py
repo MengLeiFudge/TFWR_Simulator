@@ -4,15 +4,17 @@ import production
 # Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
 # 固定布局占824格；15个派发子机加16个区域助手，连同主机最多32机。
 
-def pumpkin():
+def pumpkin(target=-1):
     global s
     global m
+    if not production.active(Items.Pumpkin, target):
+        return
     set_world_size(32)
     clear()
     s = get_world_size()
     m = s - 1
     jobs = JOBS
-    dispatch(jobs)
+    dispatch(jobs, target)
 
 W = 0.80
 B = 5.5
@@ -94,12 +96,13 @@ def seven_loop_part_cww(fn):
         move(South)
 
 
-def work_drone_task(size):
+def work_drone_task(size, target):
     start = (get_pos_x(), get_pos_y())
 
     # 两栈保持先入先出，避免逐次从列表头部搬移元素。
     unripes_in_stack = []
     unripes_out_stack = []
+    failed = [False]
 
     def dequeue():
         if not unripes_out_stack:
@@ -108,7 +111,8 @@ def work_drone_task(size):
         return unripes_out_stack.pop()
 
     def plant_pumpkin_no_till():
-        plant(Entities.Pumpkin)
+        if not failed[0] and not plant(Entities.Pumpkin):
+            failed[0] = True
 
     def plant_pumpkin_with_till():
         till()
@@ -117,9 +121,11 @@ def work_drone_task(size):
     plant_pumpkin = plant_pumpkin_with_till
 
     def check_pumpkin():
-        if can_harvest():
+        if failed[0] or can_harvest():
             return
-        plant(Entities.Pumpkin)
+        if get_entity_type() != Entities.Pumpkin and not plant(Entities.Pumpkin):
+            failed[0] = True
+            return
         if get_time() - start_time > B and num_items(Items.Fertilizer) > 32:
             use_item(Items.Fertilizer)
         if can_harvest():
@@ -131,7 +137,7 @@ def work_drone_task(size):
         unripes_in_stack.append((get_pos_x(), get_pos_y()))
 
     def cycle_pumpkin():
-        while unripes_in_stack or unripes_out_stack:
+        while (unripes_in_stack or unripes_out_stack) and not failed[0]:
             last_d = move_to_without_last_move(dequeue())
             if last_d:
                 # 移动之前就能判断是否成熟
@@ -140,6 +146,7 @@ def work_drone_task(size):
                     continue
                 move(last_d)
             check_pumpkin()
+        return not failed[0]
 
     def one_side_n(size, mirror):
         size_2 = size * 2
@@ -147,46 +154,51 @@ def work_drone_task(size):
         def fn():
             traverse_rectangle(plant_pumpkin, size, size_2, mirror)
             traverse_rectangle(check_pumpkin, size, size_2, mirror)
-            cycle_pumpkin()
+            return cycle_pumpkin()
 
         return fn
 
     def wait_merge(right_drone):
         move_to(start)
-        wait_for(right_drone)
-        harvest()
+        right_ok = wait_for(right_drone)
+        if failed[0] or not right_ok:
+            return False
+        return harvest()
 
     def while_round_6():
         left_side = one_side_n(3, True)
         right_side = one_side_n(3, False)
         right_drone = spawn_drone(straight_move_do(1, East, right_side))
         left_side()
-        wait_merge(right_drone)
+        return wait_merge(right_drone)
 
     def while_round_8():
         left_side = one_side_n(4, True)
         right_side = one_side_n(4, False)
         right_drone = spawn_drone(straight_move_do(1, East, right_side))
         left_side()
-        wait_merge(right_drone)
+        return wait_merge(right_drone)
 
     def cw_side():
         plant_pumpkin()
         check_pumpkin()
         seven_loop_part_cw(plant_pumpkin)
         seven_loop_part_cw(check_pumpkin)
-        cycle_pumpkin()
+        return cycle_pumpkin()
 
     def cww_side(cw_drone):
         seven_loop_part_cww(plant_pumpkin)
         seven_loop_part_cww(check_pumpkin)
-        cycle_pumpkin()
-        wait_for(cw_drone)
-        harvest()
+        local_ok = cycle_pumpkin()
+        other_ok = wait_for(cw_drone)
+        if not local_ok or not other_ok:
+            return False
+        return harvest()
 
     def while_round_7():
-        cww_side(spawn_drone(cw_side))
+        ok = cww_side(spawn_drone(cw_side))
         move_to(start)
+        return ok
 
     if size == 6:
         while_round = while_round_6
@@ -194,9 +206,11 @@ def work_drone_task(size):
         while_round = while_round_7
     if size == 8:
         while_round = while_round_8
-    while production.active(Items.Pumpkin):
+    while production.active(Items.Pumpkin, target):
         start_time = get_time()
-        while_round()
+        if not while_round():
+            quick_print("南瓜种植或收获失败，本区域已回收助手，停止生产。")
+            return
         unripes_in_stack = []
         unripes_out_stack = []
         plant_pumpkin = plant_pumpkin_no_till
@@ -259,16 +273,16 @@ def straight_move_do(side_length, d, do):
     def fn():
         for _ in range(side_length):
             move(d)
-        do()
+        return do()
 
     return fn
 
 
-def dispatch(jobs):
+def dispatch(jobs, target):
     if len(jobs) == 1:
         pos, size = jobs[0]
         move_to(pos)
-        work_drone_task(size)
+        work_drone_task(size, target)
         return
     left = []
     right = []
@@ -277,8 +291,8 @@ def dispatch(jobs):
         left.append(jobs[i])
     for i in range(middle, len(jobs)):
         right.append(jobs[i])
-    child = spawn_drone(dispatch, right)
-    dispatch(left)
+    child = spawn_drone(dispatch, right, target)
+    dispatch(left, target)
     wait_for(child)
 
 

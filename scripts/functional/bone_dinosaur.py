@@ -4,9 +4,9 @@ import production
 # Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
 # 来源：enihsyou/The-Farmer-Was-Replaced，blob 0a257bbd27f0520464f5efe3baefe74c7d4f7168。
 
-def bone_dinosaur():
+def bone_dinosaur(target=-1):
     # 保留完整排行榜生产周期，正常结算后开始下一轮。
-    while production.active(Items.Bone):
+    while production.active(Items.Bone, target):
         before = num_items(Items.Bone)
         production_cycle()
         if num_items(Items.Bone) <= before:

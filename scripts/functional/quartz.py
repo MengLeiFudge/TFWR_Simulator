@@ -2,8 +2,8 @@ from __builtins__ import *
 import mining
 
 
-def quartz():
-    mining.mine(Items.Quartz, Grounds.Quartz, 80, Unlocks.Quartz)
+def quartz(target=-1):
+    mining.mine(Items.Quartz, Grounds.Quartz, 80, Unlocks.Quartz, target)
 
 
 if __name__ == "__main__":

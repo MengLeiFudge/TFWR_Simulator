@@ -114,10 +114,10 @@ dx = SIZE // COLS
 dy = SIZE // ROWS
 
 
-def coal():
+def coal(target=-1):
     global first
     global round
-    while production.active(Items.Coal):
+    while production.active(Items.Coal, target):
 
         round += 1
         clear()
@@ -139,10 +139,8 @@ def coal():
 
         shaft(dx // 2, dy // 2)
 
-        tick = 0
-        while num_drones() > 1 and tick < 2000:
+        while num_drones() > 1:
             do_a_flip()
-            tick += 1
 
         print("round", round, "gained", num_items(Items.Coal) - base)
 

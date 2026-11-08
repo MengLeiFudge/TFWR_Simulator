@@ -87,45 +87,54 @@ def resources():
         pending = False
         for item in TARGETS:
             target = TARGETS[item]
-            if target == -1 or num_items(item) < target:
+            if target != -1 and num_items(item) < target:
                 pending = True
                 if not supply(item, target, producers):
                     return
         if not pending:
-            quick_print("所有资源已达标。")
-            return
+            break
+    for item in TARGETS:
+        if TARGETS[item] == -1:
+            if not supply(item, -1, producers):
+                return
+    quick_print("所有资源已达标。")
 
 
-# 材料也用同一套生产入口补给；有限目标补足后返回，无限目标每次只生产一批。
+# 直接传递库存目标；仅在已知材料不足且本次有净产出时补料重试。
 def supply(item, target, producers):
-    while target == -1 or num_items(item) < target:
+    while production.active(item, target):
         needed = materials(item)
         for material in needed:
             if not supply(material, needed[material], producers):
                 return False
         # 补料算法可能顺带收获本资源；先重新检查，避免达标后仍清田或误报停产。
-        if target != -1 and num_items(item) >= target:
+        if not production.active(item, target):
             return True
         before = num_items(item)
         quick_print("开始补充：", item, "当前", before, "目标", target)
-        production.begin(item, target, 60)
         if item == Items.Water or item == Items.Fertilizer:
-            while production.active(item):
+            while production.active(item, target):
                 do_a_flip()
         else:
-            # 每个机制使用独立农田；上一批子机全部结束后才允许清理和切换。
+            # 切换机制前，上一次生产的子机已全部回收。
             clear()
-            producers[item]()
+            producers[item](target)
             while num_drones() > 1:
                 do_a_flip()
-        production.end()
         after = num_items(item)
-        quick_print("本批结束：", item, "当前", after, "净增", after - before)
+        quick_print("生产返回：", item, "当前", after, "净增", after - before)
+        if not production.active(item, target):
+            return True
         if after <= before:
             quick_print("资源未增长，停止调度：", item, "；请检查上方功能脚本日志、材料和农田条件。")
             return False
-        if target == -1:
-            return True
+        shortage = False
+        for material in needed:
+            if num_items(material) < needed[material]:
+                shortage = True
+        if not shortage:
+            quick_print("目标未完成，功能脚本提前返回，停止调度：", item, "；请检查上方日志。")
+            return False
     return True
 
 
@@ -133,7 +142,7 @@ def supply(item, target, producers):
 def materials(item):
     plots = get_world_size() ** 2
     crops = {
-        # 伴生重抽与死南瓜补种需要额外种子；储备耗尽时下一批重新补料。
+        # 伴生重抽与死南瓜补种需要额外种子；入口因缺料返回后重新补给。
         Items.Carrot: (Entities.Carrot, plots * 8),
         Items.Pumpkin: (Entities.Pumpkin, plots * 4),
         Items.Cactus: (Entities.Cactus, plots),

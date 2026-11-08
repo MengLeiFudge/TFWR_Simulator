@@ -6,7 +6,11 @@
 
 ## 库存调度版本的验证范围
 
-[resources.py](../scripts/functional/resources.py) 新增库存目标调度、材料补给和无限目标轮转；[production.py](../scripts/functional/production.py) 为功能入口增加合作式退出和共享Jump额度。整套材料补给、跨资源串联与无限轮转尚未完成本地模拟。后续本轮地下单入口、炸药完整两盘及竹子有限返回的模拟另见[当前记录](underground-functional-validation.md)；这些不等于完整库存调度通过，也未覆盖真实存档。
+[resources.py](../scripts/functional/resources.py) 按最终库存目标调用 `入口(target=-1)`：先补齐有限目标，再持续调用无限目标。资源入口与生产子机显式接收目标；[production.py](../scripts/functional/production.py) 只保留库存判断和共享Jump额度。调度不按固定时长中断入口，炸药在一次调用内复用邻接表，逐盘正常结算后再检查目标。缺料返回后的材料补给与异常停止规则见[功能目录](../scripts/functional/README.md)。
+
+静态证据：23个功能模块通过游戏语法编译；20个资源入口均有默认 `target=-1`，44处库存判断均显式传入物品与目标；ty LSP为0错误、0警告，保留58项既有提示。自审覆盖目标传递、完整周期结算、缺料返回及切换前的子机回收。
+
+本次未运行本地模拟或真实游戏，也未替换存档。此前地下单入口、炸药完整两盘及竹子有限返回的模拟见[对应版本记录](underground-functional-validation.md)；这些数据不覆盖当前目标传参、材料补给闭环与跨资源串联，不能当作当前调度效率或正确性已验证。
 
 下文数值对应历史JSON冻结源码与依赖。当前新增控制条件和地下算法会改变解释器费用及生产边界；本页历史数据保留来源与时间归属。
 

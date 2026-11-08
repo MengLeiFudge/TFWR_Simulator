@@ -3,13 +3,15 @@ import production
 
 
 # 满科技普通田仅一台爆破钻；固定四格间距蛇形钻孔，收取真实爆破掉落。
-def mine(item, kind, depth, unlock=None):
+def mine(item, kind, depth, unlock=None, target=-1):
+    if not production.active(item, target):
+        return
     size = get_world_size()
     first = unlock != None
     if first:
         production.jump_once(unlock)
     empty = 0
-    while production.active(item):
+    while production.active(item, target):
         if not first:
             clear()
         first = False

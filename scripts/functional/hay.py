@@ -2,7 +2,9 @@ from __builtins__ import *
 # 全科技功能初版；来源 lb_hay.py，本地对照见docs/functional-validation.md。
 import production
 
-def hay():
+def hay(target=-1):
+    if not production.active(Items.Hay, target):
+        return
     set_world_size(FIELD_SIZE)
     pair_count = 0
     handles = []
@@ -12,14 +14,14 @@ def hay():
                 return
             pair_count = pair_count + 1
             if pair_count < ACTIVE_PAIR_COUNT:
-                worker = spawn_drone(start_pair_at, base_x, base_y)
+                worker = spawn_drone(start_pair_at, base_x, base_y, target)
                 if worker == None:
                     quick_print("lb_hay stopped: dispatch failed", pair_count)
                     clear()
                     return
                 handles.append(worker)
             else:
-                start_pair_at(base_x, base_y)
+                start_pair_at(base_x, base_y, target)
     for worker in handles:
         wait_for(worker)
 
@@ -39,9 +41,9 @@ PAIR_SUPPORT_OFFSETS = (
 )
 
 
-def start_pair_at(base_x, base_y):
+def start_pair_at(base_x, base_y, target):
     goto(base_x, base_y)
-    companion_pair_thread()
+    companion_pair_thread(target)
 
 
 def goto(tx, ty):
@@ -64,14 +66,14 @@ def goto(tx, ty):
         for _ in range(size - dy):
             move(South)
 
-def companion_pair_thread():
+def companion_pair_thread(target):
     base_x = get_pos_x()
     base_y = get_pos_y()
     north_y = (base_y + 1) % FIELD_SIZE
     base_pos = (base_x, base_y)
     north_pos = (base_x, north_y)
     init_pair_support(base_x, base_y)
-    run_pair_cycle(base_pos, north_pos)
+    run_pair_cycle(base_pos, north_pos, target)
 
 
 def init_pair_support(base_x, base_y):
@@ -93,24 +95,24 @@ def init_pair_support(base_x, base_y):
     move(South)
 
 
-def run_pair_cycle(base_pos, north_pos):
+def run_pair_cycle(base_pos, north_pos, target):
     harvest()
     water_pair_slot()
-    roll_bush_companion(north_pos)
+    roll_bush_companion(north_pos, target)
     move(North)
 
     harvest()
     water_pair_slot()
-    roll_bush_companion(base_pos)
+    roll_bush_companion(base_pos, target)
     move(South)
 
-    while production.active(Items.Hay):
+    while production.active(Items.Hay, target):
         harvest_ready_grass()
-        roll_bush_companion(north_pos)
+        roll_bush_companion(north_pos, target)
         move(North)
 
         harvest_ready_grass()
-        roll_bush_companion(base_pos)
+        roll_bush_companion(base_pos, target)
         move(South)
 
     if base_pos == (PAIR_BASE_XS[0], PAIR_BASE_YS[0]):
@@ -134,8 +136,8 @@ def water_pair_slot():
         use_item(Items.Water)
 
 
-def roll_bush_companion(blocked_pos):
-    while production.active(Items.Hay):
+def roll_bush_companion(blocked_pos, target):
+    while production.active(Items.Hay, target):
         companion_entity, companion_pos = get_companion()
         if companion_entity == Entities.Bush and companion_pos != blocked_pos:
             break
