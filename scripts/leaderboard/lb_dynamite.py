@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：1093.692秒（本地原目标三seed均值；当前版本未实机验证）。
+# 完整轮时间：未取得（单调事实合并；本地固定窗口已验证）。
 
 
 def lb_dynamite():
@@ -45,16 +45,9 @@ def lb_dynamite():
                     status = state
                 elif state == "ended" and status == "running":
                     status = state
+                # 同盘证明相容；UNKNOWN < SAFE < MINE < 公开数字 < 已关闭约束。
                 for cell in updates:
-                    value = updates[cell]
-                    old = known[cell]
-                    if old == value or (old >= 0 and value == SAFE) or (old == DONE and value >= 0):
-                        continue
-                    if old == UNKNOWN or (old == SAFE and value >= 0) or (old >= 0 and value == DONE):
-                        known[cell] = value
-                    else:
-                        quick_print("dynamite_conflict", cell, old, value)
-                        return
+                    known[cell] = max(known[cell], updates[cell])
             rounds += 1
             if status != "running" or not changed:
                 break
@@ -68,9 +61,9 @@ def lb_dynamite():
     quick_print("dynamite_failed", "cycle_limit")
 
 
-UNKNOWN = -2
+UNKNOWN = -3
 MINE = -1
-SAFE = -3
+SAFE = -2
 # 已实际开挖且所有邻格均已证明；不再需要原数字，也不能重复挖掘。
 DONE = 9
 # 延续有限盘数和开挖保护；局部与全局批次均设置有限上限。

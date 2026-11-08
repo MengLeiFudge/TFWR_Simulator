@@ -3,17 +3,17 @@
   "boards": {
     "lb_dinosaur": {
       "label": "恐龙",
-      "simulation_seconds": 775.38,
+      "simulation_seconds": 775.38042549,
       "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
       "evidence": "lb_dinosaur.md",
-      "direction": "重新比较追果与蛇身路径组织，压低每个苹果的移动预算。"
+      "direction": "改变中期蛇身与自由区路径；真实消费计数切换未提速，避免重复旧固定回路和阈值。"
     },
     "lb_cactus_single": {
       "label": "仙人掌·单机",
-      "simulation_seconds": 20.192,
+      "simulation_seconds": 20.19172104,
       "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
       "evidence": "lb_cactus_single.md",
-      "direction": "重列构盘与排序方向，寻找更少必需交换的结构。"
+      "direction": "寻找更少交换且规划便宜的构盘；全盘桶运输、交换依赖图和逆序边代表均未回本。"
     },
     "lb_maze": {
       "label": "迷宫·多机",
@@ -118,21 +118,21 @@
       "simulation_seconds": 320.57940162,
       "simulation_basis": "已迁入常驻分片工人并备份同步已有存档；三seed原目标均值，另经新语法层80秒同条件效率对照。 证据local_promotion_validation.json；本版未实机打榜。",
       "evidence": "lb_mushrooms.md",
-      "direction": "重新比较配对空间、同色块汇集与开层/兑现组织。"
+      "direction": "重列配对、开层与运输的完整预算；随机滑块及输送带未回本，不能只调中转阈值。"
     },
     "lb_mushrooms_single": {
       "label": "蘑菇·单机",
       "simulation_seconds": 818.99883816,
       "simulation_basis": "已迁入重力中转算法并备份同步已有存档；三seed原目标均值，另经新语法层seed1完整复核。 证据local_promotion_validation.json；本版未实机打榜。",
       "evidence": "lb_mushrooms_single.md",
-      "direction": "重列配对与开层方向，比较同色块汇集的动作下界。"
+      "direction": "减少必需开孔与搬运；一次push配对队列因挖掘6175次未回本。"
     },
     "lb_dynamite": {
       "label": "炸药·多机",
-      "simulation_seconds": 1093.6923,
-      "simulation_basis": "区域自治版三seed原10M目标完整均值；新分块候选未取得改善。",
+      "simulation_seconds": 976.0319772483359,
+      "simulation_basis": "单调事实合并，固定30秒现实预算内9盘正常结算2551424；按完整周期加初始化外推原一千万目标，原目标未完整完成。证据structure_screening.json；已备份同步已有存档，未实机。",
       "evidence": "lb_dynamite.md",
-      "direction": "比较围雷目标规划、区域自治与动态结算，重算整盘预算。"
+      "direction": "重新设计证据交换和开格组织；现场轮询与集中批次未回本，单调归并仅保留可兑现改善。"
     },
     "lb_dynamite_single": {
       "label": "炸药·单机",

@@ -1,0 +1,711 @@
+{
+  "date": "2026-11-08",
+  "scope": "non-reset structural alternatives and Dynamo monotone-proof promotion",
+  "public_reference": "2026-11-08T09:20:07Z through 09:24:58Z; subsequent urllib and Windows curl TLS failures retained; not a fresh public query",
+  "game_scripts_run": false,
+  "budgets": {
+    "wall_seconds_per_case": 30,
+    "max_api_calls": 5000000,
+    "max_source_checkpoints": 50000000
+  },
+  "model_limitations": "Dedicated leaderboard terrain remains asset_and_source_only. Fixed seeded local predictions do not reproduce encrypted official leaderboard RNG or establish current game timing parity.",
+  "reports": {
+    "mushroom-direct-queue-v1-single-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-direct-queue-v1-single-s1/report.json",
+      "report_sha256": "40f955448fd4cd9ddb13f5ef90d615408eb1edcdec500a1b6a37cee774779895",
+      "script_sha256": "2184d63b4f842aa6d5ea4649f3e9a189504b413fde792eb837b1fef19bf3b64d",
+      "frozen_source_raw_sha256": "2184d63b4f842aa6d5ea4649f3e9a189504b413fde792eb837b1fef19bf3b64d",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 941.85512757,
+      "wall_seconds": 4.047599333105609,
+      "item": "Mushroom",
+      "net_change": 30048,
+      "net_per_game_second": 31.902995609870786,
+      "api_counts": {
+        "move": 10652,
+        "swap": 0,
+        "dig": 6175,
+        "push": 1878,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 1171145,
+      "conclusion": "rejected: complete goal, slower; extra digging"
+    },
+    "dinosaur-actual-half-v1-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/dinosaur-actual-half-v1-s1/report.json",
+      "report_sha256": "8bd383ccc5962c916acc18aedf4bcbd4788834c67ed99bc110d2d4833a39af44",
+      "script_sha256": "156f47212c591743105ca0f8ad7306061f185e77907c1a3ca729e93a8f004302",
+      "frozen_source_raw_sha256": "156f47212c591743105ca0f8ad7306061f185e77907c1a3ca729e93a8f004302",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 778.24875474,
+      "wall_seconds": 9.744507286930457,
+      "item": "Bone",
+      "net_change": 33488928,
+      "net_per_game_second": 43031.135990944305,
+      "api_counts": {
+        "move": 106533,
+        "swap": 0,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 830564,
+      "conclusion": "rejected: complete goal, no earlier half-phase transition in this seed"
+    },
+    "cactus-bucket-frontier-v1-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-bucket-frontier-v1-s1/report.json",
+      "report_sha256": "48ddfc45bceb4b5af712e44579e94e1f931f1ab9824b4abd4da01011ea0bf970",
+      "script_sha256": "85f0ac7203d1745ef262ec44f434ae1f41fba5461e4ade38202a3e4f44226b13",
+      "frozen_source_raw_sha256": "85f0ac7203d1745ef262ec44f434ae1f41fba5461e4ade38202a3e4f44226b13",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 27.12015594,
+      "wall_seconds": 0.09357507503591478,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 4833.010558271886,
+      "api_counts": {
+        "move": 436,
+        "swap": 161,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 19087,
+      "conclusion": "rejected: complete goal, 161 swaps, transport budget not achieved"
+    },
+    "cactus-young-dag-v1-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-young-dag-v1-s1/report.json",
+      "report_sha256": "422eae469b6d1ba3af533c6e979efee05b045b0826056c2fb600cf4cb38895d3",
+      "script_sha256": "b084a463185ebe2e7abbd4d987cfad345cb025484e31270a5a32cb877fce85cf",
+      "frozen_source_raw_sha256": "b084a463185ebe2e7abbd4d987cfad345cb025484e31270a5a32cb877fce85cf",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 23.01280722,
+      "wall_seconds": 0.13555045705288649,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 5695.611089380169,
+      "api_counts": {
+        "move": 188,
+        "swap": 166,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 42403,
+      "conclusion": "rejected: complete goal, ready-set scanning too expensive"
+    },
+    "cactus-young-buckets-v2-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-young-buckets-v2-s1/report.json",
+      "report_sha256": "327322924371669518d5f8539a9740650b229935de6d34fcc3b18e51f3caae02",
+      "script_sha256": "54385b5cb879271e2f7f8869118251f9fe4daeb11c508178198994ab74ce250e",
+      "frozen_source_raw_sha256": "54385b5cb879271e2f7f8869118251f9fe4daeb11c508178198994ab74ce250e",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 20.64900762,
+      "wall_seconds": 0.12131079705432057,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 6347.617397024333,
+      "api_counts": {
+        "move": 189,
+        "swap": 166,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 27843,
+      "conclusion": "rejected: complete goal, lower moves but 27843 interpreter ticks"
+    },
+    "cactus-value-frontier-v3-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-value-frontier-v3-s1/report.json",
+      "report_sha256": "1407c492f309d6fcf447d05a599529c166e6bec03dbc5aca3042fc1802a2c26d",
+      "script_sha256": "699b976653394d208c69a21d73707b1f485e7d68cf87573750e57728bda2845e",
+      "frozen_source_raw_sha256": "699b976653394d208c69a21d73707b1f485e7d68cf87573750e57728bda2845e",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 20.8774863,
+      "wall_seconds": 0.12731158803217113,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 6278.1504495586705,
+      "api_counts": {
+        "move": 189,
+        "swap": 165,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 29433,
+      "conclusion": "rejected: complete goal, 165 swaps, no structural swap reduction"
+    },
+    "cactus-local-edges-v1-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/cactus-local-edges-v1-s1/report.json",
+      "report_sha256": "7e9fe4272f64626ee6a47497977262fb23b1c424de6fc266b1cd94eed7ea8133",
+      "script_sha256": "efe70277f4abc788536916f9a772af887f934a6636b4d1d966a5d849c14004e1",
+      "frozen_source_raw_sha256": "efe70277f4abc788536916f9a772af887f934a6636b4d1d966a5d849c14004e1",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 24.7655745,
+      "wall_seconds": 0.13515153783373535,
+      "item": "Cactus",
+      "net_change": 131072.0,
+      "net_per_game_second": 5292.507952924734,
+      "api_counts": {
+        "move": 190,
+        "swap": 183,
+        "dig": 0,
+        "push": 0,
+        "spawn_drone": 0
+      },
+      "interpreter_ticks": 49583,
+      "conclusion": "rejected: complete goal, 183 swaps and expensive edge maintenance"
+    },
+    "dynamite-physical-flags-v1-s1-window80": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-physical-flags-v1-s1-window80/report.json",
+      "report_sha256": "6f969d1b94f285612debbbbabe60f5951e0491f9390640c2e1e6f142c3bd786e",
+      "script_sha256": "a7faeffb99a1be80cd4417d2f7f64f2997f1d71b6e4aede32bf57abc3b7eed6a",
+      "frozen_source_raw_sha256": "a7faeffb99a1be80cd4417d2f7f64f2997f1d71b6e4aede32bf57abc3b7eed6a",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "NameError",
+        "message": "name 'reverse' is not defined",
+        "line": 216
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 14.1976125,
+      "wall_seconds": 1.8167555150575936,
+      "item": "Dynamite",
+      "net_change": 16,
+      "net_per_game_second": 1.1269500417763902,
+      "api_counts": {
+        "move": 3654,
+        "swap": 0,
+        "dig": 1454,
+        "push": 0,
+        "spawn_drone": 62
+      },
+      "interpreter_ticks": 556380,
+      "conclusion": "invalid implementation: reverse method is not supported"
+    },
+    "dynamite-physical-flags-v1b-s1-window80": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-physical-flags-v1b-s1-window80/report.json",
+      "report_sha256": "0125c323e499d8a81bbd46165a84def1ec57ea372dfb5f09111da48743cee1c5",
+      "script_sha256": "3ecda8af177a34999b565d4c9b4939835e218b63cf3e834d30a1442bc429fa70",
+      "frozen_source_raw_sha256": "3ecda8af177a34999b565d4c9b4939835e218b63cf3e834d30a1442bc429fa70",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 80s",
+        "line": 128
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 80.00013078,
+      "wall_seconds": 15.21885623713024,
+      "item": "Dynamite",
+      "net_change": 8656,
+      "net_per_game_second": 108.19982312033915,
+      "api_counts": {
+        "move": 25445,
+        "swap": 0,
+        "dig": 5982,
+        "push": 0,
+        "spawn_drone": 248
+      },
+      "interpreter_ticks": 4156972,
+      "conclusion": "superseded implementation: SAFE cells were not re-observed"
+    },
+    "dynamite-physical-flags-v1c-s1-window80": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-physical-flags-v1c-s1-window80/report.json",
+      "report_sha256": "2bf6f733e630e0c7b2df22e3b94c2225a2304f41f3ec9cbc943063a09e1e3f18",
+      "script_sha256": "6af891fcb8e37d7e802c616eee5c44595c2ad17d51979410ddaba4464c921a9d",
+      "frozen_source_raw_sha256": "6af891fcb8e37d7e802c616eee5c44595c2ad17d51979410ddaba4464c921a9d",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 80s",
+        "line": 128
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 80.00013078,
+      "wall_seconds": 15.259542695013806,
+      "item": "Dynamite",
+      "net_change": 7840,
+      "net_per_game_second": 97.99983979476188,
+      "api_counts": {
+        "move": 24987,
+        "swap": 0,
+        "dig": 5959,
+        "push": 0,
+        "spawn_drone": 248
+      },
+      "interpreter_ticks": 4301160,
+      "conclusion": "rejected fixed window: whole-cover preparation and boundary sweeps too slow"
+    },
+    "dynamite-physical-frontier-v2-s1-window80": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-physical-frontier-v2-s1-window80/report.json",
+      "report_sha256": "10a605540c261716965ac826ab90df301ff6a1d03eb486f61c04970c3913d223",
+      "script_sha256": "70953164a9f37bac51525ba6fc934a753cd8f3abd9e39b64bd4a6bab137af79d",
+      "frozen_source_raw_sha256": "70953164a9f37bac51525ba6fc934a753cd8f3abd9e39b64bd4a6bab137af79d",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": false,
+      "elapsed_game_seconds": 9.53717418,
+      "wall_seconds": 3.1127940888982266,
+      "item": "Dynamite",
+      "net_change": 2128,
+      "net_per_game_second": 223.1268885140567,
+      "api_counts": {
+        "move": 1938,
+        "swap": 0,
+        "dig": 327,
+        "push": 0,
+        "spawn_drone": 31
+      },
+      "interpreter_ticks": 782358,
+      "conclusion": "invalid implementation: natural Rock could be mistaken for a marker; conflicts"
+    },
+    "dynamite-physical-frontier-v2b-s1-window80": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-physical-frontier-v2b-s1-window80/report.json",
+      "report_sha256": "e9f77ba78e71870c86be303e9d1da791b4cf70beaec47a851995215be88ab9bf",
+      "script_sha256": "2d11f254078b591e304a0b9a751f79ce2fff481799f389feff360484f9dc2e64",
+      "frozen_source_raw_sha256": "2d11f254078b591e304a0b9a751f79ce2fff481799f389feff360484f9dc2e64",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 80s",
+        "line": 162
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 80.00013078,
+      "wall_seconds": 28.49827209697105,
+      "item": "Dynamite",
+      "net_change": 167632,
+      "net_per_game_second": 2095.3965745504497,
+      "api_counts": {
+        "move": 19827,
+        "swap": 0,
+        "dig": 2230,
+        "push": 0,
+        "spawn_drone": 155
+      },
+      "interpreter_ticks": 8585484,
+      "conclusion": "rejected fixed window: stable unique marker, four completed cycles, throughput too low"
+    },
+    "dynamite-active-frontier-v1-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-active-frontier-v1-s1-window120/report.json",
+      "report_sha256": "edcd0cb0b72d65ccf43152a481fc4133a60c2ba033efe1b59354711adcb728b8",
+      "script_sha256": "ee8b1a6be93d4aa57e3ed5fed473a8a5262348262d4407d53f52c843b66dd299",
+      "frozen_source_raw_sha256": "ee8b1a6be93d4aa57e3ed5fed473a8a5262348262d4407d53f52c843b66dd299",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 318
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00184227,
+      "wall_seconds": 6.9564327681437135,
+      "item": "Dynamite",
+      "net_change": 825984,
+      "net_per_game_second": 6883.094329015087,
+      "api_counts": {
+        "move": 7350,
+        "swap": 0,
+        "dig": 3308,
+        "push": 0,
+        "spawn_drone": 169
+      },
+      "interpreter_ticks": 941510,
+      "conclusion": "rejected fixed window: same three cycle rewards, slower than baseline"
+    },
+    "dynamite-central-cached-v1-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-central-cached-v1-s1-window120/report.json",
+      "report_sha256": "d888748e5a8412c964ea89c9e87e72c17008e4ccc3eb4e4f7b0b2813099838a6",
+      "script_sha256": "0f6e2858086ab4f605312b04c44f317895478086626446487fd8b26802af0c9a",
+      "frozen_source_raw_sha256": "0f6e2858086ab4f605312b04c44f317895478086626446487fd8b26802af0c9a",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 249
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.01912632,
+      "wall_seconds": 4.813320190878585,
+      "item": "Dynamite",
+      "net_change": 562960,
+      "net_per_game_second": 4690.585719637823,
+      "api_counts": {
+        "move": 15730,
+        "swap": 0,
+        "dig": 2117,
+        "push": 0,
+        "spawn_drone": 650
+      },
+      "interpreter_ticks": 415803,
+      "conclusion": "rejected fixed window: 19-20 opening barriers per cycle"
+    },
+    "dynamite-worker-cached-v2-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-worker-cached-v2-s1-window120/report.json",
+      "report_sha256": "0c162cebd85575438f706c1d567482fb2a0e2365a2ab8baa5cc31c3accbaf22f",
+      "script_sha256": "9f1ebb0d8952873faebfe885956b345bdb2ca173516f3a5638f9c6de6a92ba5d",
+      "frozen_source_raw_sha256": "9f1ebb0d8952873faebfe885956b345bdb2ca173516f3a5638f9c6de6a92ba5d",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到墙钟上限 28.5768s",
+        "line": 100
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 119.68760178,
+      "wall_seconds": 28.587880518985912,
+      "item": "Dynamite",
+      "net_change": 332784,
+      "net_per_game_second": 2780.4383666379786,
+      "api_counts": {
+        "move": 3925,
+        "swap": 0,
+        "dig": 1969,
+        "push": 0,
+        "spawn_drone": 4309
+      },
+      "interpreter_ticks": 5108849,
+      "conclusion": "invalid convergence implementation: unchanged old numbers were republished"
+    },
+    "dynamite-worker-cached-v2b-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-worker-cached-v2b-s1-window120/report.json",
+      "report_sha256": "051c0a7e2e8224bd4f6225fe963053313a0075db40c1e84b578ec758e5554cd6",
+      "script_sha256": "0c27a0ec1345b618fbef35218b70f136bbdc493e939660f9f873cf66d677e25d",
+      "frozen_source_raw_sha256": "0c27a0ec1345b618fbef35218b70f136bbdc493e939660f9f873cf66d677e25d",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 231
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00480525,
+      "wall_seconds": 12.407778437947854,
+      "item": "Dynamite",
+      "net_change": 1116928,
+      "net_per_game_second": 9307.360631711037,
+      "api_counts": {
+        "move": 7926,
+        "swap": 0,
+        "dig": 3974,
+        "push": 0,
+        "spawn_drone": 992
+      },
+      "interpreter_ticks": 1815235,
+      "conclusion": "rejected after convergence correction: slower than monotone merge"
+    },
+    "dynamite-tree-reduce-v3-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-tree-reduce-v3-s1-window120/report.json",
+      "report_sha256": "6b188b67620d731b1d4d25f0dc2afd930d417e6abb719ec61d2d2fa1e22980cb",
+      "script_sha256": "0cc562586ea9cdab5a5d49ffbfdb71f30d0ad9ae331806e0d9e6def23b6714ba",
+      "frozen_source_raw_sha256": "0cc562586ea9cdab5a5d49ffbfdb71f30d0ad9ae331806e0d9e6def23b6714ba",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 130
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.03443505,
+      "wall_seconds": 12.601283040130511,
+      "item": "Dynamite",
+      "net_change": 1116080,
+      "net_per_game_second": 9297.998524632536,
+      "api_counts": {
+        "move": 8179,
+        "swap": 0,
+        "dig": 3790,
+        "push": 0,
+        "spawn_drone": 992
+      },
+      "interpreter_ticks": 1883918,
+      "conclusion": "rejected fixed window: slower than monotone merge"
+    },
+    "dynamite-monotone-merge-v1-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-monotone-merge-v1-s1-window120/report.json",
+      "report_sha256": "0054505cd61af1876ad35b736f898f325edc56412944208c27f54a49d081b4d0",
+      "script_sha256": "d5879e698ca0294630c7888248c53774a2cd30fac779655429344f2ee0d0c05a",
+      "frozen_source_raw_sha256": "d5879e698ca0294630c7888248c53774a2cd30fac779655429344f2ee0d0c05a",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 124
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.05056683,
+      "wall_seconds": 12.705808552913368,
+      "item": "Dynamite",
+      "net_change": 1117184,
+      "net_per_game_second": 9305.945232078835,
+      "api_counts": {
+        "move": 8281,
+        "swap": 0,
+        "dig": 3862,
+        "push": 0,
+        "spawn_drone": 1023
+      },
+      "interpreter_ticks": 1867264,
+      "conclusion": "promoted algorithm; final source differs only in timing comment"
+    },
+    "actual-save-dynamite-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/actual-save-dynamite-s1-window120/report.json",
+      "report_sha256": "66e6c3cd745932c16021f185f0425eca256a6deecc310bcec80d928dfc4952ce",
+      "script_sha256": "210fd73cd37ecf01b1df0b67331046cde30b5610929d1242a5274bca9c8e15fc",
+      "frozen_source_raw_sha256": "210fd73cd37ecf01b1df0b67331046cde30b5610929d1242a5274bca9c8e15fc",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 87
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.01320036,
+      "wall_seconds": 11.964646346867085,
+      "item": "Dynamite",
+      "net_change": 831776,
+      "net_per_game_second": 6930.704268405029,
+      "api_counts": {
+        "move": 7922,
+        "swap": 0,
+        "dig": 3703,
+        "push": 0,
+        "spawn_drone": 914
+      },
+      "interpreter_ticks": 1772172,
+      "conclusion": "fresh actual-save baseline"
+    },
+    "promote-dynamite-merge-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/promote-dynamite-merge-s1-window120/report.json",
+      "report_sha256": "550fe0b656bcca724a79c8c67c20e49eb5495140ffc586a91a62c306e8d7820e",
+      "script_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+      "frozen_source_raw_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 124
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.05056683,
+      "wall_seconds": 13.090819546021521,
+      "item": "Dynamite",
+      "net_change": 1117184,
+      "net_per_game_second": 9305.945232078835,
+      "api_counts": {
+        "move": 8281,
+        "swap": 0,
+        "dig": 3862,
+        "push": 0,
+        "spawn_drone": 1023
+      },
+      "interpreter_ticks": 1867264,
+      "conclusion": "fresh promoted-source comparison; completed original puzzle cycles"
+    },
+    "dynamite-merge-forecast-s1-wall30": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-merge-forecast-s1-wall30/report.json",
+      "report_sha256": "e7202620cb3400c31d8ca9641a5a48083c0d3fb27df477652a1deee9f96aa27d",
+      "script_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+      "frozen_source_raw_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到墙钟上限 28.5376s",
+        "line": 80
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 261.39146184,
+      "wall_seconds": 28.539186721900478,
+      "item": "Dynamite",
+      "net_change": 2553472,
+      "net_per_game_second": 9768.76590392613,
+      "api_counts": {
+        "move": 18991,
+        "swap": 0,
+        "dig": 8686,
+        "push": 0,
+        "spawn_drone": 2314
+      },
+      "interpreter_ticks": 4165835,
+      "conclusion": "valid original-goal forecast from nine completed puzzle cycles; full original goal not completed"
+    },
+    "dynamite-critical-path-current-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-critical-path-current-s1/report.json",
+      "report_sha256": "96760a06d284aa574bf87a30c6e10b9a84ab105d3e2c9ebe5ccef2f62729f8d3",
+      "script_sha256": "210fd73cd37ecf01b1df0b67331046cde30b5610929d1242a5274bca9c8e15fc",
+      "frozen_source_raw_sha256": "210fd73cd37ecf01b1df0b67331046cde30b5610929d1242a5274bca9c8e15fc",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 36s",
+        "line": 198
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 36.06703866,
+      "wall_seconds": 3.5446508559398353,
+      "item": "Dynamite",
+      "net_change": 318880,
+      "net_per_game_second": 8841.31361618143,
+      "api_counts": {
+        "move": 2066,
+        "swap": 0,
+        "dig": 948,
+        "push": 0,
+        "spawn_drone": 217
+      },
+      "interpreter_ticks": 462597,
+      "conclusion": "fresh baseline first-cycle API trace; one completed puzzle cycle"
+    }
+  },
+  "dynamite_forecast": {
+    "source": "scripts/leaderboard/lb_dynamite.py",
+    "source_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+    "prediction_seconds": 976.0319772483359,
+    "full_original_goal_completed": false,
+    "original_goal": 10000000,
+    "cycles": [
+      {
+        "cycle": 0,
+        "delta": 318880,
+        "seconds": 32.41253205,
+        "cumulative": 318880
+      },
+      {
+        "cycle": 1,
+        "delta": 240480,
+        "seconds": 54.91488366,
+        "cumulative": 559360
+      },
+      {
+        "cycle": 2,
+        "delta": 259632,
+        "seconds": 85.202136,
+        "cumulative": 818992
+      },
+      {
+        "cycle": 3,
+        "delta": 297072,
+        "seconds": 115.05728709,
+        "cumulative": 1116064
+      },
+      {
+        "cycle": 4,
+        "delta": 280288,
+        "seconds": 139.30796151,
+        "cumulative": 1396352
+      },
+      {
+        "cycle": 5,
+        "delta": 310048,
+        "seconds": 167.34960423,
+        "cumulative": 1706400
+      },
+      {
+        "cycle": 6,
+        "delta": 284432,
+        "seconds": 195.58993122,
+        "cumulative": 1990832
+      },
+      {
+        "cycle": 7,
+        "delta": 280240,
+        "seconds": 225.16738524,
+        "cumulative": 2271072
+      },
+      {
+        "cycle": 8,
+        "delta": 280352,
+        "seconds": 254.39026932,
+        "cumulative": 2551424
+      }
+    ],
+    "initialization_seconds": 7.20020601,
+    "initialization_source": "reports/dynamite-critical-path-current-s1/trace.jsonl: first root get_time; initialization source AST unchanged",
+    "initialization_source_prefix_ast_equal": true,
+    "formula": "startup + (last_completed_cycle_seconds - startup) * original_goal / last_completed_cycle_cumulative",
+    "unfinished_cycle_excluded": true,
+    "public_first_seconds": 335.314,
+    "gap_percent": 191.0799958392241,
+    "first_three_identical_rewards": 818992,
+    "old_first_three_seconds": 92.54999718,
+    "new_first_three_seconds": 85.202136,
+    "first_four_identical_rewards": 1116064,
+    "old_first_four_seconds": 124.81174647,
+    "new_first_four_seconds": 115.05728709,
+    "lsp_errors": 0,
+    "lsp_hints": 7,
+    "short_leaderboard_test_seconds": null,
+    "game_leaderboard_seconds": null
+  },
+  "deployment": {
+    "deployed_at_utc": "20261108T204229Z",
+    "prepare_request_id": 448,
+    "state": "idle",
+    "game_scripts_run": false,
+    "archive": ".codex/deployments/nonreset-100-20261108T204229Z",
+    "file": "lb_dynamite.py",
+    "before_sha256": "210fd73cd37ecf01b1df0b67331046cde30b5610929d1242a5274bca9c8e15fc",
+    "source_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+    "comparison": [
+      {
+        "report": ".codex/nonreset-100-20261108/reports/actual-save-dynamite-s1-window120/report.json",
+        "report_sha256": "66e6c3cd745932c16021f185f0425eca256a6deecc310bcec80d928dfc4952ce",
+        "script_sha256": "210fd73cd37ecf01b1df0b67331046cde30b5610929d1242a5274bca9c8e15fc",
+        "net_change": 831776,
+        "rate": 6930.704268405029,
+        "completed_cycles": 3
+      },
+      {
+        "report": ".codex/nonreset-100-20261108/reports/promote-dynamite-merge-s1-window120/report.json",
+        "report_sha256": "550fe0b656bcca724a79c8c67c20e49eb5495140ffc586a91a62c306e8d7820e",
+        "script_sha256": "926d7ceef31a61100ebb2ddc0421544ca7c379b8eee187f00d9d68e0ac841e96",
+        "net_change": 1117184,
+        "rate": 9305.945232078835,
+        "completed_cycles": 4
+      }
+    ],
+    "file_list_unchanged": true,
+    "other_python_files_unchanged": true,
+    "lb_start_unchanged": true,
+    "mod_log_errors": [],
+    "unity_log_errors": []
+  }
+}
