@@ -11,9 +11,9 @@
     "lb_cactus_single": {
       "label": "仙人掌·单机",
       "simulation_seconds": 15.93578436,
-      "simulation_basis": "47+44株稀疏连通田，两次完整收获132640；三seed原131072目标16.52404563/15.78297141/15.50033604，均快于实际存档Morton版本。prepare450已备份同步，仅本地模型、未实机；证据structure_screening.json。",
+      "simulation_basis": "47+44株稀疏连通田两次完整收获132640；三seed完整原目标均值15.93578436秒。2026-11-09 request454官方465轮15.518秒；账号记录单独经Steam SDK核实。",
       "evidence": "lb_cactus_single.md",
-      "direction": "稀疏连通两轮已进入历史两倍线；保留土壤复用和短偏序链，后续核算成熟收尾与更多结构。"
+      "direction": "47+44稀疏连通两轮已实机提交；继续比较成熟收尾、短偏序链与更省移动的连通结构。"
     },
     "lb_maze": {
       "label": "迷宫·多机",
@@ -31,8 +31,8 @@
     },
     "lb_sunflowers_single": {
       "label": "向日葵·单机",
-      "simulation_seconds": 294.007,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_seconds": 294.007406975,
+      "simulation_basis": "2026-11-09当前修正模型重新完成原10000目标seed1：294.007406975秒；报告sunflower-final-current-model-s1，历史model-v3的293.356868255秒使用修正前模型，不再有效。request452官方25轮295.371秒；实机与模型统计独立记录。",
       "evidence": "lb_sunflowers_single.md",
       "direction": "比较支撑与分批生产布局，降低重种和成熟等待。"
     },
@@ -116,28 +116,28 @@
     "lb_mushrooms": {
       "label": "蘑菇·多机",
       "simulation_seconds": 320.57940162,
-      "simulation_basis": "已迁入常驻分片工人并备份同步已有存档；三seed原目标均值，另经新语法层80秒同条件效率对照。 证据local_promotion_validation.json；本版未实机打榜。",
+      "simulation_basis": "既有常驻分区原目标三seed均值320.57940162秒。当前加分区失败回收，正常80g净56080相同；request476官方完整23轮314.194秒，实际两次carry失败均保留收益后换场继续，双日志无错误。正式榜随机样本不替代同seed模型对照；证据real_game_batch_20261109.json。",
       "evidence": "lb_mushrooms.md",
-      "direction": "重新比较分区配对与搬运结构；单机新搬运代表未建立可迁多机收益，先证明每对的实际动作预算。"
+      "direction": "比较能减少开孔与搬运的配对结构；保留失败分区回收，先算每对收益和完整周期预算。"
     },
     "lb_mushrooms_single": {
       "label": "蘑菇·单机",
       "simulation_seconds": 818.99883816,
-      "simulation_basis": "已迁入重力中转算法并备份同步已有存档；三seed原目标均值，另经新语法层seed1完整复核。 证据local_promotion_validation.json；本版未实机打榜。",
+      "simulation_basis": "重力中转原目标三seed完整均值818.99883816秒；2026-11-09 request473官方9轮812.194秒正常结束。request460取消未计成绩；源码未改，当前原版目标资产仍为30000。",
       "evidence": "lb_mushrooms_single.md",
       "direction": "三推全田搬运与双向五格枢纽均未回本；寻找更少移动、材料利用率更高的配对结构，不调旧阈值。"
     },
     "lb_dynamite": {
       "label": "炸药·多机",
       "simulation_seconds": 821.0345455752362,
-      "simulation_basis": "相邻数字差集确定推理；三seed各固定30现实秒，共31盘正常结算，仅按完整周期加初始化外推原一千万目标。原目标未完整跑完；structure_screening.json记录源/报告、公式与prepare449部署，未实机。",
+      "simulation_basis": "相邻数字差集确定推理，三seed30现实秒、31盘正常结算外推821.034545575秒；原目标未本地跑完。2026-11-09 request464官方9轮874.708秒正常结束；正式榜随机样本不能直接当同seed模型误差。",
       "evidence": "lb_dynamite.md",
       "direction": "保留差集；零区省略与就地观测未回本，合并检查点预算不足；比较能缩短跨区传播关键链的新组织。"
     },
     "lb_dynamite_single": {
       "label": "炸药·单机",
-      "simulation_seconds": 258.42239127,
-      "simulation_basis": "原100k目标三seed完整均值；缓存约束、全盘计数、就近正常结算。",
+      "simulation_seconds": 258.98590617,
+      "simulation_basis": "2026-11-09原版仅支持数值乘法，改为逐项append初始化后，原目标三seed完整重算：256.88164167/257.96066022/262.11541662秒。旧列表乘法源码的效率放行资格撤回。实机与新公开排名见real_game_batch_20261109.json及同名文档。",
       "evidence": "lb_dynamite_single.md",
       "direction": "缓存约束、全盘计数与就近结算已达阶段门槛；继续比较可兑现收益与开格预算。"
     },
@@ -150,29 +150,29 @@
     },
     "lb_bamboo": {
       "label": "竹子·多机",
-      "simulation_seconds": 321.35817153,
-      "simulation_basis": "普通if/else语法修正版，原500M目标三seed完整均值，全部工人回收；game_syntax_validation.json。",
+      "simulation_seconds": 320.61792036,
+      "simulation_basis": "2026-11-09原版仅支持数值乘法，改为逐项append初始化后，原目标三seed完整重算：321.17797845/321.61337190/319.06241073秒。旧列表乘法源码的效率放行资格撤回。实机与新公开排名见real_game_batch_20261109.json及同名文档。",
       "evidence": "lb_bamboo.md",
       "direction": "统一花节批量保桩已达阶段门槛；继续核算供水、生长间隔与收尾长尾。"
     },
     "lb_bamboo_single": {
       "label": "竹子·单机",
-      "simulation_seconds": 265.38555888,
-      "simulation_basis": "普通if/else语法修正版，原25M目标三seed完整均值；game_syntax_validation.json。",
+      "simulation_seconds": 265.46358402,
+      "simulation_basis": "2026-11-09原版仅支持数值乘法，改为逐项append初始化后，原目标三seed完整重算：270.75414942/264.65452587/260.98207677秒。旧列表乘法源码的效率放行资格撤回。实机与新公开排名见real_game_batch_20261109.json及同名文档。",
       "evidence": "lb_bamboo_single.md",
       "direction": "统一花节批量保桩已达阶段门槛；继续比较选种成本与更密巡回。"
     },
     "lb_pyramids": {
       "label": "金字塔·多机",
-      "simulation_seconds": 1338.123,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_seconds": 1338.1231122446668,
+      "simulation_basis": "沿边定位、清土补缺与中心等待，原150000目标三seed完整均值1338.123112244667秒。2026-11-09 request482官方完整6轮1363.254秒正常结束，双日志无错误；专用榜随机流不替代同seed模型精度对照。证据real_game_batch_20261109.json。",
       "evidence": "lb_pyramids.md",
       "direction": "减少找塔、覆土清理和人为缺口；主机提前到中心等待。"
     },
     "lb_pyramids_single": {
       "label": "金字塔·单机",
-      "simulation_seconds": 1072.629,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_seconds": 1072.628647187,
+      "simulation_basis": "5×5清土补底、中心最后补尖，原30000目标三seed完整均值1072.628647187000秒。2026-11-09 request484官方完整7轮1074.147秒正常结束，双日志无错误；专用榜随机流不替代同seed模型精度对照。证据real_game_batch_20261109.json。",
       "evidence": "lb_pyramids_single.md",
       "direction": "减少入口与覆土开挖，按几何直接补缺，中心最后补尖。"
     },
@@ -192,15 +192,15 @@
     },
     "lb_rice": {
       "label": "稻米·多机",
-      "simulation_seconds": 140.076,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_seconds": 140.07603177,
+      "simulation_basis": "低水位单桶补水，原2M目标三seed完整均值140.076031770000秒。2026-11-09 request478官方完整52轮140.721秒正常结束，双日志无错误；专用榜随机流不替代同seed模型精度对照。证据real_game_batch_20261109.json。",
       "evidence": "lb_rice.md",
       "direction": "增加两层种植/成熟重叠，减少跨列回访和最慢工人等待。"
     },
     "lb_rice_single": {
       "label": "稻米·单机",
-      "simulation_seconds": 166.888,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_seconds": 166.88776344000001,
+      "simulation_basis": "两层流水与实际被动供水，原100k目标三seed完整均值166.887763440000秒。2026-11-09 request480官方完整44轮165.682秒正常结束，双日志无错误；专用榜随机流不替代同seed模型精度对照。证据real_game_batch_20261109.json。",
       "evidence": "lb_rice_single.md",
       "direction": "优化两层清单访问顺序，减少成熟空等和回访。"
     },

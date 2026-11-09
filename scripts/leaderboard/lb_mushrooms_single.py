@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（当前算法仅完成本地效率验证）。
+# 完整轮时间：13:32.194（2026-11-09，build26462009，官方完整9轮，request473）。
 
 def lb_mushrooms_single():
     began = get_time()

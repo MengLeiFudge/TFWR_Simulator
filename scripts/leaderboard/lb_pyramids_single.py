@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：1072.629秒（本地原目标三seed均值；当前清土补底版本未实机验证）。
+# 完整轮时间：17:54.147（2026-11-09，build26462009，官方完整7轮，request484）。
 
 
 def lb_pyramids_single():

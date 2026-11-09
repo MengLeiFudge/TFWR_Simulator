@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（47+44株稀疏连通田；本地完整目标已验证）。
+# 完整轮时间：0:15.518（2026-11-09，build26462009，官方完整465轮，request454）。
 # Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt（move_to）。
 
 def lb_cactus_single():

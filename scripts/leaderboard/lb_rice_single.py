@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：166.888秒（本地原目标三seed均值；当前补水版本未实机验证）。
+# 完整轮时间：2:45.682（2026-11-09，build26462009，官方完整44轮，request480）。
 
 def lb_rice_single():
     size = get_world_size()

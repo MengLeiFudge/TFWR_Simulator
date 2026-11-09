@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（当前算法仅完成本地效率验证）。
+# 完整轮时间：5:14.194（2026-11-09，build26462009，官方完整23轮，request476）。
 
 def lb_mushrooms():
     began = get_time()
@@ -48,11 +48,16 @@ def lb_mushrooms():
         results.append(work_patch(blocks[0], top, levels))
         for handle in handles:
             results.append(wait_for(handle))
+        complete = True
         for result in results:
             if not result:
-                quick_print("mushrooms_failed", "patch", batch)
-                return
-        quick_print("mushrooms_batch", batch, get_time(), num_items(Items.Mushroom))
+                complete = False
+                break
+        if complete:
+            quick_print("mushrooms_batch", batch, get_time(), num_items(Items.Mushroom))
+        else:
+            # 所有工人结束后才能clear；单个分区失败时保留收益并换场。
+            quick_print("mushrooms_restart", "patch", batch, get_time(), num_items(Items.Mushroom))
     quick_print("mushrooms_failed", "batch_limit", get_time(), num_items(Items.Mushroom))
 
 
@@ -148,6 +153,7 @@ def work_layer(block, ceiling):
             if x == 0 and y == 0:
                 continue
             if not move_to(x, y):
+                quick_print("mushrooms_abort", "move", block, x, y)
                 return None
             neighbors = []
             if y + 1 < y1:
@@ -168,16 +174,20 @@ def work_layer(block, ceiling):
             if z >= ceiling and mushroom:
                 count = carry_match(cache, x, y, neighbors, floor)
                 if count == None:
+                    quick_print("mushrooms_abort", "carry", block, x, y, z, get_pos_z())
                     return None
                 pairs += count
                 if count == 0:
                     if get_hardness() >= 10000000 or not dig():
+                        quick_print("mushrooms_abort", "dig", block, x, y, z, get_pos_z())
                         return None
                     if get_pos_z() != z - 1:
+                        quick_print("mushrooms_abort", "drop", block, x, y, z, get_pos_z())
                         return None
                     digs += 1
             count = feed_column(neighbors, floor)
             if count == None:
+                quick_print("mushrooms_abort", "feed", block, x, y, z, get_pos_z())
                 return None
             pairs += count
             read_column(cache, x, y)
@@ -204,7 +214,7 @@ def push_match(neighbors, floor):
     return 0
 
 
-# 从邻格推向当前格并返回，移动或推送失败交给主机停止本轮。
+# 从邻格推向当前格并返回，移动或推送失败交给主机回收后换场。
 def push_neighbor(i):
     if not move(DIRECTIONS[i]):
         return False
