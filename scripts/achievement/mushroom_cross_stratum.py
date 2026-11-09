@@ -1,21 +1,26 @@
 from __builtins__ import *
-# 远距离友谊：保留原片的一块蘑菇，经地图两端环绕下送到另一片同色蘑菇。
+# 远距离友谊：全科技独立入口，初始化和搬运共用5分钟（300游戏秒）上限。
 
 WORLD_SIZE = 32
-MAX_ATTEMPTS = 8
+MAX_ATTEMPTS = 16
 MAX_FALL = 12
-MAX_DESCENT = 80
-MAX_GAME_SECONDS = 3600
+# 最多下送九个区块；首片以外至多再生成九片，不复用十片一轮的原片编号。
+MAX_DESCENT = 144
+MAX_GAME_SECONDS = 300
 
 
 # 独立运行并只使用一次Jump；实际跨片配对后退出，失败时保留现场。
 def mushroom_cross_stratum():
+    # 预留1游戏秒处理最后一次动作和退出。
+    deadline = get_time() + MAX_GAME_SECONDS - 1
     set_world_size(WORLD_SIZE)
     clear()
     change_hat(Hats.Mining_Hat)
     jump(Unlocks.Mushrooms)
-    deadline = get_time() + MAX_GAME_SECONDS
     for attempt in range(MAX_ATTEMPTS):
+        if get_time() >= deadline:
+            quick_print("远距离友谊达到5分钟上限，未完成。")
+            return False
         if attempt > 0:
             clear()
             change_hat(Hats.Mining_Hat)
@@ -29,7 +34,7 @@ def mushroom_cross_stratum():
 
 # 两落点相隔31个实体格；每次只挖低12格，限制塌方传播接近另一端的机会。
 def cross_attempt(deadline):
-    if not cross_move_to(0, 0):
+    if not cross_move_to(0, 0, deadline):
         return False
     limit = get_pos_z() - 128
     while get_ground_type() != Grounds.Mushroom:
@@ -118,14 +123,16 @@ def cross_dig(deadline):
     if ground == Grounds.Soot or ground == Grounds.Dynamite:
         quick_print("原生炸药层阻断蘑菇下送，换田。")
         return None
-    if get_time() >= deadline or get_hardness() >= 10000000 or not dig():
+    if get_time() + get_hardness() / (1.5 ** num_unlocked(Unlocks.Mining)) >= deadline or get_hardness() >= 10000000 or not dig():
         quick_print("跨片下挖失败或达到时间上限：位置", get_pos_x(), get_pos_y(), get_pos_z())
         return False
     return True
 
 
 # 初始定位使用环绕短路径；搬运阶段只在东西两端移动。
-def cross_move_to(tx, ty):
+def cross_move_to(tx, ty, deadline):
+    if get_time() >= deadline:
+        return False
     for delta, forward, backward in [(tx - get_pos_x(), East, West), (ty - get_pos_y(), North, South)]:
         steps = delta % WORLD_SIZE
         direction = forward
@@ -133,7 +140,7 @@ def cross_move_to(tx, ty):
             steps = WORLD_SIZE - steps
             direction = backward
         for _ in range(steps):
-            if not move(direction):
+            if get_time() >= deadline or not move(direction):
                 return False
     return True
 

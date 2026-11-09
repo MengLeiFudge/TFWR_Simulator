@@ -47,21 +47,21 @@ TARGETS = {
 | 炸药 | [dynamite.py](dynamite.py) | `lb_dynamite.py`区域增量求解；普通田单次Jump、协同找层和逐盘正常结算 |
 | 藏宝图产金币 | [gold_treasure_map.py](gold_treasure_map.py) | `lb_treasure_map.py`，按层去环，适配普通地形入口 |
 | 金字塔产能量 | [power_pyramids.py](power_pyramids.py) | `lb_pyramids.py`修补主体，普通田使用Jump和浅层爆破钻头 |
-| 建材 | [block.py](block.py) | 多机常驻布药、向日葵就绪标记与主机连锁爆破；[机制与验证范围](../../docs/block-mining.md) |
+| 建材 | [block.py](block.py) | 单机连续深钻与原生炸药层连锁收集；[机制与验证记录](../../docs/block-mining.md) |
 | 铁 | [iron.py](iron.py) | 已露矿及邻柱追脉，否则支付Coal读取铁方向，主机单钻定点开采 |
 | 石英 | [quartz.py](quartz.py) | 单爆破钻、四格间距蛇形开孔，保留石英深度与矿层终止条件 |
 | 石化南瓜 | [pumpkin_petrified.py](pumpkin_petrified.py) | 同上，Jump至石化层附近后收取真实爆破掉落 |
 | 怪异物质 | [weird_substance.py](weird_substance.py) | `lb_fastest_reset.py`的并行伴生树苗圃 |
 
-水和肥料由游戏自动获取，不设生产脚本。`mining.py`集中石英、石化南瓜的稀疏钻孔及矿采导航，不是独立生产入口；建材的炸药网、屏障和窗口由 `block.py` 保存。铁的方向勘探直接由 `iron.py` 保存；`resources.materials` 为其准备Coal查询储备。爆破只计真实入库，勘探结果不直接记作产量。
+水和肥料由游戏自动获取，不设生产脚本。`mining.py`集中石英、石化南瓜的稀疏钻孔及矿采导航，不是独立生产入口；建材的连续深钻和60秒库存窗口由 `block.py` 保存。铁的方向勘探直接由 `iron.py` 保存；`resources.materials` 为其准备Coal查询储备。爆破只计真实入库，勘探结果不直接记作产量。
 
 ## 运行与依赖
 
 - 独立功能入口以其他资源库存充足为前提；效率按目标资源的实际净增长/游戏秒比较，不另计生产Coal、Iron、Dynamite等材料的时间。游戏动作仍正常扣材料，耗尽或动作失败时返回原因；库存调度按材料表准备和补齐。
-- 完整周期型在正常结算并回收子机后检查库存目标。建材按爆破轮次检查，稀疏矿采按整片、蘑菇按整片、炸药按整盘检查，铁勘探在每次追矿或开挖前检查，因此最终库存可能略超目标。竹子已有Jump额度时采用地表星形，未用时先保留可达珍珠岩。
+- 完整周期型在正常结算并回收子机后检查库存目标。建材按每次开挖检查，稀疏矿采按整片、蘑菇按整片、炸药按整盘检查，铁勘探在每次追矿或开挖前检查，因此最终库存可能略超目标。竹子已有Jump额度时采用地表星形，未用时先保留可达珍珠岩。
 - 多数入口会整理或重生农田，运行前确认当前农田可被清理。Jump每次执行只能使用一次，后续循环按原算法继续或重生。
 - 金字塔只同时修一座，底层就绪后再补高层，主机在中心放最后顶块。爆破钻头只用于远离塔区的浅覆盖层，接近塔区前换回采矿帽；结果须以实际模拟记录为准。
-- `block.py`依赖同目录的 `mining.py` 导航和 `production.py` 库存目标；32×32一轮需要65份炸药、32株向日葵种子及32块临时土台，16轮储备1040份Dynamite和512份Carrot；初始土台不足时先手挖启动。输出实际不超过60游戏秒的Block净增窗口。`quartz.py`、`pumpkin_petrified.py`需要 `mining.py`；铁入口依赖 `production.py`。验证范围见各入口说明，运行时不导入 `lb_*.py`。
+- `block.py`只依赖同目录的 `production.py`，单机独占爆破钻连续向下开采。每次挖掘消耗一份炸药；调度按 `DYNAMITE_RESERVE` 准备2000份，不再准备向日葵种子或土台。入口记录实际不超过60游戏秒的Block净增窗口。`quartz.py`、`pumpkin_petrified.py`需要 `mining.py`；铁入口依赖 `production.py`。验证范围见各入口说明，运行时不导入 `lb_*.py`。
 
 MIT来源的木材、胡萝卜、南瓜和恐龙脚本保留作者声明及 [enihsyou_LICENSE.txt](enihsyou_LICENSE.txt)。迷宫上游来源和本地使用边界见[迷宫策略文档](../../docs/leaderboards/lb_maze.md)。
 

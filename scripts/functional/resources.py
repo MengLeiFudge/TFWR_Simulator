@@ -168,11 +168,8 @@ def materials(item):
         needed[Items.Weird_Substance] = 64 + (20 * 5 + 6 * 6 + 6 * 7) * 2 ** (num_unlocked(Unlocks.Mazes) - 1) * 301
     if item == Items.Block:
         import block
-        side = (get_world_size() + 3) // 4
-        workers = min(max_drones(), (side * side + 1) // 2)
-        # 每轮布药与主机点火；每机种一株向日葵标记就绪，批次轮数归建材入口所有。
-        needed[Items.Dynamite] = (side * side + 1) * block.ROUNDS_PER_FIELD
-        needed[Items.Carrot] = workers * block.ROUNDS_PER_FIELD * get_cost(Entities.Sunflower)[Items.Carrot]
+        # 连续深钻每次消耗一份炸药；材料储备由建材入口统一声明。
+        needed[Items.Dynamite] = block.DYNAMITE_RESERVE
     depths = {Items.Iron: 64, Items.Quartz: 80}
     if item in depths:
         # 爆破钻头每次扣一份炸药；为覆盖层及矿层留出一批完整沟挖的库存。
