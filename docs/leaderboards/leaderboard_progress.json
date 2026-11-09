@@ -6,7 +6,7 @@
       "simulation_seconds": 775.38042549,
       "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
       "evidence": "lb_dinosaur.md",
-      "direction": "优先压缩256–769尾的中段路径；近满尾重开不能解决差距，不重复旧固定回路和阈值。"
+      "direction": "优先改变256–769尾的身体与自由区路径；逐果更新未省够移动，近满尾重开也不足，不重复旧阈值。"
     },
     "lb_cactus_single": {
       "label": "仙人掌·单机",
@@ -118,21 +118,21 @@
       "simulation_seconds": 320.57940162,
       "simulation_basis": "已迁入常驻分片工人并备份同步已有存档；三seed原目标均值，另经新语法层80秒同条件效率对照。 证据local_promotion_validation.json；本版未实机打榜。",
       "evidence": "lb_mushrooms.md",
-      "direction": "重新比较配对与运输结构；十字揭盖减少挖掘也损失产量，多seed完整场次未回本，不能用窗口阶段差异声称提速。"
+      "direction": "重新比较分区配对与搬运结构；单机新搬运代表未建立可迁多机收益，先证明每对的实际动作预算。"
     },
     "lb_mushrooms_single": {
       "label": "蘑菇·单机",
       "simulation_seconds": 818.99883816,
       "simulation_basis": "已迁入重力中转算法并备份同步已有存档；三seed原目标均值，另经新语法层seed1完整复核。 证据local_promotion_validation.json；本版未实机打榜。",
       "evidence": "lb_mushrooms_single.md",
-      "direction": "直接配对队列、固定接收井和4格田均未回本；寻找不同的配对或运输结构，不调旧阈值。"
+      "direction": "三推全田搬运与双向五格枢纽均未回本；寻找更少移动、材料利用率更高的配对结构，不调旧阈值。"
     },
     "lb_dynamite": {
       "label": "炸药·多机",
       "simulation_seconds": 821.0345455752362,
       "simulation_basis": "相邻数字差集确定推理；三seed各固定30现实秒，共31盘正常结算，仅按完整周期加初始化外推原一千万目标。原目标未完整跑完；structure_screening.json记录源/报告、公式与prepare449部署，未实机。",
       "evidence": "lb_dynamite.md",
-      "direction": "全局雷上界未减少批次；继续改变开格与证据传播组织，压缩每盘关键链。"
+      "direction": "保留差集；零区省略与就地观测未回本，合并检查点预算不足；比较能缩短跨区传播关键链的新组织。"
     },
     "lb_dynamite_single": {
       "label": "炸药·单机",

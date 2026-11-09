@@ -4100,6 +4100,323 @@
       ],
       "immature_harvests": {},
       "conclusion": "promoted: complete original 131072 target in all seeds; 132640 Cactus, no immature harvests or warnings"
+    },
+    "dinosaur-event-segments-v1-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/dinosaur-event-segments-v1-s1/report.json",
+      "report_sha256": "c75ebab3db9b615d14e1410b57f211603088745b350861e006e31d7910f080b8",
+      "script_sha256": "40766aa831879a98d1c76d7ea2b6217ca8d43a93b5ba6c81fd79eccad7d9bea8",
+      "frozen_source_raw_sha256": "40766aa831879a98d1c76d7ea2b6217ca8d43a93b5ba6c81fd79eccad7d9bea8",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 932.92799805,
+      "wall_seconds": 11.394255209947005,
+      "item": "Bone",
+      "net_change": 33488928,
+      "net_per_game_second": 35896.58373421994,
+      "api_counts": {
+        "move": 104130,
+        "dig": 0,
+        "push": 0,
+        "measure": 1027,
+        "spawn_drone": 0,
+        "wait_for": 0
+      },
+      "interpreter_ticks": 1879629,
+      "output": [
+        "bridge_prefix 10 16.27614297 3 26",
+        "safe_handoff 10 10 19.98497088 0 0",
+        "dinosaur_event_end 1023 96081 932.89507605"
+      ],
+      "conclusion": "rejected: original goal completed in 932.92799805; API 623.52226836 leaves only 6.27773164 seconds for all interpreter work at the historical gate"
+    },
+    "dynamite-merge-cost-v1-s1-window40": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-merge-cost-v1-s1-window40/report.json",
+      "report_sha256": "97c1702915da58edf87e89de86cc997b59b14a1e5c7aaa013eb65072d9713d59",
+      "script_sha256": "d1a9a95b2eada644a3777372868859eaec17b0534fc072e04225a7eba52e77da",
+      "frozen_source_raw_sha256": "d1a9a95b2eada644a3777372868859eaec17b0534fc072e04225a7eba52e77da",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 40s",
+        "line": 283
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 40.00121766,
+      "wall_seconds": 3.983331080991775,
+      "item": "Dynamite",
+      "net_change": 322608,
+      "net_per_game_second": 8064.954490687871,
+      "api_counts": {
+        "move": 2588,
+        "dig": 1202,
+        "push": 0,
+        "measure": 1119,
+        "spawn_drone": 248,
+        "wait_for": 234
+      },
+      "interpreter_ticks": 546697,
+      "output": [
+        "dynamite_worker_init_cost 17 0.14633829000000098",
+        "dynamite_merge_cost 0 0 0.19160603999999992",
+        "dynamite_worker_init_cost 17 0.1463382899999992",
+        "dynamite_merge_cost 0 1 0.33317063999999874",
+        "dynamite_worker_init_cost 17 0.15226425000000177",
+        "dynamite_merge_cost 0 2 0.4533359400000023",
+        "dynamite_worker_init_cost 17 0.16790220000000033",
+        "dynamite_merge_cost 0 3 0.4088912399999991",
+        "dynamite_worker_init_cost 17 0.17399276999999813",
+        "dynamite_merge_cost 0 4 0.18090639000000053",
+        "dynamite_worker_init_cost 17 0.17399276999999813",
+        "dynamite_merge_cost 0 5 0.0971199000000027",
+        "dynamite_cycle 0 ended phases 6 318880 32.91722631 318880 prepare 2.2069262700000003 solve 23.50894176",
+        "dynamite_worker_init_cost 17 0.14633829000000276",
+        "dynamite_merge_cost 1 0 0.2566269900000009",
+        "dynamite_worker_init_cost 17 0.14633829000000276"
+      ],
+      "conclusion": "budget closed: first-cycle root merge plus representative worker initialization 2.62585872 seconds, optimistic whole-forecast proportional estimate 737.937282663 still above 670.628"
+    },
+    "dynamite-observe-open-v1-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-observe-open-v1-s1-window120/report.json",
+      "report_sha256": "2fcb3eb846093889a866e5df8fbc47144ab4b4d28354c7905b9eaa8ccd1a2c06",
+      "script_sha256": "e9598f983db66913f7e63ba4968e3888ab5248377d543cd312fc9a7d2bf7b23a",
+      "frozen_source_raw_sha256": "e9598f983db66913f7e63ba4968e3888ab5248377d543cd312fc9a7d2bf7b23a",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 392
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.01336497,
+      "wall_seconds": 12.246486668009311,
+      "item": "Dynamite",
+      "net_change": 893568,
+      "net_per_game_second": 7445.5707514189535,
+      "api_counts": {
+        "move": 8163,
+        "dig": 3825,
+        "push": 0,
+        "measure": 3845,
+        "spawn_drone": 837,
+        "wait_for": 835
+      },
+      "interpreter_ticks": 2041599,
+      "output": [
+        "dynamite_cycle 0 ended phases 6 318880 34.88036517 318880 prepare 2.2069262699999994 solve 25.47191601",
+        "dynamite_cycle 1 ended phases 6 272016 58.72181913 590896 prepare 2.0482422299999996 solve 21.79173024",
+        "dynamite_cycle 2 ended phases 8 288720 90.14899572 879616 prepare 1.7308741499999982 solve 29.69482095"
+      ],
+      "conclusion": "rejected: same first three settled cycles yield 879616 at 90.14899572 versus current 83.02418109; phases unchanged 6/6/8"
+    },
+    "mushroom-routed-sliding-v1-single-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-routed-sliding-v1-single-s1/report.json",
+      "report_sha256": "cdb0b3a029e7fc931a4b4e1d323873bcd0987d0fdb9d343363e97aae6fe335b0",
+      "script_sha256": "a48bd52849435ed389175787177b2adaac58bc4c6cb221d6af7e3677ff9ace4d",
+      "frozen_source_raw_sha256": "a48bd52849435ed389175787177b2adaac58bc4c6cb221d6af7e3677ff9ace4d",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到墙钟上限 28.5638s",
+        "line": 110
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 2617.00006824,
+      "wall_seconds": 28.566649910993874,
+      "item": "Mushroom",
+      "net_change": 10768,
+      "net_per_game_second": 4.114634971042151,
+      "api_counts": {
+        "move": 3374,
+        "dig": 342,
+        "push": 2655,
+        "measure": 3921,
+        "spawn_drone": 0,
+        "wait_for": 0
+      },
+      "interpreter_ticks": 14507118,
+      "output": [
+        "mushrooms_routed_batch 0 85 487 524.23972218 1360",
+        "mushrooms_routed_batch 1 77 448 1127.85767856 2592",
+        "mushrooms_routed_batch 2 180 664 1750.84430598 5472",
+        "mushrooms_routed_batch 3 181 675 2352.05829792 8368"
+      ],
+      "conclusion": "rejected: 30-real-second cap, original 30000 target incomplete; 10768 at 2617.00006824, planning and nonproductive transport did not repay saved digging"
+    },
+    "mushroom-bidirectional-hubs-v1-single-s1": {
+      "report": ".codex/nonreset-100-20261108/reports/mushroom-bidirectional-hubs-v1-single-s1/report.json",
+      "report_sha256": "fd911492a154ce46b0ea3fbcd329611980a943321cdfba008637de4a6393ed21",
+      "script_sha256": "33ad9d457573295e350f26eee507ade0c9eaf6ce33f4daae5187bea81b48a16b",
+      "frozen_source_raw_sha256": "33ad9d457573295e350f26eee507ade0c9eaf6ce33f4daae5187bea81b48a16b",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "elapsed_game_seconds": 1563.42446289,
+      "wall_seconds": 5.466381252044812,
+      "item": "Mushroom",
+      "net_change": 30000,
+      "net_per_game_second": 19.18864691713011,
+      "api_counts": {
+        "move": 18789,
+        "dig": 6058,
+        "push": 8040,
+        "measure": 45230,
+        "spawn_drone": 0,
+        "wait_for": 0
+      },
+      "interpreter_ticks": 1286674,
+      "output": [
+        "mushrooms_batch 0 16.3227276 240",
+        "mushrooms_batch 1 32.52808827 528",
+        "mushrooms_batch 2 66.67445745 1536",
+        "mushrooms_batch 3 89.26290009 2000",
+        "mushrooms_batch 4 113.23324368 2544",
+        "mushrooms_batch 5 130.01111793 2784",
+        "mushrooms_batch 6 152.53371657 3120",
+        "mushrooms_batch 7 179.50588812 3632",
+        "mushrooms_batch 8 196.40080008 3872",
+        "mushrooms_batch 9 212.40681804 4096",
+        "mushrooms_batch 10 231.41235942 4272",
+        "mushrooms_batch 11 255.4236909 4864",
+        "mushrooms_batch 12 276.54792759 5312",
+        "mushrooms_batch 13 303.50989332 5904",
+        "mushrooms_batch 14 326.36911941 6384",
+        "mushrooms_batch 15 353.97800244 7104",
+        "mushrooms_batch 16 370.60822152 7376",
+        "mushrooms_batch 17 389.99977335 7712",
+        "mushrooms_batch 18 419.49804996 8368",
+        "mushrooms_batch 19 441.52171569 8864",
+        "mushrooms_batch 20 456.74221473 9072",
+        "mushrooms_batch 21 485.02023741 9888",
+        "mushrooms_batch 22 503.04108177 10224",
+        "mushrooms_batch 23 523.23346125 10544",
+        "mushrooms_batch 24 550.42769169 11056",
+        "mushrooms_batch 25 567.68639175 11264",
+        "mushrooms_batch 26 591.85838259 11840",
+        "mushrooms_batch 27 612.77916132 12320",
+        "mushrooms_batch 28 638.03593206 12864",
+        "mushrooms_batch 29 655.78401765 13104",
+        "mushrooms_batch 30 677.06364618 13600",
+        "mushrooms_batch 31 694.20514392 13872",
+        "mushrooms_batch 32 716.74370973 14224",
+        "mushrooms_batch 33 741.54483999 14880",
+        "mushrooms_batch 34 761.23943883 15120",
+        "mushrooms_batch 35 783.96812919 15616",
+        "mushrooms_batch 36 804.89137707 16112",
+        "mushrooms_batch 37 824.29050096 16448",
+        "mushrooms_batch 38 846.17918649 16800",
+        "mushrooms_batch 39 865.46061423 17024",
+        "mushrooms_batch 40 887.89251276 17424",
+        "mushrooms_batch 41 906.37047909 17728",
+        "mushrooms_batch 42 927.93603519 18128",
+        "mushrooms_batch 43 949.69879407 18576",
+        "mushrooms_batch 44 967.36325778 18800",
+        "mushrooms_batch 45 993.04175934 19344",
+        "mushrooms_batch 46 1011.07066959 19568",
+        "mushrooms_batch 47 1025.16688233 19728",
+        "mushrooms_batch 48 1041.51413682 19856",
+        "mushrooms_batch 49 1060.46404002 20224",
+        "mushrooms_batch 50 1079.4218445 20496",
+        "mushrooms_batch 51 1099.08829503 20880",
+        "mushrooms_batch 52 1129.62262698 21712",
+        "mushrooms_batch 53 1153.55000736 22256",
+        "mushrooms_batch 54 1170.88969554 22400",
+        "mushrooms_batch 55 1193.40192375 22784",
+        "mushrooms_batch 56 1212.50853567 23200",
+        "mushrooms_batch 57 1232.15078853 23424",
+        "mushrooms_batch 58 1254.65709078 23920",
+        "mushrooms_batch 59 1272.84830649 24096",
+        "mushrooms_batch 60 1289.47473954 24384",
+        "mushrooms_batch 61 1309.68670761 24736",
+        "mushrooms_batch 62 1334.78430048 25312",
+        "mushrooms_batch 63 1360.78165161 26048",
+        "mushrooms_batch 64 1376.95721787 26256",
+        "mushrooms_batch 65 1400.51142738 26816",
+        "mushrooms_batch 66 1423.52176545 27440",
+        "mushrooms_batch 67 1449.06232383 27872",
+        "mushrooms_batch 68 1476.1270062 28528",
+        "mushrooms_batch 69 1503.0802476 29072",
+        "mushrooms_batch 70 1520.16643638 29264",
+        "mushrooms_batch 71 1540.98367542 29616",
+        "mushrooms_batch 72 1563.42363984 30000",
+        "mushrooms_done True 1563.42429828 30000"
+      ],
+      "conclusion": "rejected: full original 30000 completed at 1563.42446289, 73 fields; local material utilization and repeated initialization did not repay bidirectional source access"
+    },
+    "dynamite-connected-zero-v1-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-connected-zero-v1-s1-window120/report.json",
+      "report_sha256": "6a45bb3d18477b46563f02d9b7683e30bee24583de2dc494b35e740467e01da5",
+      "script_sha256": "baa7b1b68d9fc64349e53f9af4f1bac60757a600306826216cab9c17942d6d5e",
+      "frozen_source_raw_sha256": "baa7b1b68d9fc64349e53f9af4f1bac60757a600306826216cab9c17942d6d5e",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 365
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00743901,
+      "wall_seconds": 12.809190598782152,
+      "item": "Dynamite",
+      "net_change": 1194208,
+      "net_per_game_second": 9951.116446210379,
+      "api_counts": {
+        "move": 8165,
+        "dig": 3590,
+        "push": 0,
+        "measure": 3264,
+        "spawn_drone": 930,
+        "wait_for": 925
+      },
+      "interpreter_ticks": 1993196,
+      "output": [
+        "dynamite_cycle 0 ended phases 7 317520 34.96991301 317520 prepare 2.2069262700000003 solve 25.561628459999994",
+        "dynamite_cycle 1 ended phases 6 270736 57.01415499 588256 prepare 2.0482422299999996 solve 19.99451826",
+        "dynamite_cycle 2 ended phases 8 287712 85.71226239 875968 prepare 1.7308741499999982 solve 26.965751760000003",
+        "dynamite_cycle 3 ended phases 8 317440 116.55622575 1193408 prepare 2.206926270000011 solve 28.63555559999999"
+      ],
+      "conclusion": "rejected: first four settled cycles 1193408 at 116.55622575, slower and lower than 1198496 at 112.02977997; phases 7/6/8/8"
+    },
+    "dynamite-connected-zero-v2-s1-window120": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-connected-zero-v2-s1-window120/report.json",
+      "report_sha256": "b8905182feacce84e3fe8cd7c53ea6c78836a1f1a52880d36e76e4a8d5a1d7cb",
+      "script_sha256": "a60edd85bdd32e06c562d50902d4a254782b59817761783e9eaf6d0dbc737a41",
+      "frozen_source_raw_sha256": "a60edd85bdd32e06c562d50902d4a254782b59817761783e9eaf6d0dbc737a41",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 306
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.00464064,
+      "wall_seconds": 12.79095655400306,
+      "item": "Dynamite",
+      "net_change": 1194160,
+      "net_per_game_second": 9950.948510252545,
+      "api_counts": {
+        "move": 8160,
+        "dig": 3587,
+        "push": 0,
+        "measure": 3261,
+        "spawn_drone": 930,
+        "wait_for": 923
+      },
+      "interpreter_ticks": 1995023,
+      "output": [
+        "dynamite_cycle 0 ended phases 7 317520 34.99954281 317520 prepare 2.2069262699999994 solve 25.591093649999998",
+        "dynamite_cycle 1 ended phases 6 270736 57.07390842 588256 prepare 2.0482422299999996 solve 20.024641889999998",
+        "dynamite_cycle 2 ended phases 8 287712 85.80279789 875968 prepare 1.7308741499999982 solve 26.996533830000004",
+        "dynamite_cycle 3 ended phases 8 317440 116.67260502 1193408 prepare 2.206926270000011 solve 28.661399369999998"
+      ],
+      "conclusion": "rejected: filtering skip-only metadata progress did not remove extra phases, same 1193408 at 116.67260502; no further tuning"
     }
   },
   "dynamite_forecast": {
@@ -4970,6 +5287,56 @@
       "read_scope": "directory and Minerar.py",
       "run": false,
       "conclusion": "Continuous column digging only; no stronger algorithm for the three target mechanisms."
+    }
+  ],
+  "dinosaur_event_budget": {
+    "report_case": "dinosaur-event-segments-v1-s1",
+    "total_game_seconds": 932.92799805,
+    "explicit_api_seconds": 623.52226836,
+    "interpreter_seconds": 309.40572969,
+    "historical_gate_seconds": 629.8,
+    "remaining_interpreter_budget_seconds": 6.277731639999956,
+    "baseline_diagnostic_api_seconds": 647.05376169,
+    "baseline_move_calls": 108303,
+    "candidate_move_calls": 104130,
+    "promoted": false
+  },
+  "dynamite_checkpoint_budget": {
+    "report_case": "dynamite-merge-cost-v1-s1-window40",
+    "first_cycle_root_merge_seconds": 1.6650301500000033,
+    "representative_worker_17_initialization_seconds": 0.9608285699999985,
+    "ideal_first_cycle_saving_seconds": 2.625858720000002,
+    "reference_forecast_seconds": 821.034545575,
+    "historical_gate_seconds": 670.628,
+    "optimistic_proportional_forecast_seconds": 737.9372826630056,
+    "basis": "one-cycle screening estimate, not a universal bound; costs cannot all become free in a real protocol",
+    "full_protocol_implemented": false
+  },
+  "current_model_alignment": {
+    "path": "simulator/local_simulator/sweeper-timer-alignment.json",
+    "sha256": "3d82cb030b77187e19c6963738bf2de0858dc883a78571d123be724948994e9f",
+    "current_core_sha256": "f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25",
+    "safe_only_reference_window_exactly_preserved": true,
+    "new_game_side_comparison": false
+  },
+  "observation_prerequisite_correction": "Zero flood clears covers to the dynamite layer; it does not remove neighboring dynamite blocks or expose their Soot clues. Fresh current-DLL decompilation agrees with the model. The observation representative had no basis for its intended broad move savings.",
+  "upstream_fetch_failures": [
+    {
+      "repository": "https://github.com/Ahajha/tfwr",
+      "branch": "main",
+      "error": {
+        "exit_code": 28,
+        "error": "curl: (28) Connection timed out after 5009 milliseconds"
+      }
+    },
+    {
+      "repository": "https://github.com/johnxni/tfwr-leaderboard",
+      "branch": "main",
+      "commit": "bea6c804d42eb4aad9c072f17950c355fb111941",
+      "error": {
+        "exit_code": 28,
+        "error": "curl: (28) Connection timed out after 5014 milliseconds"
+      }
     }
   ]
 }
