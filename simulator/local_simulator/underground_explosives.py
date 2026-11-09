@@ -85,6 +85,23 @@ class Sweeper:
             if self.world.in_bounds(point):
                 yield point
 
+    def check_mines(self):
+        """每0.1游戏秒核对原始雷块；缺失或被替换时正常计分后爆炸。"""
+        underground = self.underground
+        for depth, puzzle in list(self.strata.items()):
+            for pos in puzzle['mines']:
+                point = (*pos, depth)
+                if not underground.present(point):
+                    self.world.warnings.append(f'扫雷：雷块{point}已缺失，按原版结算并爆炸。')
+                    self.score(point, failed=True)
+                    break
+                if not self.is_mine(point):
+                    self.world.warnings.append(f'扫雷：雷块{point}已被替换，按原版结算并爆炸。')
+                    self.score(point, failed=True)
+                    break
+        if self.strata:
+            self.world.timers.start(self.world.now_ns + 100000000, self.check_mines)
+
     def generate(self, point):
         """首次点击周围3×3无雷，每颗雷最多抽100次。"""
         x, y, z = point
@@ -108,8 +125,11 @@ class Sweeper:
                 if (px, py) in mines:
                     for neighbor in self.neighbors((px, py)):
                         numbers[neighbor] += 1
-        puzzle = {'numbers': numbers, 'mine_count': count, 'revealed': 0}
+        puzzle = {'numbers': numbers, 'mine_count': count, 'revealed': 0,
+                  'mines': sorted(mines, key=lambda p: p[0] + p[1] * self.world.width)}
         self.strata[z] = puzzle
+        if len(self.strata) == 1:
+            self.world.timers.start(self.world.now_ns + 100000000, self.check_mines)
         return puzzle
 
     def measure(self, pos, depth):

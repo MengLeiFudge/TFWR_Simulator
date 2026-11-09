@@ -1,0 +1,161 @@
+{
+  "date": "2026-11-08",
+  "scope": "Current-build sweeper mine-integrity timer port; local simulations only",
+  "native_authority": {
+    "core_sha256": "f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25",
+    "fresh_decompiled_types": {
+      "SweeperController": {
+        "path": ".codex/nonreset-100-20261108/native-26462009/SweeperController.cs",
+        "sha256": "17ec910e46a12b928ce480a476dd0f5ff12b90d2fb5d386a56fb26eea60a8934"
+      },
+      "GridManager": {
+        "path": ".codex/nonreset-100-20261108/native-26462009/GridManager.cs",
+        "sha256": "597b02b127148a86c2e8763430eda6c15d46f7fdc0c7ed0c7c1b2d71afa3d591"
+      },
+      "MushroomFeature": {
+        "path": ".codex/nonreset-100-20261108/native-26462009/MushroomFeature.cs",
+        "sha256": "58d97cc32cb140b1013ad388a3cfaa1ba773edc23334752447104da2df3c2824"
+      }
+    },
+    "interval_game_nanoseconds": 100000000,
+    "methods": [
+      "SweeperController.ScheduleCheckMines",
+      "SweeperController.CheckMines",
+      "SweeperController.ClearGrid",
+      "GridManager.ClearGrid"
+    ]
+  },
+  "implementation_sha256": {
+    "simulator/local_simulator/underground_explosives.py": "0dc5f3e955268751f91d2745aa82ade1203fe1395ee5ded52a1e3d00afae4b17",
+    "simulator/local_simulator/world.py": "04f5a89fc05adca03351553b9f15c88dce9849c55d09a42dd2f37cc527360c95"
+  },
+  "behavior": [
+    "Store original mine coordinates in native row-major scan order, independent of current ground material.",
+    "Schedule the first integrity check when the first live stratum is created; repeat only while strata remain.",
+    "A missing or changed original mine triggers the existing failed settlement and explosion once for that stratum.",
+    "Grid resets clear strata and rebind the existing controller to new underground state; already scheduled callbacks keep the native controller lifecycle."
+  ],
+  "normal_efficiency": {
+    "before": {
+      "report": ".codex/nonreset-100-20261108/reports/dynamite-local-differences-v2-s1-window120/report.json",
+      "report_sha256": "0a005ef538b6207e8f3979c0b2b980c8c5ec5e7bc3844a5433f77154ff4e2cea",
+      "script_sha256": "c5c5453ecb508fe464af115de1fca12fe691e6272b4d9b3bd1b6bcf31b178493",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 277
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.01748022,
+      "wall_seconds": 12.619405755074695,
+      "warnings": [],
+      "output": [
+        "dynamite_cycle 0 ended phases 6 318880 32.9121234 318880 prepare 2.2069262700000003 solve 23.50383885",
+        "dynamite_cycle 1 ended phases 6 272016 54.5665689 590896 prepare 2.0482422299999996 solve 19.60472178",
+        "dynamite_cycle 2 ended phases 8 288720 83.02418109 879616 prepare 1.7308741499999982 solve 26.725256549999997",
+        "dynamite_cycle 3 ended phases 7 318880 112.02977997 1198496 prepare 2.2069262699999967 solve 26.797191120000008"
+      ]
+    },
+    "after": {
+      "report": ".codex/nonreset-100-20261108/reports/sweeper-timer-current-dynamite-s1-window120/report.json",
+      "report_sha256": "f5fcaa3018e61f0d9480fd0d4d530ec0d5365a41a9a963dd7d7d2bee53f76be1",
+      "script_sha256": "b5fe0559bc80dd5f1e9de5536030000fbf0a49d1919d2f492730bb312fb577cf",
+      "seed": 1,
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 277
+      },
+      "goal_reached": false,
+      "elapsed_game_seconds": 120.01748022,
+      "wall_seconds": 12.634347313083708,
+      "warnings": [],
+      "output": [
+        "dynamite_cycle 0 ended phases 6 318880 32.9121234 318880 prepare 2.2069262700000003 solve 23.50383885",
+        "dynamite_cycle 1 ended phases 6 272016 54.5665689 590896 prepare 2.0482422299999996 solve 19.60472178",
+        "dynamite_cycle 2 ended phases 8 288720 83.02418109 879616 prepare 1.7308741499999982 solve 26.725256549999997",
+        "dynamite_cycle 3 ended phases 7 318880 112.02977997 1198496 prepare 2.2069262699999967 solve 26.797191120000008"
+      ]
+    },
+    "exact_equal_fields": {
+      "predicted_game_seconds": true,
+      "interpreter_ticks": true,
+      "api_calls": true,
+      "api_ticks_by_function": true,
+      "state": true,
+      "output": true,
+      "warnings": true,
+      "goal_reached": true
+    },
+    "completed_cycles": 4,
+    "last_completed_game_seconds": 112.02977997,
+    "settled_dynamite": 1198496,
+    "full_original_goal_completed": false
+  },
+  "drill_removed_mine_boundary": {
+    "evidence": {
+      "report": ".codex/nonreset-100-20261108/reports/sweeper-timer-drill-public-boundary-s1/report.json",
+      "report_sha256": "3976268bd2107b4f70a68e56beaed8edc4758755c5a1da1f6378c318dd9d8856",
+      "script_sha256": "b17176f01d3bc987b1c3d9a075c4bed1f4c4468386231f35b9b941c78c5e961b",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": null,
+      "elapsed_game_seconds": 4.62175497,
+      "wall_seconds": 0.17778530879877508,
+      "warnings": [
+        "扫雷：雷块(2, 0, 58)已缺失，按原版结算并爆炸。"
+      ],
+      "output": [
+        "mine_boundary_before 4.38702111 1000640 -57",
+        "mine_boundary_after_dig 4.42027233 1000639 Grounds.Rock None",
+        "mine_boundary_after_timer 4.62109653 1000639 Grounds.Rock None None"
+      ]
+    },
+    "input": "ordinary full-tech scenario, field limited to 8, one worker; infer a mine using public clues, put Dirt over it, blast with Explosive Drill, then advance 0.2 game seconds",
+    "timer_warning_observed": true,
+    "missing_mine": [
+      2,
+      0,
+      58
+    ],
+    "game_side_comparison": null,
+    "replaced_material_branch": "source ported; not separately exercised locally or in game"
+  },
+  "ordinary_mine_dig_does_not_exercise_timer": {
+    "evidence": {
+      "report": ".codex/nonreset-100-20261108/reports/sweeper-timer-public-mine-boundary-s1/report.json",
+      "report_sha256": "543fe8935ddd8bcb2a8a6f214268d990bc596562adbe9448dce9436981a98fd2",
+      "script_sha256": "7f790b4fcaa4efd250059eab628afbfe5ee654dd779a471c97e02bfd9e0a9c2b",
+      "seed": 1,
+      "status": "completed",
+      "error": null,
+      "goal_reached": false,
+      "elapsed_game_seconds": 13.29176367,
+      "wall_seconds": 1.2254396919161081,
+      "warnings": [],
+      "output": [
+        "mine_boundary_before 13.08995181 1168 -14",
+        "mine_boundary_after_dig 13.09028103 1168 Grounds.Rock None",
+        "mine_boundary_after_timer 13.29110523 1168 Grounds.Rock None None"
+      ]
+    },
+    "reason": "Existing Dynamite entity maturity settles immediately before the integrity timer can detect the removed mine; no timer warning, excluded from timer-coverage claims."
+  },
+  "static_diagnostics": {
+    "server": "ty",
+    "errors": 0,
+    "hints": 0,
+    "workspace": ".codex/nonreset-100-20261108/host-lsp-sweeper",
+    "basis": "identical model source copied to a normal Python workspace; root project game typings produce seven pre-existing host-code operator errors"
+  },
+  "limitations": [
+    "No new game-side comparison or leaderboard run; timer fidelity and replacement-material behavior remain unverified in game.",
+    "The current safe-only strategy window is exactly unchanged; this does not certify all scripts, seeds, timer interactions, or long-run leaderboard accuracy."
+  ],
+  "save_files_changed": false,
+  "test_suites_run": false
+}

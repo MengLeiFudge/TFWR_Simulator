@@ -219,9 +219,16 @@ class FarmWorld:
         self.sunflower_petals.clear()
         self.snake_counts.clear()
         self.grounds.clear()
+        sweeper = None
         if hasattr(self, 'underground'):
             self.underground.treasure.paths.clear()
+            sweeper = self.underground.sweeper
+            sweeper.strata.clear()
         self.underground = Underground(self, starting_chunk, jump_targets)
+        if sweeper is not None:
+            # 原版清图复用控制器，已排定的雷块检查仍针对当前农田。
+            self.underground.sweeper = sweeper
+            sweeper.underground = self.underground
         surface_grass = not starting_chunk and not (self.leaderboard and self.leaderboard['pretendedChunkDepths'] and self.leaderboard['pretendedChunkDepths'][0])
         if not surface_grass:
             self.underground.chunks[starting_chunk] = self.underground.generate_chunk(starting_chunk)
