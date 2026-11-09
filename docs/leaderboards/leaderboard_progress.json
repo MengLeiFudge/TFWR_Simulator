@@ -6,7 +6,7 @@
       "simulation_seconds": 775.38042549,
       "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
       "evidence": "lb_dinosaur.md",
-      "direction": "优先改变256–769尾的身体与自由区形状；自适应填隙超时、横向入场失败，须先建立持续恢复不变量。"
+      "direction": "重做中期蛇身形状，保留连续自由通道并证明逐果恢复；先压缩256–769尾的477秒主段。"
     },
     "lb_cactus_single": {
       "label": "仙人掌·单机",
@@ -20,14 +20,14 @@
       "simulation_seconds": 84.74419098,
       "simulation_basis": "已迁入真源并备份同步已有存档；新原版语法前置层下seed1原目标完整84.74419098秒。 证据local_promotion_validation.json；本版未实机打榜。",
       "evidence": "lb_maze.md",
-      "direction": "比较迷宫规模与独立实例分工；达标后正常收尾以减少工人尾段等待。"
+      "direction": "按每箱收益、建图摊销与唯一兑现成本重比宫数/机数；现有32座小宫及失败双机方案不原样重试。"
     },
     "lb_cactus": {
       "label": "仙人掌·多机",
       "simulation_seconds": 34.753,
       "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
       "evidence": "lb_cactus.md",
-      "direction": "研究减少交换数的构盘与并行排序，先核算动作下界。"
+      "direction": "比较稀疏连通多轮收割与在线构盘；按新#1重算仅因旧门槛停止的方向，计入平方产量及实际调度。"
     },
     "lb_sunflowers_single": {
       "label": "向日葵·单机",
@@ -41,7 +41,7 @@
       "simulation_seconds": 207.419,
       "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
       "evidence": "lb_sunflowers.md",
-      "direction": "改进批次流水，减少全田同步与未成熟花阻塞。"
+      "direction": "重分每档收割负载、减少全田最慢区等待；备选少档筛花，维持全局最大瓣和真实净Power。"
     },
     "lb_wood_single": {
       "label": "木头·单机",
@@ -111,63 +111,63 @@
       "simulation_seconds": 3069.529,
       "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
       "evidence": "lb_fastest_reset.md",
-      "direction": "先复用非重置榜的成熟优化，再重算金币/骨头筹资科技路线。"
+      "direction": "后置：重比伴生/速度、少量无人机与扩田投资路线，将成熟单项按实际科技重算完整筹资成本。"
     },
     "lb_mushrooms": {
       "label": "蘑菇·多机",
       "simulation_seconds": 299.9475531048155,
       "simulation_basis": "六层场筛选三seed、九个完整场次外推299.947553105秒；原240000目标未完整跑完，未完成场次库存剔除。相同窗口实际存档完整周期均值306.512793807秒，新版平均改善2.1419%，seed3略慢；当前源未实机。旧request476的314.194秒仍作为账号/旧版成绩保留。证据structure_iteration_20261109.json。",
       "evidence": "lb_mushrooms.md",
-      "direction": "已兑现六层选场的小幅收益；固定列、棋盘供料和同步高度带均未回本，继续寻找更省搬运且保材料的配对结构。"
+      "direction": "比较连续配对作业与保支撑边界分区；先证明每对移动、挖损及最慢区成本下降，不再围绕六层选场调参。"
     },
     "lb_mushrooms_single": {
       "label": "蘑菇·单机",
       "simulation_seconds": 791.82913461,
       "simulation_basis": "六层场筛选原30000目标三seed完整786.9477348/813.40401861/775.13565042秒，均值791.82913461；实际存档均818.99883816，平均改善3.3174%，seed2略慢。当前源未实机，旧request473的812.194秒仍作为账号/旧版成绩。证据structure_iteration_20261109.json。",
       "evidence": "lb_mushrooms_single.md",
-      "direction": "六层选场平均更快但仍超两倍；双源队列和固定模板主动作预算未达，优先改变配对运输及换色结构。"
+      "direction": "联合安排连续可兑现匹配，降低每对move/dig及损耗；+50%仅容许含准备平均0.210秒/对，先核算动作。"
     },
     "lb_dynamite": {
       "label": "炸药·多机",
       "simulation_seconds": 821.0345455752362,
       "simulation_basis": "相邻数字差集确定推理，三seed30现实秒、31盘正常结算外推821.034545575秒；原目标未本地跑完。2026-11-09 request464官方9轮874.708秒正常结束；正式榜随机样本不能直接当同seed模型误差。",
       "evidence": "lb_dynamite.md",
-      "direction": "全盘基本闭包、半径二差集与提前结算未缩短有效周期；保留当前差集，寻找减少跨区传播批次的新组织。"
+      "direction": "比较约束前沿分工与围雷收益导向开格；需减少同步批次和关键开格，单盘收益已近上限。"
     },
     "lb_dynamite_single": {
       "label": "炸药·单机",
       "simulation_seconds": 258.98590617,
       "simulation_basis": "2026-11-09原版仅支持数值乘法，改为逐项append初始化后，原目标三seed完整重算：256.88164167/257.96066022/262.11541662秒。旧列表乘法源码的效率放行资格撤回。实机与新公开排名见real_game_batch_20261109.json及同名文档。",
       "evidence": "lb_dynamite_single.md",
-      "direction": "缓存约束、全盘计数与就近结算已达阶段门槛；继续比较可兑现收益与开格预算。"
+      "direction": "按完成围雷收益选择安全开格；备选小型约束精确推断，新增规划须由实际结算收益抵偿。"
     },
     "lb_treasure_map": {
       "label": "藏宝图",
       "simulation_seconds": 37.948,
       "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
       "evidence": "lb_treasure_map.md",
-      "direction": "分解找图、解析和行走成本，比较合法去环后的路径收益。"
+      "direction": "按阶段费用比较一次解析维护无环路径、按实际必要动作与奖励选图；不重做原串长度筛图或旧BFS。"
     },
     "lb_bamboo": {
       "label": "竹子·多机",
       "simulation_seconds": 320.61792036,
       "simulation_basis": "2026-11-09原版仅支持数值乘法，改为逐项append初始化后，原目标三seed完整重算：321.17797845/321.61337190/319.06241073秒。旧列表乘法源码的效率放行资格撤回。实机与新公开排名见real_game_batch_20261109.json及同名文档。",
       "evidence": "lb_bamboo.md",
-      "direction": "统一花节批量保桩已达阶段门槛；继续核算供水、生长间隔与收尾长尾。"
+      "direction": "比较按现成花节分组、已选区域先生产与后续选种重叠；计入额外升降，检验固定生长间隔。"
     },
     "lb_bamboo_single": {
       "label": "竹子·单机",
       "simulation_seconds": 265.46358402,
       "simulation_basis": "2026-11-09原版仅支持数值乘法，改为逐项append初始化后，原目标三seed完整重算：270.75414942/264.65452587/260.98207677秒。旧列表乘法源码的效率放行资格撤回。实机与新公开排名见real_game_batch_20261109.json及同名文档。",
       "evidence": "lb_bamboo_single.md",
-      "direction": "统一花节批量保桩已达阶段门槛；继续比较选种成本与更密巡回。"
+      "direction": "比较花节分组与部分田先生产，减少统一选种返工；核算整个目标的升降、成熟与巡回成本。"
     },
     "lb_pyramids": {
       "label": "金字塔·多机",
       "simulation_seconds": 1338.1231122446668,
       "simulation_basis": "沿边定位、清土补缺与中心等待，原150000目标三seed完整均值1338.123112244667秒。2026-11-09 request482官方完整6轮1363.254秒正常结束，双日志无错误；专用榜随机流不替代同seed模型精度对照。证据real_game_batch_20261109.json。",
       "evidence": "lb_pyramids.md",
-      "direction": "减少找塔、覆土清理和人为缺口；主机提前到中心等待。"
+      "direction": "中心等待已实现；比较保支撑揭盖和只复核受影响缺口，区分天然缺块与施工诱发坍塌。"
     },
     "lb_pyramids_single": {
       "label": "金字塔·单机",
@@ -209,7 +209,7 @@
       "simulation_seconds": 11912.122,
       "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
       "evidence": "lb_fastest_underground_reset.md",
-      "direction": "先承接矿采、扫雷等单项突破，再重算地上筹资和科技路线。"
+      "direction": "后置：重新比较6×6单机、提前工具及少量无人机路线；先核对可用科技与全额解锁、供能和筹资成本。"
     }
   }
 }
