@@ -13,7 +13,9 @@
       "recovery_candidate": ".codex/real-batch-20261109/native-save-review/f0.py",
       "bytes": 255,
       "recovery_sha256": "9e91cb70ab59c9d7c245726d89ed646ec8daf14fc970ef1d099cf72a202b08f7",
-      "restore_requires_explicit_user_request": true
+      "restore_requires_explicit_user_request": true,
+      "resolution": "user_declined_restore",
+      "resolution_note": "用户明确表示f0.py不需要；保持删除，恢复事项已关闭。"
     }
   ],
   "modified_files": [
@@ -108,5 +110,5 @@
       -1
     ]
   },
-  "attribution": "Files were written at the native quit/save timestamp. Eight changes match CRLF-to-LF conversion; maze and gold maze also normalize indentation. Resource target edits and the removed original file are preserved for user decision, not reverted."
+  "attribution": "Files were written at the native quit/save timestamp. Eight changes match CRLF-to-LF conversion; maze and gold maze also normalize indentation. Resource targets remain as saved; the user explicitly declined restoration of f0.py."
 }
