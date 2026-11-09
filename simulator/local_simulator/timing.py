@@ -88,6 +88,8 @@ def operation(name, *args):
         augmented = name.startswith('Aug')
         op = name[3:] if augmented else name
         left, right = args
+        if op == 'Mult' and (not isinstance(left, (int, float)) or not isinstance(right, (int, float))):
+            raise TypeError('游戏运算符 * 仅支持数值操作数，不能重复列表、元组或字符串。')
         if op == 'Add' and isinstance(left, (list, tuple, str)):
             if augmented and isinstance(left, list):
                 cost = game_len(right)

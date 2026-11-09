@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（统一花节批量保桩；当前版本未实机验证）。
+# 完整轮时间：4:28.226（2026-11-09，build26462009，官方完整27轮，request469）。
 
 def lb_bamboo_single():
     clear()
@@ -13,7 +13,10 @@ def bamboo_batch(y0, rows, goal, water_level, interval):
         move(North)
     selected = []
     for _ in range(rows):
-        selected.append([False] * (size - 1))
+        flags = []
+        for x in range(size - 1):
+            flags.append(False)
+        selected.append(flags)
     left = rows * (size - 1)
     laps = 0
     # 花节随树桩保留；首两节统一为5和9后可以整片使用同一切割高度。

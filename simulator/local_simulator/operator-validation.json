@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "game_build": 26462009,
+  "native_dll_sha256": {
+    "Core.dll": "f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25",
+    "Utils.dll": "1939c19ce4bca3ffa570a2db0f80f3117e6eba7a2a8f706c8aec2d0ed0edaf1d"
+  },
+  "native_source_sha256": {
+    "BinaryExprNode.cs": "d1df2ec596bf0d723611edfc564309b0ff54f96ff29044793bfaa53ba45d8d05",
+    "PyBool.cs": "f471e2c75240e0de36cfd8f4fe5f87281549216ef45d9c272577ed85c82a8b80"
+  },
+  "implementation": "simulator/local_simulator/timing.py:operation",
+  "implementation_sha256": "62bb173e031394703a973c05ffd88aa4a866daf5bf1e3e7964ad6805d1e78a4d",
+  "contract": "Game * accepts PyNumber operands, including PyBool; list/tuple/string repetition is not supported. Valid multiplication costs remain one operation.",
+  "scope": "Runtime operand validation, not a parser syntax rejection. Error wording/localization and all operand combinations are not claimed identical.",
+  "rejected_original_sources": [
+    {
+      "script": "lb_dynamite_single",
+      "game_request_id": 456,
+      "source_sha256": "10c26d7fef1413124082b413f2efcfce893ad9c289c32563fd8ed47f9f77f654",
+      "source_line": 47,
+      "local_error": {
+        "type": "TypeError",
+        "message": "游戏运算符 * 仅支持数值操作数，不能重复列表、元组或字符串。",
+        "line": 47
+      },
+      "local_report": ".codex/real-batch-20261109/reports/reject-old-lb_dynamite_single/report.json",
+      "local_report_sha256": "08bfccff8b98d161b215f89f7ce7bf0056b3f5988431ee5e9f7dd5d4c9af793f",
+      "game_result": ".codex/real-batch-20261109/lb_dynamite_single/failed-result.json",
+      "game_result_sha256": "b539382735594434d34efc16d5373fc6b21f7a6e921594896cfe97add202fbb2",
+      "game_error_lines": [
+        "Error: 运算符 * 不能用于操作数 [-2] 和 64。"
+      ]
+    },
+    {
+      "script": "lb_bamboo_single",
+      "game_request_id": 458,
+      "source_sha256": "f9471850970b49ee2dcc313845d153e5d7be35546e4bb3ee20b08d8251c203d3",
+      "source_line": 16,
+      "local_error": {
+        "type": "TypeError",
+        "message": "游戏运算符 * 仅支持数值操作数，不能重复列表、元组或字符串。",
+        "line": 16
+      },
+      "local_report": ".codex/real-batch-20261109/reports/reject-old-lb_bamboo_single/report.json",
+      "local_report_sha256": "fc637cc16a3add009f2f9a6efa1822de65a12ec047f8ae72b96205b0c96d2be8",
+      "game_result": ".codex/real-batch-20261109/lb_bamboo_single/failed-result.json",
+      "game_result_sha256": "50b78a0a72db4b1c3d9adc106e17a313e3ae7a751772ee8b038c10d08b137a0d",
+      "game_error_lines": [
+        "Error: 运算符 * 不能用于操作数 [False] 和 7。"
+      ]
+    }
+  ],
+  "corrected_sources": [
+    {
+      "script": "lb_dynamite_single",
+      "reports": [
+        {
+          "seed": 1,
+          "game_seconds": 256.88164167,
+          "report": ".codex/real-batch-20261109/reports/numeric-mult-lb_dynamite_single-s1/report.json",
+          "report_sha256": "87868b3fc1b36cbdd9846388711aef7f3db97a4306f28779d0c7f781c64b860b",
+          "script_sha256": "941c4f18ed5a041cab9cb8c1a3f6cfae2dd5d2dd8f28fcb4ee8c8c931ef47c93"
+        },
+        {
+          "seed": 2,
+          "game_seconds": 257.96066022,
+          "report": ".codex/real-batch-20261109/reports/numeric-mult-lb_dynamite_single-s2/report.json",
+          "report_sha256": "9fbc5f13ab60e4b46d8d2f6c3a6aa2ebb7b62b3566db8c5e59c3b0c7033f1255",
+          "script_sha256": "941c4f18ed5a041cab9cb8c1a3f6cfae2dd5d2dd8f28fcb4ee8c8c931ef47c93"
+        },
+        {
+          "seed": 3,
+          "game_seconds": 262.11541662,
+          "report": ".codex/real-batch-20261109/reports/numeric-mult-lb_dynamite_single-s3/report.json",
+          "report_sha256": "1c4f12d852e0e5c54aaa0fc8ffd6e0570cf2c7cb0101de3846a12452366afef2",
+          "script_sha256": "941c4f18ed5a041cab9cb8c1a3f6cfae2dd5d2dd8f28fcb4ee8c8c931ef47c93"
+        }
+      ],
+      "game_request_id": 467,
+      "full_statistics": true,
+      "completed_runs": 28,
+      "official_seconds": 261.802
+    },
+    {
+      "script": "lb_bamboo_single",
+      "reports": [
+        {
+          "seed": 1,
+          "game_seconds": 270.75414942,
+          "report": ".codex/real-batch-20261109/reports/numeric-mult-lb_bamboo_single-s1/report.json",
+          "report_sha256": "b321ea981dfc1d6b09b97e5ce73b722bd4f7b4363ab626546b74af5caadccec9",
+          "script_sha256": "c89fdcd0588883d75fdbeb32fe28c744291ba2efb523b9356644fe5474ca23c7"
+        },
+        {
+          "seed": 2,
+          "game_seconds": 264.65452587,
+          "report": ".codex/real-batch-20261109/reports/numeric-mult-lb_bamboo_single-s2/report.json",
+          "report_sha256": "032525daa3e91bba2fdf2aecb4d530aedb351200b20898df71a877c7b8aa033e",
+          "script_sha256": "c89fdcd0588883d75fdbeb32fe28c744291ba2efb523b9356644fe5474ca23c7"
+        },
+        {
+          "seed": 3,
+          "game_seconds": 260.98207677,
+          "report": ".codex/real-batch-20261109/reports/numeric-mult-lb_bamboo_single-s3/report.json",
+          "report_sha256": "c3170e3142ed1dfb47dcaf5c30ba2e424647ba3f51e7476aebf3303764ce6a4d",
+          "script_sha256": "c89fdcd0588883d75fdbeb32fe28c744291ba2efb523b9356644fe5474ca23c7"
+        }
+      ],
+      "game_request_id": 469,
+      "full_statistics": true,
+      "completed_runs": 27,
+      "official_seconds": 268.226
+    },
+    {
+      "script": "lb_bamboo",
+      "reports": [
+        {
+          "seed": 1,
+          "game_seconds": 321.17797845,
+          "report": ".codex/real-batch-20261109/reports/numeric-mult-lb_bamboo-s1/report.json",
+          "report_sha256": "23923c756fb239abcfac05df516652a9a24e1fffdde7e44ce6bf3dd958cd2c18",
+          "script_sha256": "ae828c650836c11030a31e75e134c1ebde1d48a698eb35aa65bd929ff2f40f84"
+        },
+        {
+          "seed": 2,
+          "game_seconds": 321.6133719,
+          "report": ".codex/real-batch-20261109/reports/numeric-mult-lb_bamboo-s2/report.json",
+          "report_sha256": "ff58dd69cb4223bdc46b7790f01c08d50c8544fb24e1e44487253d76166ddc17",
+          "script_sha256": "ae828c650836c11030a31e75e134c1ebde1d48a698eb35aa65bd929ff2f40f84"
+        },
+        {
+          "seed": 3,
+          "game_seconds": 319.06241073,
+          "report": ".codex/real-batch-20261109/reports/numeric-mult-lb_bamboo-s3/report.json",
+          "report_sha256": "02ac1fc93ede8d157e2c2ababf2a7efb8c237c0efe4019784c08633e0d4a3a70",
+          "script_sha256": "ae828c650836c11030a31e75e134c1ebde1d48a698eb35aa65bd929ff2f40f84"
+        }
+      ],
+      "game_request_id": 471,
+      "full_statistics": true,
+      "completed_runs": 23,
+      "official_seconds": 319.845
+    }
+  ]
+}

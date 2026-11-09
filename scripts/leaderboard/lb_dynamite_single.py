@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（缓存约束、就近开格与原地结算；本地原目标已通过）。
+# 完整轮时间：4:21.802（2026-11-09，build26462009，官方完整28轮，request467）。
 
 def lb_dynamite_single():
     size = get_world_size()
@@ -44,7 +44,9 @@ def lb_dynamite_single():
 
 
 def solve_cached(start, number, near, routes, size, depth):
-    known = [UNKNOWN] * (size * size)
+    known = []
+    for _ in range(size * size):
+        known.append(UNKNOWN)
     unseen = set(range(size * size))
     mines = set()
     constraints = {}
