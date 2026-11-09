@@ -1,0 +1,2275 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-09T07:05:55.357052+00:00",
+  "scope": "Phase 1: only the four non-reset boards still above 2x latest #1; local simulations only",
+  "f0_resolution": "user explicitly declined restoration; unchanged",
+  "prior_screening": "docs/leaderboards/structure_screening.json",
+  "direction_review": "docs/leaderboards/nonreset_directions.md",
+  "report_count": 25,
+  "reports": [
+    {
+      "name": "actual-save-lb_mushrooms-s1",
+      "classification": "frozen_actual_save_baseline",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms-s1/report.json",
+      "report_sha256": "610f04919aec05a380658b4741a012cdf22bd504530608939c66b8be8861f588",
+      "source": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms-s1/source/lb_mushrooms.py",
+      "source_sha256": "f91e1bf020a7bc44162be32faefec22f02e2d97e8d1a11a0b049c29df6d6dae5",
+      "normalized_source_sha256": "f91e1bf020a7bc44162be32faefec22f02e2d97e8d1a11a0b049c29df6d6dae5",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 321
+      },
+      "goal_reached": false,
+      "seconds": 120.00003156,
+      "wall_seconds": 26.43676416296512,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 18.63615654,
+          "mushroom": 12128
+        },
+        {
+          "batch": 1,
+          "seconds": 37.1919834,
+          "mushroom": 24416
+        },
+        {
+          "batch": 2,
+          "seconds": 70.98427647,
+          "mushroom": 53840
+        },
+        {
+          "batch": 3,
+          "seconds": 104.59253556,
+          "mushroom": 83040
+        }
+      ]
+    },
+    {
+      "name": "actual-save-lb_mushrooms_single-s1",
+      "classification": "frozen_actual_save_baseline",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms_single-s1/report.json",
+      "report_sha256": "74886c2ec16f0904ae3b12c3fda0c7ab41ba4fa088e81d117d0a6330ad31ba52",
+      "source": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms_single-s1/source/lb_mushrooms_single.py",
+      "source_sha256": "7b0b07120f6dbf412b0588088ad822f45950f617d821f5d5a1ed3566ddca9004",
+      "normalized_source_sha256": "7b0b07120f6dbf412b0588088ad822f45950f617d821f5d5a1ed3566ddca9004",
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "seconds": 829.51110711,
+      "wall_seconds": 5.398712093941867,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 27.18665838,
+          "mushroom": 832
+        },
+        {
+          "batch": 1,
+          "seconds": 54.73825713,
+          "mushroom": 1680
+        },
+        {
+          "batch": 2,
+          "seconds": 108.54185868,
+          "mushroom": 3920
+        },
+        {
+          "batch": 3,
+          "seconds": 160.77524544,
+          "mushroom": 6064
+        },
+        {
+          "batch": 4,
+          "seconds": 206.67954231,
+          "mushroom": 7792
+        },
+        {
+          "batch": 5,
+          "seconds": 235.11460293,
+          "mushroom": 8688
+        },
+        {
+          "batch": 6,
+          "seconds": 272.29736817,
+          "mushroom": 9952
+        },
+        {
+          "batch": 7,
+          "seconds": 308.66268015,
+          "mushroom": 11312
+        },
+        {
+          "batch": 8,
+          "seconds": 336.24917622,
+          "mushroom": 12224
+        },
+        {
+          "batch": 9,
+          "seconds": 363.36538152,
+          "mushroom": 13088
+        },
+        {
+          "batch": 10,
+          "seconds": 392.00949684,
+          "mushroom": 13888
+        },
+        {
+          "batch": 11,
+          "seconds": 445.46297292,
+          "mushroom": 15968
+        },
+        {
+          "batch": 12,
+          "seconds": 472.26526695,
+          "mushroom": 16912
+        },
+        {
+          "batch": 13,
+          "seconds": 518.26009932,
+          "mushroom": 18752
+        },
+        {
+          "batch": 14,
+          "seconds": 546.85186866,
+          "mushroom": 19728
+        },
+        {
+          "batch": 15,
+          "seconds": 599.86386072,
+          "mushroom": 21872
+        },
+        {
+          "batch": 16,
+          "seconds": 627.61200381,
+          "mushroom": 22768
+        },
+        {
+          "batch": 17,
+          "seconds": 655.75142487,
+          "mushroom": 23632
+        },
+        {
+          "batch": 18,
+          "seconds": 700.7036175,
+          "mushroom": 25440
+        },
+        {
+          "batch": 19,
+          "seconds": 728.02459764,
+          "mushroom": 26320
+        },
+        {
+          "batch": 20,
+          "seconds": 755.39331468,
+          "mushroom": 27136
+        },
+        {
+          "batch": 21,
+          "seconds": 808.16942061,
+          "mushroom": 29248
+        },
+        {
+          "batch": 22,
+          "seconds": 829.51028406,
+          "mushroom": 30176
+        }
+      ]
+    },
+    {
+      "name": "actual-save-lb_mushrooms_single-s2",
+      "classification": "frozen_actual_save_baseline",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms_single-s2/report.json",
+      "report_sha256": "ad2346a2e4838b6c8b9ba18a8d5cbb6a1868c5099490be8c2a079b8c033bdfe5",
+      "source": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms_single-s2/source/lb_mushrooms_single.py",
+      "source_sha256": "7b0b07120f6dbf412b0588088ad822f45950f617d821f5d5a1ed3566ddca9004",
+      "normalized_source_sha256": "7b0b07120f6dbf412b0588088ad822f45950f617d821f5d5a1ed3566ddca9004",
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "seconds": 809.1486855,
+      "wall_seconds": 5.12983979517594,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 37.22293008,
+          "mushroom": 1312
+        },
+        {
+          "batch": 1,
+          "seconds": 74.34972792,
+          "mushroom": 2608
+        },
+        {
+          "batch": 2,
+          "seconds": 101.95729407,
+          "mushroom": 3520
+        },
+        {
+          "batch": 3,
+          "seconds": 130.13869068,
+          "mushroom": 4384
+        },
+        {
+          "batch": 4,
+          "seconds": 183.62475954,
+          "mushroom": 6608
+        },
+        {
+          "batch": 5,
+          "seconds": 219.86546175,
+          "mushroom": 7952
+        },
+        {
+          "batch": 6,
+          "seconds": 247.26166866,
+          "mushroom": 8880
+        },
+        {
+          "batch": 7,
+          "seconds": 292.90719861,
+          "mushroom": 10640
+        },
+        {
+          "batch": 8,
+          "seconds": 337.92210765,
+          "mushroom": 12384
+        },
+        {
+          "batch": 9,
+          "seconds": 383.03150283,
+          "mushroom": 14096
+        },
+        {
+          "batch": 10,
+          "seconds": 428.44164048,
+          "mushroom": 15696
+        },
+        {
+          "batch": 11,
+          "seconds": 465.17502042,
+          "mushroom": 17040
+        },
+        {
+          "batch": 12,
+          "seconds": 493.32086127,
+          "mushroom": 17904
+        },
+        {
+          "batch": 13,
+          "seconds": 529.33983381,
+          "mushroom": 19216
+        },
+        {
+          "batch": 14,
+          "seconds": 584.24796846,
+          "mushroom": 21424
+        },
+        {
+          "batch": 15,
+          "seconds": 638.46309501,
+          "mushroom": 23536
+        },
+        {
+          "batch": 16,
+          "seconds": 689.67557055,
+          "mushroom": 25648
+        },
+        {
+          "batch": 17,
+          "seconds": 735.70019733,
+          "mushroom": 27248
+        },
+        {
+          "batch": 18,
+          "seconds": 764.23929147,
+          "mushroom": 28176
+        },
+        {
+          "batch": 19,
+          "seconds": 809.14786245,
+          "mushroom": 30032
+        }
+      ]
+    },
+    {
+      "name": "actual-save-lb_mushrooms_single-s3",
+      "classification": "frozen_actual_save_baseline",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms_single-s3/report.json",
+      "report_sha256": "42bb7652e874508a9d99d12289c7ff455b1dcf178b08b96b3f82d10ab719529d",
+      "source": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms_single-s3/source/lb_mushrooms_single.py",
+      "source_sha256": "7b0b07120f6dbf412b0588088ad822f45950f617d821f5d5a1ed3566ddca9004",
+      "normalized_source_sha256": "7b0b07120f6dbf412b0588088ad822f45950f617d821f5d5a1ed3566ddca9004",
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "seconds": 818.33672187,
+      "wall_seconds": 5.24565665400587,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 44.97918867,
+          "mushroom": 1712
+        },
+        {
+          "batch": 1,
+          "seconds": 98.08089318,
+          "mushroom": 3968
+        },
+        {
+          "batch": 2,
+          "seconds": 134.74908756,
+          "mushroom": 5376
+        },
+        {
+          "batch": 3,
+          "seconds": 188.07778926,
+          "mushroom": 7488
+        },
+        {
+          "batch": 4,
+          "seconds": 215.13786255,
+          "mushroom": 8288
+        },
+        {
+          "batch": 5,
+          "seconds": 261.35853984,
+          "mushroom": 10080
+        },
+        {
+          "batch": 6,
+          "seconds": 298.49916492,
+          "mushroom": 11376
+        },
+        {
+          "batch": 7,
+          "seconds": 343.67621481,
+          "mushroom": 13040
+        },
+        {
+          "batch": 8,
+          "seconds": 396.87454539,
+          "mushroom": 15136
+        },
+        {
+          "batch": 9,
+          "seconds": 424.59618627,
+          "mushroom": 16032
+        },
+        {
+          "batch": 10,
+          "seconds": 470.01488364,
+          "mushroom": 17648
+        },
+        {
+          "batch": 11,
+          "seconds": 507.20406867,
+          "mushroom": 18912
+        },
+        {
+          "batch": 12,
+          "seconds": 561.51993654,
+          "mushroom": 21008
+        },
+        {
+          "batch": 13,
+          "seconds": 588.97309851,
+          "mushroom": 21920
+        },
+        {
+          "batch": 14,
+          "seconds": 617.52420918,
+          "mushroom": 22784
+        },
+        {
+          "batch": 15,
+          "seconds": 645.1016517,
+          "mushroom": 23712
+        },
+        {
+          "batch": 16,
+          "seconds": 698.83842159,
+          "mushroom": 25872
+        },
+        {
+          "batch": 17,
+          "seconds": 736.05509649,
+          "mushroom": 27184
+        },
+        {
+          "batch": 18,
+          "seconds": 763.68900024,
+          "mushroom": 28064
+        },
+        {
+          "batch": 19,
+          "seconds": 818.33589882,
+          "mushroom": 30176
+        }
+      ]
+    },
+    {
+      "name": "dinosaur-adaptive-fill-v1-s1",
+      "classification": "invalid_input_or_candidate",
+      "invalid_reason": "regular board incorrectly passed to underground leaderboard CLI; script not run",
+      "report": ".codex/nonreset-100-20261109/reports/dinosaur-adaptive-fill-v1-s1/report.json",
+      "report_sha256": "ff89618af7264e3d5bf6e679fe15843ad4d87d31702ec560cf4f61d02b94d66d",
+      "source": ".codex/nonreset-100-20261109/reports/dinosaur-adaptive-fill-v1-s1/source/lb_dinosaur.py",
+      "source_sha256": "32803f84aef336a80c50c987be22535148132120f2916bdef9d341daddbecd64",
+      "normalized_source_sha256": null,
+      "status": "stopped",
+      "error": {
+        "type": "ValueError",
+        "message": "未知地下排行榜：dinosaur",
+        "line": null
+      },
+      "goal_reached": null,
+      "seconds": null,
+      "wall_seconds": null,
+      "complete_cycles": []
+    },
+    {
+      "name": "dinosaur-adaptive-fill-v1-s1-scenario",
+      "classification": "rejected_representative",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/dinosaur-adaptive-fill-v1-s1-scenario/report.json",
+      "report_sha256": "e3db67a27172b9dba5c625be379c684b214df914cbc224d9ea934addcd45c55d",
+      "source": ".codex/nonreset-100-20261109/reports/dinosaur-adaptive-fill-v1-s1-scenario/source/lb_dinosaur.py",
+      "source_sha256": "32803f84aef336a80c50c987be22535148132120f2916bdef9d341daddbecd64",
+      "normalized_source_sha256": "32803f84aef336a80c50c987be22535148132120f2916bdef9d341daddbecd64",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 800s",
+        "line": 201
+      },
+      "goal_reached": false,
+      "seconds": 800.00196624,
+      "wall_seconds": 11.490943119861186,
+      "complete_cycles": []
+    },
+    {
+      "name": "dinosaur-side-entry-v1-s1",
+      "classification": "rejected_representative",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/dinosaur-side-entry-v1-s1/report.json",
+      "report_sha256": "8191d6e5f7dbf8a2fdb775b0d8e882154182bcf3a4bcf0c2b35a12a3f362ec81",
+      "source": ".codex/nonreset-100-20261109/reports/dinosaur-side-entry-v1-s1/source/lb_dinosaur.py",
+      "source_sha256": "d3b22e119d01152647ddfc518d7a9800da422d161d90229b543b213be22c5bd0",
+      "normalized_source_sha256": "d3b22e119d01152647ddfc518d7a9800da422d161d90229b543b213be22c5bd0",
+      "status": "completed",
+      "error": null,
+      "goal_reached": false,
+      "seconds": 43.12633851,
+      "wall_seconds": 0.37094319704920053,
+      "complete_cycles": []
+    },
+    {
+      "name": "dynamite-global-closure-v1-s1-window100",
+      "classification": "rejected_representative",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/dynamite-global-closure-v1-s1-window100/report.json",
+      "report_sha256": "68f3585b92958316d078859241c7faa18533fc258974f7fb0f3cdf9f4fed6b99",
+      "source": ".codex/nonreset-100-20261109/reports/dynamite-global-closure-v1-s1-window100/source/lb_dynamite.py",
+      "source_sha256": "546614ad3ddc0e38abc9a99cd8f1fe421e1af172c0e545faf937925b7200c59f",
+      "normalized_source_sha256": "546614ad3ddc0e38abc9a99cd8f1fe421e1af172c0e545faf937925b7200c59f",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 100s",
+        "line": 179
+      },
+      "goal_reached": false,
+      "seconds": 100.00353798,
+      "wall_seconds": 11.25860037910752,
+      "complete_cycles": []
+    },
+    {
+      "name": "dynamite-overlap-two-v1-s1-window120",
+      "classification": "rejected_representative",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/dynamite-overlap-two-v1-s1-window120/report.json",
+      "report_sha256": "854b07a5abf29baa39a5be5ead85c3ea078d3e7eebce38fe82a4b22e4f673e17",
+      "source": ".codex/nonreset-100-20261109/reports/dynamite-overlap-two-v1-s1-window120/source/lb_dynamite.py",
+      "source_sha256": "43f4c1f12d3b8124a7b7a6fe3ee237bdab9b09e9eb0fa91b605327604bf93649",
+      "normalized_source_sha256": "43f4c1f12d3b8124a7b7a6fe3ee237bdab9b09e9eb0fa91b605327604bf93649",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 296
+      },
+      "goal_reached": false,
+      "seconds": 120.00036078,
+      "wall_seconds": 14.498357709962875,
+      "complete_cycles": []
+    },
+    {
+      "name": "dynamite-phase-budget-v3-s1-window100",
+      "classification": "public_phase_cost_diagnostic",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/dynamite-phase-budget-v3-s1-window100/report.json",
+      "report_sha256": "7d3909676525a3ef99efee7d819d006dc7534df5007c2264d4f99c022fe54ac6",
+      "source": ".codex/nonreset-100-20261109/reports/dynamite-phase-budget-v3-s1-window100/source/lb_dynamite.py",
+      "source_sha256": "18a79466af5c0053aa16a0a2ef645513f7319b30241687046399cf1307dc58a1",
+      "normalized_source_sha256": "18a79466af5c0053aa16a0a2ef645513f7319b30241687046399cf1307dc58a1",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 100s",
+        "line": 279
+      },
+      "goal_reached": false,
+      "seconds": 100.00748862,
+      "wall_seconds": 11.524634820176288,
+      "complete_cycles": []
+    },
+    {
+      "name": "mushroom-actual-save-multi-s2-window120",
+      "classification": "frozen_actual_save_baseline",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-actual-save-multi-s2-window120/report.json",
+      "report_sha256": "131cd8df00327d84361e80173d67e8363d91b97bafdb28a55431e12afd5a91ca",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-actual-save-multi-s2-window120/source/lb_mushrooms.py",
+      "source_sha256": "f91e1bf020a7bc44162be32faefec22f02e2d97e8d1a11a0b049c29df6d6dae5",
+      "normalized_source_sha256": "f91e1bf020a7bc44162be32faefec22f02e2d97e8d1a11a0b049c29df6d6dae5",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 13
+      },
+      "goal_reached": false,
+      "seconds": 120.04990839,
+      "wall_seconds": 27.028117789886892,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 23.70729681,
+          "mushroom": 17472
+        },
+        {
+          "batch": 1,
+          "seconds": 47.82463713,
+          "mushroom": 35632
+        },
+        {
+          "batch": 2,
+          "seconds": 66.62211147,
+          "mushroom": 48016
+        },
+        {
+          "batch": 3,
+          "seconds": 85.30320654,
+          "mushroom": 60176
+        },
+        {
+          "batch": 4,
+          "seconds": 119.77797267,
+          "mushroom": 89328
+        }
+      ]
+    },
+    {
+      "name": "mushroom-actual-save-multi-s3-window120",
+      "classification": "frozen_actual_save_baseline",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-actual-save-multi-s3-window120/report.json",
+      "report_sha256": "8ae74fbd1ef36e22912bb5b80ac1b67892c2d1f56262578d42acd7dda3ae9755",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-actual-save-multi-s3-window120/source/lb_mushrooms.py",
+      "source_sha256": "f91e1bf020a7bc44162be32faefec22f02e2d97e8d1a11a0b049c29df6d6dae5",
+      "normalized_source_sha256": "f91e1bf020a7bc44162be32faefec22f02e2d97e8d1a11a0b049c29df6d6dae5",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到墙钟上限 28.7234s",
+        "line": 321
+      },
+      "goal_reached": false,
+      "seconds": 118.98636318,
+      "wall_seconds": 28.724011461017653,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 28.3277349,
+          "mushroom": 23824
+        },
+        {
+          "batch": 1,
+          "seconds": 61.64759727,
+          "mushroom": 52272
+        },
+        {
+          "batch": 2,
+          "seconds": 86.36609331,
+          "mushroom": 70160
+        }
+      ]
+    },
+    {
+      "name": "mushroom-checkerboard-supply-v1-multi-s1-window120",
+      "classification": "rejected_representative",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-checkerboard-supply-v1-multi-s1-window120/report.json",
+      "report_sha256": "12698ba33ed5284d526b715b878daec073d62d8b25948d9778f80b29cb096094",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-checkerboard-supply-v1-multi-s1-window120/source/lb_mushrooms.py",
+      "source_sha256": "449ee8e42666d607b16482905fbd961a21bf9b66664e873e1f431acb4bcf093a",
+      "normalized_source_sha256": "449ee8e42666d607b16482905fbd961a21bf9b66664e873e1f431acb4bcf093a",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 118
+      },
+      "goal_reached": false,
+      "seconds": 120.00628674,
+      "wall_seconds": 15.24668422807008,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 10.31742558,
+          "mushroom": 3072
+        },
+        {
+          "batch": 1,
+          "seconds": 20.67452217,
+          "mushroom": 6480
+        },
+        {
+          "batch": 2,
+          "seconds": 31.24511793,
+          "mushroom": 10224
+        },
+        {
+          "batch": 3,
+          "seconds": 41.54476563,
+          "mushroom": 13856
+        },
+        {
+          "batch": 4,
+          "seconds": 52.29050643,
+          "mushroom": 17072
+        },
+        {
+          "batch": 5,
+          "seconds": 66.04729335,
+          "mushroom": 17392
+        },
+        {
+          "batch": 6,
+          "seconds": 76.99435218,
+          "mushroom": 20928
+        },
+        {
+          "batch": 7,
+          "seconds": 87.97811904,
+          "mushroom": 24064
+        },
+        {
+          "batch": 8,
+          "seconds": 98.2507707,
+          "mushroom": 27568
+        },
+        {
+          "batch": 9,
+          "seconds": 108.4911588,
+          "mushroom": 30896
+        },
+        {
+          "batch": 10,
+          "seconds": 119.29352544,
+          "mushroom": 34192
+        }
+      ]
+    },
+    {
+      "name": "mushroom-fixed-columns-v1-multi-s1-window120",
+      "classification": "rejected_representative",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-fixed-columns-v1-multi-s1-window120/report.json",
+      "report_sha256": "aabfc182b870054fefa89cd26c9ff29b8a74d03a39d2e35d26a271043225fe39",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-fixed-columns-v1-multi-s1-window120/source/lb_mushrooms.py",
+      "source_sha256": "bf06e5e7165554a3c2abfce2ec4c2c0dcfe8ae425b6dc2e7abea14073031640e",
+      "normalized_source_sha256": "bf06e5e7165554a3c2abfce2ec4c2c0dcfe8ae425b6dc2e7abea14073031640e",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 60
+      },
+      "goal_reached": false,
+      "seconds": 120.00250071,
+      "wall_seconds": 11.912521238904446,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 6.61123143,
+          "mushroom": 656
+        },
+        {
+          "batch": 1,
+          "seconds": 13.55020137,
+          "mushroom": 1488
+        },
+        {
+          "batch": 2,
+          "seconds": 21.42958824,
+          "mushroom": 2704
+        },
+        {
+          "batch": 3,
+          "seconds": 29.08378863,
+          "mushroom": 4096
+        },
+        {
+          "batch": 4,
+          "seconds": 37.1623536,
+          "mushroom": 5216
+        },
+        {
+          "batch": 5,
+          "seconds": 44.61391908,
+          "mushroom": 5568
+        },
+        {
+          "batch": 6,
+          "seconds": 52.14252204,
+          "mushroom": 6304
+        },
+        {
+          "batch": 7,
+          "seconds": 60.0382053,
+          "mushroom": 7024
+        },
+        {
+          "batch": 8,
+          "seconds": 66.49799553,
+          "mushroom": 7584
+        },
+        {
+          "batch": 9,
+          "seconds": 73.26873405,
+          "mushroom": 8208
+        },
+        {
+          "batch": 10,
+          "seconds": 79.93659132,
+          "mushroom": 8672
+        },
+        {
+          "batch": 11,
+          "seconds": 87.51408345,
+          "mushroom": 9696
+        },
+        {
+          "batch": 12,
+          "seconds": 94.57733394,
+          "mushroom": 10352
+        },
+        {
+          "batch": 13,
+          "seconds": 102.74149611,
+          "mushroom": 11328
+        },
+        {
+          "batch": 14,
+          "seconds": 109.19140974,
+          "mushroom": 11904
+        },
+        {
+          "batch": 15,
+          "seconds": 116.8385319,
+          "mushroom": 12992
+        }
+      ]
+    },
+    {
+      "name": "mushroom-local-templates-v1-single-s1",
+      "classification": "rejected_representative",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-local-templates-v1-single-s1/report.json",
+      "report_sha256": "c28665dec6033c1d1b3a57ede297440860a88a5c7ccfca804e3e6eb2c94bad31",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-local-templates-v1-single-s1/source/lb_mushrooms_single.py",
+      "source_sha256": "f1b222d3f92d34c4ad5c9ec2e2d8bdb594c1d955eb0923228b5a8d66f5b26b12",
+      "normalized_source_sha256": "f1b222d3f92d34c4ad5c9ec2e2d8bdb594c1d955eb0923228b5a8d66f5b26b12",
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "seconds": 953.63264385,
+      "wall_seconds": 7.1153750121593475,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 37.86754284,
+          "mushroom": 1008
+        },
+        {
+          "batch": 1,
+          "seconds": 76.54496688,
+          "mushroom": 2240
+        },
+        {
+          "batch": 2,
+          "seconds": 150.3498357,
+          "mushroom": 4640
+        },
+        {
+          "batch": 3,
+          "seconds": 225.55388952,
+          "mushroom": 7152
+        },
+        {
+          "batch": 4,
+          "seconds": 291.13006905,
+          "mushroom": 9040
+        },
+        {
+          "batch": 5,
+          "seconds": 336.26646027,
+          "mushroom": 10224
+        },
+        {
+          "batch": 6,
+          "seconds": 389.34594243,
+          "mushroom": 11920
+        },
+        {
+          "batch": 7,
+          "seconds": 442.02262392,
+          "mushroom": 13520
+        },
+        {
+          "batch": 8,
+          "seconds": 480.41049897,
+          "mushroom": 14832
+        },
+        {
+          "batch": 9,
+          "seconds": 518.16511935,
+          "mushroom": 16064
+        },
+        {
+          "batch": 10,
+          "seconds": 558.37407483,
+          "mushroom": 17264
+        },
+        {
+          "batch": 11,
+          "seconds": 630.39292515,
+          "mushroom": 19744
+        },
+        {
+          "batch": 12,
+          "seconds": 666.75906018,
+          "mushroom": 20864
+        },
+        {
+          "batch": 13,
+          "seconds": 730.64354274,
+          "mushroom": 22816
+        },
+        {
+          "batch": 14,
+          "seconds": 767.75651334,
+          "mushroom": 24064
+        },
+        {
+          "batch": 15,
+          "seconds": 841.86146619,
+          "mushroom": 26544
+        },
+        {
+          "batch": 16,
+          "seconds": 880.27732494,
+          "mushroom": 27712
+        },
+        {
+          "batch": 17,
+          "seconds": 919.80858105,
+          "mushroom": 28848
+        },
+        {
+          "batch": 18,
+          "seconds": 953.63198541,
+          "mushroom": 30000
+        }
+      ]
+    },
+    {
+      "name": "mushroom-pair-queue-v1-single-s1",
+      "classification": "rejected_representative",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-pair-queue-v1-single-s1/report.json",
+      "report_sha256": "bfd83e3b14488873165bb6a8075b469dacdce76e4d403523d901cafe16c270b1",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-pair-queue-v1-single-s1/source/lb_mushrooms_single.py",
+      "source_sha256": "46bbbccb1336c42024b404fb3ac51b24e7fa3a4e097bc24287bf5daa95349c45",
+      "normalized_source_sha256": "46bbbccb1336c42024b404fb3ac51b24e7fa3a4e097bc24287bf5daa95349c45",
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "seconds": 909.80901738,
+      "wall_seconds": 6.140563362976536,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 31.13236008,
+          "mushroom": 1008
+        },
+        {
+          "batch": 1,
+          "seconds": 63.29633103,
+          "mushroom": 2064
+        },
+        {
+          "batch": 2,
+          "seconds": 125.05158324,
+          "mushroom": 4144
+        },
+        {
+          "batch": 3,
+          "seconds": 187.13770155,
+          "mushroom": 6112
+        },
+        {
+          "batch": 4,
+          "seconds": 239.39446293,
+          "mushroom": 7936
+        },
+        {
+          "batch": 5,
+          "seconds": 279.47617488,
+          "mushroom": 9088
+        },
+        {
+          "batch": 6,
+          "seconds": 324.49470534,
+          "mushroom": 10496
+        },
+        {
+          "batch": 7,
+          "seconds": 368.49857976,
+          "mushroom": 11904
+        },
+        {
+          "batch": 8,
+          "seconds": 401.89794876,
+          "mushroom": 12992
+        },
+        {
+          "batch": 9,
+          "seconds": 433.87014906,
+          "mushroom": 14096
+        },
+        {
+          "batch": 10,
+          "seconds": 467.20021725,
+          "mushroom": 15040
+        },
+        {
+          "batch": 11,
+          "seconds": 527.30525421,
+          "mushroom": 17136
+        },
+        {
+          "batch": 12,
+          "seconds": 557.76600549,
+          "mushroom": 18208
+        },
+        {
+          "batch": 13,
+          "seconds": 609.54671475,
+          "mushroom": 19776
+        },
+        {
+          "batch": 14,
+          "seconds": 640.67150277,
+          "mushroom": 20944
+        },
+        {
+          "batch": 15,
+          "seconds": 701.71004304,
+          "mushroom": 22944
+        },
+        {
+          "batch": 16,
+          "seconds": 731.71317852,
+          "mushroom": 24064
+        },
+        {
+          "batch": 17,
+          "seconds": 764.34431265,
+          "mushroom": 25120
+        },
+        {
+          "batch": 18,
+          "seconds": 815.12057169,
+          "mushroom": 26896
+        },
+        {
+          "batch": 19,
+          "seconds": 847.21194963,
+          "mushroom": 27952
+        },
+        {
+          "batch": 20,
+          "seconds": 880.13246814,
+          "mushroom": 29040
+        },
+        {
+          "batch": 21,
+          "seconds": 909.80835894,
+          "mushroom": 30000
+        }
+      ]
+    },
+    {
+      "name": "mushroom-parallel-bands-v1-multi-s1-window120",
+      "classification": "invalid_input_or_candidate",
+      "invalid_reason": "generated indentation syntax error; script not run",
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-parallel-bands-v1-multi-s1-window120/report.json",
+      "report_sha256": "9bd231042c998d3cd88fe43320628c8983effb830bf11a3a0dc5238670d6efde",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-parallel-bands-v1-multi-s1-window120/source/lb_mushrooms.py",
+      "source_sha256": "806b514e7061771f5f9800507b84243308826b6de5d2d82d3886780e33b2a087",
+      "normalized_source_sha256": null,
+      "status": "stopped",
+      "error": {
+        "type": "SyntaxError",
+        "message": "'continue' not properly in loop (lb_mushrooms.py, line 211)",
+        "line": 211,
+        "path": "/mnt/d/project/other/TFWR_Simulator/.codex/nonreset-100-20261109/reports/mushroom-parallel-bands-v1-multi-s1-window120/source/lb_mushrooms.py",
+        "column": 13,
+        "end_line": 211,
+        "end_column": 21
+      },
+      "goal_reached": null,
+      "seconds": null,
+      "wall_seconds": null,
+      "complete_cycles": []
+    },
+    {
+      "name": "mushroom-parallel-bands-v1b-multi-s1-window120",
+      "classification": "invalid_input_or_candidate",
+      "invalid_reason": "inner copied single-drone threshold 30000 invalidates later cycles; superseded by v1c",
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-parallel-bands-v1b-multi-s1-window120/report.json",
+      "report_sha256": "ad050774ddab9032af9578f3b8fa2ec78859a1d5110130cf23e90c0558632536",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-parallel-bands-v1b-multi-s1-window120/source/lb_mushrooms.py",
+      "source_sha256": "869a0a2248d960d95602e1faf7a13aabaa36a670493233a2db7dd3063a6adbc2",
+      "normalized_source_sha256": "869a0a2248d960d95602e1faf7a13aabaa36a670493233a2db7dd3063a6adbc2",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 316
+      },
+      "goal_reached": false,
+      "seconds": 120.00069,
+      "wall_seconds": 13.699695497984067,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 27.00986724,
+          "mushroom": 16160
+        },
+        {
+          "batch": 1,
+          "seconds": 52.07305662,
+          "mushroom": 30272
+        },
+        {
+          "batch": 2,
+          "seconds": 68.26195629,
+          "mushroom": 30272
+        },
+        {
+          "batch": 3,
+          "seconds": 84.21431139,
+          "mushroom": 30272
+        },
+        {
+          "batch": 4,
+          "seconds": 100.63975563,
+          "mushroom": 30272
+        },
+        {
+          "batch": 5,
+          "seconds": 117.57121101,
+          "mushroom": 30272
+        }
+      ]
+    },
+    {
+      "name": "mushroom-parallel-bands-v1c-multi-s1-window120",
+      "classification": "rejected_representative",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-parallel-bands-v1c-multi-s1-window120/report.json",
+      "report_sha256": "841757e142ed5c875e1e8ba188913ff2ad7f247c9b104df6f5a5a13378872072",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-parallel-bands-v1c-multi-s1-window120/source/lb_mushrooms.py",
+      "source_sha256": "276c2ab3b52da8376d61a41c668926221525effd617a8ea32efee13954c9616a",
+      "normalized_source_sha256": "276c2ab3b52da8376d61a41c668926221525effd617a8ea32efee13954c9616a",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 240
+      },
+      "goal_reached": false,
+      "seconds": 120.00003156,
+      "wall_seconds": 22.886110227089375,
+      "complete_cycles": [
+        {
+          "batch": 0,
+          "seconds": 27.00986724,
+          "mushroom": 16160
+        },
+        {
+          "batch": 1,
+          "seconds": 53.12935899,
+          "mushroom": 32240
+        },
+        {
+          "batch": 2,
+          "seconds": 103.49277615,
+          "mushroom": 64528
+        }
+      ]
+    },
+    {
+      "name": "mushroom-select-six-multi-s2-window120",
+      "classification": "selected_candidate",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-multi-s2-window120/report.json",
+      "report_sha256": "1d0a1e873c566d1c72de30403aa403ed65c5f9ac1904ad2c1dd12b616dab4a47",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-select-six-multi-s2-window120/source/lb_mushrooms.py",
+      "source_sha256": "7fafa0e15b82e8bf1487dfd273d091a5eedf491e65c757f4ee8b5e213a3867f7",
+      "normalized_source_sha256": "7fafa0e15b82e8bf1487dfd273d091a5eedf491e65c757f4ee8b5e213a3867f7",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 307
+      },
+      "goal_reached": false,
+      "seconds": 120.00003156,
+      "wall_seconds": 26.98956061899662,
+      "complete_cycles": [
+        {
+          "batch": 4,
+          "seconds": 37.72894122,
+          "mushroom": 29152
+        },
+        {
+          "batch": 14,
+          "seconds": 77.46299685,
+          "mushroom": 58480
+        },
+        {
+          "batch": 15,
+          "seconds": 110.93644035,
+          "mushroom": 86880
+        }
+      ]
+    },
+    {
+      "name": "mushroom-select-six-multi-s3-window120",
+      "classification": "selected_candidate",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-multi-s3-window120/report.json",
+      "report_sha256": "2455e8ff3e1c9d77c0a9b3c0c704f4007c6ca06191adf2edc550aea1e30710fe",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-select-six-multi-s3-window120/source/lb_mushrooms.py",
+      "source_sha256": "7fafa0e15b82e8bf1487dfd273d091a5eedf491e65c757f4ee8b5e213a3867f7",
+      "normalized_source_sha256": "7fafa0e15b82e8bf1487dfd273d091a5eedf491e65c757f4ee8b5e213a3867f7",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 170
+      },
+      "goal_reached": false,
+      "seconds": 120.00003156,
+      "wall_seconds": 27.6057863549795,
+      "complete_cycles": [
+        {
+          "batch": 1,
+          "seconds": 33.96217059,
+          "mushroom": 28448
+        },
+        {
+          "batch": 3,
+          "seconds": 68.81224752,
+          "mushroom": 56912
+        },
+        {
+          "batch": 8,
+          "seconds": 105.00373134,
+          "mushroom": 85200
+        }
+      ]
+    },
+    {
+      "name": "mushroom-select-six-v1-multi-s1-window120",
+      "classification": "selected_candidate",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-multi-s1-window120/report.json",
+      "report_sha256": "8a30ac54f473061faad7cd1d612b91e8f0ff2eacb2313060dba0f59738790e50",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-multi-s1-window120/source/lb_mushrooms.py",
+      "source_sha256": "7fafa0e15b82e8bf1487dfd273d091a5eedf491e65c757f4ee8b5e213a3867f7",
+      "normalized_source_sha256": "7fafa0e15b82e8bf1487dfd273d091a5eedf491e65c757f4ee8b5e213a3867f7",
+      "status": "stopped",
+      "error": {
+        "type": "BudgetExceeded",
+        "message": "达到游戏时间窗口 120s",
+        "line": 384
+      },
+      "goal_reached": false,
+      "seconds": 120.00003156,
+      "wall_seconds": 26.59634537389502,
+      "complete_cycles": [
+        {
+          "batch": 2,
+          "seconds": 34.90785504,
+          "mushroom": 29424
+        },
+        {
+          "batch": 3,
+          "seconds": 68.59512693,
+          "mushroom": 58624
+        },
+        {
+          "batch": 11,
+          "seconds": 107.79189552,
+          "mushroom": 86928
+        }
+      ]
+    },
+    {
+      "name": "mushroom-select-six-v1-single-s1",
+      "classification": "selected_candidate",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-single-s1/report.json",
+      "report_sha256": "bf4b2c168e4847e444424d01111359322879d0da844505656de54dddb3748e40",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-single-s1/source/lb_mushrooms_single.py",
+      "source_sha256": "bc35361b8ca912fd9c2298946c3592ab30d0ba049fe997e5f5c8fbdd8ba91ae9",
+      "normalized_source_sha256": "bc35361b8ca912fd9c2298946c3592ab30d0ba049fe997e5f5c8fbdd8ba91ae9",
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "seconds": 786.9477348,
+      "wall_seconds": 5.325202500913292,
+      "complete_cycles": [
+        {
+          "batch": 2,
+          "seconds": 54.91982196,
+          "mushroom": 2240
+        },
+        {
+          "batch": 3,
+          "seconds": 107.07485436,
+          "mushroom": 4384
+        },
+        {
+          "batch": 11,
+          "seconds": 165.75486255,
+          "mushroom": 6464
+        },
+        {
+          "batch": 15,
+          "seconds": 220.90431546,
+          "mushroom": 8608
+        },
+        {
+          "batch": 21,
+          "seconds": 276.68373084,
+          "mushroom": 10720
+        },
+        {
+          "batch": 22,
+          "seconds": 330.18313311,
+          "mushroom": 12912
+        },
+        {
+          "batch": 26,
+          "seconds": 387.69951321,
+          "mushroom": 15184
+        },
+        {
+          "batch": 28,
+          "seconds": 442.52962272,
+          "mushroom": 17408
+        },
+        {
+          "batch": 30,
+          "seconds": 498.04632054,
+          "mushroom": 19632
+        },
+        {
+          "batch": 32,
+          "seconds": 551.5290972,
+          "mushroom": 21600
+        },
+        {
+          "batch": 37,
+          "seconds": 608.33353905,
+          "mushroom": 23712
+        },
+        {
+          "batch": 45,
+          "seconds": 667.16482383,
+          "mushroom": 25776
+        },
+        {
+          "batch": 62,
+          "seconds": 731.90527839,
+          "mushroom": 27872
+        },
+        {
+          "batch": 63,
+          "seconds": 786.94691175,
+          "mushroom": 30016
+        }
+      ]
+    },
+    {
+      "name": "mushroom-select-six-v1-single-s2",
+      "classification": "selected_candidate",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-single-s2/report.json",
+      "report_sha256": "5337421ea1471ade9567b2be1e7cd677a4ad6a63d2b6fbb4005ed5857bccebc2",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-single-s2/source/lb_mushrooms_single.py",
+      "source_sha256": "bc35361b8ca912fd9c2298946c3592ab30d0ba049fe997e5f5c8fbdd8ba91ae9",
+      "normalized_source_sha256": "bc35361b8ca912fd9c2298946c3592ab30d0ba049fe997e5f5c8fbdd8ba91ae9",
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "seconds": 813.40401861,
+      "wall_seconds": 5.440456165000796,
+      "complete_cycles": [
+        {
+          "batch": 4,
+          "seconds": 56.74090239,
+          "mushroom": 2224
+        },
+        {
+          "batch": 14,
+          "seconds": 117.70141752,
+          "mushroom": 4432
+        },
+        {
+          "batch": 15,
+          "seconds": 171.83818971,
+          "mushroom": 6544
+        },
+        {
+          "batch": 16,
+          "seconds": 223.28704521,
+          "mushroom": 8656
+        },
+        {
+          "batch": 19,
+          "seconds": 277.60439457,
+          "mushroom": 10720
+        },
+        {
+          "batch": 26,
+          "seconds": 335.23040493,
+          "mushroom": 12832
+        },
+        {
+          "batch": 27,
+          "seconds": 391.43583099,
+          "mushroom": 15072
+        },
+        {
+          "batch": 31,
+          "seconds": 447.2634771,
+          "mushroom": 17184
+        },
+        {
+          "batch": 32,
+          "seconds": 500.30987265,
+          "mushroom": 19232
+        },
+        {
+          "batch": 39,
+          "seconds": 558.53868483,
+          "mushroom": 21376
+        },
+        {
+          "batch": 45,
+          "seconds": 615.74658579,
+          "mushroom": 23504
+        },
+        {
+          "batch": 47,
+          "seconds": 670.53899961,
+          "mushroom": 25824
+        },
+        {
+          "batch": 59,
+          "seconds": 732.26709117,
+          "mushroom": 27888
+        },
+        {
+          "batch": 64,
+          "seconds": 790.26182793,
+          "mushroom": 29968
+        },
+        {
+          "batch": 66,
+          "seconds": 813.40319556,
+          "mushroom": 30832
+        }
+      ]
+    },
+    {
+      "name": "mushroom-select-six-v1-single-s3",
+      "classification": "selected_candidate",
+      "invalid_reason": null,
+      "report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-single-s3/report.json",
+      "report_sha256": "f05dae80bb238dc989dadb97ff014a5860488aaa2132a31e99e3462a2c85efeb",
+      "source": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-single-s3/source/lb_mushrooms_single.py",
+      "source_sha256": "bc35361b8ca912fd9c2298946c3592ab30d0ba049fe997e5f5c8fbdd8ba91ae9",
+      "normalized_source_sha256": "bc35361b8ca912fd9c2298946c3592ab30d0ba049fe997e5f5c8fbdd8ba91ae9",
+      "status": "completed",
+      "error": null,
+      "goal_reached": true,
+      "seconds": 775.13565042,
+      "wall_seconds": 5.254748161882162,
+      "complete_cycles": [
+        {
+          "batch": 1,
+          "seconds": 53.74467117,
+          "mushroom": 2256
+        },
+        {
+          "batch": 3,
+          "seconds": 108.37905939,
+          "mushroom": 4368
+        },
+        {
+          "batch": 8,
+          "seconds": 163.67139378,
+          "mushroom": 6464
+        },
+        {
+          "batch": 12,
+          "seconds": 220.40011503,
+          "mushroom": 8560
+        },
+        {
+          "batch": 16,
+          "seconds": 276.11236953,
+          "mushroom": 10720
+        },
+        {
+          "batch": 19,
+          "seconds": 333.01491894,
+          "mushroom": 12832
+        },
+        {
+          "batch": 24,
+          "seconds": 387.89869131,
+          "mushroom": 15008
+        },
+        {
+          "batch": 28,
+          "seconds": 444.12584589,
+          "mushroom": 17184
+        },
+        {
+          "batch": 31,
+          "seconds": 500.55497694,
+          "mushroom": 19264
+        },
+        {
+          "batch": 35,
+          "seconds": 556.02706545,
+          "mushroom": 21408
+        },
+        {
+          "batch": 50,
+          "seconds": 616.30839972,
+          "mushroom": 23568
+        },
+        {
+          "batch": 52,
+          "seconds": 670.73109948,
+          "mushroom": 25744
+        },
+        {
+          "batch": 56,
+          "seconds": 725.73931701,
+          "mushroom": 27920
+        },
+        {
+          "batch": 58,
+          "seconds": 775.13482737,
+          "mushroom": 30016
+        }
+      ]
+    }
+  ],
+  "current_promotions": {
+    "lb_mushrooms_single": {
+      "source": "scripts/leaderboard/lb_mushrooms_single.py",
+      "source_sha256": "1cbdac92b955d0a3be29c5a6315840e1728ef00eba8b6661ac56b729acea11e9",
+      "baseline_mean_seconds": 818.99883816,
+      "candidate_mean_seconds": 791.82913461,
+      "improvement_percent": 3.3174288270103935,
+      "original_goal_fully_completed": true,
+      "pairs": [
+        {
+          "seed": 1,
+          "baseline_report": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms_single-s1/report.json",
+          "candidate_report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-single-s1/report.json",
+          "baseline_seconds": 829.51110711,
+          "candidate_seconds": 786.9477348,
+          "faster_on_this_seed": true,
+          "initial_conditions_equal": true,
+          "baseline_complete_cycles": [
+            {
+              "batch": 0,
+              "seconds": 27.18665838,
+              "mushroom": 832
+            },
+            {
+              "batch": 1,
+              "seconds": 54.73825713,
+              "mushroom": 1680
+            },
+            {
+              "batch": 2,
+              "seconds": 108.54185868,
+              "mushroom": 3920
+            },
+            {
+              "batch": 3,
+              "seconds": 160.77524544,
+              "mushroom": 6064
+            },
+            {
+              "batch": 4,
+              "seconds": 206.67954231,
+              "mushroom": 7792
+            },
+            {
+              "batch": 5,
+              "seconds": 235.11460293,
+              "mushroom": 8688
+            },
+            {
+              "batch": 6,
+              "seconds": 272.29736817,
+              "mushroom": 9952
+            },
+            {
+              "batch": 7,
+              "seconds": 308.66268015,
+              "mushroom": 11312
+            },
+            {
+              "batch": 8,
+              "seconds": 336.24917622,
+              "mushroom": 12224
+            },
+            {
+              "batch": 9,
+              "seconds": 363.36538152,
+              "mushroom": 13088
+            },
+            {
+              "batch": 10,
+              "seconds": 392.00949684,
+              "mushroom": 13888
+            },
+            {
+              "batch": 11,
+              "seconds": 445.46297292,
+              "mushroom": 15968
+            },
+            {
+              "batch": 12,
+              "seconds": 472.26526695,
+              "mushroom": 16912
+            },
+            {
+              "batch": 13,
+              "seconds": 518.26009932,
+              "mushroom": 18752
+            },
+            {
+              "batch": 14,
+              "seconds": 546.85186866,
+              "mushroom": 19728
+            },
+            {
+              "batch": 15,
+              "seconds": 599.86386072,
+              "mushroom": 21872
+            },
+            {
+              "batch": 16,
+              "seconds": 627.61200381,
+              "mushroom": 22768
+            },
+            {
+              "batch": 17,
+              "seconds": 655.75142487,
+              "mushroom": 23632
+            },
+            {
+              "batch": 18,
+              "seconds": 700.7036175,
+              "mushroom": 25440
+            },
+            {
+              "batch": 19,
+              "seconds": 728.02459764,
+              "mushroom": 26320
+            },
+            {
+              "batch": 20,
+              "seconds": 755.39331468,
+              "mushroom": 27136
+            },
+            {
+              "batch": 21,
+              "seconds": 808.16942061,
+              "mushroom": 29248
+            },
+            {
+              "batch": 22,
+              "seconds": 829.51028406,
+              "mushroom": 30176
+            }
+          ],
+          "candidate_complete_cycles": [
+            {
+              "batch": 2,
+              "seconds": 54.91982196,
+              "mushroom": 2240
+            },
+            {
+              "batch": 3,
+              "seconds": 107.07485436,
+              "mushroom": 4384
+            },
+            {
+              "batch": 11,
+              "seconds": 165.75486255,
+              "mushroom": 6464
+            },
+            {
+              "batch": 15,
+              "seconds": 220.90431546,
+              "mushroom": 8608
+            },
+            {
+              "batch": 21,
+              "seconds": 276.68373084,
+              "mushroom": 10720
+            },
+            {
+              "batch": 22,
+              "seconds": 330.18313311,
+              "mushroom": 12912
+            },
+            {
+              "batch": 26,
+              "seconds": 387.69951321,
+              "mushroom": 15184
+            },
+            {
+              "batch": 28,
+              "seconds": 442.52962272,
+              "mushroom": 17408
+            },
+            {
+              "batch": 30,
+              "seconds": 498.04632054,
+              "mushroom": 19632
+            },
+            {
+              "batch": 32,
+              "seconds": 551.5290972,
+              "mushroom": 21600
+            },
+            {
+              "batch": 37,
+              "seconds": 608.33353905,
+              "mushroom": 23712
+            },
+            {
+              "batch": 45,
+              "seconds": 667.16482383,
+              "mushroom": 25776
+            },
+            {
+              "batch": 62,
+              "seconds": 731.90527839,
+              "mushroom": 27872
+            },
+            {
+              "batch": 63,
+              "seconds": 786.94691175,
+              "mushroom": 30016
+            }
+          ]
+        },
+        {
+          "seed": 2,
+          "baseline_report": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms_single-s2/report.json",
+          "candidate_report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-single-s2/report.json",
+          "baseline_seconds": 809.1486855,
+          "candidate_seconds": 813.40401861,
+          "faster_on_this_seed": false,
+          "initial_conditions_equal": true,
+          "baseline_complete_cycles": [
+            {
+              "batch": 0,
+              "seconds": 37.22293008,
+              "mushroom": 1312
+            },
+            {
+              "batch": 1,
+              "seconds": 74.34972792,
+              "mushroom": 2608
+            },
+            {
+              "batch": 2,
+              "seconds": 101.95729407,
+              "mushroom": 3520
+            },
+            {
+              "batch": 3,
+              "seconds": 130.13869068,
+              "mushroom": 4384
+            },
+            {
+              "batch": 4,
+              "seconds": 183.62475954,
+              "mushroom": 6608
+            },
+            {
+              "batch": 5,
+              "seconds": 219.86546175,
+              "mushroom": 7952
+            },
+            {
+              "batch": 6,
+              "seconds": 247.26166866,
+              "mushroom": 8880
+            },
+            {
+              "batch": 7,
+              "seconds": 292.90719861,
+              "mushroom": 10640
+            },
+            {
+              "batch": 8,
+              "seconds": 337.92210765,
+              "mushroom": 12384
+            },
+            {
+              "batch": 9,
+              "seconds": 383.03150283,
+              "mushroom": 14096
+            },
+            {
+              "batch": 10,
+              "seconds": 428.44164048,
+              "mushroom": 15696
+            },
+            {
+              "batch": 11,
+              "seconds": 465.17502042,
+              "mushroom": 17040
+            },
+            {
+              "batch": 12,
+              "seconds": 493.32086127,
+              "mushroom": 17904
+            },
+            {
+              "batch": 13,
+              "seconds": 529.33983381,
+              "mushroom": 19216
+            },
+            {
+              "batch": 14,
+              "seconds": 584.24796846,
+              "mushroom": 21424
+            },
+            {
+              "batch": 15,
+              "seconds": 638.46309501,
+              "mushroom": 23536
+            },
+            {
+              "batch": 16,
+              "seconds": 689.67557055,
+              "mushroom": 25648
+            },
+            {
+              "batch": 17,
+              "seconds": 735.70019733,
+              "mushroom": 27248
+            },
+            {
+              "batch": 18,
+              "seconds": 764.23929147,
+              "mushroom": 28176
+            },
+            {
+              "batch": 19,
+              "seconds": 809.14786245,
+              "mushroom": 30032
+            }
+          ],
+          "candidate_complete_cycles": [
+            {
+              "batch": 4,
+              "seconds": 56.74090239,
+              "mushroom": 2224
+            },
+            {
+              "batch": 14,
+              "seconds": 117.70141752,
+              "mushroom": 4432
+            },
+            {
+              "batch": 15,
+              "seconds": 171.83818971,
+              "mushroom": 6544
+            },
+            {
+              "batch": 16,
+              "seconds": 223.28704521,
+              "mushroom": 8656
+            },
+            {
+              "batch": 19,
+              "seconds": 277.60439457,
+              "mushroom": 10720
+            },
+            {
+              "batch": 26,
+              "seconds": 335.23040493,
+              "mushroom": 12832
+            },
+            {
+              "batch": 27,
+              "seconds": 391.43583099,
+              "mushroom": 15072
+            },
+            {
+              "batch": 31,
+              "seconds": 447.2634771,
+              "mushroom": 17184
+            },
+            {
+              "batch": 32,
+              "seconds": 500.30987265,
+              "mushroom": 19232
+            },
+            {
+              "batch": 39,
+              "seconds": 558.53868483,
+              "mushroom": 21376
+            },
+            {
+              "batch": 45,
+              "seconds": 615.74658579,
+              "mushroom": 23504
+            },
+            {
+              "batch": 47,
+              "seconds": 670.53899961,
+              "mushroom": 25824
+            },
+            {
+              "batch": 59,
+              "seconds": 732.26709117,
+              "mushroom": 27888
+            },
+            {
+              "batch": 64,
+              "seconds": 790.26182793,
+              "mushroom": 29968
+            },
+            {
+              "batch": 66,
+              "seconds": 813.40319556,
+              "mushroom": 30832
+            }
+          ]
+        },
+        {
+          "seed": 3,
+          "baseline_report": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms_single-s3/report.json",
+          "candidate_report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-single-s3/report.json",
+          "baseline_seconds": 818.33672187,
+          "candidate_seconds": 775.13565042,
+          "faster_on_this_seed": true,
+          "initial_conditions_equal": true,
+          "baseline_complete_cycles": [
+            {
+              "batch": 0,
+              "seconds": 44.97918867,
+              "mushroom": 1712
+            },
+            {
+              "batch": 1,
+              "seconds": 98.08089318,
+              "mushroom": 3968
+            },
+            {
+              "batch": 2,
+              "seconds": 134.74908756,
+              "mushroom": 5376
+            },
+            {
+              "batch": 3,
+              "seconds": 188.07778926,
+              "mushroom": 7488
+            },
+            {
+              "batch": 4,
+              "seconds": 215.13786255,
+              "mushroom": 8288
+            },
+            {
+              "batch": 5,
+              "seconds": 261.35853984,
+              "mushroom": 10080
+            },
+            {
+              "batch": 6,
+              "seconds": 298.49916492,
+              "mushroom": 11376
+            },
+            {
+              "batch": 7,
+              "seconds": 343.67621481,
+              "mushroom": 13040
+            },
+            {
+              "batch": 8,
+              "seconds": 396.87454539,
+              "mushroom": 15136
+            },
+            {
+              "batch": 9,
+              "seconds": 424.59618627,
+              "mushroom": 16032
+            },
+            {
+              "batch": 10,
+              "seconds": 470.01488364,
+              "mushroom": 17648
+            },
+            {
+              "batch": 11,
+              "seconds": 507.20406867,
+              "mushroom": 18912
+            },
+            {
+              "batch": 12,
+              "seconds": 561.51993654,
+              "mushroom": 21008
+            },
+            {
+              "batch": 13,
+              "seconds": 588.97309851,
+              "mushroom": 21920
+            },
+            {
+              "batch": 14,
+              "seconds": 617.52420918,
+              "mushroom": 22784
+            },
+            {
+              "batch": 15,
+              "seconds": 645.1016517,
+              "mushroom": 23712
+            },
+            {
+              "batch": 16,
+              "seconds": 698.83842159,
+              "mushroom": 25872
+            },
+            {
+              "batch": 17,
+              "seconds": 736.05509649,
+              "mushroom": 27184
+            },
+            {
+              "batch": 18,
+              "seconds": 763.68900024,
+              "mushroom": 28064
+            },
+            {
+              "batch": 19,
+              "seconds": 818.33589882,
+              "mushroom": 30176
+            }
+          ],
+          "candidate_complete_cycles": [
+            {
+              "batch": 1,
+              "seconds": 53.74467117,
+              "mushroom": 2256
+            },
+            {
+              "batch": 3,
+              "seconds": 108.37905939,
+              "mushroom": 4368
+            },
+            {
+              "batch": 8,
+              "seconds": 163.67139378,
+              "mushroom": 6464
+            },
+            {
+              "batch": 12,
+              "seconds": 220.40011503,
+              "mushroom": 8560
+            },
+            {
+              "batch": 16,
+              "seconds": 276.11236953,
+              "mushroom": 10720
+            },
+            {
+              "batch": 19,
+              "seconds": 333.01491894,
+              "mushroom": 12832
+            },
+            {
+              "batch": 24,
+              "seconds": 387.89869131,
+              "mushroom": 15008
+            },
+            {
+              "batch": 28,
+              "seconds": 444.12584589,
+              "mushroom": 17184
+            },
+            {
+              "batch": 31,
+              "seconds": 500.55497694,
+              "mushroom": 19264
+            },
+            {
+              "batch": 35,
+              "seconds": 556.02706545,
+              "mushroom": 21408
+            },
+            {
+              "batch": 50,
+              "seconds": 616.30839972,
+              "mushroom": 23568
+            },
+            {
+              "batch": 52,
+              "seconds": 670.73109948,
+              "mushroom": 25744
+            },
+            {
+              "batch": 56,
+              "seconds": 725.73931701,
+              "mushroom": 27920
+            },
+            {
+              "batch": 58,
+              "seconds": 775.13482737,
+              "mushroom": 30016
+            }
+          ]
+        }
+      ],
+      "prediction": "full original goal",
+      "all_seeds_faster": false,
+      "real_game_run_this_revision": false
+    },
+    "lb_mushrooms": {
+      "source": "scripts/leaderboard/lb_mushrooms.py",
+      "source_sha256": "e0bf5bde6b43feddb889c6d53c59e5cf9d278a0a9e0335a1dd8b5f3d2214fc5b",
+      "baseline_mean_seconds": 306.51279380712424,
+      "candidate_mean_seconds": 299.9475531048155,
+      "improvement_percent": 2.141914084813046,
+      "original_goal_fully_completed": false,
+      "pairs": [
+        {
+          "seed": 1,
+          "baseline_report": ".codex/nonreset-100-20261109/reports/actual-save-lb_mushrooms-s1/report.json",
+          "candidate_report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-v1-multi-s1-window120/report.json",
+          "baseline_seconds": 302.29056520231217,
+          "candidate_seconds": 297.6032454997239,
+          "faster_on_this_seed": true,
+          "initial_conditions_equal": true,
+          "baseline_complete_cycles": [
+            {
+              "batch": 0,
+              "seconds": 18.63615654,
+              "mushroom": 12128
+            },
+            {
+              "batch": 1,
+              "seconds": 37.1919834,
+              "mushroom": 24416
+            },
+            {
+              "batch": 2,
+              "seconds": 70.98427647,
+              "mushroom": 53840
+            },
+            {
+              "batch": 3,
+              "seconds": 104.59253556,
+              "mushroom": 83040
+            }
+          ],
+          "candidate_complete_cycles": [
+            {
+              "batch": 2,
+              "seconds": 34.90785504,
+              "mushroom": 29424
+            },
+            {
+              "batch": 3,
+              "seconds": 68.59512693,
+              "mushroom": 58624
+            },
+            {
+              "batch": 11,
+              "seconds": 107.79189552,
+              "mushroom": 86928
+            }
+          ]
+        },
+        {
+          "seed": 2,
+          "baseline_report": ".codex/nonreset-100-20261109/reports/mushroom-actual-save-multi-s2-window120/report.json",
+          "candidate_report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-multi-s2-window120/report.json",
+          "baseline_seconds": 321.81078095110155,
+          "candidate_seconds": 306.45425511049723,
+          "faster_on_this_seed": true,
+          "initial_conditions_equal": true,
+          "baseline_complete_cycles": [
+            {
+              "batch": 0,
+              "seconds": 23.70729681,
+              "mushroom": 17472
+            },
+            {
+              "batch": 1,
+              "seconds": 47.82463713,
+              "mushroom": 35632
+            },
+            {
+              "batch": 2,
+              "seconds": 66.62211147,
+              "mushroom": 48016
+            },
+            {
+              "batch": 3,
+              "seconds": 85.30320654,
+              "mushroom": 60176
+            },
+            {
+              "batch": 4,
+              "seconds": 119.77797267,
+              "mushroom": 89328
+            }
+          ],
+          "candidate_complete_cycles": [
+            {
+              "batch": 4,
+              "seconds": 37.72894122,
+              "mushroom": 29152
+            },
+            {
+              "batch": 14,
+              "seconds": 77.46299685,
+              "mushroom": 58480
+            },
+            {
+              "batch": 15,
+              "seconds": 110.93644035,
+              "mushroom": 86880
+            }
+          ]
+        },
+        {
+          "seed": 3,
+          "baseline_report": ".codex/nonreset-100-20261109/reports/mushroom-actual-save-multi-s3-window120/report.json",
+          "candidate_report": ".codex/nonreset-100-20261109/reports/mushroom-select-six-multi-s3-window120/report.json",
+          "baseline_seconds": 295.43703526795895,
+          "candidate_seconds": 295.78515870422535,
+          "faster_on_this_seed": false,
+          "initial_conditions_equal": true,
+          "baseline_complete_cycles": [
+            {
+              "batch": 0,
+              "seconds": 28.3277349,
+              "mushroom": 23824
+            },
+            {
+              "batch": 1,
+              "seconds": 61.64759727,
+              "mushroom": 52272
+            },
+            {
+              "batch": 2,
+              "seconds": 86.36609331,
+              "mushroom": 70160
+            }
+          ],
+          "candidate_complete_cycles": [
+            {
+              "batch": 1,
+              "seconds": 33.96217059,
+              "mushroom": 28448
+            },
+            {
+              "batch": 3,
+              "seconds": 68.81224752,
+              "mushroom": 56912
+            },
+            {
+              "batch": 8,
+              "seconds": 105.00373134,
+              "mushroom": 85200
+            }
+          ]
+        }
+      ],
+      "prediction": "mean of three goal * last-complete-cycle-time / settled-items estimates; nine complete cycles; all selection and preparation included",
+      "all_seeds_faster": false,
+      "real_game_run_this_revision": false
+    }
+  },
+  "validation": {
+    "game_parser": "passed both canonical files; execution AST equals simulated candidates",
+    "lsp": {
+      "errors": 0,
+      "warnings": 0,
+      "hints": 10
+    },
+    "wall_budget_per_case": 30,
+    "game_software_test_suites_run": false,
+    "core_sha256": "f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25"
+  },
+  "limitations": [
+    "One seed is slower for each selected script; promotion uses the three-seed mean, not a per-seed guarantee.",
+    "Multi-drone forecast has nine complete fields, not a complete 240000-item round. Unfinished fields are excluded.",
+    "No current revision meets 2x #1; phase 1 remains 24/28.",
+    "A parallel task added color-block aliases to catalog.py; Mushroom enum values and affected execution paths are unchanged. That task is excluded from this change."
+  ]
+}

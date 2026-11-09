@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：5:14.194（2026-11-09，build26462009，官方完整23轮，request476）。
+# 完整轮时间：未取得（本地已验证六层场筛选；当前版本尚未实机）。
 
 def lb_mushrooms():
     began = get_time()
@@ -19,11 +19,6 @@ def lb_mushrooms():
             quick_print("mushrooms_failed", "find_limit", batch)
             return
         top = get_pos_z()
-        if not dig_layer(top):
-            quick_print("mushrooms_failed", "cover", batch)
-            return
-        if not move_to(0, 0):
-            return
         height = 0
         for step in range(7):
             if get_ground_type() != Grounds.Mushroom:
@@ -34,6 +29,14 @@ def lb_mushrooms():
             height += 1
         if not height or height > 6:
             quick_print("mushrooms_failed", "height", batch, height)
+            return
+        quick_print("mushrooms_selected", batch, height, get_time())
+        if height != 6:
+            continue
+        if not dig_layer(top):
+            quick_print("mushrooms_failed", "cover", batch)
+            return
+        if not move_to(0, 0):
             return
         levels = max(1, height - 1)
         quick_print("mushrooms_probe", batch, height, levels, get_time())
@@ -97,7 +100,7 @@ def dig_layer(target):
     return ok
 
 
-# 覆盖层起始高度一致，只需逐格挖到本次目标高度，无需识别地面类型。
+# 只挖仍高于蘑菇顶面的覆盖层；探柱产生的低柱保留实际高度。
 def dig_columns(first_x, stride, size, target):
     for x in range(first_x, size, stride):
         if not move_to(x, 0):
@@ -106,7 +109,7 @@ def dig_columns(first_x, stride, size, target):
             while get_pos_z() > target:
                 if not dig():
                     return False
-            if get_pos_z() != target:
+            if get_pos_z() > target:
                 return False
             if not move(North):
                 return False
