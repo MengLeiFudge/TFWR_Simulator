@@ -13,6 +13,7 @@
 | [game_mod/](game_mod/README.md) | BepInEx 模组，接收指令并在游戏内运行脚本 |
 | [scripts/functional/](scripts/functional/README.md) | 全科技下持续生产资源，优先沿用已有功能脚本和成熟多机排行榜算法 |
 | [scripts/leaderboard/](scripts/leaderboard/README.md) | `lb_*.py` 排行榜脚本真源 |
+| [scripts/achievement/](scripts/achievement/README.md) | 全科技下的一次性成就脚本 |
 | [references/](references/README.md) | 游戏源码、资源与科技快照、公开成绩缓存等参考事实 |
 | [docs/](docs/README.md) | 项目架构、共用研究方法、各榜策略与验证记录 |
 | `gamesave/` | 指向本机真实 Save0 的链接，只是部署目标，不进 Git |
