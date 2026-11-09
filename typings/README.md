@@ -14,6 +14,8 @@ ty LSP 使用同一份配置。诊断关注错误和警告；模板省略的可�
 
 声明从游戏提供的类型模板提取，保留函数签名、泛型、枚举和贡献者信息，省略说明字符串与函数体。来源SHA256写在文件头；中文模板的来源记录见[游戏更新验证](../docs/leaderboards/game-update-validation.md#api提示同步)。地下新增帽子、排行榜和科技按 [underground_resources.json](../simulator/local_simulator/underground_resources.json) 补齐，爆破钻头及地下排行榜同时核对了 `Core.decompiled.cs`。
 
+模板中的枚举若与当前游戏冲突，先核对资源注册表和实机证据，再同步声明及来源指纹。更新声明时按完整字节核对差异，确认文件末尾、编码和换行完整后才覆盖。彩色块的校正依据和存档备份见[成就验证记录](../docs/achievement-validation.json)的 `external_stub_mismatch.correction`。
+
 游戏更新后，先读取新的真实 `__builtins__.py`，核对函数声明和资源枚举，再更新本地声明及来源指纹。新增API必须由游戏注册表与资源证据支持；反编译中未注册的方法不能作为可用接口。不要修改真实存档的类型文件来满足检查器。
 
 ## 游戏语言的静态边界

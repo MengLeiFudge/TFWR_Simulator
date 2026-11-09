@@ -1,5 +1,5 @@
 # TFWR 编辑器类型声明；从 Save0 的同源模板提取，省略说明字符串与函数体。
-# 来源 SHA256：7c3d23a03b49816eb9080a957f2afbdca1e8cbe52d0c8ac47e2c4466396df1c7。
+# 来源 SHA256：a409abd47ad2442c5878f2ba917ad5da4d3bb4449fd31f500e5bd3df5cc5a7e7。
 # 原贡献者：Noon、KlingonDragon、dieckie、Flekay、Zoroark-Zwart、Rat、SCD-3。
 # 地下枚举补充依据 simulator/local_simulator/underground_resources.json。
 # 游戏不是 Python；模板对部分可选返回省略 None，详见 README.md。
@@ -64,14 +64,14 @@ class Ground: ...
 class Grounds(_Enum):
     Basalt: Ground
     Bedrock: Ground
-    Blue_Block: Ground
+    Block_Blue: Ground
     Clay: Ground
     Coal: Ground
     Dirt: Ground
     Dry_Rice_Terrace: Ground
     Dynamite: Ground
     Grassland: Ground
-    Green_Block: Ground
+    Block_Green: Ground
     Iron: Ground
     Limestone: Ground
     Loam: Ground
@@ -79,7 +79,7 @@ class Grounds(_Enum):
     Perlite: Ground
     Petrified_Pumpkin: Ground
     Quartz: Ground
-    Red_Block: Ground
+    Block_Red: Ground
     Rice_Terrace: Ground
     Rock: Ground
     Sand: Ground

@@ -346,14 +346,26 @@
   },
   "external_stub_mismatch": {
     "source": "Save0/__builtins__.py",
+    "resolved": true,
     "current_game_names": [
       "Grounds.Block_Red",
       "Grounds.Block_Green",
       "Grounds.Block_Blue"
     ],
-    "lsp_unresolved_attributes": 3,
+    "previous_lsp_unresolved_attributes": 3,
+    "lsp_unresolved_attributes": 0,
     "evidence_request_id": 488,
-    "external_file_modified": false
+    "external_file_modified": true,
+    "correction": {
+      "repaired_at": "2026-11-09T08:40:53.717785+00:00",
+      "idle_request_id": 494,
+      "before_sha256": "7c3d23a03b49816eb9080a957f2afbdca1e8cbe52d0c8ac47e2c4466396df1c7",
+      "after_sha256": "a409abd47ad2442c5878f2ba917ad5da4d3bb4449fd31f500e5bd3df5cc5a7e7",
+      "backup_path": ".codex/underground-achievements/builtins-colors-fix/__builtins__.before.py",
+      "exactly_three_declarations_changed": true,
+      "crlf_preserved": true,
+      "read_back_verified": true
+    }
   },
   "block_baseline": {
     "source": ".codex/underground-achievements/validation/baseline/save/block.py",
@@ -370,10 +382,10 @@
     "net_blocks_per_game_second": 500.91537729804
   },
   "lsp": {
-    "errors": 3,
+    "errors": 0,
     "warnings": 0,
     "hints": 4,
-    "error_scope": "仅外部旧Grounds桩的三个彩色块属性；当前名称已由实机488验证。"
+    "error_scope": "无；彩色块声明已与实机488验证的名称一致。"
   },
   "closeout": {
     "quit_request_id": 494,
