@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import nullcontext
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 import hashlib
@@ -103,6 +104,7 @@ class BoardSnapshot:
     limit: int = 100
     account: AccountSnapshot = AccountSnapshot()
     refresh_error: str | None = None
+    transport: str = "steam_xml"
 
 
 @dataclass(frozen=True)
@@ -133,6 +135,8 @@ def validate_snapshot(board: BoardSnapshot, limit: int | None = None) -> None:
     """拒绝缺页、乱序、非法成绩及互相矛盾的账号记录。"""
     if board.script not in BOARD_IDS or board.source != board_url(board.script):
         raise ValueError(f"{board.script}: 来源与榜单ID不一致。")
+    if board.transport not in {"steam_xml", "steamworks"}:
+        raise ValueError(f"{board.script}: 排行榜读取来源无效。")
     limit = board.limit if limit is None else limit
     if type(limit) is not int or not 1 <= limit <= 1000:
         raise ValueError(f"{board.script}: limit必须在1..1000。")
@@ -277,7 +281,7 @@ def load_cache(path: Path, identity: str | None) -> dict[str, BoardSnapshot]:
         board = BoardSnapshot(
             row["script"], row["source"], row["retrieved_at"], row["total_entries"],
             tuple(RankEntry(**entry) for entry in row["entries"]), row.get("limit", raw.get("limit", 100)),
-            account, row.get("refresh_error"),
+            account, row.get("refresh_error"), row.get("transport", "steam_xml"),
         )
         validate_snapshot(board)
         if board.script in boards:
@@ -400,7 +404,8 @@ def render_snapshot(boards: dict[str, BoardSnapshot], refreshed: set[str], offli
             continue
         account = board.account
         status = "本次刷新" if script in refreshed else "历史缓存"
-        lines.append(f"| {script} | [Steam]({board.source}) | {board.retrieved_at}（{status}） | {board.total_entries} | "
+        source = "Steam SDK" if board.transport == "steamworks" else "Steam网页"
+        lines.append(f"| {script} | [{source}]({board.source}) | {board.retrieved_at}（{status}） | {board.total_entries} | "
                      f"{checkpoint(board, 1)} | {checkpoint(board, 10)} | {format_account(account)} | {account.retrieved_at or '未核实'} |")
     errors = [(script, kind, error) for script, board in boards.items()
               for kind, error in (("公开成绩", board.refresh_error), ("账号核对", board.account.refresh_error)) if error]
@@ -429,6 +434,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--script", action="append", choices=tuple(BOARD_IDS), help="仅刷新指定榜，可重复；默认全部30榜。")
     parser.add_argument("--limit", type=int, default=100, help="每榜前N名，默认100，范围1..1000。")
     parser.add_argument("--offline", action="store_true", help="不联网，使用事实缓存及研究状态重建三份Markdown。")
+    parser.add_argument("--steam", action="store_true", help="通过游戏随附Steam SDK只读刷新；需要64位Windows Python及已登录的Steam客户端，无需启动游戏。")
     parser.add_argument("--timeout", type=float, default=20, help="每次网络操作超时，默认20秒，范围(0,60]。")
     parser.add_argument("--proxy", help="HTTP/HTTPS代理URL；省略时使用系统或环境代理。")
     parser.add_argument("--cache", default=str(LEADERBOARD_CACHE_PATH), help="公开事实JSON路径。")
@@ -441,8 +447,10 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--limit必须在1..1000。")
     if not math.isfinite(args.timeout) or not 0 < args.timeout <= 60:
         parser.error("--timeout必须是(0,60]内的有限秒数。")
-    if args.offline and args.script:
-        parser.error("--offline不接受--script；离线重建包含缓存中全部榜。")
+    if args.offline and (args.script or args.steam):
+        parser.error("--offline不接受--script或--steam；离线重建包含缓存中全部榜。")
+    if args.steam and args.proxy:
+        parser.error("--steam由Steam客户端联网，不接受--proxy。")
     if args.proxy and urlsplit(args.proxy).scheme not in {"http", "https"}:
         parser.error("--proxy必须是HTTP/HTTPS代理URL。")
     paths = [normalize_config_path(value) for value in (args.cache, args.report, args.progress, args.snapshot, args.local_progress)]
@@ -474,9 +482,15 @@ def main(argv: list[str] | None = None) -> int:
         attempted_at = utc_now()
         if not args.offline:
             selected = list(dict.fromkeys(args.script or BOARD_IDS))
-            with ThreadPoolExecutor(max_workers=4) as pool:
-                pending = {pool.submit(fetch_board, script, args.limit, args.timeout, args.proxy,
-                                       owner, boards.get(script)): script for script in selected}
+            from .leaderboard_steam import SteamLeaderboardReader
+
+            context = SteamLeaderboardReader(owner, args.timeout) if args.steam else nullcontext()
+            with context as reader, ThreadPoolExecutor(max_workers=1 if reader else 4) as pool:
+                pending = {
+                    (pool.submit(reader.fetch, script, args.limit) if reader else
+                     pool.submit(fetch_board, script, args.limit, args.timeout, args.proxy,
+                                 owner, boards.get(script))): script for script in selected
+                }
                 for future in as_completed(pending):
                     script = pending[future]
                     try:
@@ -486,7 +500,7 @@ def main(argv: list[str] | None = None) -> int:
                         if board.account.refresh_error:
                             failures += 1
                         print(f"已刷新{script}：{len(board.entries)}/{board.total_entries}条，账号{board.account.status}。", flush=True)
-                    except (OSError, URLError, ValueError, ET.ParseError) as exc:
+                    except (OSError, URLError, ValueError, RuntimeError, ET.ParseError) as exc:
                         failures += 1
                         error = error_text(exc, owner)
                         if script in boards:
@@ -506,7 +520,7 @@ def main(argv: list[str] | None = None) -> int:
         write_atomic(report_path, report)
         write_atomic(progress_path, progress)
         write_atomic(snapshot_path, snapshot)
-    except (OSError, ValueError, RuntimeError, KeyError, TypeError) as exc:
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError, AttributeError) as exc:
         print(f"排行榜更新失败：{exc}", file=sys.stderr)
         return 1
     print(f"公开缓存：{cache_path}\n目标报告：{report_path}\n进度：{progress_path}\n公开快照：{snapshot_path}\n有效缓存：{len(boards)}/30榜；本次联网刷新：{len(refreshed)}榜。")

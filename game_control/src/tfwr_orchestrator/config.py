@@ -161,6 +161,14 @@ def resolve_steam_manifest_path() -> Path:
     return root.parent.parent / "appmanifest_2060160.acf"
 
 
+def resolve_steam_api_path() -> Path:
+    """只读Steam排行榜使用当前安装游戏随附的64位客户端库。"""
+    root = resolve_game_root()
+    assert root is not None
+    data = root / "TheFarmerWasReplaced_Data"
+    return data / "Plugins" / "x86_64" / "steam_api64.dll"
+
+
 def resolve_bepinex_root(
     game_root: str | Path | None = None,
     required: bool = True,

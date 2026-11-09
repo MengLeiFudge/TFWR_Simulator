@@ -32,6 +32,7 @@
 - `src/tfwr_orchestrator/real_game_runner.py`
 - `src/tfwr_orchestrator/output_capture.py`
 - `src/tfwr_orchestrator/leaderboard_cache.py`
+- `src/tfwr_orchestrator/leaderboard_steam.py`
 
 ## 配置输入与路径推导
 
@@ -159,7 +160,16 @@ python3 game_control/tools/refresh_leaderboard_cache.py
 python3 game_control/tools/refresh_leaderboard_cache.py --offline
 ```
 
-项目内固定支持常规16榜和地下14榜。默认读取每榜前100名，无需Steam登录或API key；`--limit`允许1..1000，每100条分页。最多并发4个榜，单次响应上限2MiB，网络中断或临时服务错误最多尝试3次，每次网络超时由`--timeout`指定。请求带新查询标记和禁止缓存的请求头，每个成功榜保留实际UTC查询时间。
+项目内固定支持常规16榜和地下14榜。默认通过Steam网页读取每榜前100名，无需Steam登录或API key；`--limit`允许1..1000，每100条分页。网页模式最多并发4个榜，单次响应上限2MiB，网络中断或临时服务错误最多尝试3次，每次网络超时由`--timeout`指定。请求带新查询标记和禁止缓存的请求头，每个成功榜保留实际UTC查询时间。
+
+Steam网页出现TLS或代理错误时，可用已登录的Steam客户端读取相同公开榜，无需启动游戏：
+
+```bash
+py.exe -X utf8 game_control/tools/refresh_leaderboard_cache.py --steam --timeout 5
+py.exe -X utf8 game_control/tools/refresh_leaderboard_cache.py --steam --script lb_mushrooms
+```
+
+`--steam`使用配置游戏目录随附的`steam_api64.dll`，要求64位Windows Python和已登录的Steam客户端。它串行分页，核对内部榜名与公开榜ID，独立查询当前账号，并验证客户端账号与安装清单LastOwner相同。此路径只绑定读取接口，不上传成绩、不启动或停止游戏、不写存档；无需安装额外依赖。`--timeout`限制每次SDK异步调用。它不接受`--proxy`，也不与`--offline`合用。缓存的`transport`及来源快照区分Steam网页和Steam SDK，保留真实查询日期。
 
 当前账号从配置游戏安装目录对应Steam清单的`LastOwner`识别。先在已读排名中核对；账号不在已缓存范围时另查账号行，完整小榜没有该账号则记“未上榜”。无法识别账号时写“未核实”，不使用历史复跑或估计名次代替。缓存只保存账号身份摘要、名次和成绩，避免不同账号混用；不保存玩家姓名或Steam ID。
 
