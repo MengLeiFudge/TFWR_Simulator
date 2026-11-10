@@ -18,13 +18,13 @@
 | [docs/](docs/README.md) | 项目架构、共用研究方法、各榜策略与验证记录 |
 | `gamesave/` | 指向本机真实 Save0 的链接，只是部署目标，不进 Git |
 
-本地模拟通过CLI手动运行，尚未自动接在部署命令前。[脚本模拟入口](simulator/local_simulator/README.md) 读取游戏脚本，输出预计游戏时间、库存和轨迹。目标是单seed执行与时间对齐，验收门槛见[模拟精度与验收](simulator/README.md#模拟精度与验收)。约900游戏秒场景的通过记录对应旧版；新版已按源码迁移机制，尚待实机精度验收，见[更新影响](simulator/local_simulator/game-update-26385848.md)和[验收记录](simulator/local_simulator/validation.md)。最终成绩仍由真实游戏验证。
+本地模拟通过CLI手动运行，尚未自动接在部署命令前。默认[C#脚本模拟入口](simulator/headless/README.md)运行原版语言、调度及地上/地下机制，不依赖Python或游戏进程。当前版本归档重放、覆盖范围、性能与限制见[验收记录](simulator/headless/validation.md)。旧Python模型保留作迁移对照；最终成绩仍由真实游戏验证。
 
 所有准备在游戏内执行的脚本，必须先通过本地模拟的正确性与效率验证。只有同条件下效率严格高于当前存档版本，才允许覆盖已有对应文件。功能初版按科技全解，Fastest Reset按原版重置条件；详细要求见[脚本验证与替换准入](docs/script-validation.md)，本轮功能脚本的来源、实际增长率与完整周期结果见[功能效率对照](docs/functional-validation.md)。
 
 ## 首次配置
 
-本地 Python 模拟仅需 Python 3.11+，无需打开游戏或配置真实存档。运行方式见 [模拟器说明](simulator/README.md)。C# 动作模型使用 .NET 10。
+本地C#模拟器和动作模型使用.NET 10，无需打开游戏或配置真实存档。运行方式见[模拟器说明](simulator/README.md)。Python 3.11+仅用于既有控制工具、资源生成或迁移对照。
 
 以下配置用于真实游戏执行：需要游戏、真实存档和 BepInEx 5 Mono；排行榜任务还需要存档已解锁对应榜单。R2 对应依赖为 `BepInEx-BepInExPack-5.4.2305`。构建模组需要 Windows .NET SDK。
 
@@ -59,7 +59,8 @@ python3 game_control/tools/run_real_game_script.py --status-only
 2. 先用 [本地模型](simulator/README.md) 筛选，例如：
 
    ```bash
-   python3 -m simulator.local_simulator scripts/leaderboard/lb_cactus_single.py --seed 1
+   dotnet build simulator/headless/TFWRSimulator.csproj -c Release
+   dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderboard/lb_cactus_single.py --seed 1 --seconds 30 --wall-seconds 10
    dotnet run --project simulator/TFWRMechanismModel.csproj -- cactus --size 32 --samples 100
    ```
 

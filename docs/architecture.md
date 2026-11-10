@@ -15,7 +15,7 @@
 
 ## 执行与数据流
 
-本地路径是“脚本 → Python 模拟器 → 预计时间、库存与执行轨迹”，无需启动游戏。C# 简化模型另用于预算筛选，不执行脚本。覆盖范围、误差和未实现机制由模拟器文档记录。
+本地默认路径是“脚本 → C#原版解释器/调度器/世界模型 → 游戏时间、净库存与执行轨迹”，无需启动游戏或Python。`simulator/headless/` 的无界面宿主负责资源生命周期、场景、进程预算和报告；`Native/` 保留原版机制。Python旧模型只作迁移对照，C#简化动作模型另作预算筛选。覆盖与误差见[C#验收记录](../simulator/headless/validation.md)。
 
 实机路径是“脚本 → game_control 部署至已有存档文件 → 请求状态文件 → game_mod → 游戏执行 → 三份日志 → game_control 采集”。`gamesave/` 只是本机 Save0 链接，不是源码目录。运行期间冻结存档脚本，终态确认后才能再次部署。
 
@@ -36,6 +36,6 @@
 | `references/leaderboard_scripts/*.md` | `docs/leaderboards/` |
 | `references/leaderboard_scripts/leaderboard_cache.json` | `references/leaderboards/` |
 
-使用当前目录中的命令与导入路径；Python 模拟入口为 `python3 -m simulator.local_simulator`。游戏控制内部 Python 包仍名为 `tfwr_orchestrator`，发行包与命令名保留。如果此前按旧目录做过可编辑安装，需要从仓库根目录执行 `python3 -m pip install -e game_control` 更新安装路径；直接运行 `game_control/tools/` 中的入口不需要这一步。C# 项目文件、程序集名和模组插件 ID 保留，避免目录调整影响已安装模组的身份与协议。
+使用当前目录中的命令与导入路径；默认脚本入口为 `dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll`，首次先构建对应项目。历史Python入口 `python3 -m simulator.local_simulator` 暂供迁移对照。游戏控制内部Python包仍名为 `tfwr_orchestrator`，发行包与命令名保留。如果此前按旧目录做过可编辑安装，需要从仓库根目录执行 `python3 -m pip install -e game_control` 更新安装路径；直接运行 `game_control/tools/` 中的入口不需要这一步。已有C#动作项目、模组程序集名和插件ID保留；完整模拟器为独立的 `TFWRSimulator` 程序集。
 
 冻结的 `.codex/` 实验和历史附件保留原路径文本，需要复用时再迁移对应实验。项目不保留独立单元测试代码与测试项目；脚本主要通过本地模拟验证，机制与成绩按授权进行实机对照，工具代码变更使用静态检查及必要编译。

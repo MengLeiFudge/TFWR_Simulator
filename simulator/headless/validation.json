@@ -1,0 +1,319 @@
+{
+  "scope": "C# headless migration; archived replay and local validation, no new game execution",
+  "replay": {
+    "kind": "archived_game_replay",
+    "fresh_game_run": false,
+    "passed": true,
+    "cases": [
+      {
+        "case": "ore-methods",
+        "archive_build": 26462009,
+        "request_id": 398,
+        "passed": true,
+        "messages_equal": true,
+        "messages": 82,
+        "nanoseconds_equal": true,
+        "nanoseconds": 334205213850,
+        "wall_seconds": 0.3373337,
+        "source_sha256": "b2d8c372377a32c82600ac98a64d98729cd721d76925db464159dd38e5d2fcd2",
+        "error": null
+      },
+      {
+        "case": "wrap-methods-v3",
+        "archive_build": 26462009,
+        "request_id": 408,
+        "passed": true,
+        "messages_equal": true,
+        "messages": 5,
+        "nanoseconds_equal": true,
+        "nanoseconds": 7248601350,
+        "wall_seconds": 0.3350615,
+        "source_sha256": "7acccb6bf3d29d35b65b8744b3729905e3f7f9b77946ae8d38ab3f71996103eb",
+        "error": null
+      },
+      {
+        "case": "rice-upgrade-costs",
+        "archive_build": 26462009,
+        "request_id": 413,
+        "passed": true,
+        "messages_equal": true,
+        "messages": 4,
+        "nanoseconds_equal": true,
+        "nanoseconds": 139588856,
+        "wall_seconds": 0.2866543,
+        "source_sha256": "06eac6c7a5167b646f455bbf65741b18804c6392d8ef8e26f11376ef81eb47b5",
+        "error": null
+      },
+      {
+        "case": "current-reset",
+        "archive_build": 26462009,
+        "request_id": 395,
+        "passed": true,
+        "messages_equal": true,
+        "messages": 585,
+        "nanoseconds_equal": true,
+        "nanoseconds": 19716483046656,
+        "wall_seconds": 3.4910289,
+        "source_sha256": "8b06f7c61999d1e05007de9ff16bbf39132aa71be7e685db68fd09b2a8246020",
+        "error": null
+      },
+      {
+        "case": "explosions",
+        "archive_build": 26410308,
+        "request_id": 298,
+        "passed": true,
+        "messages_equal": true,
+        "messages": 15,
+        "nanoseconds_equal": null,
+        "nanoseconds": 3018782790,
+        "wall_seconds": 0.3312884,
+        "source_sha256": "fea56821a1f90860903df9d40d51376d65ce257ee537b77d0cb40e701aa81ec8",
+        "error": null
+      },
+      {
+        "case": "sweeper-solved",
+        "archive_build": 26410308,
+        "request_id": 300,
+        "passed": true,
+        "messages_equal": true,
+        "messages": 18,
+        "nanoseconds_equal": null,
+        "nanoseconds": 5159865060,
+        "wall_seconds": 0.3229224,
+        "source_sha256": "3a03b1336fa5e0f7f3481b340d8f6edd020872b688e883624da5d493b27e9a12",
+        "error": null
+      },
+      {
+        "case": "dinosaur-terrain",
+        "archive_build": 26410308,
+        "request_id": 314,
+        "passed": true,
+        "messages_equal": true,
+        "messages": 14,
+        "nanoseconds_equal": null,
+        "nanoseconds": 1048071870,
+        "wall_seconds": 0.3199257,
+        "source_sha256": "904ed4674305192ecf9051694bf6027a39dd7f397e758be26f879191f191b030",
+        "error": null
+      },
+      {
+        "case": "treasure",
+        "archive_build": 26410308,
+        "request_id": 301,
+        "passed": true,
+        "messages_equal": true,
+        "messages": 276,
+        "nanoseconds_equal": null,
+        "nanoseconds": 16892772030,
+        "wall_seconds": 0.3326198,
+        "source_sha256": "382b6396a7e561e443f23bff0310ba0e2063474282f89a31a17467b52b49ccdc",
+        "error": null
+      }
+    ],
+    "wall_seconds": 4.395551435183734,
+    "assembly_sha256": "36ec24de57864edaa705adb1612e0ec4f75c6459dc3ff4b7061566877b6f9877",
+    "resources_sha256": "8c3c889c6f8c7415beee2b1c8e2fa428de20bdeb3775eddd65369032aee179d7"
+  },
+  "syntax": {
+    "scripts": 72,
+    "passed": 72
+  },
+  "leaderboard_initialization": {
+    "scenarios": 30,
+    "passed": 30
+  },
+  "guards": [
+    {
+      "name": "nodes",
+      "expected": "node_limit",
+      "actual": "node_limit",
+      "passed": true
+    },
+    {
+      "name": "api",
+      "expected": "api_call_limit",
+      "actual": "api_call_limit",
+      "passed": true
+    },
+    {
+      "name": "wall",
+      "expected": "wall_time_limit",
+      "actual": "wall_time_limit",
+      "passed": true
+    },
+    {
+      "name": "import",
+      "expected": "error",
+      "actual": "error",
+      "passed": true
+    },
+    {
+      "name": "source_protection",
+      "expected": "error",
+      "actual": "error",
+      "passed": true
+    },
+    {
+      "name": "bad_scenario",
+      "expected": "error",
+      "actual": "error",
+      "passed": true
+    }
+  ],
+  "api_execution": {
+    "registered": 65,
+    "observed": 65,
+    "not_observed": [],
+    "scope": "Call coverage, not all parameter branches or real-game verification"
+  },
+  "local_cases": [
+    {
+      "stop_reason": "finished",
+      "game_seconds": 6.257101838,
+      "wall_seconds": 0.3610555,
+      "total_calls": 208,
+      "error": null,
+      "case": "extended"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 2.489386948,
+      "wall_seconds": 0.338808,
+      "total_calls": 97,
+      "error": null,
+      "case": "boundaries"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 906.1393828,
+      "wall_seconds": 0.3591768,
+      "total_calls": 15332,
+      "error": null,
+      "case": "growth"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 902.742922,
+      "wall_seconds": 0.3130979,
+      "total_calls": 1882,
+      "error": null,
+      "case": "long"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 0.86337945,
+      "wall_seconds": 0.3269559,
+      "total_calls": 130,
+      "error": null,
+      "case": "hover"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 4.55047884,
+      "wall_seconds": 0.3175653,
+      "total_calls": 670,
+      "error": null,
+      "case": "dig-multi"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 3.01878279,
+      "wall_seconds": 0.3452409,
+      "total_calls": 540,
+      "error": null,
+      "case": "explosions"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 252.40606038,
+      "wall_seconds": 0.378885,
+      "total_calls": 28840,
+      "error": null,
+      "case": "mushrooms"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 16.51104144,
+      "wall_seconds": 0.3232035,
+      "total_calls": 1337,
+      "error": null,
+      "case": "pyramid"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 5.15986506,
+      "wall_seconds": 0.3399005,
+      "total_calls": 327,
+      "error": null,
+      "case": "sweeper-solved"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 1.04807187,
+      "wall_seconds": 0.3248884,
+      "total_calls": 94,
+      "error": null,
+      "case": "dinosaur-terrain"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 16.89277203,
+      "wall_seconds": 0.3364459,
+      "total_calls": 2383,
+      "error": null,
+      "case": "treasure"
+    },
+    {
+      "stop_reason": "finished",
+      "game_seconds": 37.17784098,
+      "wall_seconds": 0.3900567,
+      "total_calls": 2346,
+      "error": null,
+      "case": "crops"
+    },
+    {
+      "stop_reason": "game_time_limit",
+      "game_seconds": 300,
+      "wall_seconds": 1.7955561,
+      "total_calls": 3581,
+      "error": null,
+      "case": "block300"
+    }
+  ],
+  "finite_block_comparison": {
+    "seed": 1,
+    "preset": "all",
+    "goal": 1,
+    "source_hashes": {
+      "probe.py": "4f4259474de25c86204d8fdba1a38a479cb12748e6182678ba7f64d3cc3d31a7",
+      "block.py": "a92babbb7f2691b9888af9468789a2c1ac976085186a8f0fdfa455f868eafae4",
+      "production.py": "4ff6852da2fabb529d77837fc375ade25f2f1c27d6fae962429076e26c682df4"
+    },
+    "csharp_game_seconds": 1.16099433,
+    "python_game_seconds": 1.16099433,
+    "csharp_wall_seconds": 0.4071664,
+    "python_wall_seconds": 1.6102364789694548,
+    "csharp_block": 7485,
+    "all_20_inventory_values_equal": true,
+    "all_1024_cell_depths_equal": true,
+    "outputs": [
+      [
+        "bounded_block_complete 7485 7053 1.16"
+      ],
+      [
+        "bounded_block_complete 7485 7053 1.16099433"
+      ]
+    ]
+  },
+  "block_300": {
+    "seed": 1,
+    "preset": "all",
+    "source_hashes": {
+      "block.py": "a92babbb7f2691b9888af9468789a2c1ac976085186a8f0fdfa455f868eafae4",
+      "production.py": "4ff6852da2fabb529d77837fc375ade25f2f1c27d6fae962429076e26c682df4"
+    },
+    "game_seconds": 300,
+    "wall_seconds": 1.7955561,
+    "net_block": 318443
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "preset": "reset",
+  "unlocks": {
+    "loops": 1,
+    "debug": 1,
+    "debug_2": 1,
+    "timing": 1,
+    "lists": 1,
+    "dictionaries": 1,
+    "costs": 1,
+    "auto_unlock": 1,
+    "operators": 1,
+    "variables": 1,
+    "senses": 1,
+    "utilities": 1,
+    "functions": 1,
+    "import": 1,
+    "simulation": 1,
+    "underground_senses": 1,
+    "grass": 1
+  },
+  "items": {
+    "Hay": 0,
+    "Wood": 0,
+    "Carrot": 0,
+    "Rice": 0,
+    "Bamboo": 0,
+    "Pumpkin": 0,
+    "Cactus": 0,
+    "Bone": 0,
+    "Weird_Substance": 0,
+    "Gold": 0,
+    "Water": 0,
+    "Fertilizer": 0,
+    "Block": 0,
+    "Coal": 0,
+    "Iron": 0,
+    "Quartz": 0,
+    "Mushroom": 0,
+    "Dynamite": 0,
+    "Power": 0,
+    "Piggy": 0
+  },
+  "goal": {
+    "unlock": "Underground_Leaderboard"
+  }
+}

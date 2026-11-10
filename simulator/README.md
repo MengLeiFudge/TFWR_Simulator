@@ -1,31 +1,32 @@
 # 本地模拟器
 
-`simulator/` 提供本地策略预测：Python 农场 API 脚本模拟，以及 C# 的 Dinosaur、Cactus、Companion 简化动作模型。
+`simulator/` 的默认脚本执行器是 [C# 无界面模拟器](headless/README.md)，直接运行原版游戏语言、调度与世界机制。Python旧模型保留作迁移对照；C# Dinosaur、Cactus、Companion简化动作模型另用于预算筛选。
 
-无需打开游戏即可运行，是脚本的主要验证方式。游戏源文件使用原版Tokenizer/Parser支持的语法子集，不能按标准Python能力放行；前置语法检查、拒绝边界和错误位置见[游戏语言检查](local_simulator/syntax-validation.md)。不同入口的能力与精度分别说明：
+无需打开游戏即可运行，是脚本的主要验证方式。C#入口先用原版Tokenizer/Parser检查入口和全部静态导入，再执行脚本；CPython能力不能作为游戏语法依据。能力与精度分别说明：
 
-- [农场API模拟](local_simulator/README.md)执行受支持脚本，已适配基础作物、恐龙、迷宫、水肥、科技与无人机调度，并实现地下地形、作物、解谜和14个地下排行榜场景。基础游戏更新与验收见[更新对齐记录](local_simulator/game-update-26385848.md)。地下的资源快照来自26410308；构建26462009已修正塌方传播坐标筛选，当前Reset源码seed1完整19716.483046656秒对照误差0ns，方法和历史边界见[地下对照记录](local_simulator/underground-validation.md)。专用排行榜盘面仍单列源码核对范围。
-- 下文的 C# 模型验证简化机制和动作预算，不执行脚本，也不模拟 Unity / BepInEx / leaderboard 停表。
-- C# 动作模型以分布和约束筛选，不承诺 seed 轨迹一致；`rng` 命令单独用于初始随机序列对照，范围见 [随机数研究](randomness.md)。
+- [C#完整脚本模拟](headless/README.md)支持地上、地下、多无人机和30个原版排行榜场景。已验证的方法、归档实机重放、性能和剩余边界见[验收记录](headless/validation.md)。
+- [Python历史模型](local_simulator/README.md)供迁移对照和历史研究工具使用；不再是默认入口。历史证据继续保存在对应文档，不自动转成C#已验收结论。
+- 下文C#动作模型只验证简化机制和动作预算，不执行脚本。随机序列对照范围见[随机数研究](randomness.md)。
 - 真实排名结论仍以 `game_control/` + `game_mod/` 跑出来的游戏结果为准。
 
 ## 模拟精度与验收
 
-Python模拟器的目标是直接读取游戏使用的脚本，在相同初始条件和单个seed下尽量复刻游戏simulate的执行、资源、随机轨迹与时间。正式资源榜和Reset改用系统加密随机源，不能由本地seed精确重放。首个长程验收窗口为约900游戏秒，单次绝对时间误差须小于1秒，同时核对中间状态和首次分歧，不能用多个seed平均值或末尾误差抵消代替。该门槛是目标，是否通过以新鲜实机证据为准。
+脚本模拟器的目标是直接读取游戏使用的脚本，在相同初始条件和单个seed下尽量复刻游戏simulate的执行、资源、随机轨迹与时间。正式资源榜和Reset使用系统加密随机源，不能由本地seed精确重放。首个长程验收窗口为约900游戏秒，单次绝对时间误差须小于1秒，同时核对中间状态和首次分歧，不能用多个seed平均值或末尾误差抵消代替。通过范围必须对应具体版本和新鲜重放证据；归档重放不称为本次新跑实机。
 
-默认按游戏 API/方法逐项检查返回值、状态变化、资源消耗、随机数和时间成本，再检查直接相关的边界与交互；不为验收模拟器逐榜运行完整打榜脚本。方法级覆盖不等于所有作物、所有参数和多无人机组合都已覆盖，未实现接口单独列出。当前清单见 [API 覆盖记录](local_simulator/api-coverage.md)。
+默认按游戏API/方法逐项检查返回值、状态变化、资源消耗、随机数和时间成本，再检查直接相关的边界与交互；不为验收模拟器逐榜运行完整打榜脚本。方法级覆盖不等于所有作物、所有参数和多无人机组合都已覆盖。C#范围见[验收记录](headless/validation.md)，Python旧模型清单见[历史API记录](local_simulator/api-coverage.md)。
 
 已知误差须注明方向、场景和证据。先定位脚本操作、事件顺序和随机流的首处分歧，不用经验倍率校正整轮时间。误差或未覆盖语义可能改变候选排序时，模型结论不作为优劣依据；最终成绩仍须真实游戏打榜确认。C#简化动作模型继续只提供机制预算与分布筛选。
 
 ## 直接运行仙人掌脚本
 
-Python 3.11+，无需启动游戏或安装依赖：
+安装.NET 10后在仓库根目录构建，再直接执行程序集：
 
 ```bash
-python3 -m simulator.local_simulator scripts/leaderboard/lb_cactus_single.py --seed 1
+dotnet build simulator/headless/TFWRSimulator.csproj -c Release
+dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderboard/lb_cactus_single.py --seed 1 --seconds 30 --wall-seconds 10
 ```
 
-输出预测时间、API计数、目标库存和停止原因。用 `--preset max/all/reset` 选择科技预设，`--unlock Mining=3` 覆盖等级，`--save save.json` 只读导入存档科技/库存，或用 `--scenario` 指定组合；覆盖顺序见[科技与初始库存](local_simulator/README.md#科技与初始库存)。地下榜场景使用 `--leaderboard mushrooms_single` 等选项。支持范围、轨迹保存、执行上限与实机误差见模拟器说明。
+WSL使用Windows `dotnet.exe`。输出实际推进的游戏时间、净库存、API计数、源码哈希和停止原因。用 `--preset max/all/reset` 选择科技，`--item`、`--unlock` 覆盖材料和等级，`--save` 只读导入科技/库存，或用 `--scenario` 指定组合。地下榜使用 `--leaderboard mushrooms_single` 等选项。完整参数、预算与轨迹口径见[C#入口说明](headless/README.md)。
 
 ## 运行 C# 动作模型
 
@@ -41,7 +42,7 @@ dotnet run --project simulator/TFWRMechanismModel.csproj -- all
 dotnet run --project simulator/TFWRMechanismModel.csproj -- underground-kernel --steps 1000 --max-depth 4096
 ```
 
-该命令使用固定合成地层，只验证 C# 内核的数据结构和传播路径，不代表完整游戏模拟，也不替代 Python 脚本执行。完整资源生成、随机流、游戏脚本运行时和 Python 对照通过后，才会切换默认后端并移除 Python 模拟器。
+该命令是历史合成benchmark，只验证数据结构和传播路径，不执行真实脚本，不能作为模拟器性能或正确性验收证据。真实脚本统一使用 `headless/`。
 
 单独运行某个模型：
 
@@ -77,7 +78,7 @@ dotnet run --project simulator/TFWRMechanismModel.csproj -- companion --size 5 -
 - 资源榜看每次有效收获周期、companion 命中率、reroll 次数和 support 维护动作。
 - Dinosaur 看吃满 `1023` 个 apple 的总移动预算、分阶段 move/apple、动作 tick 和碰撞率。
 - Cactus 看完成排序所需的 move、swap、measure 以及并行墙钟下界。
-- 下文C#模型默认不把Python解释、`1t`判断、日志和本地搜索成本计入`action_ticks`；Dinosaur可用`--check-tick-cost`计入诊断预算。Python模拟器计入API与已实现的脚本操作成本，并按共享时钟处理无人机批次和定时事件；未验证语义见模拟器说明。
+- 下文C#简化动作模型默认不把脚本解释、`1t`判断、日志和本地搜索成本计入 `action_ticks`；Dinosaur可用 `--check-tick-cost` 计入诊断预算。C#完整脚本模拟器则计入原版解释器操作成本，并由原版调度器处理无人机和定时事件。
 - 只有动作结构接近目标预算或候选之间差距很小时，才优先做 `1t` 调用压缩；否则先改策略结构。
 
 ## 当前模型
