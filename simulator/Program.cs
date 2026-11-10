@@ -41,6 +41,9 @@ internal static class Program
                         reader.GetInt("seed", 0), reader.GetInt("samples", 16));
                     Console.WriteLine(JsonSerializer.Serialize(sequence, new JsonSerializerOptions { WriteIndented = true }));
                     return 0;
+                case "underground-kernel":
+                    UndergroundKernelBenchmark.Run(reader);
+                    return 0;
                 default:
                     Console.Error.WriteLine($"Unknown command: {command}");
                     PrintHelp();
@@ -231,6 +234,7 @@ internal static class Program
         Console.WriteLine("  dotnet run --project simulator/TFWRMechanismModel.csproj -- cactus --size 32 --samples 2000");
         Console.WriteLine("  dotnet run --project simulator/TFWRMechanismModel.csproj -- companion --size 5 --crop grass --accept bush --target 4,3 --blocked 4,4");
         Console.WriteLine("  dotnet run --project simulator/TFWRMechanismModel.csproj -- rng --seed 123 --samples 16");
+        Console.WriteLine("  dotnet run --project simulator/TFWRMechanismModel.csproj -- underground-kernel --steps 1000");
         Console.WriteLine("  rng reproduces initial streams only; samples 1..10000, seed 0..2147483647.");
         Console.WriteLine();
         Console.WriteLine("Common options:");

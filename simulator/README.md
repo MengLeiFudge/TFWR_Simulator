@@ -35,6 +35,14 @@ python3 -m simulator.local_simulator scripts/leaderboard/lb_cactus_single.py --s
 dotnet run --project simulator/TFWRMechanismModel.csproj -- all
 ```
 
+当前 C# 项目还提供地下内核的有限 benchmark，用于验证数组状态、爆炸传播和塌方传播的性能边界：
+
+```bash
+dotnet run --project simulator/TFWRMechanismModel.csproj -- underground-kernel --steps 1000 --max-depth 4096
+```
+
+该命令使用固定合成地层，只验证 C# 内核的数据结构和传播路径，不代表完整游戏模拟，也不替代 Python 脚本执行。完整资源生成、随机流、游戏脚本运行时和 Python 对照通过后，才会切换默认后端并移除 Python 模拟器。
+
 单独运行某个模型：
 
 ```bash
