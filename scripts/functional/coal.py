@@ -44,53 +44,56 @@ def step(dx, dy):
     elif dy == -1:
         move(South)
 
-def mine_cell(depth):
-    if get_ground_type() != Grounds.Coal:
+def mine_cell(depth, target):
+    if not production.active(Items.Coal, target) or get_ground_type() != Grounds.Coal:
         return
 
-    dig()
-
-    if depth <= 0:
+    if not dig():
         return
 
-    expand(depth - 1)
+    if depth <= 0 or not production.active(Items.Coal, target):
+        return
 
-def walk_mine(dx, dy, depth):
+    expand(depth - 1, target)
+
+def walk_mine(dx, dy, depth, target):
+    if not production.active(Items.Coal, target):
+        return
     step(dx, dy)
-    mine_cell(depth)
+    mine_cell(depth, target)
 
-def expand(depth):
+def expand(depth, target):
     if get_ground_type(North) == Grounds.Coal:
         if wait_slot():
-            spawn_drone(walk_mine, 0, 1, depth)
+            spawn_drone(walk_mine, 0, 1, depth, target)
         else:
-            walk_mine(0, 1, depth)
+            walk_mine(0, 1, depth, target)
 
     if get_ground_type(West) == Grounds.Coal:
         if wait_slot():
-            spawn_drone(walk_mine, -1, 0, depth)
+            spawn_drone(walk_mine, -1, 0, depth, target)
         else:
-            walk_mine(-1, 0, depth)
+            walk_mine(-1, 0, depth, target)
 
     if get_ground_type(East) == Grounds.Coal:
         if wait_slot():
-            spawn_drone(walk_mine, 1, 0, depth)
+            spawn_drone(walk_mine, 1, 0, depth, target)
         else:
-            walk_mine(1, 0, depth)
+            walk_mine(1, 0, depth, target)
 
     if get_ground_type(South) == Grounds.Coal:
         if wait_slot():
-            spawn_drone(walk_mine, 0, -1, depth)
+            spawn_drone(walk_mine, 0, -1, depth, target)
         else:
-            walk_mine(0, -1, depth)
+            walk_mine(0, -1, depth, target)
 
-def shaft(tx, ty):
+def shaft(tx, ty, target):
     goto(tx, ty)
 
     base = num_items(Items.Coal)
     d = 0
 
-    while d < MAXSCAN:
+    while d < MAXSCAN and production.active(Items.Coal, target):
         t = get_ground_type()
         if t == Grounds.Coal:
             break
@@ -105,7 +108,7 @@ def shaft(tx, ty):
             return
 
     if get_ground_type() == Grounds.Coal:
-        mine_cell(DEPTH)
+        mine_cell(DEPTH, target)
 
 # ---------------- main ----------------
 first = 1
@@ -135,14 +138,14 @@ def coal(target=-1):
                     continue
                 if num_items(Items.Coal) > base:
                     break
-                spawn_drone(shaft, c * dx + dx // 2, r * dy + dy // 2)
+                spawn_drone(shaft, c * dx + dx // 2, r * dy + dy // 2, target)
 
-        shaft(dx // 2, dy // 2)
+        shaft(dx // 2, dy // 2, target)
 
         while num_drones() > 1:
             do_a_flip()
 
-        print("round", round, "gained", num_items(Items.Coal) - base)
+        quick_print("round", round, "gained", num_items(Items.Coal) - base)
 
 if __name__ == "__main__":
     coal()

@@ -1,68 +1,60 @@
 # 成就脚本
 
-本目录只保存全科技下、需要刻意制造特殊机制且不能由常规/排行榜入口稳定完成的一次性成就入口。**每个脚本最多运行5分钟（300游戏秒）**，完成目标后立即返回；预算内未完成则报告原因并停止。采矿大师继续使用功能目录的 `block.py`。
+本目录只保存需要刻意制造特殊状态、且常规/排行榜流程不能稳定完成的 Steam 成就入口。每个入口都以 `MAX_GAME_SECONDS = 300` 为运行上限；完成目标后返回，故意触发错误的入口除外。采矿大师仍使用功能目录的 [`block.py`](../functional/block.py)。
 
-| 成就 | 入口 | 行为与游戏判定 |
+## 完整筛选表
+
+判定依据是 `references/DecompiledSource/Core/Core.decompiled.cs` 中的 `UnlockAchievement` 调用。表中“复用”表示正常流程已包含该触发动作，不再复制脚本；“手动”表示成就不是脚本入口能稳定完成的目标。
+
+| 成就 | 入口或复用 | 分类 |
 | --- | --- | --- |
-| 彩色金字塔 | [power_pyramids_color.py](power_pyramids_color.py) | `RESTORE_COLOR_PYRAMID`：6×6田寻找最小天然塔，六机拆净后用35块彩色地块重建 |
-| 远距离友谊 | [mushroom_cross_stratum.py](mushroom_cross_stratum.py) | `MUSHROOM_STARTUM_SKIP`：32×32田跨原生地层下送原片蘑菇，与另一片同色蘑菇配对 |
-| 牵线搭桥 | [mushroom_matchmaker.py](mushroom_matchmaker.py) | `MUSHROOM_STRATUM_OPTIMAL`：24×24田分区配对、分级合并余色，核对整片原始总数严格超过95% |
-| 采矿大师 | [../functional/block.py](../functional/block.py) | 连续深钻在实际不超过60游戏秒的窗口内净增至少1,000,000 Block；不是成就目录的重复入口 |
+| `SPAWN_MAZE` | `functional/gold_maze.py` / `leaderboard/lb_maze.py` | 复用建迷宫 |
+| `WRONG_ORDER` | [`wrong_order.py`](wrong_order.py) | 特殊仙人掌排列 |
+| `HEALER` | `functional/gold_maze.py` | 复用两次怪异物质恢复 |
+| `MUSHROOM_STARTUM_SKIP` | [`mushroom_cross_stratum.py`](mushroom_cross_stratum.py) | 特殊跨原生地层 |
+| `MUSHROOM_STRATUM_OPTIMAL` | [`mushroom_matchmaker.py`](mushroom_matchmaker.py) | 特殊95%同层配对 |
+| `GIANT_PUMPKIN` | `functional/pumpkin.py` | 复用正常南瓜周期 |
+| `RESTORE_MAX_PYRAMID` | `functional/power_pyramids.py` / `leaderboard/lb_pyramids.py` | 复用实际塔边界修复 |
+| `RESTORE_COLOR_PYRAMID` | [`power_pyramids_color.py`](power_pyramids_color.py) | 特殊彩色修复 |
+| `DYNAMITE_OPTIMAL`, `DYNAMITE_MAX_OPTIMAL` | `functional/dynamite.py` | 复用完整解盘结算 |
+| `TREASURE_HUNTER`, `RECYCLING` | `functional/gold_maze.py` | 复用迷宫收获与重用 |
+| `TREASURE_OPTIMAL` | `functional/gold_treasure_map.py` / `leaderboard/lb_treasure_map.py` | 复用无环路径 |
+| `EQUIP_DINO_HAT`, `LONG_DINOSAUR`, `SIZE_MATTERS` | `functional/bone_dinosaur.py` | 复用恐龙周期 |
+| `EXPLOSIVE_DRILL` | `functional/block.py` / `functional/mining.py` | 复用爆破钻挖掘 |
+| `EQUIP_A_NEW_HAT` | 任一更换非草帽的功能入口 | 复用换帽 |
+| `FASHION_SHOW` | [`fashion_show.py`](fashion_show.py) | 特殊5帽同时在场 |
+| `PET_THE_PIGGY` | [`pet_piggy.py`](pet_piggy.py) | 特殊交互 |
+| `MINING_HELMET_UNSAFE` | [`mining_helmet_unsafe.py`](mining_helmet_unsafe.py) | 特殊非采矿帽挖掘 |
+| `REACH_HEIGHT` | [`reach_height.py`](reach_height.py) | 特殊深度放块 |
+| `PUSH_MUSHROOM_BLOCKED` | [`push_mushroom_blocked.py`](push_mushroom_blocked.py) | 特殊受阻推蘑菇 |
+| `TILL_ROCK` | [`till_rock.py`](till_rock.py) | 特殊对岩石翻地 |
+| `PLANT_BUSH`, `PLANT_CARROTS`, `PLANT_TREE`, `PLANT_PUMPKIN`, `PLANT_SUNFLOWER`, `PLANT_CACTUS`, `PLANT_BAMBOO` | 对应 `functional/` 入口 | 复用正常种植 |
+| `RICE_TERRACE` | `functional/rice.py` | 复用铺满水稻梯田 |
+| `MUD_FARM` | [`mud_farm.py`](mud_farm.py) | 特殊全田补水 |
+| `EXPAND`, `BIG_FARM` | 科技升级界面 | 手动/科技进度 |
+| `RUN_YOUR_FIRST_CODE` | 任一游戏脚本 | 复用执行代码 |
+| `USE_MULTIPLE_DRONES`, `SWARM` | 任一多机功能/排行榜入口 | 复用派机 |
+| `CAUSE_A_RUNTIME_ERROR` | [`cause_runtime_error.py`](cause_runtime_error.py) | 特殊故意报错 |
+| `REACH_DEPTH` | `functional/mining.py`、`block.py` | 长期累计挖掘，不伪造5分钟完成 |
+| `INFINITE_LOOP` | [`infinite_loop.py`](infinite_loop.py) | 特殊字面量死循环 |
+| `HIGHER_ORDER_PROGRAMMING` | [`higher_order_programming.py`](higher_order_programming.py) | 特殊函数参数 |
+| `CIRCULAR_IMPORT` | [`circular_import.py`](circular_import.py) 及两个依赖 | 特殊循环导入 |
+| `STACK_OVERFLOW` | [`stack_overflow.py`](stack_overflow.py) | 特殊递归溢出 |
+| `COMPETITIVE_FARMING`, `FULL_AUTOMATION` | `leaderboard/lb_start.py` 对应完整榜单 | 复用榜单结算 |
+| `UNLOCK_EVERYTHING` | 科技树升级 | 手动/科技进度 |
+| `CHAOS` | 工作区窗口操作 | 手动/UI 状态 |
 
-## 筛选边界
-所有游戏成就不都应在本目录复制一个入口。以下判定以 `Core.decompiled.cs` 的实际解锁条件和当前功能/排行榜入口为准：只有常规脚本不能稳定制造的特殊状态才保留在本目录。
+## 运行约定
 
-### 不重复建设的成就
+- 入口必须用全科技场景和足够的物料做本地模拟；真实 Save0 未被本任务修改。`scripts/achievement/` 不通过 `resources.py` 调度。
+- 彩色金字塔、跨地层蘑菇和牵线搭桥沿用已有的完整算法；其截止时间、材料和中止状态见 [`docs/achievement-validation.json`](../../docs/achievement-validation.json)。
+- `mud_farm.py` 需要至少2048份水，`reach_height.py` 需要Block，`wrong_order.py` 需要至少9份仙人掌种子；其他入口也可能依赖全科技和基础库存。
+- `cause_runtime_error.py`、`infinite_loop.py`、`stack_overflow.py` 是故意停止的入口。启动后只需确认成就触发，再停止，不应纳入自动资源调度。
+- `circular_import.py` 的循环导入由游戏解释器判定；当前本地模拟器验证了入口、依赖和导入语法，但没有伪造 Steam 成就状态。
+- `REACH_DEPTH`、`EXPAND`、`BIG_FARM`、`UNLOCK_EVERYTHING`、`CHAOS` 没有新增限时脚本：它们分别是长期累计、科技树或 UI 状态，强行写成一次性入口会造成错误完成承诺。
 
-| 游戏成就或机制 | 复用入口 | 不单独建脚本的原因 |
-| --- | --- | --- |
-| `RESTORE_MAX_PYRAMID` | [`functional/power_pyramids.py`](../functional/power_pyramids.py)、[`leaderboard/lb_pyramids.py`](../leaderboard/lb_pyramids.py) | 两个入口都按实际天然塔边界修补，不把底边限制为5；遇到29×29或更大天然塔会走同一套完整修复判定 |
-| `DYNAMITE_OPTIMAL`、`DYNAMITE_MAX_OPTIMAL` | [`functional/dynamite.py`](../functional/dynamite.py) | 普通32×32入口解盘并正常结算深层地雷盘，不需要成就专用动作 |
-| `TREASURE_HUNTER`、`TREASURE_OPTIMAL`、`RECYCLING` | [`functional/gold_maze.py`](../functional/gold_maze.py)、[`functional/gold_treasure_map.py`](../functional/gold_treasure_map.py)及对应排行榜入口 | 迷宫完整收获、地图去环和正常重用已经属于产金币主流程 |
-| `LONG_DINOSAUR`、`SIZE_MATTERS`、`GIANT_PUMPKIN`、`RICE_TERRACE` | 对应恐龙、南瓜、水稻功能/排行榜入口 | 这些条件随正常生产周期自然出现，改变为一次性入口只会复制生产算法 |
-| 种植、帽子、科技、深度和代码类成就 | 对应功能入口或游戏操作 | 不涉及独立地下机制，不能用本目录替代常规功能脚本 |
+## 本轮常规入口审计
 
-如果以后真实日志证明某一成就虽有常规入口却无法在目标条件下稳定触发，再先补充机制证据和有界模拟，再新增成就入口；不能仅因成就名称存在就复制脚本。
+常规入口逐个与同名 `lb_*.py` 对照：有对应榜单的入口均保留成熟榜单算法，只增加库存目标、材料边界和子机回收；煤、铁、石英、石化南瓜、建材和怪异物质没有直接榜单入口，按各自地下机制独立保留。确认并修复的一项是 `functional/coal.py` 的有限目标没有传入探孔和矿层递归，导致子机继续挖掘并可能越过库存目标；现在所有递归、派机和实际挖掘都传递 `target`，并将周期日志改为零耗时 `quick_print`。
 
-## 五分钟运行约定
-
-直接启动与文件同名的入口。入口会清场、调整地图，首次使用一次Jump；不要在已经消耗Jump的执行中调用。计时从入口初始化前开始，覆盖找片、规划、派机、成熟等待、移动、挖掘、搬运、重建与回收。换田和重试共用截止时间，不重新获得5分钟。
-
-挖掘前按硬度和Mining等级核对剩余时间，不能在接近截止时启动一段超预算的长挖掘。彩色金字塔与跨片蘑菇预留1游戏秒退出；牵线搭桥预留5游戏秒回收无人机，预留时间包含在300秒内。所有子机回收后才允许清场或返回。单次本地与实机验证的现实时间预算也不超过300秒。
-
-## 彩色金字塔
-
-天然金字塔最小底边为5×5；5×5及更小的地图不生成塔。6×6田生成的塔只能为5×5，完整体积为25＋9＋1＝35块。红、绿、蓝可以混用，但有效体积中不能混入沙块。
-
-脚本在中心找到石灰岩基座，再由六台无人机各清一列。25个基座必须恰好组成5×5矩形，才按层重建；顶块最后放置。游戏清除塔体并生成成熟向日葵后，脚本收获并返回。放置使用当前游戏枚举 `Grounds.Block_Red`、`Grounds.Block_Green`、`Grounds.Block_Blue`。
-
-最多寻找16片，每片探到z＝−128，所有阶段仍受统一5分钟上限约束。Block不足35、移动或挖掘失败时停止并保留现场。
-
-## 远距离友谊
-
-脚本在东西两端交替下挖和环绕推送，每次最多降低12格。它先测出原片底部，再携带一块原生蘑菇向下；每次推送前重读原块的高度、地面和颜色。只有在原片以下遇到同色蘑菇，且推送后实际获得Mushroom，才报告跨片配对完成。
-
-每片最多下送144格，最多尝试16片。这个范围至多跨九个新区块，避免原片编号在十片循环中被复用。原生煤灰或炸药层阻断搬运时换田；动作失败、原块变化或时间不足时停止。
-
-## 牵线搭桥
-
-先用角落采样柱测厚，选择3～4层的完整原生蘑菇片，以控制5分钟内的总工作量。没有Jump的新田只搜索首个可能出现蘑菇的区块，不向高硬度深层无界找片。最多尝试64片，找片时间计入总预算。
-
-24台无人机分别处理6×4小区。每区使用低台和空位搬运，将同色块送到接收坑；有空位时先把两块暂存在坑边，再提交配对，避免伙伴在途中自然消除后丢弃第一块。先走两个轴的短路径，被坑阻挡时才用BFS绕行。
-
-小区留下的颜色余数按相邻矩形递归合并。每个矩形独占写入范围，两半完成后立即合并，不等待其他矩形的慢分区；父机回收自己派出的子机后才返回。临时土台消耗真实Block。原始分母始终为576乘整片厚度，采样、挖弃和塌方均不会缩小分母。
-
-脚本用实际Mushroom净增除以当前每对收益，再乘2计算配对块数。主机把严格超过95%对应的库存目标复制到子机；一旦达到，所有分区停止后续搬运，回收后立即返回成功。材料不足、状态变化或超时均报告原因；超时退出不代表成就完成。
-
-## 判定与验证
-
-| 成就 | 判定 |
-| --- | --- |
-| 远距离友谊 | 一次同色配对的两块必须来自不同原生地层；同片不同z高度不算跨片 |
-| 牵线搭桥 | 同一原生地层累计配对块数／生成时该片全部原始块数，严格大于95%；跨片配对不增加此计数 |
-| 彩色金字塔 | 整座塔的有效体积全部使用彩色块，成功复原并正常收获 |
-| 采矿大师 | [block.py](../functional/block.py)在实际不超过60游戏秒的窗口内净增至少1,000,000 Block；运行和材料见[建材深钻](../../docs/block-mining.md) |
-
-模拟条件、源码哈希、三个seed的实际完成时间与实机请求证据保存在[成就验证摘要](../../docs/achievement-validation.json)。模型结果不是Steam成就状态；实机结论以所属请求的输出、BepInEx与Unity日志为依据。部署与临时入口仍须满足[脚本验证与替换准入](../../docs/script-validation.md)。
-
-机制依据为 `MushroomController.OnAfterPush/OnChunksAddedOrRemoved`、`PyramidFeature.GetProbability/Generate` 和 `PyramidController.IsPyramidComplete/ClearPyramid`，见[游戏反编译事实源](../../references/DecompiledSource/Core/Core.decompiled.cs)。当前游戏解析结果优先于外部 `__builtins__.py` 的旧名称声明。
+未发现可以在没有新鲜同场效率证据时安全替换的其他常规算法。排行榜脚本只作为算法来源，不把排行榜成绩或本地预估当作普通功能脚本的实测成绩。
