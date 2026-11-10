@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：11912.122秒（本地原目标三seed均值；当前供能与增量扫雷版本未实机验证）。
+# 完整轮时间：11067.625秒（本地原目标三seed均值；Dynamite3后Expand5版本未实机验证）。
 
 def lb_fastest_underground_reset():
     # 每次升级都读取当前成本；低科技阶段使用单机，资源阶段结束后才clear。
@@ -18,7 +18,7 @@ def lb_fastest_underground_reset():
         (Unlocks.Treasure_Map, 1), (Unlocks.Quartz, 1),
         (Unlocks.Mining, 7), (Unlocks.Pumpkins, 1), (Unlocks.Mushrooms, 2),
         (Unlocks.Mining, 8),
-        (Unlocks.Dynamite, 3), (Unlocks.Underground_Leaderboard, 1)]
+        (Unlocks.Dynamite, 3), (Unlocks.Expand, 5), (Unlocks.Underground_Leaderboard, 1)]
     for tech, level in stages:
         while num_unlocked(tech) < level:
             if get_time() > 72000:

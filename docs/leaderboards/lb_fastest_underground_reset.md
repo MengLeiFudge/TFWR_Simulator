@@ -1,16 +1,16 @@
 # 地下Reset（fastest_underground_reset）
 
-2026-11-08：仓库采用真实向日葵供能与增量扫雷，本地三seed原始重置目标均值11912.122406秒，尚未实机。旧版晚升Rice5/Coal3、首段采煤的完整实机13559.391秒及普通同seed对照作为历史保存。
+2026-11-10：仓库采用真实向日葵供能、增量扫雷及Dynamite3后Expand5，本地三seed完整目标均值11067.624583秒，尚未实机。相对前版11912.122406秒减少844.497824秒。旧版晚升Rice5/Coal3、首段采煤的完整实机13559.391秒及普通同seed对照作为历史保存。
 
 ## 当前实现
 
-从零库存读取当前get_cost筹资，逐步发展6×6单机。保留Rice3后Coal2、Expand4后的Grass2/Trees2/Carrots2/Speed5、Mining5后的Iron2/Rice5/Coal3及付费勘探路线。随后真实支付Mining6/7/8与蘑菇、藏宝图、Quartz等前置，最终支付20000 Dynamite和200000 Bamboo解锁Underground_Leaderboard。每次unlock前复核整组成本；种子随科技变化仍实付。
+从零库存读取当前get_cost筹资，逐步发展6×6单机。保留Rice3后Coal2、Expand4后的Grass2/Trees2/Carrots2/Speed5、Mining5后的Iron2/Rice5/Coal3及付费勘探路线。随后真实支付Mining6/7/8与蘑菇、藏宝图、Quartz等前置，最终支付20000 Dynamite和200000 Bamboo；Dynamite3完成后追加Expand5，再解锁Underground_Leaderboard。每次unlock前复核整组成本；种子随科技变化仍实付。
 
 Speed5后新增Sunflowers1投资。Power低于100时先筹1000：支付整田种子，测花瓣后降序收成熟向日葵，最后9株保留，保证收获时至少10株的倍率条件。解锁、种植材料、成熟、走路及后续清场全部计入，不白送Power或满科技库存。
 
 煤仍只采每片首16层，初始Rice0的Coal10和其他资源保留原边界。Iron用Coal付费读取方向，Quartz用Iron读取距离，只认实际dig入库，并保留有限回退。扫雷仍仅按需清覆盖层；改为实际变化数字的增量直接约束，零扩展连续开格，推理停滞时正常部分结算一次，再重生。每盘新建事实，不沿用旧盘状态，不再使用子集枚举或猜测。
 
-主要成员：`lb_fastest_underground_reset`、`ur_need`、`ur_power_stock`、`ur_mine`、`ur_i_stock`、`ur_q_locate`、`ur_dynamite_stock`、`ur_d_solve`、`ur_d_work`、`ur_d_propagate`。主流程72000游戏秒；农作7200秒，供能3600秒/64田，逐层矿采18000秒。采煤最多128片、连续8片无产出停止；Iron/Quartz保留各64片、既有探测和回退截止。扫雷最多512盘、每次覆盖准备256刀、局部和全局推理256步，连续8次找层未命中停止。没有新增Jump、爆破钻或无人机投资。
+主要成员：`lb_fastest_underground_reset`、`ur_need`、`ur_power_stock`、`ur_mine`、`ur_i_stock`、`ur_q_locate`、`ur_dynamite_stock`、`ur_d_solve`、`ur_d_work`、`ur_d_propagate`。主流程72000游戏秒；农作7200秒，供能3600秒/64田，逐层矿采18000秒。采煤最多128片、连续8片无产出停止；Iron/Quartz保留各64片、既有探测和回退截止。扫雷最多512盘、每次覆盖准备256刀、局部和全局推理256步，连续8次找层未命中停止。没有新增Jump、爆破钻或无人机投资；Expand5只在最终炸药筹资完成后购买。
 
 ## 特殊土壤方向
 当前地下Reset路线尚未投资 `Special_Soils`。该科技需要 `Rice=800`、`Bamboo=1000`，并依赖 Rice 科技；解锁后生成两层地下特殊土壤。模拟器中壤土和珍珠岩的种植增益均为 2.0，但只对种在对应地块上的作物生效，不会全局提高地上普通土壤上的产量。
@@ -18,7 +18,7 @@ Speed5后新增Sunflowers1投资。Power低于100时先筹1000：支付整田种
 | 地层 | 可获得双倍产量的作物 | 对地下Reset的主要价值 |
 | --- | --- | --- |
 | Loam | Carrot、Sunflower | 比较早期筹资、向日葵供能是否能收回开层和整地成本 |
-| Perlite | Bamboo、Tree、Bush、Cactus | 优先验证最终 200000 Bamboo 的筹资是否值得改到地下高产田 |
+| Perlite | Bamboo、Tree、Bush、Cactus | 机制上限成立，但Reset中途解锁后的挖掘会触发塌方，当前不纳入完整路线 |
 
 必须把解锁、挖到特殊土层、整地、种植、成熟、收获及塌方/回程成本一起计入。排行榜脚本禁止 Jump，不能用跳跃到达地层的功能脚本吞掉访问成本。有限组件对照显示：预先具备 `Special_Soils` 时，600游戏秒的 Perlite 竹子净增2752，普通土壤为1440；这只是机制上限对照，不是Reset成绩。实际Reset条件下科技必须中途解锁，向特殊土层挖掘时当前模拟会发生塌方，未形成可持续高产田，因此暂不纳入完整Reset候选。
 
@@ -26,15 +26,15 @@ Speed5后新增Sunflowers1投资。Power低于100时先筹1000：支付整田种
 
 | 时间类别 | 当前记录 | 证据口径 |
 | --- | --- | --- |
-| 本地模拟预估时间 | 三seed均值11912.122406496游戏秒 | 当前供能与增量扫雷，零库存、原目标 |
+| 本地模拟预估时间 | 三seed均值11067.624582944游戏秒 | 当前供能、增量扫雷及Dynamite3后Expand5，零库存、原目标 |
 | 短时打榜测试时间 | 未取得 | 普通simulate不计为短时打榜 |
 | 游戏打榜时间 | 当前版本未取得 | 历史13559.391秒，构建26462009，请求418，1轮正常结束 |
 
 | seed | 本地完整目标游戏秒 | 结果 | 本机证据 |
 | --- | ---: | --- | --- |
-| 1 | 12568.197810635 | 实际解锁目标，done True | `final-reset-s1/report.json` |
-| 2 | 11456.605092401 | 实际解锁目标，done True | `final-reset-s2/report.json` |
-| 3 | 11711.564316453 | 实际解锁目标，done True | `final-reset-s3/report.json` |
+| 1 | 11212.330201302 | 实际解锁目标，done True | `.codex/reset-optimization-20261110/production-expand5.json` |
+| 2 | 11135.270582073 | 实际解锁目标，done True | `.codex/reset-optimization-20261110/production-expand5.json` |
+| 3 | 10855.272965456 | 实际解锁目标，done True | `.codex/reset-optimization-20261110/production-expand5.json` |
 
 地下资源快照构建26410308，基础模型字段保留26385848；本轮报告路径共同根目录为`.codex/underground-efficiency-20261108/reports/`，源码、依赖和模型指纹见[长期JSON](../underground-efficiency-validation.json)。普通Reset目标虽不强制专用资源地形，正式局仍使用加密随机源，不能由固定seed重放。首版部署SHA256及后续实机指纹均归下方历史对应版本。
 
