@@ -36,6 +36,6 @@
 | lb_pyramids | [Steam网页](https://steamcommunity.com/stats/2060160/leaderboards/21488014/) | 2026-11-10T06:16:01.529016+00:00（历史缓存） | 10 | 14:21.541 | 7473:22.629 | 22:43.254（#4） | 2026-11-10T06:16:01.529041+00:00 |
 | lb_pyramids_single | [Steam网页](https://steamcommunity.com/stats/2060160/leaderboards/21488443/) | 2026-11-10T06:16:01.153566+00:00（历史缓存） | 9 | 12:25.989 | 893:48.923（#9，末名） | 17:54.147（#5） | 2026-11-10T06:16:01.153592+00:00 |
 | lb_treasure_map | [Steam网页](https://steamcommunity.com/stats/2060160/leaderboards/21469574/) | 2026-11-10T06:16:01.632599+00:00（历史缓存） | 34 | 0:19.434 | 0:39.814 | 0:38.151（#9） | 2026-11-10T06:16:01.632626+00:00 |
-| lb_fastest_underground_reset | [Steam SDK](https://steamcommunity.com/stats/2060160/leaderboards/21444633/) | 2026-11-10T16:18:38.526297+00:00（历史缓存） | 12 | 21:25.151 | 710:49.589 | 225:59.391（#9） | 2026-11-10T16:18:38.526297+00:00 |
+| lb_fastest_underground_reset | [Steam SDK](https://steamcommunity.com/stats/2060160/leaderboards/21444633/) | 2026-11-10T17:35:45.935561+00:00（历史缓存） | 12 | 21:25.151 | 710:49.589 | 225:59.391（#9） | 2026-11-10T17:35:45.935561+00:00 |
 
 模拟、距#1比例及改进方向见[排行榜进度](../../docs/leaderboards/leaderboard_progress.md)。

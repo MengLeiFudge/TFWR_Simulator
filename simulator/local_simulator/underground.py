@@ -103,7 +103,7 @@ class Underground:
             if kind == 'QuartzFeature':
                 kind = 'QuartzVeinFeature'
             probability = feature.get('probability', 1)
-            if kind == 'PetrifiedPumpkinsFeature' and self.world.width < 3 and self.world.size < 3:
+            if kind == 'PetrifiedPumpkinsFeature' and self.world.width <= 3 and self.world.size <= 3:
                 probability = 0
             if kind in ('SweeperStratumFeature', 'TreasureMapFeature') and self.world.width <= 3 and self.world.size <= 3:
                 probability = 0

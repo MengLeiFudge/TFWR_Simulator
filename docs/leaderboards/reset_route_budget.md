@@ -44,7 +44,7 @@ Mazes提高等级减少给定目标的兑现次数，每次Weird价格同时翻�
 
 ## 八机前置：必需科技与脚本顺序分账
 
-Core Farm.UnlockOrUpgrade要求直接parent已解锁，不要求parent满级。快照链为loops→speed→plant→carrots→watering→fertilizer→mazes→megafarm。reset预设已带loops；沿链各买一级再买Megafarm至3，仅这些科技费合计70 Hay、600 Wood、1000 Weird、42000 Gold。这是依赖链费用，不是完整可执行路线的全部生产成本或时间下界：地图扩张、肥料供给、感染产物、种植资源和提速等仍需另付。Sunflowers、Pumpkins、Cactus、Dinosaurs、Mazes2/3不属于这一科技链的硬前置。
+2026-11-10更正：`Farm.UnlockOrUpgrade`的默认参数会检查直接parent，但脚本入口`Execution`的`SideEffect.Unlock`明确传入`requireParent:false`。脚本仍支付真实费用并检查`additionalUnlockRequirement`；科技树的连线不是脚本硬性前置。原来列出的loops→speed→plant→carrots→watering→fertilizer→mazes→megafarm只是UI依赖链，不能把70 Hay、600 Wood、1000 Weird计为买八机必付费用。Megafarm1–3自身仍累计42000 Gold；金币来源、生产原料、地图和提速等单独计价。地下Reset可用藏宝图Gold购买无人机，无须为此先买Mazes。具体路线预算见[地下Reset](lb_fastest_underground_reset.md#最低资源账与投资回本)。
 
 既有两seed到4机均值2050.168566秒，已经超过#10整轮1966.927秒；此后到8机再花1624.342168秒。仅把Megafarm3从step5移到step4之前，不能使保留原前缀的路线进入前十，更不能把1624秒全当可删除费用：扩田与Mazes升级仍可能是后期所需。最初1000Power的准备、首次Weird供给和最早迷宫必须一起纳入前期结构预算。
 
