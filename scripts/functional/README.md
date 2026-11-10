@@ -41,10 +41,10 @@ TARGETS = {
 | 迷宫产金币 | [gold_maze.py](gold_maze.py) | `lb_maze.py`，32座独立小迷宫及增量路由 |
 | 向日葵产能量 | [power_sunflower.py](power_sunflower.py) | `lb_sunflowers.py`，16组双机分瓣收获与同步 |
 | 水稻 | [rice.py](rice.py) | `lb_rice.py`两层粘土清单流水及补水，实际收割后下挖、全部回收后换田 |
-| 竹子 | [bamboo.py](bamboo.py) | `lb_bamboo.py`星形四邻布局；首次Jump保留天然珍珠岩，补水后恢复高飞 |
+| 竹子 | [bamboo.py](bamboo.py) | `lb_bamboo.py`按行分片、统一花节并批量切收 |
 | 煤 | [coal.py](coal.py) | 用户原 `Coal.py`，分散探孔、发现煤后沿矿层扩展 |
 | 蘑菇 | [mushroom.py](mushroom.py) | 用户原逐层同步与采样柱，加公开颜色缓存、低台搬运与同高配对 |
-| 炸药 | [dynamite.py](dynamite.py) | `lb_dynamite.py`区域增量求解；普通田单次Jump、协同找层和逐盘正常结算 |
+| 炸药 | [dynamite.py](dynamite.py) | `lb_dynamite.py`区域差集推理、并行找层和逐盘正常结算 |
 | 藏宝图产金币 | [gold_treasure_map.py](gold_treasure_map.py) | `lb_treasure_map.py`，按层去环，适配普通地形入口 |
 | 金字塔产能量 | [power_pyramids.py](power_pyramids.py) | `lb_pyramids.py`修补主体，普通田使用Jump和浅层爆破钻头 |
 | 建材 | [block.py](block.py) | 单机连续深钻与原生炸药层连锁收集；[机制与验证记录](../../docs/block-mining.md) |
@@ -58,7 +58,7 @@ TARGETS = {
 ## 运行与依赖
 
 - 独立功能入口以其他资源库存充足为前提；效率按目标资源的实际净增长/游戏秒比较，不另计生产Coal、Iron、Dynamite等材料的时间。游戏动作仍正常扣材料，耗尽或动作失败时返回原因；库存调度按材料表准备和补齐。
-- 完整周期型在正常结算并回收子机后检查库存目标。建材按每次开挖检查，稀疏矿采按整片、蘑菇按整片、炸药按整盘检查，铁勘探在每次追矿或开挖前检查，因此最终库存可能略超目标。竹子已有Jump额度时采用地表星形，未用时先保留可达珍珠岩。
+- 完整周期型在正常结算并回收子机后检查库存目标。建材按每次开挖检查，稀疏矿采按整片、蘑菇按整片、炸药按整盘检查，因此最终库存可能略超目标。竹子按行分片统一培育与批量切收，运行中不再占用共享Jump额度。
 - 多数入口会整理或重生农田，运行前确认当前农田可被清理。Jump每次执行只能使用一次，后续循环按原算法继续或重生。
 - 金字塔只同时修一座，底层就绪后再补高层，主机在中心放最后顶块。爆破钻头只用于远离塔区的浅覆盖层，接近塔区前换回采矿帽；结果须以实际模拟记录为准。
 - `block.py`只依赖同目录的 `production.py`，单机独占爆破钻连续向下开采。每次挖掘消耗一份炸药；调度按 `DYNAMITE_RESERVE` 准备2000份，不再准备向日葵种子或土台。入口记录实际不超过60游戏秒的Block净增窗口。`quartz.py`、`pumpkin_petrified.py`需要 `mining.py`；铁入口依赖 `production.py`。验证范围见各入口说明，运行时不导入 `lb_*.py`。

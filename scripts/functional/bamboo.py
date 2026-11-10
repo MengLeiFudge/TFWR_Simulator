@@ -1,227 +1,159 @@
 from __builtins__ import *
 import production
 
-
-# 星形四邻布局；首次Jump保留天然珍珠岩，后续调度用地表布局，浇水后恢复高飞。
+# 按行分片；先选择可切收的竹子高度，再以固定间隔巡回整片收获。
 def bamboo(target=-1):
     if not production.active(Items.Bamboo, target):
         return
-    prepare = not production.JUMP_USED
-    if prepare:
-        production.jump_once(Unlocks.Special_Soils)
-    else:
-        clear()
     size = get_world_size()
-    if prepare and not bamboo_prepare(size):
-        quick_print("bamboo_failed", "prepare")
-        return
     if size < 4:
         quick_print("竹子采集需要至少4×4的农场。")
         return
-    centers = set()
-    for y in range(size):
-        for x in range(size):
-            if (x + 2 * y) % 5 == 0:
-                centers.add((x, y))
-    covered = set(centers)
-    for x, y in centers:
-        for dx, dy in STEPS:
-            covered.add(((x + dx) % size, (y + dy) % size))
-    for y in range(size):
-        for x in range(size):
-            if (x, y) not in covered:
-                centers.add((x, y))
-    fans = {}
-    for center in centers:
-        fans[center] = []
-    plants = 0
-    for y in range(size):
-        for x in range(size):
-            if (x, y) in centers:
-                continue
-            for i in range(4):
-                dx, dy = STEPS[i]
-                center = ((x + dx) % size, (y + dy) % size)
-                if center in centers:
-                    fans[center].append((i + 2) % 4)
-                    plants += 1
-                    break
-    gx = 1
-    gy = 1
-    while gx * gy * 2 <= max_drones():
-        if gx <= gy and gx * 2 <= size:
-            gx *= 2
-        elif gy * 2 <= size:
-            gy *= 2
-        else:
-            break
-    plans = []
-    for owner in range(gx * gy):
-        x0 = (owner % gx) * size // gx
-        x1 = (owner % gx + 1) * size // gx
-        y0 = (owner // gx) * size // gy
-        y1 = (owner // gx + 1) * size // gy
-        plan = []
-        for y in range(y0, y1):
-            for offset in range(x1 - x0):
-                x = x0 + offset
-                if (y - y0) % 2 != 0:
-                    x = x1 - 1 - offset
-                if (x, y) in fans and len(fans[(x, y)]) > 0:
-                    plan.append((x, y, fans[(x, y)]))
-        plans.append(plan)
-    quick_print("bamboo_star_plan", plants, len(centers), len(plans), get_time())
-    handles = []
-    results = []
-    for owner in range(1, len(plans)):
-        handle = spawn_drone(bamboo_fans, plans[owner], target)
-        if handle == None:
-            results.append(bamboo_fans(plans[owner], target))
-        else:
-            handles.append(handle)
-    results.append(bamboo_fans(plans[0], target))
-    for handle in handles:
-        results.append(wait_for(handle))
-    ok = True
-    for result in results:
-        if not result:
-            ok = False
-    quick_print("bamboo_done", ok, get_time(), num_items(Items.Bamboo))
-
-
-def bamboo_fans(plan, target):
-    size = get_world_size()
-    phases = []
-    for x, y, directions in plan:
-        local = []
-        for _ in directions:
-            local.append(0)
-        phases.append(local)
-    hover(18)
-    laps = 0
+    workers = min(max_drones(), size)
     while production.active(Items.Bamboo, target):
-        for k in range(len(plan)):
-            x, y, directions = plan[k]
-            if not bamboo_move_to(x, y, size):
-                return False
-            for i in range(len(directions)):
-                d = directions[i]
-                direction = DIRECTIONS[d]
-                back = DIRECTIONS[(d + 2) % 4]
-                if not move(direction):
-                    return False
-                if get_water() < 0.25 and num_items(Items.Water) > 0:
-                    use_item(Items.Water)
-                    hover(18)
-                if get_entity_type() != Entities.Bamboo:
-                    ground = get_ground_type()
-                    if ground == Grounds.Grassland or ground == Grounds.Loam:
-                        till()
-                    elif ground != Grounds.Soil and ground != Grounds.Dirt and ground != Grounds.Perlite:
-                        if not place(Grounds.Dirt):
-                            quick_print("bamboo_failed", "soil_cover", x, y, d)
+        clear()
+        goal = target
+        if goal == -1:
+            goal = num_items(Items.Bamboo) + 500000000
+        handles = []
+        results = []
+        for owner in range(1, workers):
+            y0 = owner * size // workers
+            rows = (owner + 1) * size // workers - y0
+            handle = spawn_drone(bamboo_batch, y0, rows, goal, 0.25, 3)
+            if handle == None:
+                results.append(bamboo_batch(y0, rows, goal, 0.25, 3))
+            else:
+                handles.append(handle)
+        results.append(bamboo_batch(0, size // workers, goal, 0.25, 3))
+        for handle in handles:
+            results.append(wait_for(handle))
+        ok = True
+        for result in results:
+            if not result:
+                ok = False
+        quick_print("bamboo_all_done", ok, get_time(), num_items(Items.Bamboo))
+        if not ok:
+            return
+
+
+
+def bamboo_batch(y0, rows, goal, water_level, interval):
+    size = get_world_size()
+    hover(18)
+    for _ in range(y0):
+        move(North)
+    selected = []
+    for _ in range(rows):
+        flags = []
+        for x in range(size - 1):
+            flags.append(False)
+        selected.append(flags)
+    left = rows * (size - 1)
+    laps = 0
+    # 花节随树桩保留；首两节统一为5和9后可以整片使用同一切割高度。
+    while left > 0:
+        hover(4)
+        for row in range(rows):
+            for x in range(size - 1):
+                move(East)
+                if not selected[row][x]:
+                    seeded = False
+                    if get_entity_type() != Entities.Bamboo:
+                        if get_ground_type() != Grounds.Soil:
+                            till()
+                        if not bamboo_seed():
                             return False
-                    if not plant(Entities.Bamboo):
-                        quick_print("bamboo_failed", "plant", x, y, d, get_ground_type())
-                        return False
-                    phases[k][i] = 0
-                    hover(18)
-                elif can_harvest():
-                    if phases[k][i] < 2:
-                        height = measure()
-                        if not move(back):
+                        seeded = True
+                    elif measure() == 8:
+                        selected[row][x] = True
+                        left -= 1
+                    elif measure() != 4:
+                        harvest()
+                        if not bamboo_seed():
                             return False
-                        hover(height)  # ty: ignore[invalid-argument-type]  当前是成熟竹子，measure返回花朵整数高度。
-                        if not move(direction):
-                            return False
-                        if measure() <= height:  # ty: ignore[unsupported-operator]  两次测量均为竹子高度。
-                            quick_print("bamboo_failed", "flower_not_cut", x, y, d)
-                            return False
-                        phases[k][i] += 1
-                        hover(18)
-                    else:
-                        if not harvest() or not plant(Entities.Bamboo):
-                            return False
-                        phases[k][i] = 0
-                        hover(18)
-                if not move(back):
-                    return False
+                        seeded = True
+                    watered = bamboo_water(water_level)
+                    if seeded or watered:
+                        hover(4)
+            move(East)
+            if row + 1 < rows:
+                move(North)
+        bamboo_return(rows, size)
         laps += 1
-        if len(plan) > 0 and plan[0][0] == 0 and laps % 16 == 0:
-            quick_print("bamboo_star_lap", laps, get_time(), num_items(Items.Bamboo))
+        if laps % 4 == 0:
+            quick_print("bamboo_select", y0, left, get_time())
+        if laps > 100:
+            quick_print("bamboo_failed", "selection", y0, left)
+            return False
+    hover(1)
+    last = get_time()
+    bamboo_sweep(rows, water_level)
+    quick_print("bamboo_selected", y0, get_time(), num_items(Items.Bamboo))
+    cycles = 0
+    while num_items(Items.Bamboo) < goal:
+        for height in [4, 8, 1]:
+            # 按每趟起点计时，上一趟巡回本身也计入生长间隔。
+            while get_time() < last + interval:
+                do_a_flip()
+            last = get_time()
+            hover(height)
+            if height == 1:
+                bamboo_sweep(rows, water_level)
+            else:
+                bamboo_sweep(rows, -1)
+        cycles += 1
+        if cycles % 4 == 0:
+            quick_print("bamboo_batch", y0, cycles, get_time(), num_items(Items.Bamboo))
+    quick_print("bamboo_done", y0, get_time(), num_items(Items.Bamboo))
     return True
 
 
-def bamboo_move_to(tx, ty, size):
-    dx = (tx - get_pos_x()) % size
-    direction = East
-    if dx > size // 2:
-        direction = West
-        dx = size - dx
-    for _ in range(dx):
-        if not move(direction):
+
+def bamboo_seed():
+    for _ in range(256):
+        if not plant(Entities.Bamboo):
             return False
-    dy = (ty - get_pos_y()) % size
-    direction = North
-    if dy > size // 2:
-        direction = South
-        dy = size - dy
-    for _ in range(dy):
-        if not move(direction):
-            return False
-    return True
+        if measure() == 4:
+            return True
+        harvest()
+    return False
 
 
-STEPS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-DIRECTIONS = [North, East, South, West]
+
+def bamboo_water(level):
+    if get_water() < level:
+        amount = 4
+        if level < 0.5:
+            amount = 1
+        if num_items(Items.Water) >= amount:
+            return use_item(Items.Water, amount)
+    return False
 
 
-# 找层期间读到的珍珠岩可能随后塌落；生产前仍逐格重读并补可种泥土。
-def bamboo_prepare(size):
-    handles = []
-    results = []
-    workers = min(size, max_drones())
-    limit_z = get_pos_z() - 32
-    for owner in range(1, workers):
-        handle = spawn_drone(bamboo_prepare_columns, owner, workers, size, limit_z)
-        if handle == None:
-            results.append(bamboo_prepare_columns(owner, workers, size, limit_z))
-        else:
-            handles.append(handle)
-    results.append(bamboo_prepare_columns(0, workers, size, limit_z))
-    for handle in handles:
-        results.append(wait_for(handle))
-    perlite = 0
-    for count in results:
-        if count == None:
-            return False
-        perlite += count
-    quick_print("bamboo_prepare_seen_perlite", perlite, size * size, get_time())
-    return True
+
+def bamboo_sweep(rows, water_level):
+    size = get_world_size()
+    for row in range(rows):
+        for x in range(size - 1):
+            move(East)
+            # 仅在切回高度1时浇水，避免供水把切花阶段的飞行高度重置。
+            if water_level > 0:
+                bamboo_water(water_level)
+        move(East)
+        if row + 1 < rows:
+            move(North)
+    bamboo_return(rows, size)
 
 
-def bamboo_prepare_columns(first, stride, size, limit_z):
-    perlite = 0
-    for x in range(first, size, stride):
-        if not bamboo_move_to(x, 0, size):
-            return None
-        for y in range(size):
-            for step in range(48):
-                ground = get_ground_type()
-                if ground == Grounds.Perlite or ground == Grounds.Loam:
-                    break
-                if get_pos_z() <= limit_z or get_hardness() >= 10000000:
-                    break
-                if not dig():
-                    return None
-            if get_ground_type() == Grounds.Perlite:
-                perlite += 1
-            elif get_ground_type() != Grounds.Loam and get_ground_type() != Grounds.Dirt and get_ground_type() != Grounds.Soil:
-                if not place(Grounds.Dirt):
-                    return None
-            if not move(North):
-                return None
-    return perlite
+
+def bamboo_return(rows, size):
+    if rows == size:
+        move(North)
+    else:
+        for _ in range(rows - 1):
+            move(South)
+
 
 
 if __name__ == "__main__":

@@ -22,9 +22,13 @@ def dynamite(target=-1, round_limit=0):
     change_hat(Hats.Mining_Hat)
     production.jump_once(Unlocks.Dynamite)
     cycle = 0
+    first = True
     while (round_limit == 0 or cycle < round_limit) and production.active(Items.Dynamite, target):
         began = get_time()
         before = num_items(Items.Dynamite)
+        if not first:
+            clear()
+        first = False
         if not move_to(size // 2, size // 2, size) or not find_stratum():
             quick_print("dynamite_failed", "find_stratum", cycle)
             return
@@ -38,6 +42,9 @@ def dynamite(target=-1, round_limit=0):
             status, rounds = solve(size, depth, near, number)
         if status == "mine":
             status = settle(size, depth)
+            rounds += 1
+        if status == "running":
+            status = settle(size, depth)
         cycle += 1
         total = num_items(Items.Dynamite) - initial
         quick_print("dynamite_cycle", cycle, status, "phases", rounds,
@@ -48,9 +55,9 @@ def dynamite(target=-1, round_limit=0):
             return
 
 
-UNKNOWN = -2
+UNKNOWN = -3
 MINE = -1
-SAFE = -3
+SAFE = -2
 DONE = 9
 DIG_LIMIT = 2048
 PHASE_LIMIT = 256
@@ -70,22 +77,13 @@ def solve(size, depth, near, number):
         for state, updates in results:
             if len(updates) > 0:
                 changed = True
-            if state == "error":
-                status = state
-            elif state == "mine" and status != "error":
+            if state == "error" or state == "mine":
                 status = state
             elif state == "ended" and status == "running":
                 status = state
+            # 状态值按 UNKNOWN、SAFE、MINE、数字、DONE 递增，只保留本盘更强的事实。
             for cell in updates:
-                value = updates[cell]
-                old = known[cell]
-                if old == value or (old >= 0 and value == SAFE) or (old == DONE and value >= 0):
-                    continue
-                if old == UNKNOWN or (old == SAFE and value >= 0) or (old >= 0 and value == DONE):
-                    known[cell] = value
-                else:
-                    quick_print("dynamite_conflict", cell, old, value)
-                    return "error", rounds
+                known[cell] = max(known[cell], updates[cell])
         rounds += 1
         if status != "running" or not changed:
             break
@@ -110,7 +108,7 @@ def dispatch(lo, hi, groups, known, near, size, depth):
     return results
 
 
-# 分区独占开挖权；相邻区域只交换公开数字和已证明事实。
+# 各区独立推理并连续开安全格；相邻区域只交换公开数字与确定证明。
 def work(group, groups, known, near, size, depth):
     columns = min(8, groups)
     rows = groups // columns
@@ -127,6 +125,7 @@ def work(group, groups, known, near, size, depth):
             for x in range(right - 1, left - 1, -1):
                 owned.append(x + y * size)
     clues = set()
+    # 两格边界允许本区利用相邻数字约束，不取得邻区的开挖权。
     for y in range(max(0, bottom - 2), min(size, top + 2)):
         for x in range(max(0, left - 2), min(size, right + 2)):
             cell = x + y * size
@@ -142,6 +141,11 @@ def work(group, groups, known, near, size, depth):
             if known[cell] == SAFE:
                 targets.append(cell)
         if len(targets) == 0:
+            found = propagate_differences(known, clues, near, updates)
+            if found < 0:
+                return "error", updates
+            if found > 0:
+                continue
             return "running", updates
         while len(targets) > 0:
             cell = targets.pop()
@@ -204,6 +208,57 @@ def propagate(known, active, near, updates):
                     pending.append(other)
                     queued.add(other)
     return True
+
+# 仅在基本规则停滞时比较相邻公开数字；所有差集事实来自同一盘。
+def propagate_differences(known, active, near, updates):
+    constraints = {}
+    for clue in active:
+        remaining = known[clue]
+        cells = set()
+        for cell in near[clue]:
+            if known[cell] == MINE:
+                remaining -= 1
+            elif known[cell] == UNKNOWN:
+                cells.add(cell)
+        constraints[clue] = (remaining, cells)
+    facts = {}
+    for clue in constraints:
+        mines_a, cells_a = constraints[clue]
+        for other in near[clue]:
+            if other <= clue or other not in constraints:
+                continue
+            mines_b, cells_b = constraints[other]
+            only_a = []
+            only_b = []
+            for cell in cells_a:
+                if cell not in cells_b:
+                    only_a.append(cell)
+            for cell in cells_b:
+                if cell not in cells_a:
+                    only_b.append(cell)
+            difference = mines_a - mines_b
+            value_a = UNKNOWN
+            value_b = UNKNOWN
+            if difference == len(only_a):
+                value_a = MINE
+                value_b = SAFE
+            elif -difference == len(only_b):
+                value_a = SAFE
+                value_b = MINE
+            else:
+                continue
+            for cell in only_a:
+                if cell in facts and facts[cell] != value_a:
+                    return -1
+                facts[cell] = value_a
+            for cell in only_b:
+                if cell in facts and facts[cell] != value_b:
+                    return -1
+                facts[cell] = value_b
+    for cell in facts:
+        known[cell] = facts[cell]
+        updates[cell] = facts[cell]
+    return len(facts)
 
 
 # 找层工人按深度轮流下刀，全部结束后才解盘；上一盘有效煤灰不重复挖。
