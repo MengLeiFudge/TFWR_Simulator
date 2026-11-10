@@ -1,12 +1,28 @@
 # 成就脚本
 
-本目录保存全科技下的一次性成就入口。**每个脚本最多运行5分钟（300游戏秒）**，完成目标后立即返回；预算内未完成则报告原因并停止。采矿大师继续使用功能目录的 `block.py`。
+本目录只保存全科技下、需要刻意制造特殊机制且不能由常规/排行榜入口稳定完成的一次性成就入口。**每个脚本最多运行5分钟（300游戏秒）**，完成目标后立即返回；预算内未完成则报告原因并停止。采矿大师继续使用功能目录的 `block.py`。
 
-| 成就 | 入口 | 行为 |
+| 成就 | 入口 | 行为与游戏判定 |
 | --- | --- | --- |
-| 彩色金字塔 | [power_pyramids_color.py](power_pyramids_color.py) | 6×6田寻找最小天然塔，六机拆净后用35块彩色地块重建 |
-| 远距离友谊 | [mushroom_cross_stratum.py](mushroom_cross_stratum.py) | 32×32田两端环绕下送原片蘑菇，与另一片同色蘑菇配对 |
-| 牵线搭桥 | [mushroom_matchmaker.py](mushroom_matchmaker.py) | 24×24田分区配对、分级合并余色，核对整片原始总数的95% |
+| 彩色金字塔 | [power_pyramids_color.py](power_pyramids_color.py) | `RESTORE_COLOR_PYRAMID`：6×6田寻找最小天然塔，六机拆净后用35块彩色地块重建 |
+| 远距离友谊 | [mushroom_cross_stratum.py](mushroom_cross_stratum.py) | `MUSHROOM_STARTUM_SKIP`：32×32田跨原生地层下送原片蘑菇，与另一片同色蘑菇配对 |
+| 牵线搭桥 | [mushroom_matchmaker.py](mushroom_matchmaker.py) | `MUSHROOM_STRATUM_OPTIMAL`：24×24田分区配对、分级合并余色，核对整片原始总数严格超过95% |
+| 采矿大师 | [../functional/block.py](../functional/block.py) | 连续深钻在实际不超过60游戏秒的窗口内净增至少1,000,000 Block；不是成就目录的重复入口 |
+
+## 筛选边界
+所有游戏成就不都应在本目录复制一个入口。以下判定以 `Core.decompiled.cs` 的实际解锁条件和当前功能/排行榜入口为准：只有常规脚本不能稳定制造的特殊状态才保留在本目录。
+
+### 不重复建设的成就
+
+| 游戏成就或机制 | 复用入口 | 不单独建脚本的原因 |
+| --- | --- | --- |
+| `RESTORE_MAX_PYRAMID` | [`functional/power_pyramids.py`](../functional/power_pyramids.py)、[`leaderboard/lb_pyramids.py`](../leaderboard/lb_pyramids.py) | 两个入口都按实际天然塔边界修补，不把底边限制为5；遇到29×29或更大天然塔会走同一套完整修复判定 |
+| `DYNAMITE_OPTIMAL`、`DYNAMITE_MAX_OPTIMAL` | [`functional/dynamite.py`](../functional/dynamite.py) | 普通32×32入口解盘并正常结算深层地雷盘，不需要成就专用动作 |
+| `TREASURE_HUNTER`、`TREASURE_OPTIMAL`、`RECYCLING` | [`functional/gold_maze.py`](../functional/gold_maze.py)、[`functional/gold_treasure_map.py`](../functional/gold_treasure_map.py)及对应排行榜入口 | 迷宫完整收获、地图去环和正常重用已经属于产金币主流程 |
+| `LONG_DINOSAUR`、`SIZE_MATTERS`、`GIANT_PUMPKIN`、`RICE_TERRACE` | 对应恐龙、南瓜、水稻功能/排行榜入口 | 这些条件随正常生产周期自然出现，改变为一次性入口只会复制生产算法 |
+| 种植、帽子、科技、深度和代码类成就 | 对应功能入口或游戏操作 | 不涉及独立地下机制，不能用本目录替代常规功能脚本 |
+
+如果以后真实日志证明某一成就虽有常规入口却无法在目标条件下稳定触发，再先补充机制证据和有界模拟，再新增成就入口；不能仅因成就名称存在就复制脚本。
 
 ## 五分钟运行约定
 

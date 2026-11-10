@@ -2,7 +2,7 @@
 
 本目录的初版以**科技全解、32×32农场、32台无人机**为运行前提，持续生产对应资源。Fastest Reset类脚本仍归排行榜目录，使用各自的重置初始条件。运行与文件同名的入口即可，例如打开 `rice.py` 执行。
 
-有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，地下批次见[效率记录](../../docs/underground-functional-validation.md)，铁与石英的勘探对照见[勘探记录](../../docs/underground-prospecting.md)。
+有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，地下批次见[效率记录](../../docs/underground-functional-validation.md)，铁与石英的勘探对照见[勘探记录](../../docs/underground-prospecting.md)。成就入口的筛选边界见[特殊成就目录](../achievement/README.md)。常规入口只保留生产或排行榜机制本身；能随正常流程触发的成就不在 `scripts/achievement/` 重复建文件。
 
 ## 按库存目标补齐
 
@@ -52,6 +52,8 @@ TARGETS = {
 | 石英 | [quartz.py](quartz.py) | 单爆破钻、四格间距蛇形开孔，保留石英深度与矿层终止条件 |
 | 石化南瓜 | [pumpkin_petrified.py](pumpkin_petrified.py) | 同上，Jump至石化层附近后收取真实爆破掉落 |
 | 怪异物质 | [weird_substance.py](weird_substance.py) | `lb_fastest_reset.py`的并行伴生树苗圃 |
+
+向日葵入口保留完整生产周期；传入有限 `target` 时，最后一波同步点会读取该目标并提前收口，`-1` 仍表示持续生产。
 
 水和肥料由游戏自动获取，不设生产脚本。`mining.py`集中石英、石化南瓜的稀疏钻孔及矿采导航，不是独立生产入口；建材的连续深钻和60秒库存窗口由 `block.py` 保存。铁的方向勘探直接由 `iron.py` 保存；`resources.materials` 为其准备Coal查询储备。爆破只计真实入库，勘探结果不直接记作产量。
 
