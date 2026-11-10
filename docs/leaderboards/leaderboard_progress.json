@@ -206,10 +206,10 @@
     },
     "lb_fastest_underground_reset": {
       "label": "地下重置",
-      "simulation_seconds": 11912.122,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_seconds": 7009.194168678912,
+      "simulation_basis": "早四机、连续追铁与四机补煤。三个45秒现实预算窗口已完成前置和最终竹子，按31/41/31个完整炸药结算盘仅外推末段，整轮7558.742/6413.760/7055.081秒，均7009.194；未完整解锁、未实机。公式、源码/报告/模型指纹见underground_reset_structure_20261110.json。另有早四机完整三seed均8668.997。",
       "evidence": "lb_fastest_underground_reset.md",
-      "direction": "后置：重新比较6×6单机、提前工具及少量无人机路线；先核对可用科技与全额解锁、供能和筹资成本。"
+      "direction": "重做早期地上投资与下地时点；并行补煤配合连续追铁已有收益，继续比较石英地形复用、少买高阶Mining与最终盘面规模，按完整筹资链计价。"
     }
   }
 }
