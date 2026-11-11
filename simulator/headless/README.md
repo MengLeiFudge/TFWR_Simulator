@@ -26,7 +26,9 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 
 `--help` 显示完整参数。默认窗口为30游戏秒、10墙钟秒、200万次内置调用和5000万个解释器节点。墙钟上限最多75秒，不随seed数相乘；优先从短窗口开始。父进程给报告回收保留最多1秒宽限，超过后终止自己的工作进程并报告 `hard_timeout`。每约2墙钟秒输出进度到stderr；stdout只输出JSON。
 
-`--preset max` 为基础游戏满科技，`all` 包含地下DLC，`reset` 为重置初始条件。满科技默认只有Pumpkin和Power各10亿，其余库存为0；具体实验应明确提供材料。`--scenario` 接受 `preset/items/unlocks/goal/leaderboard`；命令行 `--item`、`--unlock` 最后覆盖。`--save` 只读导入科技和库存，不恢复存档地形或运行状态。排行榜场景不能与命令行preset/save混用。
+`--preset max` 为基础游戏满科技，`all` 包含地下DLC，`reset` 为重置初始条件。满科技默认只有Pumpkin和Power各10亿，其余库存为0；具体实验应明确提供材料。`--scenario` 接受 `preset/items/unlocks/goal/leaderboard`；命令行 `--item`、`--unlock` 最后覆盖。`--save` 只读导入科技和库存，不恢复存档地形或运行状态；同一科技的多条等级记录取最高级。排行榜、preset与save作为初始条件来源不能混用，这也适用于场景JSON中的preset。
+
+`items`和`unlocks`必须是对象。同一输入层中，`Coal`与`Items.Coal`等别名属于同一项，重复设置会报错；不同层之间仍允许覆盖。`--size 1..32`固定地图边长，默认0按Expand科技生成。使用排行榜场景时，显式材料、科技、目标或地图覆盖会令报告的 `leaderboard_has_overrides=true`；这类组件实验不能当作原始排行榜条件下的整轮成绩。
 
 ```json
 {"preset":"all","items":{"Dynamite":2000},"unlocks":{},"goal":{"item":"Block","amount":1000000}}
@@ -47,13 +49,17 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 
 ## 报告
 
-报告包含脚本与全部依赖SHA256、模拟程序集和资源SHA256、seed、初始科技/库存、纳秒时间、净库存、调用数、API tick、无人机与表层格子状态、停止原因和脚本输出。它是观测摘要，不是可恢复整个世界的存档。终态游戏秒包含初始化、执行、移动、成熟和同步费用；效率用净增长除以实际游戏秒。
+报告包含脚本与全部依赖SHA256、模拟程序集和资源SHA256、场景/存档输入SHA256、seed、实际初始科技/库存/地图、纳秒时间、净库存、调用数、API tick、无人机与表层格子状态、停止原因和脚本输出。`initial_state`来自原版Farm初始化后的有效状态，包含基础必有科技，并按当前场景过滤不可用DLC；`input_hashes`标识本次实际读取的JSON字节。`goal`记录显式目标，`leaderboard_goal`记录原版榜单目标。报告是观测摘要，不是可恢复整个世界的存档。
 
 | 字段 | 含义 | 用途 |
 | --- | --- | --- |
 | `game_seconds` | 模拟世界推进的游戏时间 | 计算资源产出速率、游戏任务及成就窗口 |
+| `efficiency.items.<资源>.net_change` | 本次实际入库净增长，消耗可以为负 | 扣除初始库存，保留运行材料消耗 |
+| `efficiency.items.<资源>.net_per_game_second` | 净增长除以实际游戏秒 | 连续产出对照和重置路线计价 |
 | 单seed报告的 `wall_seconds` | 工作进程开始到生成报告时的实际耗时，含资源加载、解析和模拟 | 观察执行器的本地计算开销 |
 | 性能对照中的 `command_seconds` | 外部计时器测得整条命令从启动到退出的实际耗时，含进程启动、报告输出和回收 | 衡量用户等待时间，比较完整命令速度 |
+
+`efficiency.elapsed_game_seconds`与`game_seconds`相同，计入本次初始化、执行、移动、成熟和同步。状态快照完整且时间大于0时，`efficiency.valid=true`；错误、中途打断导致不完整状态或零时间时，速率为null。正常到达游戏窗口、或在调度步之间到达墙钟预算，可以报告已观测到的平均速率。该标记只说明速率可以计算，不证明批量生产已经结算，也不代表允许部署。运行中购买科技时，整段平均速率不能当作升级后稳定速率。重置路线的投资比较见[科技路线计价](../../docs/leaderboards/README.md#重置榜的科技路线计价)。
 
 `command_seconds`由外部性能采样记录，不是单seed CLI的固定输出字段；多seed报告顶层的 `wall_seconds` 表示整批实际耗时，子报告仍表示各工作进程耗时。这些时间不相加。例如20游戏秒、1.391工作进程秒、1.706命令秒，表示约1.706秒现实时间算完20秒游戏过程；按命令计约11.7倍游戏速度。
 

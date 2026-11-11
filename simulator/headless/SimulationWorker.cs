@@ -4,6 +4,9 @@ using System.Text.Json.Nodes;
 
 public static class SimulationWorker
 {
+    /// <summary>在独立工作进程中执行脚本，按实际初始状态和已推进时间生成报告。</summary>
+    /// <param name="options">已校验的输入与有限预算。</param>
+    /// <returns>状态、源码依据及观测速率；不完整快照或零时间不提供有效速率。</returns>
     public static JsonObject Run(SimulationOptions options)
     {
         var watch = Stopwatch.StartNew();
@@ -22,6 +25,13 @@ public static class SimulationWorker
         using var monitor = new SimulationMonitor(watch, options.WallSeconds, options.MaxCalls, options.MaxNodes, options.Trace);
         SimulationMonitor.Current = monitor;
         var sim = scenario.Create(runner, options.Seed, options.Size);
+        var farm = sim.farm;
+        var initialState = new
+        {
+            width = farm.grid.WorldSize.x, height = farm.grid.WorldSize.y,
+            unlocks = ResourceManager.GetAllUnlocks().ToDictionary(u => u.unlockName, u => farm.NumUnlocked(u)),
+            items = ResourceManager.GetAllItems().ToDictionary(x => x.itemName, x => initial[x.itemId])
+        };
         var execution = new Execution(sim, syntax, 1);
         sim.StartProgramExecution(execution);
         var goal = Duration.FromSeconds(options.GameSeconds);
@@ -45,7 +55,11 @@ public static class SimulationWorker
         catch (Exception ex) { internalError = ex.ToString(); }
         string? error = monitor.LimitReason != null ? null : internalError ?? runner.Logger.Error;
         string reason = monitor.LimitReason ?? (error != null ? "error" : !sim.IsExecuting() ? "finished" : sim.CurrentTime >= goal ? "game_time_limit" : sim.Paused ? "paused" : "wall_time_limit");
-        var farm = sim.farm;
+        bool stateComplete = error == null && monitor.LimitReason == null;
+        double elapsed = sim.CurrentTime.Seconds;
+        bool validRate = stateComplete && elapsed > 0;
+        var inventory = ResourceManager.GetAllItems().ToDictionary(x => x.itemName, x => farm.Items.items[x.itemId]);
+        var net = ResourceManager.GetAllItems().ToDictionary(x => x.itemName, x => farm.Items.items[x.itemId] - initial[x.itemId]);
         var grid = farm.grid;
         var report = new
         {
@@ -53,17 +67,33 @@ public static class SimulationWorker
             script = options.Script, seed = options.Seed, preset = scenario.Preset,
             leaderboard = scenario.Leaderboard?.leaderboardName,
             random_mode = scenario.Leaderboard == null ? "seeded_simulate" : "seeded_leaderboard_screening",
-            dependencies = workspace.SourceHashes,
+            dependencies = workspace.SourceHashes, input_hashes = scenario.InputHashes,
+            goal = scenario.Goal,
+            leaderboard_has_overrides = scenario.Leaderboard == null ? (bool?)null : scenario.HasOverrides || options.Size > 0,
+            leaderboard_goal = scenario.Leaderboard == null ? null : new
+            {
+                items = ResourceManager.GetAllItems().Where(x => scenario.Leaderboard.goalItems.items[x.itemId] > 0)
+                    .ToDictionary(x => x.itemName, x => scenario.Leaderboard.goalItems.items[x.itemId]),
+                unlock = scenario.Leaderboard.leaderboardType != LeaderboardType.reset ? null
+                    : scenario.Leaderboard.dlc == Platforms.EDlcType.Mining ? "underground_leaderboard" : "leaderboard"
+            },
             assembly_sha256 = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(typeof(SimulationWorker).Assembly.Location))),
             resources_sha256 = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(dataPath))),
-            initial_state = new { unlocks = scenario.Unlocks, items = ResourceManager.GetAllItems().ToDictionary(x => x.itemName, x => initial[x.itemId]) },
-            stop_reason = reason, state_complete = error == null && monitor.LimitReason == null,
+            initial_state = initialState,
+            stop_reason = reason, state_complete = stateComplete,
             goal_reached = scenario.GoalReached(farm),
             game_seconds = sim.CurrentTime.Seconds, nanoseconds = sim.CurrentTime.nanoseconds,
             wall_seconds = watch.Elapsed.TotalSeconds, steps, interpreter_nodes = monitor.NodeCount,
             api_calls = monitor.Calls, api_ticks = monitor.ApiTicks, total_calls = monitor.CallCount,
-            inventory = ResourceManager.GetAllItems().ToDictionary(x => x.itemName, x => farm.Items.items[x.itemId]),
-            net_inventory = ResourceManager.GetAllItems().ToDictionary(x => x.itemName, x => farm.Items.items[x.itemId] - initial[x.itemId]),
+            inventory, net_inventory = net,
+            efficiency = new
+            {
+                elapsed_game_seconds = elapsed, valid = validRate,
+                items = net.ToDictionary(p => p.Key, p => new
+                {
+                    net_change = p.Value, net_per_game_second = validRate ? p.Value / elapsed : (double?)null
+                })
+            },
             state = new
             {
                 width = grid.WorldSize.x, height = grid.WorldSize.y,

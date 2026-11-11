@@ -11,25 +11,47 @@ public sealed class SimulationScenario
     public LeaderboardSO? Leaderboard { get; private set; }
     public JsonObject? Goal { get; private set; }
     public string[] UnlockStrings => BuiltinFunctions.resetUnlocks.Concat(Unlocks.Where(p => p.Value > 0).Select(p => p.Value == 1 ? p.Key : $"{p.Key}_{p.Value}")).ToArray();
+    /// <summary>实际读取的场景和存档字节哈希，用于复核初始条件。</summary>
+    public Dictionary<string, string> InputHashes { get; } = new();
+    /// <summary>是否显式覆盖场景的库存、科技或目标；地图覆盖由CLI另行记录。</summary>
+    public bool HasOverrides { get; private set; }
 
+    /// <summary>读取初始条件；CLI覆盖场景值，排行榜与preset/save互斥。</summary>
+    /// <param name="scenarioPath">可选场景JSON路径。</param>
+    /// <param name="preset">命令行科技预设。</param>
+    /// <param name="leaderboard">命令行排行榜名称。</param>
+    /// <param name="savePath">只导入科技和库存的存档路径。</param>
+    /// <param name="items">命令行库存覆盖。</param>
+    /// <param name="unlocks">命令行科技覆盖。</param>
+    /// <returns>通过结构、名称和数值检查的场景。</returns>
     public static SimulationScenario Load(string? scenarioPath, string? preset, string? leaderboard, string? savePath,
         Dictionary<string, double> items, Dictionary<string, int> unlocks)
     {
-        var data = scenarioPath == null ? new JsonObject() : JsonNode.Parse(File.ReadAllText(scenarioPath))!.AsObject();
+        var result = new SimulationScenario();
+        var data = scenarioPath == null ? new JsonObject() : result.ReadInput(scenarioPath);
+        foreach (string field in new[] { "items", "unlocks" })
+            if (data.ContainsKey(field) && data[field] is not JsonObject)
+                throw new ArgumentException($"Scenario {field} must be an object: {scenarioPath}");
         foreach (var key in data.Select(p => p.Key))
             if (key is not ("preset" or "items" or "unlocks" or "goal" or "leaderboard"))
                 throw new ArgumentException($"Unknown scenario field: {key}");
-        var result = new SimulationScenario();
+
         string? boardName = leaderboard ?? data["leaderboard"]?.GetValue<string>();
         if (boardName != null)
         {
-            boardName = Normalize(boardName).Replace("lb_", "", StringComparison.Ordinal);
+            boardName = Normalize(boardName);
+            if (boardName.StartsWith("lb_", StringComparison.Ordinal)) boardName = boardName[3..];
             result.Leaderboard = ResourceManager.GetAllLeaderboards().SingleOrDefault(b => b.leaderboardName == boardName)
                 ?? throw new ArgumentException($"Unknown leaderboard: {boardName}");
-            if (preset != null || savePath != null) throw new ArgumentException("Leaderboard cannot be combined with preset/save");
+            if (preset != null || data["preset"] != null || savePath != null)
+                throw new ArgumentException("Leaderboard cannot be combined with preset/save; use item/unlock overrides instead");
         }
         result.Preset = result.Leaderboard?.everythingUnlocked == true ? "all" : result.Leaderboard != null ? "reset" : preset ?? data["preset"]?.GetValue<string>() ?? "max";
-        if (savePath != null) result.Preset = "reset";
+        if (savePath != null)
+        {
+            if (preset != null || data["preset"] != null) throw new ArgumentException("Save cannot be combined with preset; use item/unlock overrides instead");
+            result.Preset = "reset";
+        }
         if (result.Preset is not ("max" or "all" or "reset")) throw new ArgumentException("Unknown preset");
         result.Unlocks = ResourceManager.GetAllUnlocks().ToDictionary(u => u.unlockName,
             u => u.enabled && (result.Preset == "all" || result.Preset == "max" && u.dlc == EDlcType.None) ? u.maxUnlockLevel : 0);
@@ -46,9 +68,11 @@ public sealed class SimulationScenario
         }
         if (savePath != null)
         {
-            var saved = JsonNode.Parse(File.ReadAllText(savePath))!.AsObject();
+            var saved = result.ReadInput(savePath);
+            if (saved["unlocks"] is not JsonArray savedUnlocks || saved["items"] is not JsonObject savedItems || savedItems["serializeList"] is not JsonArray savedRows)
+                throw new ArgumentException($"Save requires unlocks and items.serializeList arrays: {savePath}");
             foreach (string key in result.Unlocks.Keys) result.Unlocks[key] = 0;
-            foreach (var entry in saved["unlocks"]!.AsArray())
+            foreach (var entry in savedUnlocks)
             {
                 string key = entry!.GetValue<string>(); int level = 1;
                 if (!result.Unlocks.ContainsKey(key))
@@ -57,15 +81,41 @@ public sealed class SimulationScenario
                     if (index < 0 || !int.TryParse(key[(index + 1)..], out level)) continue;
                     key = key[..index];
                 }
-                if (result.Unlocks.ContainsKey(key)) result.SetUnlock(key, level);
+                if (result.Unlocks.TryGetValue(key, out int previous))
+                {
+                    if (level < 0) throw new ArgumentException($"Invalid save unlock: {entry}");
+                    // 原始名称和等级名称可能同时存在；导入结果不依赖序列化顺序。
+                    result.SetUnlock(key, Math.Max(previous, level));
+                }
             }
-            foreach (var entry in saved["items"]!["serializeList"]!.AsArray())
-                result.SetItem(entry!["name"]!.GetValue<string>(), entry["nr"]!.GetValue<double>());
+            var names = new HashSet<string>();
+            foreach (var entry in savedRows)
+            {
+                if (entry is not JsonObject row || row["name"] == null || row["nr"] == null)
+                    throw new ArgumentException($"Save item requires name/nr: {savePath}");
+                string name = row["name"]!.GetValue<string>();
+                if (!names.Add(Normalize(name))) throw new ArgumentException($"Duplicate save item: {name}");
+                result.SetItem(name, row["nr"]!.GetValue<double>());
+            }
         }
         if (data["items"] is JsonObject itemData)
-            foreach (var pair in itemData) result.SetItem(pair.Key, pair.Value!.GetValue<double>());
+        {
+            var names = new HashSet<string>();
+            foreach (var pair in itemData)
+            {
+                if (!names.Add(Normalize(pair.Key))) throw new ArgumentException($"Duplicate scenario item: {pair.Key}");
+                result.SetItem(pair.Key, pair.Value!.GetValue<double>());
+            }
+        }
         if (data["unlocks"] is JsonObject unlockData)
-            foreach (var pair in unlockData) result.SetUnlock(pair.Key, pair.Value!.GetValue<int>());
+        {
+            var names = new HashSet<string>();
+            foreach (var pair in unlockData)
+            {
+                if (!names.Add(Normalize(pair.Key))) throw new ArgumentException($"Duplicate scenario unlock: {pair.Key}");
+                result.SetUnlock(pair.Key, pair.Value!.GetValue<int>());
+            }
+        }
         foreach (var pair in items) result.SetItem(pair.Key, pair.Value);
         foreach (var pair in unlocks) result.SetUnlock(pair.Key, pair.Value);
         if (result.Leaderboard != null) result.Unlocks["explosive_drill"] = 0;
@@ -85,6 +135,8 @@ public sealed class SimulationScenario
             }
             else throw new ArgumentException("Goal requires item/amount or unlock");
         }
+        result.HasOverrides = (data["items"]?.AsObject().Count ?? 0) > 0 || (data["unlocks"]?.AsObject().Count ?? 0) > 0
+            || items.Count > 0 || unlocks.Count > 0 || result.Goal != null;
         return result;
     }
 
@@ -123,5 +175,20 @@ public sealed class SimulationScenario
         if (unlock == null || level < 0 || level > unlock.maxUnlockLevel) throw new ArgumentException($"Invalid unlock: {name}={level}");
         Unlocks[key] = level;
     }
-    private static string Normalize(string name) => name[(name.LastIndexOf('.') + 1)..].ToLowerInvariant();
+    /// <summary>将游戏常量名称或裸名称转换为资源表键。</summary>
+    /// <param name="name">例如Items.Coal、Unlocks.Mining或coal。</param>
+    /// <returns>去除常量组前缀后的小写名称。</returns>
+    internal static string Normalize(string name) => name[(name.LastIndexOf('.') + 1)..].ToLowerInvariant();
+
+    /// <summary>只读加载JSON对象，并冻结此次解析使用的字节哈希。</summary>
+    /// <param name="path">场景或存档JSON路径。</param>
+    /// <returns>输入对象；非对象根节点直接拒绝。</returns>
+    private JsonObject ReadInput(string path)
+    {
+        byte[] bytes = File.ReadAllBytes(path);
+        var data = JsonNode.Parse(System.Text.Encoding.UTF8.GetString(bytes).TrimStart('\uFEFF')) as JsonObject
+            ?? throw new ArgumentException($"JSON input must be an object: {path}");
+        InputHashes[path] = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes));
+        return data;
+    }
 }

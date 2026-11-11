@@ -24,11 +24,12 @@ public sealed class SimulationOptions
     public static string Help => """
         TFWRSimulator <script.py> [options]
           --preset max|all|reset   基础满科技 / 含DLC满科技 / 重置初始条件
-          --scenario file.json    初始科技、库存和目标
+          --scenario file.json    初始科技、库存和目标；preset/save与排行榜互斥
           --leaderboard name      排行榜盘面；seed只用于本地筛选
           --save save.json        只读导入科技和库存，不恢复地形
           --item NAME=AMOUNT      覆盖初始库存，可重复
           --unlock NAME=LEVEL     覆盖科技等级，可重复
+          --size 0                固定地图边长1..32；0按Expand科技决定
           --seed 1                单个随机种子
           --seeds 1,2,3 --jobs 3   独立进程并行，共享墙钟预算
           --seconds 30            游戏时间上限（别名 --game-seconds）
@@ -40,9 +41,14 @@ public sealed class SimulationOptions
           --json report.json      写报告（别名 --output）
         """;
 
+    /// <summary>解析CLI输入并拒绝重复资源名、错误入口和相互覆盖的文件路径。</summary>
+    /// <param name="args">入口路径与后续参数；至少包含入口路径。</param>
+    /// <returns>传入工作进程的已验证选项。</returns>
     public static SimulationOptions Parse(string[] args)
     {
         var result = new SimulationOptions { Script = Path.GetFullPath(args[0]) };
+        if (!Path.GetExtension(result.Script).Equals(".py", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException($"Script must be a .py file: {result.Script}");
         var seen = new HashSet<string>();
         for (int i = 1; i < args.Length; i++)
         {
@@ -68,8 +74,16 @@ public sealed class SimulationOptions
                 case "--save": result.Save = Path.GetFullPath(value); break;
                 case "--json": result.Output = Path.GetFullPath(value); break;
                 case "--trace": result.Trace = Path.GetFullPath(value); break;
-                case "--item": var item = Pair(value); result.Items.Add(item.name, Double(item.value)); break;
-                case "--unlock": var unlock = Pair(value); result.Unlocks.Add(unlock.name, Int(unlock.value)); break;
+                case "--item":
+                    var item = Pair(value);
+                    if (!result.Items.TryAdd(SimulationScenario.Normalize(item.name), Double(item.value)))
+                        throw new ArgumentException($"Duplicate item: {item.name}");
+                    break;
+                case "--unlock":
+                    var unlock = Pair(value);
+                    if (!result.Unlocks.TryAdd(SimulationScenario.Normalize(unlock.name), Int(unlock.value)))
+                        throw new ArgumentException($"Duplicate unlock: {unlock.name}");
+                    break;
                 default: throw new ArgumentException($"Unknown option: {option}");
             }
         }
