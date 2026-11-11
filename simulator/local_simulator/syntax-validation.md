@@ -1,4 +1,6 @@
-# 游戏语言静态检查
+# Python旧后端的游戏语言检查记录
+
+本文保留旧后端移除前的语法修复与实机对照，旧错误结构和执行覆盖描述只适用于当时版本。当前入口及规则见[C#游戏语言检查](../headless/syntax-validation.md)；已移除源码的查询方式见[资料说明](README.md)。
 
 游戏脚本使用原版`Tokenizer/Parser`定义的语言子集。Python能够解析或执行一段代码，不表示游戏支持它。不要在游戏脚本中使用三元条件表达式、推导式、lambda、f-string、参数解包、`is`比较等Python专属写法。此约束适用于游戏源文件；模拟器和控制工具使用标准Python。
 
@@ -6,7 +8,7 @@
 
 ## 实现与依据
 
-[game_parser.py](game_parser.py)对应当前反编译[Tokenizer与Parser](../../references/DecompiledSource/Core/Core.decompiled.cs#L18716)，检查原版词法、运算符层次、调用/容器序列、函数参数、缩进块、控制流及导入语法。[syntax.py](syntax.py)检查赋值目标、先声明global后赋值，以及`CodeWindow.Parse()`调用的三个`CheckForNonsensicalCode()`覆写。[runner.py](runner.py)的`compile_source`把它们放在执行覆盖检查之前。
+旧 `game_parser.py` 对应反编译[Tokenizer与Parser](../../references/DecompiledSource/Core/Core.decompiled.cs#L18716)，检查原版词法、运算符层次、调用/容器序列、函数参数、缩进块、控制流及导入语法。旧 `syntax.py` 检查赋值目标、先声明global后赋值，以及 `CodeWindow.Parse()` 调用的三个 `CheckForNonsensicalCode()` 覆写。旧 `runner.py` 的 `compile_source` 将它们放在执行覆盖检查之前。
 
 后端计费转换为了模拟短路求值可以生成`IfExp`等内部节点；内部实现能力不能作为游戏源语法的支持依据。游戏源代码的执行白名单不再包含`ast.IfExp`、`ast.Is`和`ast.IsNot`。源码或依赖变化后须重新检查，不能沿用旧源码的效率报告。
 

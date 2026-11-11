@@ -36,7 +36,7 @@ python3 game_control/tools/run_real_game_script.py --action quit
 - 补记官方完整统计的最后完成轮，增加 Steam 初始化与榜单下载诊断。
 - 配套客户端提供适合 AI 调用的 JSON 任务接口、幂等提交、增量监控和结果归档。
 
-仓库中的本地模拟器只提供预测，精度与已验证范围见[模拟器验收与限制](https://github.com/MengLeiFudge/TFWR_Simulator/blob/master/simulator/local_simulator/validation.md)。候选策略仍须真实游戏确认。
+仓库中的本地模拟器只提供预测，精度与已验证范围见[模拟器验收与限制](https://github.com/MengLeiFudge/TFWR_Simulator/blob/master/simulator/headless/validation.md)。候选策略仍须真实游戏确认。
 
 ## 安装到 R2
 

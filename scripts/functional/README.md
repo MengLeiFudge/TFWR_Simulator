@@ -76,11 +76,11 @@ MIT来源的木材、胡萝卜、南瓜和恐龙脚本保留作者声明及 [eni
 ## 本地效率对照
 
 ```bash
-python3 -m simulator.local_simulator scripts/functional/bamboo.py --preset all --scenario scenario.json --timeout 30 --max-api-calls 5000000 --max-steps 50000000 --output result.json
+dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/functional/bamboo.py --preset all --scenario scenario.json --seconds 30 --wall-seconds 10 --max-api-calls 5000000 --max-nodes 50000000 --json result.json
 ```
 
-`scenario.json`必须明确初始库存；比较双方使用相同科技、地图、库存和seed。连续产出先给有限现实预算，直接读取报告 `efficiency.items.资源名.net_change` 和 `net_per_game_second`，按实际游戏时间评价。现实预算到即停止，无须凑满600游戏秒；`--game-seconds 600`仅在需要固定展示窗口时使用，未跑满就保留实际时间，不填写成600秒产量。
+首次先按[C#入口说明](../../simulator/headless/README.md)构建；WSL使用Windows `dotnet.exe`。`scenario.json`必须明确初始库存；比较双方使用相同科技、地图、库存和seed。连续产出先给有限现实预算，读取 `net_inventory.资源名`，除以报告实际 `game_seconds` 得到每游戏秒净增长。预算到即停止，不为凑固定展示时长延长运行；未跑满 `--seconds` 时保留实际推进时间。
 
 恐龙等批量结算机制必须跑完至少一个完整周期，收益以实际入库为准；未结算时不把0当作周期效率。持续脚本可通过本地有限入口调用原有完整生产周期，保留算法与依赖哈希，不在真实存档新增入口。材料消耗、首次Jump、初始化及后续周期都要记录。
 
-只有通过本地正确性和效率对照、且效率严格高于当前存档对应版本时，才允许覆盖该文件。同效迁入、批量尚未结算、错误或对照不足都保留当前存档。运行前核对同目录依赖；检查[游戏语言静态规则](../../simulator/local_simulator/syntax-validation.md)，语法不合格的模型产量不能作为替换依据。
+只有通过本地正确性和效率对照、且效率严格高于当前存档对应版本时，才允许覆盖该文件。同效迁入、批量尚未结算、错误或对照不足都保留当前存档。运行前核对同目录依赖；检查[C#游戏语言规则](../../simulator/headless/syntax-validation.md)，语法不合格的模型产量不能作为替换依据。

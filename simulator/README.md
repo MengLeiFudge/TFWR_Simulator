@@ -1,11 +1,11 @@
 # 本地模拟器
 
-`simulator/` 的默认脚本执行器是 [C# 无界面模拟器](headless/README.md)，直接运行原版游戏语言、调度与世界机制。Python旧模型保留作迁移对照；C# Dinosaur、Cactus、Companion简化动作模型另用于预算筛选。
+`simulator/` 的默认脚本执行器是 [C# 无界面模拟器](headless/README.md)，直接运行原版游戏语言、调度与世界机制。旧Python执行器已移除，仅保留历史证据；C# Dinosaur、Cactus、Companion简化动作模型另用于预算筛选。
 
 无需打开游戏即可运行，是脚本的主要验证方式。C#入口先用原版Tokenizer/Parser检查入口和全部静态导入，再执行脚本；CPython能力不能作为游戏语法依据。能力与精度分别说明：
 
 - [C#完整脚本模拟](headless/README.md)支持地上、地下、多无人机和30个原版排行榜场景。已验证的方法、归档实机重放、性能和剩余边界见[验收记录](headless/validation.md)。
-- [Python历史模型](local_simulator/README.md)供迁移对照和历史研究工具使用；不再是默认入口。历史证据继续保存在对应文档，不自动转成C#已验收结论。
+- [Python历史资料](local_simulator/README.md)仅保存对照记录、机制研究和来源快照，目录内没有旧执行代码。历史证据不自动转成C#已验收结论。
 - 下文C#动作模型只验证简化机制和动作预算，不执行脚本。随机序列对照范围见[随机数研究](randomness.md)。
 - 真实排名结论仍以 `game_control/` + `game_mod/` 跑出来的游戏结果为准。
 

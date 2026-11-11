@@ -405,7 +405,7 @@ seed0保留完整24线费用表：交换S=274，巡航C=414（含最终回位）
 - 实现未改：仍使用当前 `lb_cactus_single()`、`plant_and_sort_rows()`、`local_sort_after_plant()`、`sort_columns()` 与 `sort_one_way()`。
 - 真实请求 35：六 seed 分别运行原策略、API 记录版和边界探针。9473 个离散 API 返回值、54 条边界观测一致；原策略与本地的最终库存均为 Cactus=131072、Pumpkin=999995904。
 - seed=1：本地 API 时间 21.3601 秒，实机 tick 折算 21.9996 秒；差额含游戏解释器及验证入口开销，不用经验倍率抹平。其他五个 seed 的低估比例也在 2.84%～2.92% 内。
-- 使用：`python3 -m simulator.local_simulator scripts/leaderboard/lb_cactus_single.py --seed 1`。支持轨迹与上限，范围见上方说明。
+- 该段对应已移除的Python模型。当前执行方式见[C#入口](../../simulator/headless/README.md)，上方历史时间和误差不改写为C#结果。
 - 后续先补模拟器机制/计时覆盖，再用其筛选策略。模型预测通过后仍须真实游戏打榜，不能把本次 `simulate` 当作官方完整统计。
 
 ## 2026-10-25：种植预分区的重抽缓存约束

@@ -9,4 +9,4 @@
 | [leaderboards/leaderboard_cache.json](leaderboards/leaderboard_cache.json) | 公开排行榜来源、抓取时间和成绩缓存 |
 | [leaderboards/status_snapshot.md](leaderboards/status_snapshot.md) | 七列状态总表所用的30榜公开#1、#10或末名、人数及当前账号最高记录和排名，逐榜保留查询时间 |
 
-排行榜可执行脚本位于 [scripts/leaderboard](../scripts/leaderboard/README.md)，策略记录和生成的成绩比较报告位于 [docs/leaderboards](../docs/leaderboards/README.md)。模拟器执行所依赖的资源表随 `simulator/local_simulator/` 保存，避免执行模型依赖研究文档。
+排行榜可执行脚本位于 [scripts/leaderboard](../scripts/leaderboard/README.md)，策略记录和生成的成绩比较报告位于 [docs/leaderboards](../docs/leaderboards/README.md)。C#模拟器执行所需的资源表位于 `simulator/headless/data/assets.json`；`simulator/local_simulator/`只保留历史来源快照和对照资料。

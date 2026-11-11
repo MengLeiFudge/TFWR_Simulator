@@ -1,6 +1,6 @@
 # C# 无界面脚本模拟器
 
-这是游戏脚本的默认本地执行入口。运行时只需要 .NET 10；不需要 Python、Unity、Steam、BepInEx 或真实存档。它直接使用当前原版的语言解释器、调度器、农场和地下世界源码，配套原版资源快照。
+这是游戏脚本的本地执行入口，旧Python模拟执行器已移除。运行时只需要.NET 10，不需要Python、Unity、Steam、BepInEx或真实存档。它直接使用原版语言解释器、调度器、农场和地下世界源码，配套原版资源快照。
 
 ## 构建与运行
 
@@ -8,7 +8,7 @@
 
 ```bash
 dotnet build simulator/headless/TFWRSimulator.csproj -c Release
-dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/functional/block.py --preset all --seconds 300 --wall-seconds 10 --json block-report.json
+dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/functional/block.py --preset all --item Dynamite=2000 --seconds 60 --wall-seconds 10 --json block-report.json
 ```
 
 WSL 中构建和执行使用 Windows `dotnet.exe`，例如 `"/mnt/c/Program Files/dotnet/dotnet.exe"`。从仓库根目录传相对路径，避免把 WSL 绝对路径传给 Windows 进程。
@@ -32,7 +32,7 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 {"preset":"all","items":{"Dynamite":2000},"unlocks":{},"goal":{"item":"Block","amount":1000000}}
 ```
 
-目标只用于结束时报告，不会替脚本提前终止。连续脚本到窗口即停止；恐龙等批量结算仍须由脚本完成至少一轮后才能比较效率。部署准入继续遵守[脚本验证规则](../../docs/script-validation.md)。
+目标只用于结束时报告，不会替脚本提前终止。连续脚本到窗口即停止；恐龙等批量结算仍须由脚本完成至少一轮后才能比较效率。部署准入继续遵守[脚本验证规则](../../docs/script-validation.md)，语法边界见[原版语言检查](syntax-validation.md)。
 
 ## 执行范围与边界
 
@@ -48,6 +48,14 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 ## 报告
 
 报告包含脚本与全部依赖SHA256、模拟程序集和资源SHA256、seed、初始科技/库存、纳秒时间、净库存、调用数、API tick、无人机与表层格子状态、停止原因和脚本输出。它是观测摘要，不是可恢复整个世界的存档。终态游戏秒包含初始化、执行、移动、成熟和同步费用；效率用净增长除以实际游戏秒。
+
+| 字段 | 含义 | 用途 |
+| --- | --- | --- |
+| `game_seconds` | 模拟世界推进的游戏时间 | 计算资源产出速率、游戏任务及成就窗口 |
+| 单seed报告的 `wall_seconds` | 工作进程开始到生成报告时的实际耗时，含资源加载、解析和模拟 | 观察执行器的本地计算开销 |
+| 性能对照中的 `command_seconds` | 外部计时器测得整条命令从启动到退出的实际耗时，含进程启动、报告输出和回收 | 衡量用户等待时间，比较完整命令速度 |
+
+`command_seconds`由外部性能采样记录，不是单seed CLI的固定输出字段；多seed报告顶层的 `wall_seconds` 表示整批实际耗时，子报告仍表示各工作进程耗时。这些时间不相加。例如20游戏秒、1.391工作进程秒、1.706命令秒，表示约1.706秒现实时间算完20秒游戏过程；按命令计约11.7倍游戏速度。
 
 - `finished`：脚本正常结束。`goal_reached` 另行判断库存/科技目标。
 - `game_time_limit`、`wall_time_limit`、`api_call_limit`、`node_limit`：预算耗尽，不能标作完整任务成功。

@@ -4,7 +4,7 @@
 
 ## 当前本地流程
 
-`simulator/` 的 C# Dinosaur、Cactus、Companion 模型通过 CLI 手动估算动作数、完成率和命中率。另有 [Python 农场API模拟](local_simulator/README.md)，可运行受支持的游戏脚本，已覆盖主要作物、恐龙、迷宫和无人机机制；二者都没有自动串入 `run_real_game_script.py`。
+`simulator/` 的 C# Dinosaur、Cactus、Companion 模型通过 CLI 手动估算动作数、完成率和命中率。[C#完整脚本模拟](headless/README.md)执行原版语言、世界与调度机制；两类模型都没有自动串入 `run_real_game_script.py`。Python旧执行器已移除，下文既有随机数对照仍按原版本保留。
 
 新增的 `rng` 命令只用于对照流初始化和初始抽样，不改变现有动作模型的采样口径：
 
@@ -50,7 +50,7 @@ dotnet run --project simulator/TFWRMechanismModel.csproj -- rng --seed 123 --sam
 - Core.dll：`b8ac8d22b614d9e48d3affa9a4de9c77e799b824ed8f50dc2e494cc2dd9f9082`
 - mscorlib.dll：`0e948cbd3c4fd36c10ed5bbbcf5ecab43d1a757a3afda30a662534cce7c6ec0f`
 
-本节初始序列实验验证了三台无人机各自的脚本流，以及固定单无人机种植轨迹下的 Cactus/Sunflower 流。该实验未覆盖负 seed 的游戏入口行为、共享随机流的并发种植、生长/浇水/伴生事件、迷宫、苹果生成与多轮 leaderboard 的完整世界轨迹；后续方法、机制和长程对照的范围见[当前验收](local_simulator/validation.md)。
+本节初始序列实验验证了三台无人机各自的脚本流，以及固定单无人机种植轨迹下的 Cactus/Sunflower 流。该实验未覆盖负 seed 的游戏入口行为、共享随机流的并发种植、生长/浇水/伴生事件、迷宫、苹果生成与多轮 leaderboard 的完整世界轨迹；后续方法、机制和长程对照的范围见[历史验收](local_simulator/validation.md)。
 
 ## 旧 Python 偏差来自哪里
 
@@ -73,4 +73,4 @@ dotnet run --project simulator/TFWRMechanismModel.csproj -- rng --seed 123 --sam
 
 快速优化优先用现有动作模型做分布和预算筛选，成本低于重建完整解释器。若某条策略确实需要 seed 精确回放，应按“初始世界 → 单个 API → 重启/生长事件 → 单无人机 → 多无人机 → 多轮”逐层比较首次分歧，记录流名、调用序号、实体和 tick。
 
-模型通过只表示预测口径成立；真实 leaderboard 完成轮、均值和波动才支持更新最快策略。2026-10-23的后续实现已覆盖全部公开作物的主要机制并通过662条方法/机制观测对照，见[当前验收](local_simulator/validation.md)。脚本计时与共享随机事件随后按原版执行规则实现，已通过记录中的单seed长程门槛；本文初始随机序列对齐不能单独推导整轮时间精度。
+模型通过只表示预测口径成立；真实 leaderboard 完成轮、均值和波动才支持更新最快策略。2026-10-23的后续实现已覆盖全部公开作物的主要机制并通过662条方法/机制观测对照，见[历史验收](local_simulator/validation.md)。脚本计时与共享随机事件随后按原版执行规则实现，已通过记录中的单seed长程门槛；本文初始随机序列对齐不能单独推导整轮时间精度。

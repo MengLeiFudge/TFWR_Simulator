@@ -149,6 +149,6 @@ Cactus的223.2期望逆序仅适用于独立均匀数字的初始32格行，不�
 
 ## 模型与证据边界
 
-[本地脚本模拟器](../../simulator/local_simulator/README.md)已实现操作计时与离散事件，记录中的约900秒单seed场景最大时间差0.02605秒，详见[验收范围](../../simulator/local_simulator/validation.md)。这不表示任意完整策略已对齐，尤其完整Fastest Reset尚未验证。
+[Python历史模型](../../simulator/local_simulator/README.md)曾实现操作计时与离散事件；当时约900秒单seed场景最大时间差0.02605秒，详见[历史验收](../../simulator/local_simulator/validation.md)，该批尚未验证完整Fastest Reset。旧执行器现已移除，后续脚本统一使用[C#入口](../../simulator/headless/README.md)，其覆盖范围独立记录，不沿用旧模型的精度声明。
 
 每个榜的实现、失败与接近候选、实机请求和统计写入同名`lb_xxx.md`。旧记录中“下一步”可能已被后续实验否定；先核对版本、机制和后续证据，再决定是否复用结论。模拟预测与轮内ETA始终不能代替真实成绩。

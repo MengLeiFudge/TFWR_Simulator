@@ -6,7 +6,7 @@
 - [地下功能批次效率](underground-functional-validation.md)：三seed净增长、完整两盘炸药与对应版本的调度边界。
 - [铁与石英勘探对照](underground-prospecting.md)：探测返回值、铁的煤引导采矿与石英32机候选结果。
 - [地下方向与淘汰记录](leaderboards/underground_efficiency_iteration.md)：14榜的策略筛选、完整目标结果和后续方向。
-- [游戏语言静态检查](../simulator/local_simulator/syntax-validation.md)：原版词法/语法及静态规则、错误行列、竹子条件表达式与木材条件修复。
+- [游戏语言静态检查](../simulator/headless/syntax-validation.md)：C#原版解析入口、导入检查、位置参数和源语言边界。
 - [WSL文件工具读取完整性](wsl-file-read.md)：Windows挂载盘的短读边界、文件快照校验与截断证据。
 - [排行榜共用方法](leaderboards/README.md)：方向探索、机制淘汰、预算与实机准入。
 - [排行榜进度](leaderboards/leaderboard_progress.md)：统一七列——排行榜、#1、#10或末名、账号最高记录及排名、最好模拟时间、距#1的比例与改进方向；单次完整统计另保留历史归属。
