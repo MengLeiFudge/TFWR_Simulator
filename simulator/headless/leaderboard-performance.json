@@ -1,0 +1,55 @@
+{
+  "script": "scripts/leaderboard/lb_ores_single.py",
+  "source_sha256": "bbee2f6c2d2550eb688892e3c915d3c93df51070974f922c9b80ad33b1f420a4",
+  "seed": 1,
+  "leaderboard": "ores_single",
+  "rows": [
+    {
+      "backend": "csharp",
+      "command_seconds": 0.965242822188884,
+      "worker_seconds": 0.4766224,
+      "game_seconds": 538.47601803,
+      "status": "finished",
+      "goal_reached": true,
+      "error": null,
+      "exit_code": 0
+    },
+    {
+      "backend": "python",
+      "command_seconds": 2.7751349192112684,
+      "worker_seconds": 1.781360432971269,
+      "game_seconds": 538.47601803,
+      "status": "completed",
+      "goal_reached": true,
+      "error": null,
+      "exit_code": 0
+    }
+  ],
+  "agreement": {
+    "game_seconds_equal": true,
+    "inventory_equal": true,
+    "cell_depths_equal": true,
+    "cell_count": 64,
+    "quartz": 4000,
+    "initial_inventory_equal": true,
+    "initial_unlocks_equal": true
+  },
+  "command_speedup": 2.8750640309534616,
+  "worker_speedup": 3.7374668772832935,
+  "csharp_game_seconds_per_worker_second": 1129.774886849632,
+  "assembly_sha256": "9151a44736f7325c91fd7041bee6757668a9dfb2a9ced4f3fe780c11c8bab3c1",
+  "resources_sha256": "8c3c889c6f8c7415beee2b1c8e2fa428de20bdeb3775eddd65369032aee179d7",
+  "environment": {
+    "csharp": "Windows .NET 10, Release",
+    "python": "3.12.3 on WSL",
+    "execution": "sequential single-seed, one complete run per backend"
+  },
+  "limits": {
+    "wall_seconds_per_backend": 10,
+    "game_seconds": 7200
+  },
+  "raw_reports": {
+    "csharp": ".codex/csharp-simulator/leaderboard-performance/csharp.json",
+    "python": ".codex/csharp-simulator/leaderboard-performance/python.json"
+  }
+}
