@@ -1,8 +1,10 @@
 # 地下Reset（fastest_underground_reset）
 
+2026-11-11当前真源已改为早四机、分区追煤、分段追铁、迷宫筹资、Mining8后的Dynamite4与12格扫雷。C#原目标三seed完整均值3390.747秒；request497官方完整三轮平均**54:39.570**，公开**#4**，一小时目标达成，距#1仍+155.2%。当前路线、投资回本、全部对照和下一阶段归[一小时路线筛选](underground_reset_hour.md)，原始条件归[本轮证据](../../references/leaderboards/underground_reset_hour_20261111.json)。下面保留此前阶段的版本与证据。
+
 2026-11-10：仓库真源仍为向日葵供能、增量扫雷及Dynamite3后Expand5，完整三seed本地均值11067.624583秒。早四机路线完整三seed均值8668.996711秒；连续追铁并行补煤后三个有界窗口仅外推最终炸药，整轮均值约7009.194169秒，仍比当前公开#1慢445.4%。最新研究已区分最低60石英与Mining7等投资，按矿物增产、挖掘升级和盘面规模重新计价，见“最低资源账与投资回本”；尚无接近榜首的新完整路线。均未实机、未替换Save0。
 
-## 当前实现
+## 2026-11-10实现（历史）
 
 从零库存读取当前get_cost筹资，逐步发展6×6单机。保留Rice3后Coal2、Expand4后的Grass2/Trees2/Carrots2/Speed5、Mining5后的Iron2/Rice5/Coal3及付费勘探路线。随后真实支付Mining6/7/8与蘑菇、藏宝图、Quartz等前置，最终支付20000 Dynamite和200000 Bamboo；Dynamite3完成后追加Expand5，再解锁Underground_Leaderboard。每次unlock前复核整组成本；种子随科技变化仍实付。
 

@@ -206,10 +206,10 @@
     },
     "lb_fastest_underground_reset": {
       "label": "地下重置",
-      "simulation_seconds": 7009.194168678912,
-      "simulation_basis": "早四机、连续追铁与四机补煤。三个45秒现实预算窗口已完成前置和最终竹子，按31/41/31个完整炸药结算盘仅外推末段，整轮7558.742/6413.760/7055.081秒，均7009.194；未完整解锁、未实机。公式、源码/报告/模型指纹见underground_reset_structure_20261110.json。另有早四机完整三seed均8668.997。",
+      "simulation_seconds": 3390.7472578056663,
+      "simulation_basis": "C#原版重置、零库存、seed1/2/3完整3476.439/3327.536/3368.266秒，均3390.747；Mining8后Dynamite4、Pumpkins3，分区追煤与分段追铁，12格扫雷。2026-11-11 request497官方完整3轮3279.570秒，当前账号公开#4；独立随机流均值差3.4%不作为同seed精度验收。详见underground_reset_hour.md及underground_reset_hour_20261111.json。",
       "evidence": "lb_fastest_underground_reset.md",
-      "direction": "先算必需60石英与可选投资：比较110石英/Quartz2/Mining6和200石英/Quartz2或3/Mining8，配合12格扫雷；优先压缩首批10煤的318秒及地上预投资，按实际采集速率算回本。"
+      "direction": "已达一小时阶段目标；距#1仍+155.2%。四机启动约25分钟已长于#1整轮，优先比较地下先行的轻启动、金币来源与无人机购买时点，再比较石英定向开采和扫雷连续下行，按剩余需求与真实速率核算投资。"
     }
   }
 }
