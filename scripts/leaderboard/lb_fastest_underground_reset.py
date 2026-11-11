@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：54:39.570（2026-11-11官方完整3轮，request497）；C#原目标3seed均值3390.747秒。
+# 完整轮时间：未取得；C#原目标3seed均值3182.025秒（2026-11-11，当前策略未实机）。
 
 def lb_fastest_underground_reset():
     ur_s_step1()
@@ -27,7 +27,7 @@ def lb_fastest_underground_reset():
               (Unlocks.Iron, 1), (Unlocks.Mining, 4), (Unlocks.Bamboo, 1),
               (Unlocks.Mining, 5), (Unlocks.Prospecting, 1), (Unlocks.Iron, 2),
               (Unlocks.Mining, 6), (Unlocks.Rice, 5), (Unlocks.Coal, 3),
-              (Unlocks.Iron, 3), (Unlocks.Quartz, 2), (Unlocks.Bamboo, 3),
+              (Unlocks.Iron, 4), (Unlocks.Quartz, 3), (Unlocks.Ore_Boost, 1), (Unlocks.Bamboo, 3),
               (Unlocks.Mining, 7), (Unlocks.Mushrooms, 3), (Unlocks.Mining, 8),
               (Unlocks.Bamboo, 4), (Unlocks.Dynamite, 4), (Unlocks.Pumpkins, 3),
               (Unlocks.Expand, 6), (Unlocks.Underground_Leaderboard, 1)]
@@ -1308,7 +1308,8 @@ def ur_i_stock(goal):
             return True
         if get_time() > deadline:
             return False
-        if num_items(Items.Coal) < 8 and not ur_need(Items.Coal, 16):
+        # 预付足够的方向勘探煤，避免半途缺煤后重新清场、揭盖。
+        if num_items(Items.Coal) < 2 * size + 8 and not ur_need(Items.Coal, max(64, 4 * size)):
             return False
         clear()
         before = num_items(Items.Iron)
@@ -1357,8 +1358,9 @@ def ur_i_stock(goal):
             empty = 0
         else:
             empty += 1
-            if empty >= 2:
-                return ur_mine(Items.Iron, goal, deadline)
+            # 无矿片只作有限重生；不为短订单改扫整片深层。
+            if empty >= 8:
+                return False
     return num_items(Items.Iron) >= goal
 
 
@@ -1386,14 +1388,7 @@ def ur_q_stock(goal):
                 break
             if prospect_quartz() == None:
                 continue
-            ready = True
-            for point in anchors:
-                if not ur_q_prepare(point[0], point[1], -layer, deadline, size):
-                    ready = False
-                    break
-            if not ready:
-                break
-            # 先完成全部开挖，再在不改地形时重读三点，不能缓存塌方前的距离。
+            # 邻接锚点保留实际高度；测距期间不挖掘，无须再钻两根同深柱。
             samples = []
             for point in anchors:
                 if not ur_d_move_to(point[0], point[1], size):
@@ -1422,7 +1417,19 @@ def ur_q_stock(goal):
                         return False
                     found = True
                     continue
-                if found or get_pos_z() < target[2] or get_hardness() >= 10000000:
+                if found:
+                    # 先兑现仍露在相邻柱顶的石英，再考虑重生。
+                    direction = None
+                    for side in [North, East, South, West]:
+                        if get_ground_type(side) == Grounds.Quartz:
+                            direction = side
+                            break
+                    if direction != None:
+                        if not move(direction):
+                            return False
+                        continue
+                    break
+                if get_pos_z() < target[2] or get_hardness() >= 10000000:
                     break
                 if not dig():
                     return False

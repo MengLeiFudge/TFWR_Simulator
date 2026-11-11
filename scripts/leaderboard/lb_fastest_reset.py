@@ -1,21 +1,23 @@
 from __builtins__ import *
-# 完整轮时间：50:46.596（2026-11-03，build26385848，官方完整3轮，request254）。
+# 完整轮时间：未取得；C#原目标3seed均值2790.992秒（2026-11-11，当前策略未实机）。
 # 恐龙路径Copyright (c) 2026 enihsyou，MIT许可见enihsyou_LICENSE.txt。
+# 小迷宫沿用lb_maze的zzlg-git方案；来源与许可边界见同名策略文档。
 
 
 def lb_fastest_reset():
     step1()
-    quick_print("directed", "step1", get_time(), num_items(Items.Hay), num_items(Items.Wood))
-    plan = [Unlocks.Speed, Unlocks.Expand, Unlocks.Trees, Unlocks.Speed,
-            Unlocks.Grass, Unlocks.Trees, Unlocks.Grass, Unlocks.Carrots,
-            Unlocks.Expand, Unlocks.Watering, Unlocks.Fertilizer, Unlocks.Sunflowers]
-    for technology in plan:
+    # 先取得树和胡萝卜增产，供能后再实付Speed5与伴生。
+    for technology in [Unlocks.Speed, Unlocks.Trees, Unlocks.Expand,
+                       Unlocks.Grass, Unlocks.Trees, Unlocks.Carrots,
+                       Unlocks.Speed, Unlocks.Expand, Unlocks.Watering,
+                       Unlocks.Grass, Unlocks.Trees, Unlocks.Grass,
+                       Unlocks.Carrots, Unlocks.Fertilizer, Unlocks.Sunflowers]:
         if not buy(technology):
             return
     if not solar_reserve():
         return
-    for technology in [Unlocks.Trees, Unlocks.Grass, Unlocks.Carrots,
-                       Unlocks.Pumpkins, Unlocks.Speed, Unlocks.Pumpkins, Unlocks.Polyculture]:
+    for technology in [Unlocks.Speed, Unlocks.Speed, Unlocks.Pumpkins,
+                       Unlocks.Pumpkins, Unlocks.Polyculture]:
         if not buy(technology):
             return
     quick_print("directed", "polyculture", get_time(), num_items(Items.Power),
@@ -469,7 +471,8 @@ def nursery_produce_strip(worker, workers, size, crop, support, item, target, we
         go(x, y)
         if accepted[index]:
             if can_harvest():
-                if weird and not use_item(Items.Fertilizer):
+                # 棋盘树互不相邻；感染成熟树供Weird，不再每次消耗一份肥料。
+                if weird and not use_item(Items.Weird_Substance, 1):
                     return (False, produced, rejected, unready)
                 if not harvest():
                     return (False, produced, rejected, unready)
@@ -486,6 +489,8 @@ def nursery_produce_strip(worker, workers, size, crop, support, item, target, we
             till()
         matched = False
         for attempt in range(128):
+            if num_items(item) >= target:
+                return (True, produced, rejected, unready)
             if get_time() > deadline or not affordable(get_cost(crop)) or not plant(crop):
                 return (False, produced, rejected, unready)
             companion = get_companion()
@@ -530,14 +535,7 @@ def parallel_nursery_stock(item, target, weird=False):
         if not nursery_stock(Items.Wood, reserve * seed[Items.Wood]):
             return False
     deadline = min(7000, get_time() + 700)
-    if weird:
-        gain = 5 * 2 ** (num_unlocked(Unlocks.Trees) - 1) * (5 * 2 ** num_unlocked(Unlocks.Polyculture)) // 2
-        required = (target - num_items(item) + gain - 1) // gain + workers
-        while num_items(Items.Fertilizer) < required:
-            if get_time() > deadline:
-                quick_print("directed_failed", "nursery_fertilizer_reserve", get_time(), required)
-                return False
-            do_a_flip()
+    # 感染循环消耗Weird，首份种子已由单机苗圃真实筹齐。
     clear()
     if support == Entities.Bush:
         handles = []
@@ -581,7 +579,8 @@ def parallel_nursery_stock(item, target, weird=False):
             produced += result[1]
             rejected += result[2]
             unready += result[3]
-    if not passed or num_items(item) < target:
+    # 全部工人回收后按实际库存判定，其他工人可能已完成共享订单。
+    if num_items(item) < target:
         quick_print("directed_failed", "nursery_production_workers", item, get_time(), num_items(item), target)
         return False
     quick_print("directed_parallel_nursery", item, beginning, get_time(), workers, produced, rejected, unready, num_items(item) - initial)
@@ -1147,34 +1146,17 @@ def maze_team(graph, size, workers, target_gold, unit, deadline):
 
 
 def finish_gold():
-    size = get_world_size()
-    multiplier = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
-    unit = size * multiplier
-    gain = size * size * multiplier
-    while num_items(Items.Gold) < 1000000:
-        if not ensure_power(2000):
-            return False
-        count = min(299, (1000000 - num_items(Items.Gold) + gain - 1) // gain)
-        target_gold = num_items(Items.Gold) + count * gain
-        if not boost_stock({Items.Weird_Substance: unit * (count + 1)}, True):
-            return False
-        clear()
-        if not plant(Entities.Bush) or not use_item(Items.Weird_Substance, unit):
-            return False
-        graph = build_maze_graph(size)
-        if not maze_team(graph, size, min(max_drones(), 8), target_gold, unit, min(7000, get_time() + 800)):
-            quick_print("directed_failed", "station_gold", get_time(), num_items(Items.Gold))
-            return False
-        clear()
-        quick_print("directed_gold", get_time(), num_items(Items.Gold), num_items(Items.Power), num_items(Items.Fertilizer))
-    return True
+    if not ensure_power(2000):
+        return False
+    return small_maze_gold(1000000)
 
 
 
 
 
 def finish_bones():
-    if not ensure_power(2200):
+    # 迷宫工人均已回收，四条16格D4恐龙实测约耗410 Power，预留600。
+    if not ensure_power(600):
         return False
     clear()
     for cycle in range(15):
@@ -1380,6 +1362,298 @@ def run_dinosaur_chase_loop(size):
                     break  # 碰到尾巴
             dir = West  # 在边界转向
             continue
+
+def small_maze_gold(target):
+    # 八机各修一座5格小迷宫；所有子机回收后才清场。
+    WORLD = get_world_size()
+    TARGET_GOLD = target
+    DRONES = min(max_drones(), 8)
+    REUSE_LIMIT = 300
+    DIRS = [North, East, South, West]
+    BACK = [2, 3, 0, 1]
+    MULT = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
+    n = WORLD // 3
+    deadline = min(7000, get_time() + 800)
+    # 金币/Weird比为宫边长；另付创建、到位登记和并行超收的完整储备。
+    required = (max(0, target - num_items(Items.Gold)) + n - 1) // n + 8 * n * MULT * DRONES + 2 * DRONES
+    if not boost_stock({Items.Weird_Substance: required}, True):
+        return False
+    clear()
+    start_stock = num_items(Items.Weird_Substance)
+    jobs = []
+    for index in range(DRONES):
+        jobs.append((n, n // 2 + n * (index % 3), n // 2 + n * (index // 3)))
+
+    def go_empty(tx, ty):
+        # 仅在迷宫生成前使用农场环绕，分别走较短的横、纵位移。
+        dx = (tx - get_pos_x()) % WORLD
+        if dx <= WORLD // 2:
+            for _ in range(dx):
+                move(East)
+        else:
+            for _ in range(WORLD - dx):
+                move(West)
+        dy = (ty - get_pos_y()) % WORLD
+        if dy <= WORLD // 2:
+            for _ in range(dy):
+                move(North)
+        else:
+            for _ in range(WORLD - dy):
+                move(South)
+
+    def go_home(cx, cy):
+        # 本宫harvest消失后回到中心；路径不穿越邻宫。
+        while get_pos_x() < cx:
+            move(East)
+        while get_pos_x() > cx:
+            move(West)
+        while get_pos_y() < cy:
+            move(North)
+        while get_pos_y() > cy:
+            move(South)
+
+    def geometry(n):
+        # 本地格号p=y*n+x；grid[p][方向]是几何邻居，-1表示本宫边界。
+        grid = []
+        for y in range(n):
+            for x in range(n):
+                p = y * n + x
+                row = [-1, -1, -1, -1]
+                if y < n - 1:
+                    row[0] = p + n
+                if x < n - 1:
+                    row[1] = p + 1
+                if y > 0:
+                    row[2] = p - n
+                if x > 0:
+                    row[3] = p - 1
+                grid.append(row)
+        return grid
+
+    def explore(n, grid, home):
+        # links是实测通路，walls是以后可能打开的墙；DFS给出初始树。
+        count = n * n
+        links = []
+        graph = []
+        walls = []
+        seen = []
+        parent = []
+        up_hop = []
+        down_hop = []
+        for _ in range(count):
+            links.append([-1, -1, -1, -1])
+            graph.append([])
+            walls.append([])
+            seen.append(False)
+            parent.append(-1)
+            up_hop.append(None)
+            down_hop.append(None)
+        order = []
+        trail = []
+        p = home
+        visited = 0
+        while True:
+            if get_time() > deadline:
+                return None
+            if not seen[p]:
+                if num_items(Items.Gold) >= TARGET_GOLD:
+                    return None
+                seen[p] = True
+                visited += 1
+                order.append(p)
+                for d in range(4):
+                    q = grid[p][d]
+                    if q == -1 or links[p][d] != -1:
+                        continue
+                    if can_move(DIRS[d]):
+                        back = BACK[d]
+                        links[p][d] = q
+                        links[q][back] = p
+                        graph[p].append((q, d))
+                        graph[q].append((p, back))
+                    else:
+                        walls[p].append(d)
+                if visited == count:
+                    break
+            choice = -1
+            next_p = -1
+            for q, d in graph[p]:
+                if not seen[q]:
+                    choice = d
+                    next_p = q
+                    break
+            if choice != -1:
+                move(DIRS[choice])
+                parent[next_p] = p
+                up_hop[next_p] = (p, DIRS[BACK[choice]])
+                down_hop[next_p] = (next_p, DIRS[choice])
+                trail.append(BACK[choice])
+                p = next_p
+            else:
+                d = trail.pop()
+                move(DIRS[d])
+                p = grid[p][d]
+        tree = (parent, up_hop, down_hop, order)
+        return (p, links, walls, tree)
+
+    def build_all_routes(tree, blank):
+        # rows[目标]保存各起点的距离与首步；每个无序点对只计算一次。
+        parent, up_hop, down_hop, order = tree
+        rows = []
+        for goal in range(len(blank)):
+            dist = list(blank)
+            hop = list(up_hop)
+            dist[goal] = 0
+            hop[goal] = None
+            rows.append([dist, hop])
+        visited = []
+        for v in order:
+            p = parent[v]
+            if p != -1:
+                dist_v, toward_v = rows[v]
+                parent_hop = rows[p][1]
+                up = up_hop[v]
+                down = down_hop[v]
+                for u in visited:
+                    dist_u, toward_u = rows[u]
+                    distance = dist_u[p] + 1
+                    dist_u[v] = distance
+                    toward_u[v] = up
+                    dist_v[u] = distance
+                    if u == p:
+                        toward_v[u] = down
+                    else:
+                        toward_v[u] = parent_hop[u]
+            visited.append(v)
+        return rows
+
+    def add_route_edge(rows, a, b, hop_ab, hop_ba):
+        # 先冻结新边两端的旧距离，再只更新可能经该边缩短的点对。
+        da, ha = rows[a]
+        db, hb = rows[b]
+        left = []
+        right = []
+        for u in range(len(rows)):
+            x = da[u]
+            y = db[u]
+            if x + 1 < y:
+                next_hop = ha[u]
+                if u == a:
+                    next_hop = hop_ab
+                left.append((u, x + 1, next_hop, rows[u]))
+            elif y + 1 < x:
+                next_hop = hb[u]
+                if u == b:
+                    next_hop = hop_ba
+                right.append((u, y, next_hop, rows[u]))
+        if len(left) > len(right):
+            left, right = right, left
+        for u, x, hop_u, row_u in left:
+            dist_u, toward_u = row_u
+            for v, y, hop_v, row_v in right:
+                candidate = x + y
+                if candidate < dist_u[v]:
+                    dist_u[v] = candidate
+                    toward_u[v] = hop_v
+                    dist_v, toward_v = row_v
+                    dist_v[u] = candidate
+                    toward_v[u] = hop_u
+
+    def scan_departure(p, links, walls, grid, routes):
+        # 从上一宝箱位置检查旧墙，发现新边后更新下一次导航。
+        remaining = []
+        for side in walls[p]:
+            if links[p][side] != -1:
+                continue
+            if can_move(DIRS[side]):
+                q = grid[p][side]
+                back = BACK[side]
+                links[p][side] = q
+                links[q][back] = p
+                add_route_edge(routes, p, q, (q, DIRS[side]), (p, DIRS[back]))
+            else:
+                remaining.append(side)
+        walls[p] = remaining
+
+    def solve_one(n, bx, by, grid, mapped, blank):
+        p, links, walls, tree = mapped
+        cost = n * MULT
+        routes = build_all_routes(tree, blank)
+        relocations = 0
+        while num_items(Items.Gold) < TARGET_GOLD:
+            if get_time() > deadline:
+                return 0
+            t = measure()
+            goal = (t[1] - by) * n + t[0] - bx  # ty: ignore[not-subscriptable]  本机始终处于独占迷宫，measure返回坐标。
+            if p != goal:
+                if relocations > 0 and len(walls[p]) > 0:
+                    scan_departure(p, links, walls, grid, routes)
+                dist, hop = routes[goal]
+                for _ in range(dist[p]):
+                    p, direction = hop[p]
+                    move(direction)
+            if num_items(Items.Gold) >= TARGET_GOLD:
+                return relocations
+            if relocations >= REUSE_LIMIT:
+                # 300次成功迁移后只正常收取一次末箱，再重建本宫。
+                harvest()
+                return relocations + 1
+            use_item(Items.Weird_Substance, cost)
+            relocations += 1
+        return relocations
+
+    def worker(job, start_stock):
+        n, cx, cy = job
+        generations = 0
+        boxes = 0
+        go_empty(cx, cy)
+        grid = geometry(n)
+        blank = []
+        for _ in range(n * n):
+            blank.append(-1)
+        half = n // 2
+        home = half * n + half
+        bx = cx - half
+        by = cy - half
+        if get_entity_type() == None:
+            plant(Entities.Grass)
+        # 每台感染再恢复草，合计2*DRONES次消耗构成全部到位的屏障。
+        for _ in range(2):
+            use_item(Items.Weird_Substance, 1)
+        while num_items(Items.Weird_Substance) > start_stock - 2 * DRONES:
+            if get_time() > deadline:
+                return (n, 0, 0)
+            change_hat(Hats.Straw_Hat)
+        while num_items(Items.Gold) < TARGET_GOLD and get_time() <= deadline:
+            go_home(cx, cy)
+            if get_entity_type() != None:
+                harvest()
+            plant(Entities.Bush)
+            use_item(Items.Weird_Substance, n * MULT)
+            mapped = explore(n, grid, home)
+            generations += 1
+            if mapped == None:
+                # 达标或超时都结束本机，父机最终按实际Gold判断成功。
+                break
+            boxes += solve_one(n, bx, by, grid, mapped, blank)
+        return (n, generations, boxes)
+
+    handles = []
+    passed = True
+    for job in jobs[1:]:
+        handle = spawn_drone(worker, job, start_stock)
+        if handle == None:
+            passed = False
+            break
+        handles.append(handle)
+    if passed:
+        worker(jobs[0], start_stock)
+    for handle in handles:
+        wait_for(handle)
+    clear()
+    quick_print("reset_small_maze_gold", get_time(), num_items(Items.Gold))
+    return num_items(Items.Gold) >= target
+
 
 if __name__ == "__main__":
     lb_fastest_reset()

@@ -108,10 +108,10 @@
     },
     "lb_fastest_reset": {
       "label": "快速重置",
-      "simulation_seconds": 3069.529,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_seconds": 2790.9915300176667,
+      "simulation_basis": "2026-11-11 C#原版重置、零库存三seed完整2798.459/2814.072/2760.444秒，均2790.991530；冻结存档均3044.263，三对均更快。八座小宫与成熟树感染供Weird，供能后Speed5、单机骨头备电600；已同步已有存档，当前源未实机。详见reset_startup_routes.md及reset_routes_20261111.json。",
       "evidence": "lb_fastest_reset.md",
-      "direction": "后置：重比伴生/速度、少量无人机与扩田投资路线，将成熟单项按实际科技重算完整筹资成本。"
+      "direction": "距#1仍+104.0%；先重比更早并行、前伴生必需供料与科技付款时点，低科技硬筹伴生、每单清场和提前Poly2的固定代表已未回本。"
     },
     "lb_mushrooms": {
       "label": "蘑菇·多机",
@@ -206,10 +206,10 @@
     },
     "lb_fastest_underground_reset": {
       "label": "地下重置",
-      "simulation_seconds": 3390.7472578056663,
-      "simulation_basis": "C#原版重置、零库存、seed1/2/3完整3476.439/3327.536/3368.266秒，均3390.747；Mining8后Dynamite4、Pumpkins3，分区追煤与分段追铁，12格扫雷。2026-11-11 request497官方完整3轮3279.570秒，当前账号公开#4；独立随机流均值差3.4%不作为同seed精度验收。详见underground_reset_hour.md及underground_reset_hour_20261111.json。",
+      "simulation_seconds": 3182.0251032883334,
+      "simulation_basis": "2026-11-11 C#原版重置、零库存三seed完整3163.304/3250.291/3132.481秒，均3182.025103；冻结存档均3390.747，三对均更快。Iron4/Quartz3/Ore_Boost1实付，预付勘探煤并有限换图、石英只钻一根锚柱后追邻矿；已同步已有存档，当前源未实机。request497的3279.570秒仍为账号/旧版实机；详见reset_startup_routes.md及reset_routes_20261111.json。",
       "evidence": "lb_fastest_underground_reset.md",
-      "direction": "已达一小时阶段目标；距#1仍+155.2%。四机启动约25分钟已长于#1整轮，优先比较地下先行的轻启动、金币来源与无人机购买时点，再比较石英定向开采和扫雷连续下行，按剩余需求与真实速率核算投资。"
+      "direction": "距#1仍+147.6%；重比地图、Rice3/4/5与首次无人机投资顺序。单机早下地被2000 Block拖慢，无电感染先四机和当前分区追铁均未回本，下一包先按实际速率计价。"
     }
   }
 }

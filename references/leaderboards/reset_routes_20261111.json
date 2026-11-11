@@ -1,0 +1,2270 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-11T11:33:31.216472+00:00",
+  "scope": [
+    "lb_fastest_reset",
+    "lb_fastest_underground_reset"
+  ],
+  "baseline_commit": "bb0ee89",
+  "public_at_start": [
+    {
+      "script": "lb_fastest_reset",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869903/",
+      "retrieved_at": "2026-11-11T10:48:45.478075+00:00",
+      "total_entries": 4544,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 1367800
+        },
+        {
+          "rank": 2,
+          "time_ms": 1490234
+        },
+        {
+          "rank": 3,
+          "time_ms": 1634863
+        },
+        {
+          "rank": 4,
+          "time_ms": 1668860
+        },
+        {
+          "rank": 5,
+          "time_ms": 1721037
+        },
+        {
+          "rank": 6,
+          "time_ms": 1771603
+        },
+        {
+          "rank": 7,
+          "time_ms": 1776731
+        },
+        {
+          "rank": 8,
+          "time_ms": 1815607
+        },
+        {
+          "rank": 9,
+          "time_ms": 1927222
+        },
+        {
+          "rank": 10,
+          "time_ms": 1966927
+        },
+        {
+          "rank": 11,
+          "time_ms": 1988883
+        },
+        {
+          "rank": 12,
+          "time_ms": 1995175
+        },
+        {
+          "rank": 13,
+          "time_ms": 2037350
+        },
+        {
+          "rank": 14,
+          "time_ms": 2062288
+        },
+        {
+          "rank": 15,
+          "time_ms": 2067990
+        },
+        {
+          "rank": 16,
+          "time_ms": 2073073
+        },
+        {
+          "rank": 17,
+          "time_ms": 2087375
+        },
+        {
+          "rank": 18,
+          "time_ms": 2089111
+        },
+        {
+          "rank": 19,
+          "time_ms": 2145909
+        },
+        {
+          "rank": 20,
+          "time_ms": 2181599
+        },
+        {
+          "rank": 21,
+          "time_ms": 2200580
+        },
+        {
+          "rank": 22,
+          "time_ms": 2202359
+        },
+        {
+          "rank": 23,
+          "time_ms": 2233138
+        },
+        {
+          "rank": 24,
+          "time_ms": 2242106
+        },
+        {
+          "rank": 25,
+          "time_ms": 2263827
+        },
+        {
+          "rank": 26,
+          "time_ms": 2269847
+        },
+        {
+          "rank": 27,
+          "time_ms": 2318827
+        },
+        {
+          "rank": 28,
+          "time_ms": 2322203
+        },
+        {
+          "rank": 29,
+          "time_ms": 2327590
+        },
+        {
+          "rank": 30,
+          "time_ms": 2369235
+        },
+        {
+          "rank": 31,
+          "time_ms": 2413150
+        },
+        {
+          "rank": 32,
+          "time_ms": 2445887
+        },
+        {
+          "rank": 33,
+          "time_ms": 2469190
+        },
+        {
+          "rank": 34,
+          "time_ms": 2524654
+        },
+        {
+          "rank": 35,
+          "time_ms": 2535657
+        },
+        {
+          "rank": 36,
+          "time_ms": 2542169
+        },
+        {
+          "rank": 37,
+          "time_ms": 2555928
+        },
+        {
+          "rank": 38,
+          "time_ms": 2589699
+        },
+        {
+          "rank": 39,
+          "time_ms": 2679816
+        },
+        {
+          "rank": 40,
+          "time_ms": 2719318
+        },
+        {
+          "rank": 41,
+          "time_ms": 2753906
+        },
+        {
+          "rank": 42,
+          "time_ms": 2755298
+        },
+        {
+          "rank": 43,
+          "time_ms": 2758711
+        },
+        {
+          "rank": 44,
+          "time_ms": 2804635
+        },
+        {
+          "rank": 45,
+          "time_ms": 2815988
+        },
+        {
+          "rank": 46,
+          "time_ms": 2862898
+        },
+        {
+          "rank": 47,
+          "time_ms": 2869291
+        },
+        {
+          "rank": 48,
+          "time_ms": 2879558
+        },
+        {
+          "rank": 49,
+          "time_ms": 2896569
+        },
+        {
+          "rank": 50,
+          "time_ms": 2933478
+        },
+        {
+          "rank": 51,
+          "time_ms": 2947954
+        },
+        {
+          "rank": 52,
+          "time_ms": 2949059
+        },
+        {
+          "rank": 53,
+          "time_ms": 2964743
+        },
+        {
+          "rank": 54,
+          "time_ms": 2965982
+        },
+        {
+          "rank": 55,
+          "time_ms": 2976624
+        },
+        {
+          "rank": 56,
+          "time_ms": 2977270
+        },
+        {
+          "rank": 57,
+          "time_ms": 2977867
+        },
+        {
+          "rank": 58,
+          "time_ms": 2994791
+        },
+        {
+          "rank": 59,
+          "time_ms": 2998350
+        },
+        {
+          "rank": 60,
+          "time_ms": 3000960
+        },
+        {
+          "rank": 61,
+          "time_ms": 3007492
+        },
+        {
+          "rank": 62,
+          "time_ms": 3012893
+        },
+        {
+          "rank": 63,
+          "time_ms": 3013537
+        },
+        {
+          "rank": 64,
+          "time_ms": 3073747
+        },
+        {
+          "rank": 65,
+          "time_ms": 3088113
+        },
+        {
+          "rank": 66,
+          "time_ms": 3093829
+        },
+        {
+          "rank": 67,
+          "time_ms": 3103369
+        },
+        {
+          "rank": 68,
+          "time_ms": 3103898
+        },
+        {
+          "rank": 69,
+          "time_ms": 3104582
+        },
+        {
+          "rank": 70,
+          "time_ms": 3105742
+        },
+        {
+          "rank": 71,
+          "time_ms": 3169654
+        },
+        {
+          "rank": 72,
+          "time_ms": 3180648
+        },
+        {
+          "rank": 73,
+          "time_ms": 3186920
+        },
+        {
+          "rank": 74,
+          "time_ms": 3193388
+        },
+        {
+          "rank": 75,
+          "time_ms": 3212393
+        },
+        {
+          "rank": 76,
+          "time_ms": 3230542
+        },
+        {
+          "rank": 77,
+          "time_ms": 3246235
+        },
+        {
+          "rank": 78,
+          "time_ms": 3252490
+        },
+        {
+          "rank": 79,
+          "time_ms": 3254085
+        },
+        {
+          "rank": 80,
+          "time_ms": 3287583
+        },
+        {
+          "rank": 81,
+          "time_ms": 3288366
+        },
+        {
+          "rank": 82,
+          "time_ms": 3342602
+        },
+        {
+          "rank": 83,
+          "time_ms": 3343969
+        },
+        {
+          "rank": 84,
+          "time_ms": 3356378
+        },
+        {
+          "rank": 85,
+          "time_ms": 3362467
+        },
+        {
+          "rank": 86,
+          "time_ms": 3371274
+        },
+        {
+          "rank": 87,
+          "time_ms": 3371382
+        },
+        {
+          "rank": 88,
+          "time_ms": 3380108
+        },
+        {
+          "rank": 89,
+          "time_ms": 3389127
+        },
+        {
+          "rank": 90,
+          "time_ms": 3405825
+        },
+        {
+          "rank": 91,
+          "time_ms": 3416872
+        },
+        {
+          "rank": 92,
+          "time_ms": 3420674
+        },
+        {
+          "rank": 93,
+          "time_ms": 3430924
+        },
+        {
+          "rank": 94,
+          "time_ms": 3439343
+        },
+        {
+          "rank": 95,
+          "time_ms": 3466678
+        },
+        {
+          "rank": 96,
+          "time_ms": 3494443
+        },
+        {
+          "rank": 97,
+          "time_ms": 3495708
+        },
+        {
+          "rank": 98,
+          "time_ms": 3499179
+        },
+        {
+          "rank": 99,
+          "time_ms": 3504874
+        },
+        {
+          "rank": 100,
+          "time_ms": 3521920
+        }
+      ],
+      "limit": 100,
+      "account": {
+        "status": "listed",
+        "retrieved_at": "2026-11-11T10:48:45.478105+00:00",
+        "rank": 60,
+        "time_ms": 3000960,
+        "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
+        "refresh_error": null
+      },
+      "refresh_error": null,
+      "transport": "steam_xml"
+    },
+    {
+      "script": "lb_fastest_underground_reset",
+      "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444633/",
+      "retrieved_at": "2026-11-11T10:48:44.576607+00:00",
+      "total_entries": 12,
+      "entries": [
+        {
+          "rank": 1,
+          "time_ms": 1285151
+        },
+        {
+          "rank": 2,
+          "time_ms": 2699984
+        },
+        {
+          "rank": 3,
+          "time_ms": 3221892
+        },
+        {
+          "rank": 4,
+          "time_ms": 3279570
+        },
+        {
+          "rank": 5,
+          "time_ms": 4290703
+        },
+        {
+          "rank": 6,
+          "time_ms": 4715462
+        },
+        {
+          "rank": 7,
+          "time_ms": 8232697
+        },
+        {
+          "rank": 8,
+          "time_ms": 11100712
+        },
+        {
+          "rank": 9,
+          "time_ms": 12001309
+        },
+        {
+          "rank": 10,
+          "time_ms": 42649589
+        },
+        {
+          "rank": 11,
+          "time_ms": 50835054
+        },
+        {
+          "rank": 12,
+          "time_ms": 74082603
+        }
+      ],
+      "limit": 100,
+      "account": {
+        "status": "listed",
+        "retrieved_at": "2026-11-11T10:48:44.576633+00:00",
+        "rank": 4,
+        "time_ms": 3279570,
+        "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
+        "refresh_error": null
+      },
+      "refresh_error": null,
+      "transport": "steam_xml"
+    }
+  ],
+  "limits": {
+    "game_seconds": 7000,
+    "wall_seconds": 15,
+    "max_api_calls": 5000000,
+    "max_nodes": 100000000
+  },
+  "selected": [
+    {
+      "script": "lb_fastest_reset",
+      "source_sha256": "647efd78cf5be96269456105f268bc88665125ebe636c1f535a185964b909de7",
+      "executed_source": ".codex/reset-route-20261111/candidates/ground-single-power.py",
+      "executed_sha256": "b0dfe04b6b49d9c7db7c6152c7a0a9abd8c4dcce2f53cca9e9266ff677f184f2",
+      "execution_ast_equal": true,
+      "syntax_report": ".codex/reset-route-20261111/reports/final-ground-syntax.json",
+      "syntax_report_sha256": "02f00001085c2ea42bbba69712ac4052249e8a9386953afd9b47a511374a41b5",
+      "syntax_result": "syntax_valid",
+      "baseline_seconds": [
+        3069.528578392,
+        3049.131570489,
+        3014.12885097
+      ],
+      "candidate_seconds": [
+        2798.458929982,
+        2814.071756817,
+        2760.443903254
+      ],
+      "baseline_mean_seconds": 3044.2629999503333,
+      "candidate_mean_seconds": 2790.9915300176667,
+      "improvement_percent": 8.319631711741026,
+      "first_seconds": 1367.8,
+      "gap_to_first_percent": 104.04968051013795,
+      "automatic_real_game_eligible": false,
+      "real_game": null,
+      "initial_state": {
+        "width": 1,
+        "height": 1,
+        "unlocks": {
+          "auto_unlock": 1,
+          "bamboo": 0,
+          "cactus": 0,
+          "carrots": 0,
+          "coal": 0,
+          "costs": 1,
+          "debug": 1,
+          "debug_2": 1,
+          "debug_place": 0,
+          "dictionaries": 1,
+          "dinosaurs": 0,
+          "dynamite": 0,
+          "expand": 0,
+          "explosive_drill": 0,
+          "fertilizer": 0,
+          "functions": 1,
+          "grass": 1,
+          "hats": 0,
+          "import": 1,
+          "iron": 0,
+          "jump": 0,
+          "leaderboard": 0,
+          "lists": 1,
+          "loops": 1,
+          "mazes": 0,
+          "megafarm": 0,
+          "mining": 0,
+          "mushrooms": 0,
+          "operators": 1,
+          "ore_boost": 0,
+          "petrified_pumpkins": 0,
+          "plant": 0,
+          "polyculture": 0,
+          "prospecting": 0,
+          "pumpkins": 0,
+          "pyramid": 0,
+          "quartz": 0,
+          "rice": 0,
+          "senses": 1,
+          "simulation": 1,
+          "special_soils": 0,
+          "speed": 0,
+          "sunflowers": 0,
+          "the_farmers_remains": 0,
+          "timing": 1,
+          "top_hat": 0,
+          "treasure_map": 0,
+          "trees": 0,
+          "underground_leaderboard": 0,
+          "underground_senses": 0,
+          "utilities": 1,
+          "variables": 1,
+          "watering": 0
+        },
+        "items": {
+          "hay": 0,
+          "wood": 0,
+          "carrot": 0,
+          "rice": 0,
+          "bamboo": 0,
+          "pumpkin": 0,
+          "cactus": 0,
+          "bone": 0,
+          "weird_substance": 0,
+          "gold": 0,
+          "water": 0,
+          "fertilizer": 0,
+          "block": 0,
+          "coal": 0,
+          "iron": 0,
+          "quartz": 0,
+          "mushroom": 0,
+          "dynamite": 0,
+          "power": 0,
+          "piggy": 0
+        }
+      },
+      "assembly_sha256": "7b493e17de59229c2ac2a1ffefc5609a57791ad320aa28f4472b02f6b9c0e323",
+      "resources_sha256": "8c3c889c6f8c7415beee2b1c8e2fa428de20bdeb3775eddd65369032aee179d7",
+      "random_mode": "seeded_leaderboard_screening",
+      "leaderboard": "fastest_reset",
+      "leaderboard_goal": {
+        "items": {},
+        "unlock": "leaderboard"
+      },
+      "input_hashes": {},
+      "runs": [
+        {
+          "seed": 1,
+          "report": ".codex/reset-route-20261111/reports/ground-single-power-s1.json",
+          "report_sha256": "1484483b7b7021361027d59ff1a5b9e9fb16c75d54f604303553f6f7dde8b264",
+          "game_seconds": 2798.458929982,
+          "wall_seconds": 8.4821508,
+          "nanoseconds": 2798458929982,
+          "goal_reached": true,
+          "ending_unlocks": {
+            "auto_unlock": 1,
+            "bamboo": 0,
+            "cactus": 2,
+            "carrots": 4,
+            "coal": 0,
+            "costs": 1,
+            "debug": 1,
+            "debug_2": 1,
+            "debug_place": 0,
+            "dictionaries": 1,
+            "dinosaurs": 4,
+            "dynamite": 0,
+            "expand": 7,
+            "explosive_drill": 0,
+            "fertilizer": 2,
+            "functions": 1,
+            "grass": 4,
+            "hats": 1,
+            "import": 1,
+            "iron": 0,
+            "jump": 0,
+            "leaderboard": 1,
+            "lists": 1,
+            "loops": 1,
+            "mazes": 4,
+            "megafarm": 3,
+            "mining": 0,
+            "mushrooms": 0,
+            "operators": 1,
+            "ore_boost": 0,
+            "petrified_pumpkins": 0,
+            "plant": 1,
+            "polyculture": 1,
+            "prospecting": 0,
+            "pumpkins": 4,
+            "pyramid": 0,
+            "quartz": 0,
+            "rice": 0,
+            "senses": 1,
+            "simulation": 1,
+            "special_soils": 0,
+            "speed": 5,
+            "sunflowers": 1,
+            "the_farmers_remains": 0,
+            "timing": 1,
+            "top_hat": 0,
+            "treasure_map": 0,
+            "trees": 5,
+            "underground_leaderboard": 0,
+            "underground_senses": 0,
+            "utilities": 1,
+            "variables": 1,
+            "watering": 5
+          },
+          "ending_inventory": {
+            "hay": 3914,
+            "wood": 211820,
+            "carrot": 2800,
+            "rice": 0,
+            "bamboo": 0,
+            "pumpkin": 3128,
+            "cactus": 18992,
+            "bone": 80800,
+            "weird_substance": 2895,
+            "gold": 72,
+            "water": 890,
+            "fertilizer": 311,
+            "block": 0,
+            "coal": 0,
+            "iron": 0,
+            "quartz": 0,
+            "mushroom": 0,
+            "dynamite": 0,
+            "power": 932.5476666666676,
+            "piggy": 0
+          },
+          "ending_drone_count": 1,
+          "spawn_calls": 627,
+          "wait_calls": 627,
+          "phase_messages": [
+            "directed polyculture 1280.64 1.57 37 542 82 228",
+            "directed_megafarm 1338.15 2 165.76 20 58",
+            "directed_megafarm 1488.45 4 314.97 49 40",
+            "directed_megafarm 1776.77 8 472.02 107 100",
+            "directed_supply 2198.72 35312 877.39 191",
+            "reset_small_maze_gold 2390.86 1000072",
+            "directed_bone 2493.42 520200 31232 1241.36",
+            "directed_bone 2600.17 520200 27152 1133.45",
+            "directed_bone 2699.64 520200 23072 1032.61",
+            "directed_bone 2798.39 520200 18992 932.77",
+            "directed_done 2798.46 80800 72"
+          ]
+        },
+        {
+          "seed": 2,
+          "report": ".codex/reset-route-20261111/reports/ground-single-power-s2.json",
+          "report_sha256": "1d215aa1bfcc540318e609b00c63dada3afbe03076495a18cf2a396e59c4b5bb",
+          "game_seconds": 2814.071756817,
+          "wall_seconds": 8.9810708,
+          "nanoseconds": 2814071756817,
+          "goal_reached": true,
+          "ending_unlocks": {
+            "auto_unlock": 1,
+            "bamboo": 0,
+            "cactus": 2,
+            "carrots": 4,
+            "coal": 0,
+            "costs": 1,
+            "debug": 1,
+            "debug_2": 1,
+            "debug_place": 0,
+            "dictionaries": 1,
+            "dinosaurs": 4,
+            "dynamite": 0,
+            "expand": 7,
+            "explosive_drill": 0,
+            "fertilizer": 2,
+            "functions": 1,
+            "grass": 4,
+            "hats": 1,
+            "import": 1,
+            "iron": 0,
+            "jump": 0,
+            "leaderboard": 1,
+            "lists": 1,
+            "loops": 1,
+            "mazes": 4,
+            "megafarm": 3,
+            "mining": 0,
+            "mushrooms": 0,
+            "operators": 1,
+            "ore_boost": 0,
+            "petrified_pumpkins": 0,
+            "plant": 1,
+            "polyculture": 1,
+            "prospecting": 0,
+            "pumpkins": 4,
+            "pyramid": 0,
+            "quartz": 0,
+            "rice": 0,
+            "senses": 1,
+            "simulation": 1,
+            "special_soils": 0,
+            "speed": 5,
+            "sunflowers": 1,
+            "the_farmers_remains": 0,
+            "timing": 1,
+            "top_hat": 0,
+            "treasure_map": 0,
+            "trees": 5,
+            "underground_leaderboard": 0,
+            "underground_senses": 0,
+            "utilities": 1,
+            "variables": 1,
+            "watering": 5
+          },
+          "ending_inventory": {
+            "hay": 3584,
+            "wood": 211537,
+            "carrot": 2964,
+            "rice": 0,
+            "bamboo": 0,
+            "pumpkin": 3128,
+            "cactus": 18992,
+            "bone": 80800,
+            "weird_substance": 2496,
+            "gold": 72,
+            "water": 948,
+            "fertilizer": 321,
+            "block": 0,
+            "coal": 0,
+            "iron": 0,
+            "quartz": 0,
+            "mushroom": 0,
+            "dynamite": 0,
+            "power": 753.8850000000034,
+            "piggy": 0
+          },
+          "ending_drone_count": 1,
+          "spawn_calls": 632,
+          "wait_calls": 632,
+          "phase_messages": [
+            "directed polyculture 1258.17 0 38 72 23 190",
+            "directed_megafarm 1316.67 2 166.2 22 58",
+            "directed_megafarm 1453.44 4 343.59 49 40",
+            "directed_megafarm 1769.03 8 357.19 112 100",
+            "directed_supply 2195.69 35312 695.1 198",
+            "reset_small_maze_gold 2385.52 1000072",
+            "directed_bone 2495.95 520200 31232 1076.06",
+            "directed_bone 2598.63 520200 27152 971.95",
+            "directed_bone 2708.61 520200 23072 860.6",
+            "directed_bone 2814 520200 18992 753.89",
+            "directed_done 2814.07 80800 72"
+          ]
+        },
+        {
+          "seed": 3,
+          "report": ".codex/reset-route-20261111/reports/ground-single-power-s3.json",
+          "report_sha256": "cdfbdc15a923671ccd2769d304894d77d17d43faf4f6e31fb7fb6b034a831ab2",
+          "game_seconds": 2760.443903254,
+          "wall_seconds": 8.3181526,
+          "nanoseconds": 2760443903254,
+          "goal_reached": true,
+          "ending_unlocks": {
+            "auto_unlock": 1,
+            "bamboo": 0,
+            "cactus": 2,
+            "carrots": 4,
+            "coal": 0,
+            "costs": 1,
+            "debug": 1,
+            "debug_2": 1,
+            "debug_place": 0,
+            "dictionaries": 1,
+            "dinosaurs": 4,
+            "dynamite": 0,
+            "expand": 7,
+            "explosive_drill": 0,
+            "fertilizer": 2,
+            "functions": 1,
+            "grass": 4,
+            "hats": 1,
+            "import": 1,
+            "iron": 0,
+            "jump": 0,
+            "leaderboard": 1,
+            "lists": 1,
+            "loops": 1,
+            "mazes": 4,
+            "megafarm": 3,
+            "mining": 0,
+            "mushrooms": 0,
+            "operators": 1,
+            "ore_boost": 0,
+            "petrified_pumpkins": 0,
+            "plant": 1,
+            "polyculture": 1,
+            "prospecting": 0,
+            "pumpkins": 4,
+            "pyramid": 0,
+            "quartz": 0,
+            "rice": 0,
+            "senses": 1,
+            "simulation": 1,
+            "special_soils": 0,
+            "speed": 5,
+            "sunflowers": 1,
+            "the_farmers_remains": 0,
+            "timing": 1,
+            "top_hat": 0,
+            "treasure_map": 0,
+            "trees": 5,
+            "underground_leaderboard": 0,
+            "underground_senses": 0,
+            "utilities": 1,
+            "variables": 1,
+            "watering": 5
+          },
+          "ending_inventory": {
+            "hay": 3540,
+            "wood": 213142,
+            "carrot": 3291,
+            "rice": 0,
+            "bamboo": 0,
+            "pumpkin": 3128,
+            "cactus": 18992,
+            "bone": 80800,
+            "weird_substance": 2994,
+            "gold": 72,
+            "water": 899,
+            "fertilizer": 311,
+            "block": 0,
+            "coal": 0,
+            "iron": 0,
+            "quartz": 0,
+            "mushroom": 0,
+            "dynamite": 0,
+            "power": 934.8014999999976,
+            "piggy": 0
+          },
+          "ending_drone_count": 1,
+          "spawn_calls": 631,
+          "wait_calls": 631,
+          "phase_messages": [
+            "directed polyculture 1260.63 0 39 112 52 227",
+            "directed_megafarm 1308.26 2 175.97 21 58",
+            "directed_megafarm 1448.45 4 348.07 48 40",
+            "directed_megafarm 1743.11 8 444.2 107 199",
+            "directed_supply 2168.76 35312 806.43 192",
+            "reset_small_maze_gold 2352.91 1000072",
+            "directed_bone 2460.87 520200 31232 1238.15",
+            "directed_bone 2561.24 520200 27152 1136.5",
+            "directed_bone 2664.57 520200 23072 1032.01",
+            "directed_bone 2760.38 520200 18992 935.01",
+            "directed_done 2760.44 80800 72"
+          ]
+        }
+      ]
+    },
+    {
+      "script": "lb_fastest_underground_reset",
+      "source_sha256": "1a42bc8283fa5e17e5986aeecf0e921c00545bc50dd4655d66dabf8c45da20c7",
+      "executed_source": ".codex/reset-route-20261111/candidates/underground-ore-investment-funded.py",
+      "executed_sha256": "6d2cde8916e4c24b2307fff441e053f63aa247dd8359e5b70f94ae5d9902bc3c",
+      "execution_ast_equal": true,
+      "syntax_report": ".codex/reset-route-20261111/reports/final-underground-syntax.json",
+      "syntax_report_sha256": "c1d08cc4b9827ce775611d3b41065e2a4339ad54ffe1e7cfcd97e1d758c629ea",
+      "syntax_result": "syntax_valid",
+      "baseline_seconds": [
+        3476.439444025,
+        3327.536147582,
+        3368.26618181
+      ],
+      "candidate_seconds": [
+        3163.304183895,
+        3250.290559863,
+        3132.480566107
+      ],
+      "baseline_mean_seconds": 3390.747257805667,
+      "candidate_mean_seconds": 3182.0251032883334,
+      "improvement_percent": 6.155638820818766,
+      "first_seconds": 1285.151,
+      "gap_to_first_percent": 147.5993173789176,
+      "automatic_real_game_eligible": false,
+      "real_game": null,
+      "initial_state": {
+        "width": 1,
+        "height": 1,
+        "unlocks": {
+          "auto_unlock": 1,
+          "bamboo": 0,
+          "cactus": 0,
+          "carrots": 0,
+          "coal": 0,
+          "costs": 1,
+          "debug": 1,
+          "debug_2": 1,
+          "debug_place": 0,
+          "dictionaries": 1,
+          "dinosaurs": 0,
+          "dynamite": 0,
+          "expand": 0,
+          "explosive_drill": 0,
+          "fertilizer": 0,
+          "functions": 1,
+          "grass": 1,
+          "hats": 0,
+          "import": 1,
+          "iron": 0,
+          "jump": 0,
+          "leaderboard": 0,
+          "lists": 1,
+          "loops": 1,
+          "mazes": 0,
+          "megafarm": 0,
+          "mining": 0,
+          "mushrooms": 0,
+          "operators": 1,
+          "ore_boost": 0,
+          "petrified_pumpkins": 0,
+          "plant": 0,
+          "polyculture": 0,
+          "prospecting": 0,
+          "pumpkins": 0,
+          "pyramid": 0,
+          "quartz": 0,
+          "rice": 0,
+          "senses": 1,
+          "simulation": 1,
+          "special_soils": 0,
+          "speed": 0,
+          "sunflowers": 0,
+          "the_farmers_remains": 0,
+          "timing": 1,
+          "top_hat": 0,
+          "treasure_map": 0,
+          "trees": 0,
+          "underground_leaderboard": 0,
+          "underground_senses": 1,
+          "utilities": 1,
+          "variables": 1,
+          "watering": 0
+        },
+        "items": {
+          "hay": 0,
+          "wood": 0,
+          "carrot": 0,
+          "rice": 0,
+          "bamboo": 0,
+          "pumpkin": 0,
+          "cactus": 0,
+          "bone": 0,
+          "weird_substance": 0,
+          "gold": 0,
+          "water": 0,
+          "fertilizer": 0,
+          "block": 0,
+          "coal": 0,
+          "iron": 0,
+          "quartz": 0,
+          "mushroom": 0,
+          "dynamite": 0,
+          "power": 0,
+          "piggy": 0
+        }
+      },
+      "assembly_sha256": "7b493e17de59229c2ac2a1ffefc5609a57791ad320aa28f4472b02f6b9c0e323",
+      "resources_sha256": "8c3c889c6f8c7415beee2b1c8e2fa428de20bdeb3775eddd65369032aee179d7",
+      "random_mode": "seeded_leaderboard_screening",
+      "leaderboard": "fastest_underground_reset",
+      "leaderboard_goal": {
+        "items": {},
+        "unlock": "underground_leaderboard"
+      },
+      "input_hashes": {},
+      "runs": [
+        {
+          "seed": 1,
+          "report": ".codex/reset-route-20261111/reports/underground-ore-investment-funded-s1.json",
+          "report_sha256": "d10e83ee33a15f221b3933aacc23ac57056736112bd0b609da62034447546adf",
+          "game_seconds": 3163.304183895,
+          "wall_seconds": 6.636783,
+          "nanoseconds": 3163304183895,
+          "goal_reached": true,
+          "ending_unlocks": {
+            "auto_unlock": 1,
+            "bamboo": 4,
+            "cactus": 0,
+            "carrots": 3,
+            "coal": 3,
+            "costs": 1,
+            "debug": 1,
+            "debug_2": 1,
+            "debug_place": 0,
+            "dictionaries": 1,
+            "dinosaurs": 0,
+            "dynamite": 4,
+            "expand": 6,
+            "explosive_drill": 0,
+            "fertilizer": 2,
+            "functions": 1,
+            "grass": 4,
+            "hats": 0,
+            "import": 1,
+            "iron": 4,
+            "jump": 0,
+            "leaderboard": 0,
+            "lists": 1,
+            "loops": 1,
+            "mazes": 1,
+            "megafarm": 2,
+            "mining": 8,
+            "mushrooms": 3,
+            "operators": 1,
+            "ore_boost": 1,
+            "petrified_pumpkins": 0,
+            "plant": 1,
+            "polyculture": 1,
+            "prospecting": 1,
+            "pumpkins": 3,
+            "pyramid": 0,
+            "quartz": 3,
+            "rice": 5,
+            "senses": 1,
+            "simulation": 1,
+            "special_soils": 0,
+            "speed": 5,
+            "sunflowers": 1,
+            "the_farmers_remains": 0,
+            "timing": 1,
+            "top_hat": 0,
+            "treasure_map": 0,
+            "trees": 3,
+            "underground_leaderboard": 1,
+            "underground_senses": 1,
+            "utilities": 1,
+            "variables": 1,
+            "watering": 1
+          },
+          "ending_inventory": {
+            "hay": 612,
+            "wood": 845,
+            "carrot": 324,
+            "rice": 4144,
+            "bamboo": 954,
+            "pumpkin": 1436,
+            "cactus": 0,
+            "bone": 0,
+            "weird_substance": 274,
+            "gold": 32,
+            "water": 42,
+            "fertilizer": 378,
+            "block": 9469,
+            "coal": 123,
+            "iron": 284,
+            "quartz": 110,
+            "mushroom": 6,
+            "dynamite": 1552,
+            "power": 527.3471666666644,
+            "piggy": 0
+          },
+          "ending_drone_count": 1,
+          "spawn_calls": 416,
+          "wait_calls": 416,
+          "phase_messages": [
+            "directed_megafarm 1388.86 2 164.95 45 58",
+            "directed_megafarm 1535.56 4 322.12 65 50",
+            "underground_reset_prefix 1535.56 4 8",
+            "underground_reset_upgrade Unlocks.Mining 1 1535.61",
+            "underground_reset_upgrade Unlocks.Mining 2 1545.06",
+            "underground_reset_upgrade Unlocks.Coal 1 1547.74",
+            "underground_reset_upgrade Unlocks.Rice 1 1557.5",
+            "underground_reset_upgrade Unlocks.Mining 3 1583.05",
+            "underground_reset_upgrade Unlocks.Rice 2 1583.09",
+            "underground_reset_upgrade Unlocks.Rice 3 1618.12",
+            "underground_reset_upgrade Unlocks.Coal 2 1635.66",
+            "underground_reset_upgrade Unlocks.Iron 1 1635.7",
+            "underground_reset_upgrade Unlocks.Mining 4 1642.04",
+            "underground_reset_upgrade Unlocks.Bamboo 1 1653.89",
+            "underground_reset_upgrade Unlocks.Mining 5 1680.17",
+            "underground_reset_upgrade Unlocks.Prospecting 1 1694.64",
+            "underground_reset_upgrade Unlocks.Iron 2 1704.24",
+            "underground_reset_upgrade Unlocks.Mining 6 1775.51",
+            "underground_reset_upgrade Unlocks.Rice 4 1775.55",
+            "underground_reset_upgrade Unlocks.Rice 5 1844.89",
+            "underground_reset_upgrade Unlocks.Coal 3 1920.18",
+            "underground_reset_upgrade Unlocks.Iron 3 1942.21",
+            "underground_reset_upgrade Unlocks.Iron 4 2029.24",
+            "underground_reset_upgrade Unlocks.Quartz 1 2047.72",
+            "underground_reset_upgrade Unlocks.Quartz 2 2066.69",
+            "underground_reset_upgrade Unlocks.Quartz 3 2153.51",
+            "underground_reset_upgrade Unlocks.Ore_Boost 1 2221.85",
+            "underground_reset_upgrade Unlocks.Bamboo 2 2232.18",
+            "underground_reset_upgrade Unlocks.Bamboo 3 2243.78",
+            "underground_reset_upgrade Unlocks.Mining 7 2315.55",
+            "underground_reset_upgrade Unlocks.Mushrooms 1 2351.37",
+            "underground_reset_upgrade Unlocks.Mushrooms 2 2367.45",
+            "underground_reset_upgrade Unlocks.Mushrooms 3 2396.77",
+            "underground_reset_upgrade Unlocks.Mining 8 2435.49",
+            "underground_reset_upgrade Unlocks.Bamboo 4 2567.4",
+            "underground_reset_upgrade Unlocks.Dynamite 1 2604.3",
+            "underground_reset_upgrade Unlocks.Dynamite 2 2604.33",
+            "underground_reset_upgrade Unlocks.Dynamite 3 2604.37",
+            "underground_reset_upgrade Unlocks.Dynamite 4 2627.26",
+            "underground_reset_upgrade Unlocks.Pumpkins 3 2659.08",
+            "underground_reset_upgrade Unlocks.Expand 6 2742.43",
+            "underground_reset_upgrade Unlocks.Underground_Leaderboard 1 3163.3",
+            "underground_reset_done True 3163.3"
+          ]
+        },
+        {
+          "seed": 2,
+          "report": ".codex/reset-route-20261111/reports/underground-ore-investment-funded-s2.json",
+          "report_sha256": "8720bf4d76f264603a76acdd61109556b1d09e7e7c649ef1e6fa1647542ca5a9",
+          "game_seconds": 3250.290559863,
+          "wall_seconds": 6.9678463,
+          "nanoseconds": 3250290559863,
+          "goal_reached": true,
+          "ending_unlocks": {
+            "auto_unlock": 1,
+            "bamboo": 4,
+            "cactus": 0,
+            "carrots": 3,
+            "coal": 3,
+            "costs": 1,
+            "debug": 1,
+            "debug_2": 1,
+            "debug_place": 0,
+            "dictionaries": 1,
+            "dinosaurs": 0,
+            "dynamite": 4,
+            "expand": 6,
+            "explosive_drill": 0,
+            "fertilizer": 2,
+            "functions": 1,
+            "grass": 4,
+            "hats": 0,
+            "import": 1,
+            "iron": 4,
+            "jump": 0,
+            "leaderboard": 0,
+            "lists": 1,
+            "loops": 1,
+            "mazes": 1,
+            "megafarm": 2,
+            "mining": 8,
+            "mushrooms": 3,
+            "operators": 1,
+            "ore_boost": 1,
+            "petrified_pumpkins": 0,
+            "plant": 1,
+            "polyculture": 1,
+            "prospecting": 1,
+            "pumpkins": 3,
+            "pyramid": 0,
+            "quartz": 3,
+            "rice": 5,
+            "senses": 1,
+            "simulation": 1,
+            "special_soils": 0,
+            "speed": 5,
+            "sunflowers": 1,
+            "the_farmers_remains": 0,
+            "timing": 1,
+            "top_hat": 0,
+            "treasure_map": 0,
+            "trees": 3,
+            "underground_leaderboard": 1,
+            "underground_senses": 1,
+            "utilities": 1,
+            "variables": 1,
+            "watering": 1
+          },
+          "ending_inventory": {
+            "hay": 600,
+            "wood": 1043,
+            "carrot": 385,
+            "rice": 4156,
+            "bamboo": 1915,
+            "pumpkin": 1436,
+            "cactus": 0,
+            "bone": 0,
+            "weird_substance": 174,
+            "gold": 32,
+            "water": 46,
+            "fertilizer": 401,
+            "block": 11432,
+            "coal": 143,
+            "iron": 380,
+            "quartz": 86,
+            "mushroom": 34,
+            "dynamite": 680,
+            "power": 534.1621666666703,
+            "piggy": 0
+          },
+          "ending_drone_count": 1,
+          "spawn_calls": 466,
+          "wait_calls": 466,
+          "phase_messages": [
+            "directed_megafarm 1349.25 2 166.56 41 58",
+            "directed_megafarm 1484.6 4 346.28 58 50",
+            "underground_reset_prefix 1484.6 4 8",
+            "underground_reset_upgrade Unlocks.Mining 1 1484.65",
+            "underground_reset_upgrade Unlocks.Mining 2 1494.1",
+            "underground_reset_upgrade Unlocks.Coal 1 1496.78",
+            "underground_reset_upgrade Unlocks.Rice 1 1537.14",
+            "underground_reset_upgrade Unlocks.Mining 3 1562.01",
+            "underground_reset_upgrade Unlocks.Rice 2 1562.05",
+            "underground_reset_upgrade Unlocks.Rice 3 1575.15",
+            "underground_reset_upgrade Unlocks.Coal 2 1594.11",
+            "underground_reset_upgrade Unlocks.Iron 1 1594.15",
+            "underground_reset_upgrade Unlocks.Mining 4 1618.75",
+            "underground_reset_upgrade Unlocks.Bamboo 1 1630.21",
+            "underground_reset_upgrade Unlocks.Mining 5 1656.65",
+            "underground_reset_upgrade Unlocks.Prospecting 1 1664.64",
+            "underground_reset_upgrade Unlocks.Iron 2 1687.76",
+            "underground_reset_upgrade Unlocks.Mining 6 1772.79",
+            "underground_reset_upgrade Unlocks.Rice 4 1772.83",
+            "underground_reset_upgrade Unlocks.Rice 5 1815.01",
+            "underground_reset_upgrade Unlocks.Coal 3 1888.18",
+            "underground_reset_upgrade Unlocks.Iron 3 1905.53",
+            "underground_reset_upgrade Unlocks.Iron 4 2008.06",
+            "underground_reset_upgrade Unlocks.Quartz 1 2028.06",
+            "underground_reset_upgrade Unlocks.Quartz 2 2046.69",
+            "underground_reset_upgrade Unlocks.Quartz 3 2139.42",
+            "underground_reset_upgrade Unlocks.Ore_Boost 1 2204.41",
+            "underground_reset_upgrade Unlocks.Bamboo 2 2214.71",
+            "underground_reset_upgrade Unlocks.Bamboo 3 2226.74",
+            "underground_reset_upgrade Unlocks.Mining 7 2312.98",
+            "underground_reset_upgrade Unlocks.Mushrooms 1 2336.86",
+            "underground_reset_upgrade Unlocks.Mushrooms 2 2353.55",
+            "underground_reset_upgrade Unlocks.Mushrooms 3 2380.24",
+            "underground_reset_upgrade Unlocks.Mining 8 2432.69",
+            "underground_reset_upgrade Unlocks.Bamboo 4 2642.54",
+            "underground_reset_upgrade Unlocks.Dynamite 1 2674.83",
+            "underground_reset_upgrade Unlocks.Dynamite 2 2674.86",
+            "underground_reset_upgrade Unlocks.Dynamite 3 2674.9",
+            "underground_reset_upgrade Unlocks.Dynamite 4 2707.96",
+            "underground_reset_upgrade Unlocks.Pumpkins 3 2738.06",
+            "underground_reset_upgrade Unlocks.Expand 6 2808.27",
+            "underground_reset_upgrade Unlocks.Underground_Leaderboard 1 3250.29",
+            "underground_reset_done True 3250.29"
+          ]
+        },
+        {
+          "seed": 3,
+          "report": ".codex/reset-route-20261111/reports/underground-ore-investment-funded-s3.json",
+          "report_sha256": "a23872c1295ce72976b6e9c7f5f8321c8dfb67de48a7cb0d27259703eaec3289",
+          "game_seconds": 3132.480566107,
+          "wall_seconds": 6.3797334,
+          "nanoseconds": 3132480566107,
+          "goal_reached": true,
+          "ending_unlocks": {
+            "auto_unlock": 1,
+            "bamboo": 4,
+            "cactus": 0,
+            "carrots": 3,
+            "coal": 3,
+            "costs": 1,
+            "debug": 1,
+            "debug_2": 1,
+            "debug_place": 0,
+            "dictionaries": 1,
+            "dinosaurs": 0,
+            "dynamite": 4,
+            "expand": 6,
+            "explosive_drill": 0,
+            "fertilizer": 2,
+            "functions": 1,
+            "grass": 4,
+            "hats": 0,
+            "import": 1,
+            "iron": 4,
+            "jump": 0,
+            "leaderboard": 0,
+            "lists": 1,
+            "loops": 1,
+            "mazes": 1,
+            "megafarm": 2,
+            "mining": 8,
+            "mushrooms": 3,
+            "operators": 1,
+            "ore_boost": 1,
+            "petrified_pumpkins": 0,
+            "plant": 1,
+            "polyculture": 1,
+            "prospecting": 1,
+            "pumpkins": 3,
+            "pyramid": 0,
+            "quartz": 3,
+            "rice": 5,
+            "senses": 1,
+            "simulation": 1,
+            "special_soils": 0,
+            "speed": 5,
+            "sunflowers": 1,
+            "the_farmers_remains": 0,
+            "timing": 1,
+            "top_hat": 0,
+            "treasure_map": 0,
+            "trees": 3,
+            "underground_leaderboard": 1,
+            "underground_senses": 1,
+            "utilities": 1,
+            "variables": 1,
+            "watering": 1
+          },
+          "ending_inventory": {
+            "hay": 618,
+            "wood": 967,
+            "carrot": 533,
+            "rice": 4121,
+            "bamboo": 544,
+            "pumpkin": 1436,
+            "cactus": 0,
+            "bone": 0,
+            "weird_substance": 74,
+            "gold": 32,
+            "water": 44,
+            "fertilizer": 379,
+            "block": 10479,
+            "coal": 132,
+            "iron": 146,
+            "quartz": 44,
+            "mushroom": 14,
+            "dynamite": 76,
+            "power": 548.641500000003,
+            "piggy": 0
+          },
+          "ending_drone_count": 1,
+          "spawn_calls": 413,
+          "wait_calls": 413,
+          "phase_messages": [
+            "directed_megafarm 1334.24 2 177.19 40 58",
+            "directed_megafarm 1472.21 4 354.82 57 50",
+            "underground_reset_prefix 1472.21 4 8",
+            "underground_reset_upgrade Unlocks.Mining 1 1472.25",
+            "underground_reset_upgrade Unlocks.Mining 2 1481.7",
+            "underground_reset_upgrade Unlocks.Coal 1 1484.38",
+            "underground_reset_upgrade Unlocks.Rice 1 1492.98",
+            "underground_reset_upgrade Unlocks.Mining 3 1517.51",
+            "underground_reset_upgrade Unlocks.Rice 2 1517.55",
+            "underground_reset_upgrade Unlocks.Rice 3 1555",
+            "underground_reset_upgrade Unlocks.Coal 2 1572.59",
+            "underground_reset_upgrade Unlocks.Iron 1 1572.63",
+            "underground_reset_upgrade Unlocks.Mining 4 1579.78",
+            "underground_reset_upgrade Unlocks.Bamboo 1 1591.89",
+            "underground_reset_upgrade Unlocks.Mining 5 1618.34",
+            "underground_reset_upgrade Unlocks.Prospecting 1 1625.26",
+            "underground_reset_upgrade Unlocks.Iron 2 1639.29",
+            "underground_reset_upgrade Unlocks.Mining 6 1716.21",
+            "underground_reset_upgrade Unlocks.Rice 4 1716.25",
+            "underground_reset_upgrade Unlocks.Rice 5 1795.76",
+            "underground_reset_upgrade Unlocks.Coal 3 1862.04",
+            "underground_reset_upgrade Unlocks.Iron 3 1883.47",
+            "underground_reset_upgrade Unlocks.Iron 4 1987.79",
+            "underground_reset_upgrade Unlocks.Quartz 1 2012.67",
+            "underground_reset_upgrade Unlocks.Quartz 2 2030.58",
+            "underground_reset_upgrade Unlocks.Quartz 3 2087.79",
+            "underground_reset_upgrade Unlocks.Ore_Boost 1 2166.56",
+            "underground_reset_upgrade Unlocks.Bamboo 2 2176.64",
+            "underground_reset_upgrade Unlocks.Bamboo 3 2188.44",
+            "underground_reset_upgrade Unlocks.Mining 7 2273.9",
+            "underground_reset_upgrade Unlocks.Mushrooms 1 2303.63",
+            "underground_reset_upgrade Unlocks.Mushrooms 2 2319.84",
+            "underground_reset_upgrade Unlocks.Mushrooms 3 2351.69",
+            "underground_reset_upgrade Unlocks.Mining 8 2448.49",
+            "underground_reset_upgrade Unlocks.Bamboo 4 2542.64",
+            "underground_reset_upgrade Unlocks.Dynamite 1 2578.34",
+            "underground_reset_upgrade Unlocks.Dynamite 2 2578.38",
+            "underground_reset_upgrade Unlocks.Dynamite 3 2578.41",
+            "underground_reset_upgrade Unlocks.Dynamite 4 2619.82",
+            "underground_reset_upgrade Unlocks.Pumpkins 3 2642.75",
+            "underground_reset_upgrade Unlocks.Expand 6 2709.07",
+            "underground_reset_upgrade Unlocks.Underground_Leaderboard 1 3132.48",
+            "underground_reset_done True 3132.48"
+          ]
+        }
+      ]
+    }
+  ],
+  "trials": [
+    {
+      "variant": "baseline-ground",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/baseline-ground-s1.json",
+      "report_sha256": "a7da22bb086ffad4a3754a760fe044f638002ebc84cb8b6d775a4ecafae375e6",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\baseline-repo\\lb_fastest_reset.py",
+          "sha256": "692611da0defbe036b76d09e0d954dcfc0e423542f27409d4c17ed7305b40bb3"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3069.528578392,
+      "wall_seconds": 7.8470748,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "baseline-ground",
+      "seed": 2,
+      "report": ".codex/reset-route-20261111/reports/baseline-ground-s2.json",
+      "report_sha256": "9e0e622a77638611fd868c7b36873a603a0872a479be0fa78c79058bf881d484",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\baseline-repo\\lb_fastest_reset.py",
+          "sha256": "692611da0defbe036b76d09e0d954dcfc0e423542f27409d4c17ed7305b40bb3"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3049.131570489,
+      "wall_seconds": 8.8053186,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "baseline-ground",
+      "seed": 3,
+      "report": ".codex/reset-route-20261111/reports/baseline-ground-s3.json",
+      "report_sha256": "14a12f4388e4433d51e4e801d22ee5ae0844bd714d1694b455cb0192c8f1d9ee",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\baseline-repo\\lb_fastest_reset.py",
+          "sha256": "692611da0defbe036b76d09e0d954dcfc0e423542f27409d4c17ed7305b40bb3"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3014.12885097,
+      "wall_seconds": 8.1944223,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "baseline-underground",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/baseline-underground-s1.json",
+      "report_sha256": "f13913fc8beb6f7a1123969fc30203b39697cf56ddf7f81ecc7fe5d10e041ed1",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\baseline-repo\\lb_fastest_underground_reset.py",
+          "sha256": "87778d737f790990e08e588857904bf71868a05436fe4bf972382250096d352e"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3476.439444025,
+      "wall_seconds": 5.5003613,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "baseline-underground",
+      "seed": 2,
+      "report": ".codex/reset-route-20261111/reports/baseline-underground-s2.json",
+      "report_sha256": "a93b43886601cbe2331ac2005df15658823d3fb7b92a08c95255a05fed48d5a5",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\baseline-repo\\lb_fastest_underground_reset.py",
+          "sha256": "87778d737f790990e08e588857904bf71868a05436fe4bf972382250096d352e"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3327.536147582,
+      "wall_seconds": 6.0899711,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "baseline-underground",
+      "seed": 3,
+      "report": ".codex/reset-route-20261111/reports/baseline-underground-s3.json",
+      "report_sha256": "2057af3b70bb908d556ab830542e4a8315b7ef5b2258ff70f8fbf0475ae56bdc",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\baseline-repo\\lb_fastest_underground_reset.py",
+          "sha256": "87778d737f790990e08e588857904bf71868a05436fe4bf972382250096d352e"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3368.26618181,
+      "wall_seconds": 5.96505,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-bulk-basic",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/ground-bulk-basic-s1.json",
+      "report_sha256": "893e5f7730935ff4094a786588407dbcec43b1e05bc7cd37702005b629b6b151",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-bulk-basic.py",
+          "sha256": "7606a5a8fdcd452238cf00d0d2574c1231e42cd2abb0a5e913edf0e5becabe28"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3504.220375436,
+      "wall_seconds": 7.8547788,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-deferred-power",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/ground-deferred-power-s1.json",
+      "report_sha256": "2811e13dc95b2bdc05e80915472a4d9615a8be18f23d7d3b3dd40caf3776842f",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-deferred-power.py",
+          "sha256": "45468fc7411d325d1092dbc865b4bc5b555325884258ebdeb5d748c7fa6b9815"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3145.096766309,
+      "wall_seconds": 9.952432,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-early-poly2",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/ground-early-poly2-s1.json",
+      "report_sha256": "7545b411a101022007e8fd19cb4632a6f780c059507fb1db624b8311ff172a2e",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-early-poly2.py",
+          "sha256": "23cd93b8ea18e845a891a1c38020ad38383d4cfd2b2139cd966b76207ce3bab5"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2838.384262432,
+      "wall_seconds": 8.5565007,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-early-speed5",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/ground-early-speed5-s1.json",
+      "report_sha256": "5ab4a6194f6c975e556f5f2a0ee7f17ad21347e55b4f72e089ef2209b02eef7d",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-early-speed5.py",
+          "sha256": "db9c918ab8434fdc3d208b4c5a9ad3ded4cbdb281c944f05b5f38b63ff3c5faa"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2820.425805262,
+      "wall_seconds": 8.6894369,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-early-speed5",
+      "seed": 2,
+      "report": ".codex/reset-route-20261111/reports/ground-early-speed5-s2.json",
+      "report_sha256": "4d6c6d247ba664125eb8dc7e3947479f898ce134bb257f54f1dfb4125b5d530d",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-early-speed5.py",
+          "sha256": "db9c918ab8434fdc3d208b4c5a9ad3ded4cbdb281c944f05b5f38b63ff3c5faa"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2834.715332307,
+      "wall_seconds": 9.2718839,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-early-speed5",
+      "seed": 3,
+      "report": ".codex/reset-route-20261111/reports/ground-early-speed5-s3.json",
+      "report_sha256": "5c3379c7f78c7b9e2ae047e55712cd006f7f40ebab6e98f549698ab098b8b6b0",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-early-speed5.py",
+          "sha256": "db9c918ab8434fdc3d208b4c5a9ad3ded4cbdb281c944f05b5f38b63ff3c5faa"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2782.688640214,
+      "wall_seconds": 9.1602144,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-light-poly",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/ground-light-poly-s1.json",
+      "report_sha256": "b6c41ed881efaef70fe72119b2dd2ee7db034e2a0b2524b76641f9c1421d9c3c",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-light-poly.py",
+          "sha256": "6b244c51512e8a97d163457ad100686788ab000fb0d818ab38a649b1e4804dc3"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": false,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2217.229826458,
+      "wall_seconds": 0.5696595,
+      "error": null,
+      "failure_messages": [
+        "directed_failed nursery_fertilizer 2217.23"
+      ]
+    },
+    {
+      "variant": "ground-reserve-basic",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/ground-reserve-basic-s1.json",
+      "report_sha256": "81aa83e0241c8a16c769c2d437b368fc8ae151cb0c8a0aed1cf7ca4abfcf95b5",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-reserve-basic.py",
+          "sha256": "bab2d2f2a7524f0dc5583e600bc142ff3d6ff9a554e3c005e465d162f2820fa2"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3162.173241936,
+      "wall_seconds": 8.4117222,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-single-power",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/ground-single-power-s1.json",
+      "report_sha256": "1484483b7b7021361027d59ff1a5b9e9fb16c75d54f604303553f6f7dde8b264",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-single-power.py",
+          "sha256": "b0dfe04b6b49d9c7db7c6152c7a0a9abd8c4dcce2f53cca9e9266ff677f184f2"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2798.458929982,
+      "wall_seconds": 8.4821508,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-single-power",
+      "seed": 2,
+      "report": ".codex/reset-route-20261111/reports/ground-single-power-s2.json",
+      "report_sha256": "1d215aa1bfcc540318e609b00c63dada3afbe03076495a18cf2a396e59c4b5bb",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-single-power.py",
+          "sha256": "b0dfe04b6b49d9c7db7c6152c7a0a9abd8c4dcce2f53cca9e9266ff677f184f2"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2814.071756817,
+      "wall_seconds": 8.9810708,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-single-power",
+      "seed": 3,
+      "report": ".codex/reset-route-20261111/reports/ground-single-power-s3.json",
+      "report_sha256": "cdfbdc15a923671ccd2769d304894d77d17d43faf4f6e31fb7fb6b034a831ab2",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-single-power.py",
+          "sha256": "b0dfe04b6b49d9c7db7c6152c7a0a9abd8c4dcce2f53cca9e9266ff677f184f2"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2760.443903254,
+      "wall_seconds": 8.3181526,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-small-maze",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/ground-small-maze-s1.json",
+      "report_sha256": "9e499d967a1148cd050985718f0d696210f3eb72a7c979ff4463ca300f4d0cd5",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-small-maze.py",
+          "sha256": "f5c40570dfb1da25fab5eec6141987855f28e77462639e692233069805d2f0bc"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2840.343315826,
+      "wall_seconds": 8.3457213,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-small-maze",
+      "seed": 2,
+      "report": ".codex/reset-route-20261111/reports/ground-small-maze-s2.json",
+      "report_sha256": "eeb73780f34011fef651230f8a7f3d12cb661af178e420762ec64a21eaa9612b",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-small-maze.py",
+          "sha256": "f5c40570dfb1da25fab5eec6141987855f28e77462639e692233069805d2f0bc"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2846.740645235,
+      "wall_seconds": 8.7826612,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "ground-yield-first",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/ground-yield-first-s1.json",
+      "report_sha256": "680dc8da2f9ce6574bdf9c75cee5b04aeb59698bbe964b594e469886facd8868",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\ground-yield-first.py",
+          "sha256": "2c2bb65f72e1df1e8b9fdabe90c3156bfc58ba8332b43509a42ce19e5afc6fd5"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3107.445710557,
+      "wall_seconds": 8.5616613,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-bulk-basic",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-bulk-basic-s1.json",
+      "report_sha256": "d70c31a34bd3abcef6c0b86bc3c80a30e0ba2b3a474ab6038b28cea020543482",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-bulk-basic.py",
+          "sha256": "792c5abdf3e81a299710732cbf79a1ab8662d71411b3483375b43111fee90a0e"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3771.497693461,
+      "wall_seconds": 5.7754416,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-deferred-power",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-deferred-power-s1.json",
+      "report_sha256": "26736cb1b04ca045f6d2e2a8d014b4d784c012a531557271b995b94b8b545379",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-deferred-power.py",
+          "sha256": "f90e296619d23ceefde240df8ea6a39e868ae30eee3948368c80f0c12b5ea4c5"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3421.853948416,
+      "wall_seconds": 6.580263,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-early-mining",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-early-mining-s1.json",
+      "report_sha256": "033cf4453c9676273c70a23f06bc5591e3db963920a11e3311a0f7a005baba8d",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-early-mining.py",
+          "sha256": "a53c7b25468600e93405474a448284a93a395773702e7fbeb82d619c3dcd75fd"
+        }
+      ],
+      "stop_reason": "game_time_limit",
+      "goal_reached": false,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 7000,
+      "wall_seconds": 0.6840681,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-early-speed5",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-early-speed5-s1.json",
+      "report_sha256": "fd75bdf1457a687b556d7a3e03a4d221bfdb8af30de6223b1fc8ac53125e6784",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-early-speed5.py",
+          "sha256": "6dd7241e6a97eed9797919373159dea608d93ab7202bbc4a8f37b9105f32c455"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3415.125840147,
+      "wall_seconds": 5.8896305,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-infected-lean",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-infected-lean-s1.json",
+      "report_sha256": "277433846a032492bc447aa63e65f75d1c49f56824d3886e44a1727167671411",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-infected-lean.py",
+          "sha256": "1785fdd1d2cdb6d8698e83b0a8e7a8789c85310a803ed5adc740f4e586ba02fd"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3750.545628785,
+      "wall_seconds": 6.9810853,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-infected-poly",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-infected-poly-s1.json",
+      "report_sha256": "34f128c6d60f0bbd56bdbf406df0e4ec61b14590fbe746e18a0206b391fd215b",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-infected-poly.py",
+          "sha256": "91a842c3df1fb49a77926fdfe56b61f0e3bd30ea98f3a0748239448b2436314a"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3644.514940721,
+      "wall_seconds": 7.6232246,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-light-poly",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-light-poly-s1.json",
+      "report_sha256": "c0e6776552e35c6794174997ba6c0b76c7d15bda14e8a87a20b214d465597d1a",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-light-poly.py",
+          "sha256": "4edf6e753c1b1973b9e6495c17c62dee6f20d3cc7261ebeec6557a5b1991c1c6"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": false,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 2229.869812112,
+      "wall_seconds": 0.5978062,
+      "error": null,
+      "failure_messages": [
+        "directed_failed nursery_fertilizer 2229.87"
+      ]
+    },
+    {
+      "variant": "underground-ore-investment-funded",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-ore-investment-funded-s1.json",
+      "report_sha256": "d10e83ee33a15f221b3933aacc23ac57056736112bd0b609da62034447546adf",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-ore-investment-funded.py",
+          "sha256": "6d2cde8916e4c24b2307fff441e053f63aa247dd8359e5b70f94ae5d9902bc3c"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3163.304183895,
+      "wall_seconds": 6.636783,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-ore-investment-funded",
+      "seed": 2,
+      "report": ".codex/reset-route-20261111/reports/underground-ore-investment-funded-s2.json",
+      "report_sha256": "8720bf4d76f264603a76acdd61109556b1d09e7e7c649ef1e6fa1647542ca5a9",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-ore-investment-funded.py",
+          "sha256": "6d2cde8916e4c24b2307fff441e053f63aa247dd8359e5b70f94ae5d9902bc3c"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3250.290559863,
+      "wall_seconds": 6.9678463,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-ore-investment-funded",
+      "seed": 3,
+      "report": ".codex/reset-route-20261111/reports/underground-ore-investment-funded-s3.json",
+      "report_sha256": "a23872c1295ce72976b6e9c7f5f8321c8dfb67de48a7cb0d27259703eaec3289",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-ore-investment-funded.py",
+          "sha256": "6d2cde8916e4c24b2307fff441e053f63aa247dd8359e5b70f94ae5d9902bc3c"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3132.480566107,
+      "wall_seconds": 6.3797334,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-ore-investment",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-ore-investment-s1.json",
+      "report_sha256": "32b102d0b764eb16883496181a4453bb2a6cdc635730a2f63e9f1b1cc13a89fa",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-ore-investment.py",
+          "sha256": "529f74bd0f9bdfcf6431f13db1c3028f215503cb4f6db5381205dd6f9d5a1cae"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 6046.550007846,
+      "wall_seconds": 6.8691714,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-parallel-iron",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-parallel-iron-s1.json",
+      "report_sha256": "b744b787e61807b02c51ecb85f74d1860a8684637aeb66ea75770363418ee0cf",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-parallel-iron.py",
+          "sha256": "7db0563a12caed7d27b3f128084e13a775c4aedf6addd6461000737d38767a5b"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3503.526495179,
+      "wall_seconds": 6.6400955,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-quartz-frontier-funded",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-quartz-frontier-funded-s1.json",
+      "report_sha256": "ddea2378edf539ba98a3eb45cd99d0fb4223f835a06e573ce4ed664dc2cb984e",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-quartz-frontier-funded.py",
+          "sha256": "e772e178acda98c16617d27dd0d77dce8517f3dda9c82918091f91244a318658"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3565.306604976,
+      "wall_seconds": 6.3852218,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-quartz-frontier",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-quartz-frontier-s1.json",
+      "report_sha256": "389d301df2697c9e4bd32168549f7154d76c8223aa4997616f2826512dc1d1d1",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-quartz-frontier.py",
+          "sha256": "36a843314ee891c94194d8ca7db65c659130b0cb4fbadcad000cdf1f2c849305"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3399.979725354,
+      "wall_seconds": 6.4297922,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-reserve-basic",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-reserve-basic-s1.json",
+      "report_sha256": "d576264bf91e156bc4dd734e2e28750b47641022ec3024b63ca77f4bbce1a938",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-reserve-basic.py",
+          "sha256": "4b7d7341cda524da17ca871401a34c39d86e073eca847ebe69b348d0f1d53942"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3866.939742982,
+      "wall_seconds": 6.0107532,
+      "error": null,
+      "failure_messages": []
+    },
+    {
+      "variant": "underground-yield-first",
+      "seed": 1,
+      "report": ".codex/reset-route-20261111/reports/underground-yield-first-s1.json",
+      "report_sha256": "71311e09550f8c6aa338badbd4e108666816ed06be239768b347b3c44c5de1de",
+      "dependencies": [
+        {
+          "path": "D:\\project\\other\\TFWR_Simulator\\.codex\\reset-route-20261111\\candidates\\underground-yield-first.py",
+          "sha256": "ea7f9c6c9a1c2b19dfb136db65804e30b5eddd5450fdbdffa4965f5a06ad2122"
+        }
+      ],
+      "stop_reason": "finished",
+      "goal_reached": true,
+      "state_complete": true,
+      "has_overrides": false,
+      "game_seconds": 3475.220928677,
+      "wall_seconds": 6.3280466,
+      "error": null,
+      "failure_messages": []
+    }
+  ],
+  "deployment": {
+    "recorded_at": "2026-11-11T11:32:04.643702+00:00",
+    "generated_entry": false,
+    "validations": [
+      {
+        "script": "lb_fastest_reset",
+        "source_sha256": "647efd78cf5be96269456105f268bc88665125ebe636c1f535a185964b909de7",
+        "executed_sha256": "b0dfe04b6b49d9c7db7c6152c7a0a9abd8c4dcce2f53cca9e9266ff677f184f2",
+        "ast_matches": true,
+        "baseline_seconds": [
+          3069.528578392,
+          3049.131570489,
+          3014.12885097
+        ],
+        "candidate_seconds": [
+          2798.458929982,
+          2814.071756817,
+          2760.443903254
+        ],
+        "baseline_mean_seconds": 3044.2629999503333,
+        "candidate_mean_seconds": 2790.9915300176667
+      },
+      {
+        "script": "lb_fastest_underground_reset",
+        "source_sha256": "1a42bc8283fa5e17e5986aeecf0e921c00545bc50dd4655d66dabf8c45da20c7",
+        "executed_sha256": "6d2cde8916e4c24b2307fff441e053f63aa247dd8359e5b70f94ae5d9902bc3c",
+        "ast_matches": true,
+        "baseline_seconds": [
+          3476.439444025,
+          3327.536147582,
+          3368.26618181
+        ],
+        "candidate_seconds": [
+          3163.304183895,
+          3250.290559863,
+          3132.480566107
+        ],
+        "baseline_mean_seconds": 3390.747257805667,
+        "candidate_mean_seconds": 3182.0251032883334
+      }
+    ],
+    "changes": [
+      {
+        "script": "lb_fastest_reset",
+        "backup": ".codex/reset-route-20261111/deployment-backup/lb_fastest_reset.py",
+        "old_sha256": "692611da0defbe036b76d09e0d954dcfc0e423542f27409d4c17ed7305b40bb3",
+        "new_sha256": "647efd78cf5be96269456105f268bc88665125ebe636c1f535a185964b909de7",
+        "normalized_equals_repo": true
+      },
+      {
+        "script": "lb_fastest_underground_reset",
+        "backup": ".codex/reset-route-20261111/deployment-backup/lb_fastest_underground_reset.py",
+        "old_sha256": "87778d737f790990e08e588857904bf71868a05436fe4bf972382250096d352e",
+        "new_sha256": "1a42bc8283fa5e17e5986aeecf0e921c00545bc50dd4655d66dabf8c45da20c7",
+        "normalized_equals_repo": true
+      }
+    ],
+    "request_id": 498,
+    "changed_python_files": [
+      "lb_fastest_reset.py",
+      "lb_fastest_underground_reset.py"
+    ],
+    "unchanged_python_files": 62,
+    "file_list_unchanged": true,
+    "status": "idle"
+  },
+  "deployment_report_sha256": "88b64251240ad830a5fbf1166c05538a0a64d2faab8b0c9a2c202d2afd15236d",
+  "warning_summary": {
+    "native_key": "warning_no_item_to_use",
+    "ground_baseline_counts": [15, 18, 23],
+    "ground_final_counts": [14, 21, 21],
+    "underground_baseline_counts": [1, 0, 1],
+    "underground_final_counts": [0, 0, 1],
+    "seed_order": [1, 2, 3],
+    "observed_phase": "Existing optional Water calls in solar/pumpkin and one Carrot-nursery stage; solar helper execution AST matches the frozen baseline.",
+    "interpretation": "Parallel inventory checks do not reserve Water. Failed calls remain warnings and are not counted as successful watering; all failed-call time is included in complete run totals.",
+    "model_errors": 0
+  },
+  "static_diagnostics": {
+    "server": "ty",
+    "ground_error_count": 22,
+    "ground_baseline_error_count": 22,
+    "ground_errors": "Fresh baseline and final have identical Measure union-stub errors on unchanged operations; no new error in modified control or small-maze code.",
+    "underground_error_count": 0,
+    "native_csharp_changed": false,
+    "csharp_build": "Not rerun; simulator sources and compiled assembly unchanged."
+  },
+  "limitations": [
+    "Formal leaderboard RNG is encrypted; these three local seeds do not predict official random runs.",
+    "No new real-game run this iteration; both mean times remain above twice current first place.",
+    "CPython AST equality only verifies source equivalence; game syntax is independently checked by the native Tokenizer/Parser."
+  ],
+  "implementation_deviations": "None"
+}
