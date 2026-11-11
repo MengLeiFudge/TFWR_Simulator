@@ -170,13 +170,9 @@ def materials(item):
         import block
         # 连续深钻每次消耗一份炸药；材料储备由建材入口统一声明。
         needed[Items.Dynamite] = block.DYNAMITE_RESERVE
-    depths = {Items.Iron: 64, Items.Quartz: 80}
-    if item in depths:
-        # 爆破钻头每次扣一份炸药；为覆盖层及矿层留出一批完整沟挖的库存。
-        needed[Items.Dynamite] = plots * (depths[item] + 16)
-    if item == Items.Iron:
-        # 铁入口用Coal支付方向查询；缺料返回后由调度补齐再继续。
-        needed[Items.Coal] = plots * 4
+    if item in (Items.Coal, Items.Iron, Items.Quartz):
+        import mining
+        needed[Items.Dynamite] = mining.DYNAMITE_RESERVE
     return needed
 
 

@@ -3,7 +3,7 @@ import mining
 
 
 def pumpkin_petrified(target=-1):
-    mining.mine(Items.Pumpkin, Grounds.Petrified_Pumpkin, 64, Unlocks.Petrified_Pumpkins, target)
+    mining.mine(Items.Pumpkin, target)
 
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@ def block(target=-1):
         if steps % SAMPLE_INTERVAL == 0 and get_hardness() >= 10000000:
             quick_print("建材深钻到达不可挖层，停止：z", get_pos_z())
             return False
-        if not dig():
+        if num_items(Items.Dynamite) < 1 or not dig():
             quick_print("建材深钻失败或炸药不足，停止：z", get_pos_z())
             return False
         steps += 1

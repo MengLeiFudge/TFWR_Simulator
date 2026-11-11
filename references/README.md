@@ -6,6 +6,7 @@
 | --- | --- |
 | `DecompiledSource/` | 游戏反编译源码及 `source-manifest.json` 来源清单 |
 | [unlocks/](unlocks/README.md) | 科技前置、成本和解锁事实快照 |
+| [achievements/steam-schinese.json](achievements/steam-schinese.json) | Steam官方简体中文成就名、说明、API ID及来源时间；入口筛选归docs/achievement-audit.json |
 | [leaderboards/leaderboard_cache.json](leaderboards/leaderboard_cache.json) | 公开排行榜来源、抓取时间和成绩缓存 |
 | [leaderboards/status_snapshot.md](leaderboards/status_snapshot.md) | 七列状态总表所用的30榜公开#1、#10或末名、人数及当前账号最高记录和排名，逐榜保留查询时间 |
 

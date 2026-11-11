@@ -28,16 +28,21 @@ def fill_field():
 
 def sort_field():
     for _ in range(20):
+        changed = False
         for y in range(FIELD_SIZE):
             for x in range(FIELD_SIZE - 1):
                 goto(x, y)
                 if measure() < measure(East):  # ty: ignore[unsupported-operator]  仙人掌measure返回整数。
                     swap(East)
+                    changed = True
         for x in range(FIELD_SIZE):
             for y in range(FIELD_SIZE - 1):
                 goto(x, y)
                 if measure() < measure(North):  # ty: ignore[unsupported-operator]  仙人掌measure返回整数。
                     swap(North)
+                    changed = True
+        if not changed:
+            return
 
 
 def wrong_order():

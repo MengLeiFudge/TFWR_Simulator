@@ -63,7 +63,7 @@ DIG_LIMIT = 2048
 PHASE_LIMIT = 256
 
 
-def solve(size, depth, near, number):
+def solve(size, depth, near, number, deadline=0, settle_partial=True):
     known = []
     for cell in range(size * size):
         known.append(UNKNOWN)
@@ -71,13 +71,15 @@ def solve(size, depth, near, number):
     groups = min(max_drones(), size)
     rounds = 0
     for phase in range(PHASE_LIMIT):
-        results = dispatch(0, groups, groups, known, near, size, depth)
+        if deadline > 0 and get_time() >= deadline:
+            return "timeout", rounds
+        results = dispatch(0, groups, groups, known, near, size, depth, deadline)
         changed = False
         status = "running"
         for state, updates in results:
             if len(updates) > 0:
                 changed = True
-            if state == "error" or state == "mine":
+            if state == "error" or state == "mine" or state == "timeout":
                 status = state
             elif state == "ended" and status == "running":
                 status = state
@@ -87,20 +89,20 @@ def solve(size, depth, near, number):
         rounds += 1
         if status != "running" or not changed:
             break
-    if status == "running":
+    if status == "running" and settle_partial:
         status = settle(size, depth)
     return status, rounds
 
 
 # 各层同时派工，容量不足时本机完成未派出的区域。
-def dispatch(lo, hi, groups, known, near, size, depth):
+def dispatch(lo, hi, groups, known, near, size, depth, deadline=0):
     if hi - lo == 1:
-        return [work(lo, groups, known, near, size, depth)]
+        return [work(lo, groups, known, near, size, depth, deadline)]
     mid = (lo + hi) // 2
-    handle = spawn_drone(dispatch, mid, hi, groups, known, near, size, depth)
-    results = dispatch(lo, mid, groups, known, near, size, depth)
+    handle = spawn_drone(dispatch, mid, hi, groups, known, near, size, depth, deadline)
+    results = dispatch(lo, mid, groups, known, near, size, depth, deadline)
     if handle == None:
-        right = dispatch(mid, hi, groups, known, near, size, depth)
+        right = dispatch(mid, hi, groups, known, near, size, depth, deadline)
     else:
         right = wait_for(handle)
     for result in right:
@@ -109,7 +111,7 @@ def dispatch(lo, hi, groups, known, near, size, depth):
 
 
 # 各区独立推理并连续开安全格；相邻区域只交换公开数字与确定证明。
-def work(group, groups, known, near, size, depth):
+def work(group, groups, known, near, size, depth, deadline=0):
     columns = min(8, groups)
     rows = groups // columns
     left = (group % columns) * size // columns
@@ -134,6 +136,8 @@ def work(group, groups, known, near, size, depth):
     owned_set = set(owned)
     updates = {}
     for step in range(PHASE_LIMIT):
+        if deadline > 0 and get_time() >= deadline:
+            return "timeout", updates
         if not propagate(known, clues, near, updates):
             return "error", updates
         targets = []
@@ -151,7 +155,7 @@ def work(group, groups, known, near, size, depth):
             cell = targets.pop()
             if not move_to(cell % size, cell // size, size):
                 return "error", updates
-            status, number = open_ground(depth)
+            status, number = open_ground(depth, deadline)
             if status != "number":
                 return status, updates
             known[cell] = number
@@ -313,8 +317,10 @@ def read_ground(depth):
 
 
 # 只有实际要开格时才清理覆盖层，绝不在煤灰上为了读数再次dig。
-def open_ground(depth):
+def open_ground(depth, deadline=0):
     for _ in range(DIG_LIMIT):
+        if deadline > 0 and get_time() + get_hardness() / (1.5 ** num_unlocked(Unlocks.Mining)) >= deadline:
+            return "timeout", None
         if get_pos_z() <= depth:
             break
         if get_hardness() >= 10000000 or not dig():
@@ -323,6 +329,8 @@ def open_ground(depth):
     if z > depth:
         return "error", None
     if z == depth:
+        if deadline > 0 and get_time() + get_hardness() / (1.5 ** num_unlocked(Unlocks.Mining)) >= deadline:
+            return "timeout", None
         if get_ground_type() != Grounds.Dynamite or not dig():
             return "error", None
     return read_ground(depth)

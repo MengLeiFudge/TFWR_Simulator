@@ -1,5 +1,7 @@
 # 地下功能脚本：本地效率迭代
 
+本页保留2026-11-08至11-09各冻结版本的历史模拟；下文“当前”均指对应日期。2026-11-11的C#常规产出表、连续深钻优化及成就截止时间共享实现见[脚本验证汇总](script-rate-validation.md)，不要沿用本页哈希或速率代表新版本。
+
 2026-11-08。本页记录 `a0fbd7f` 后的地下优化批次，全部为本地模拟。铁的后续煤勘探算法及石英候选结果见[勘探对照](underground-prospecting.md)；下文旧批次数据保留源码与依赖归属。初版来源见[历史功能记录](functional-validation.md)，方向见[地下策略迭代](leaderboards/underground_efficiency_iteration.md)。
 
 [长期JSON证据](underground-efficiency-validation.json)保存171份报告摘要、源码和依赖哈希、初始条件、模型指纹、实际库存变化与失败分类。原始报告和执行源码保存在 `.codex/underground-efficiency-20261108/reports/`；这里的数字均为本地预测，不是实机成绩。

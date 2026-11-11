@@ -20,7 +20,7 @@
 
 本地模拟通过CLI手动运行，尚未自动接在部署命令前。默认[C#脚本模拟入口](simulator/headless/README.md)运行原版语言、调度及地上/地下机制，不依赖Python或游戏进程。当前版本归档重放、覆盖范围、性能与限制见[验收记录](simulator/headless/validation.md)。旧Python执行器已移除，历史对照资料保留；最终成绩仍由真实游戏验证。
 
-所有准备在游戏内执行的脚本，必须先通过本地模拟的正确性与效率验证。只有同条件下效率严格高于当前存档版本，才允许覆盖已有对应文件。功能初版按科技全解，Fastest Reset按原版重置条件；详细要求见[脚本验证与替换准入](docs/script-validation.md)，本轮功能脚本的来源、实际增长率与完整周期结果见[功能效率对照](docs/functional-validation.md)。
+所有准备在游戏内执行的脚本，必须先通过本地模拟的正确性与效率验证。只有同条件下效率严格高于当前存档版本，才允许覆盖已有对应文件。功能初版按科技全解，Fastest Reset按原版重置条件；详细要求见[脚本验证与替换准入](docs/script-validation.md)，当前常规产出表、特殊成就中文名称与运行时间见[脚本验证汇总](docs/script-rate-validation.md)；早期算法来源与对照保留在[历史功能记录](docs/functional-validation.md)。
 
 ## 首次配置
 

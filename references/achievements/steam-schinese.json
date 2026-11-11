@@ -1,0 +1,676 @@
+{
+  "source": "https://steamcommunity.com/achievements/2060160?l=schinese",
+  "fetched_at": "2026-11-11T06:54:58.661948+00:00",
+  "html_sha256": "20875ddd636cb531019e626fd675170cb09c049a0b3f9b4d60b3e5ac2b820dae",
+  "language": "schinese",
+  "schema_hash": 4010592246,
+  "schema_version": 16,
+  "achievements": [
+    {
+      "api_name": "DO_A_FLIP",
+      "name": "杂技高手",
+      "description": "来个后空翻。",
+      "group": 0
+    },
+    {
+      "api_name": "PET_THE_PIGGY",
+      "name": "手感不错",
+      "description": "抚摸小猪。",
+      "group": 0
+    },
+    {
+      "api_name": "DO_1000_FLIPS",
+      "name": "杂技大师",
+      "description": "来 1000 个后空翻。",
+      "group": 0
+    },
+    {
+      "api_name": "RUN_YOUR_FIRST_CODE",
+      "name": "Hello World",
+      "description": "运行你的第一个程序。",
+      "group": 0
+    },
+    {
+      "api_name": "CAUSE_A_RUNTIME_ERROR",
+      "name": "错误",
+      "description": "造成一个运行时错误。",
+      "group": 0
+    },
+    {
+      "api_name": "INFINITE_LOOP",
+      "name": "无限循环",
+      "description": "创建一个无限循环。",
+      "group": 0
+    },
+    {
+      "api_name": "EQUIP_A_NEW_HAT",
+      "name": "时尚达人",
+      "description": "装备一顶新帽子。",
+      "group": 0
+    },
+    {
+      "api_name": "PLANT_BUSH",
+      "name": "灌木丛",
+      "description": "种植一丛灌木。",
+      "group": 0
+    },
+    {
+      "api_name": "PLANT_CARROTS",
+      "name": "胡萝卜",
+      "description": "种植胡萝卜。",
+      "group": 0
+    },
+    {
+      "api_name": "PLANT_TREE",
+      "name": "树木",
+      "description": "种植一棵树。",
+      "group": 0
+    },
+    {
+      "api_name": "PLANT_SUNFLOWER",
+      "name": "向日葵",
+      "description": "种植一棵向日葵。",
+      "group": 0
+    },
+    {
+      "api_name": "PLANT_CACTUS",
+      "name": "仙人掌",
+      "description": "种植一棵仙人掌。",
+      "group": 0
+    },
+    {
+      "api_name": "SPAWN_MAZE",
+      "name": "迷宫",
+      "description": "生成一座迷宫。",
+      "group": 0
+    },
+    {
+      "api_name": "EQUIP_DINO_HAT",
+      "name": "恐龙",
+      "description": "装备恐龙帽。",
+      "group": 0
+    },
+    {
+      "api_name": "PLANT_PUMPKIN",
+      "name": "南瓜",
+      "description": "种植一棵南瓜。",
+      "group": 0
+    },
+    {
+      "api_name": "UNLOCK_EVERYTHING",
+      "name": "然后呢？",
+      "description": "解锁所有内容。",
+      "group": 0
+    },
+    {
+      "api_name": "USE_MULTIPLE_DRONES",
+      "name": "巨型农场",
+      "description": "使用多架无人机。",
+      "group": 0
+    },
+    {
+      "api_name": "SWARM",
+      "name": "蜂群",
+      "description": "同时使用 32 架无人机。",
+      "group": 0
+    },
+    {
+      "api_name": "EXPAND",
+      "name": "蒸蒸日上",
+      "description": "扩张农场。",
+      "group": 0
+    },
+    {
+      "api_name": "BIG_FARM",
+      "name": "大型农场",
+      "description": "农场达到最大规模。",
+      "group": 0
+    },
+    {
+      "api_name": "GIANT_PUMPKIN",
+      "name": "巨型南瓜",
+      "description": "收获一颗 32x32 的南瓜。",
+      "group": 0
+    },
+    {
+      "api_name": "FASHION_SHOW",
+      "name": "时装秀",
+      "description": "为 5 架无人机装备 5 顶不同的帽子。",
+      "group": 0
+    },
+    {
+      "api_name": "LONG_DINOSAUR",
+      "name": "长龙",
+      "description": "让一个恐龙填满整个农场。",
+      "group": 0
+    },
+    {
+      "api_name": "SIZE_MATTERS",
+      "name": "长度很重要",
+      "description": "让一个恐龙的长度达到 1000。",
+      "group": 0
+    },
+    {
+      "api_name": "TREASURE_HUNTER",
+      "name": "宝藏猎人",
+      "description": "解开一座填满整个农场的迷宫。",
+      "group": 0
+    },
+    {
+      "api_name": "RECYCLING",
+      "name": "循环利用",
+      "description": "重复使用同一座迷宫 300 次。",
+      "group": 0
+    },
+    {
+      "api_name": "COMPETITIVE_FARMING",
+      "name": "农业竞争",
+      "description": "登上排行榜。",
+      "group": 0
+    },
+    {
+      "api_name": "FULL_AUTOMATION",
+      "name": "全自动化",
+      "description": "登上“完全复位”排行榜。",
+      "group": 0
+    },
+    {
+      "api_name": "HAY_FARMER",
+      "name": "干草专业户",
+      "description": "收获 1000 干草。",
+      "group": 0
+    },
+    {
+      "api_name": "WOOD_FARMER",
+      "name": "木材专业户",
+      "description": "收获 1000 木材。",
+      "group": 0
+    },
+    {
+      "api_name": "CARROT_FARMER",
+      "name": "胡萝卜专业户",
+      "description": "收获 1000 胡萝卜。",
+      "group": 0
+    },
+    {
+      "api_name": "POWER_FARMER",
+      "name": "能量专业户",
+      "description": "收获 1000 能量。",
+      "group": 0
+    },
+    {
+      "api_name": "PUMPKIN_FARMER",
+      "name": "南瓜专业户",
+      "description": "收获 1000 南瓜。",
+      "group": 0
+    },
+    {
+      "api_name": "GOLD_FARMER",
+      "name": "黄金专业户",
+      "description": "收获 1000 黄金。",
+      "group": 0
+    },
+    {
+      "api_name": "CACTUS_FARMER",
+      "name": "仙人掌专业户",
+      "description": "收获 1000 仙人掌。",
+      "group": 0
+    },
+    {
+      "api_name": "BONE_FARMER",
+      "name": "骨头专业户",
+      "description": "收获 1000 骨头。",
+      "group": 0
+    },
+    {
+      "api_name": "BIG_HAY_FARMER",
+      "name": "干草大亨",
+      "description": "收获 10 亿干草。",
+      "group": 0
+    },
+    {
+      "api_name": "BIG_WOOD_FARMER",
+      "name": "木材大亨",
+      "description": "收获 10 亿木材。",
+      "group": 0
+    },
+    {
+      "api_name": "BIG_CARROT_FARMER",
+      "name": "胡萝卜大亨",
+      "description": "收获 10 亿胡萝卜。",
+      "group": 0
+    },
+    {
+      "api_name": "BIG_POWER_FARMER",
+      "name": "能量大亨",
+      "description": "收获 100000 能量。",
+      "group": 0
+    },
+    {
+      "api_name": "BIG_PUMPKIN_FARMER",
+      "name": "南瓜大亨",
+      "description": "收获 1 亿南瓜。",
+      "group": 0
+    },
+    {
+      "api_name": "BIG_CACTUS_FARMER",
+      "name": "仙人掌大亨",
+      "description": "收获 1 亿仙人掌。",
+      "group": 0
+    },
+    {
+      "api_name": "BIG_GOLD_FARMER",
+      "name": "黄金大亨",
+      "description": "收获 1 亿黄金。",
+      "group": 0
+    },
+    {
+      "api_name": "BIG_BONE_FARMER",
+      "name": "骨头大亨",
+      "description": "收获 1 亿骨头。",
+      "group": 0
+    },
+    {
+      "api_name": "WRONG_ORDER",
+      "name": "你搞错了",
+      "description": "将一整片仙人掌按照错误的顺序排列。",
+      "group": 0
+    },
+    {
+      "api_name": "MUD_FARM",
+      "name": "泥泞农场",
+      "description": "让农场整体水位超过 0.5。",
+      "group": 0
+    },
+    {
+      "api_name": "HEALER",
+      "name": "妙手回春",
+      "description": "治愈一株受感染的植物。",
+      "group": 0
+    },
+    {
+      "api_name": "CIRCULAR_IMPORT",
+      "name": "循环导入",
+      "description": "创造一个导入循环（import cycle）。",
+      "group": 0
+    },
+    {
+      "api_name": "HIGHER_ORDER_PROGRAMMING",
+      "name": "高阶编程",
+      "description": "将一个函数作为参数传递给另一个函数。",
+      "group": 0
+    },
+    {
+      "api_name": "STACK_OVERFLOW",
+      "name": "栈溢出",
+      "description": "造成一次栈溢出（stack overflow）。",
+      "group": 0
+    },
+    {
+      "api_name": "CHAOS",
+      "name": "混沌编程",
+      "description": "打开 20 个代码窗口。",
+      "group": 0
+    },
+    {
+      "api_name": "DINO_MASTER",
+      "name": "恐龙大师",
+      "description": "1 分钟内收获 100 万骨头。",
+      "group": 0
+    },
+    {
+      "api_name": "MAZE_MASTER",
+      "name": "迷宫大师",
+      "description": "1 分钟内收获 200 万黄金。",
+      "group": 0
+    },
+    {
+      "api_name": "HAY_MASTER",
+      "name": "干草大师",
+      "description": "1 分钟内收获 2 亿干草。",
+      "group": 0
+    },
+    {
+      "api_name": "CARROT_MASTER",
+      "name": "胡萝卜大师",
+      "description": "1 分钟内收获 2 亿胡萝卜。",
+      "group": 0
+    },
+    {
+      "api_name": "WOOD_MASTER",
+      "name": "木材大师",
+      "description": "1 分钟内收获 10 亿木材。",
+      "group": 0
+    },
+    {
+      "api_name": "SUNFLOWER_MASTER",
+      "name": "向日葵大师",
+      "description": "1 分钟内收获 12000 能量。",
+      "group": 0
+    },
+    {
+      "api_name": "PUMPKIN_MASTER",
+      "name": "南瓜大师",
+      "description": "1 分钟内收获 2000 万南瓜。",
+      "group": 0
+    },
+    {
+      "api_name": "CACTUS_MASTER",
+      "name": "仙人掌大师",
+      "description": "1 分钟内收获 2000 万仙人掌。",
+      "group": 0
+    },
+    {
+      "api_name": "MINE_BLOCK",
+      "name": "向下挖掘",
+      "description": "挖掘 1 个地块。",
+      "group": 1
+    },
+    {
+      "api_name": "BLOCK_MINER",
+      "name": "矿工",
+      "description": "挖掘 1,000 个地块。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_BLOCK_MINER",
+      "name": "大矿工",
+      "description": "挖掘 500,000 个地块。",
+      "group": 1
+    },
+    {
+      "api_name": "BLOCK_MASTER",
+      "name": "采矿大师",
+      "description": "在 1 分钟内挖掘 1,000,000 个地块。",
+      "group": 1
+    },
+    {
+      "api_name": "MINE_IRON",
+      "name": "铁矿",
+      "description": "找到 1 个铁矿地块。",
+      "group": 1
+    },
+    {
+      "api_name": "IRON_MINER",
+      "name": "铁矿矿工",
+      "description": "开采 1,000 份铁矿。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_IRON_MINER",
+      "name": "铁矿大矿工",
+      "description": "开采 500,000 份铁矿。",
+      "group": 1
+    },
+    {
+      "api_name": "MINE_COAL",
+      "name": "煤炭",
+      "description": "找到 1 个煤炭地块。",
+      "group": 1
+    },
+    {
+      "api_name": "COAL_MINER",
+      "name": "煤炭矿工",
+      "description": "开采 1,000 份煤炭。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_COAL_MINER",
+      "name": "煤炭大矿工",
+      "description": "开采 500,000 份煤炭。",
+      "group": 1
+    },
+    {
+      "api_name": "MINE_QUARTZ",
+      "name": "石英",
+      "description": "找到 1 个石英地块。",
+      "group": 1
+    },
+    {
+      "api_name": "QUARTZ_MINER",
+      "name": "石英矿工",
+      "description": "开采 1,000 份石英。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_QUARTZ_MINER",
+      "name": "石英大矿工",
+      "description": "开采 500,000 份石英。",
+      "group": 1
+    },
+    {
+      "api_name": "RICE_TERRACE",
+      "name": "梯田",
+      "description": "种植水稻，覆盖农场的整个地表。",
+      "group": 1
+    },
+    {
+      "api_name": "RICE_FARMER",
+      "name": "稻农",
+      "description": "收获 1,000 份水稻。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_RICE_FARMER",
+      "name": "大稻农",
+      "description": "收获 1,000,000 份水稻。",
+      "group": 1
+    },
+    {
+      "api_name": "PETRIFIED_PUMPKIN_MINER",
+      "name": "南瓜古生物学家",
+      "description": "开采 1,000 个石化南瓜。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_PETRIFIED_PUMPKIN_MINER",
+      "name": "南瓜古生物学教授",
+      "description": "开采 500,000 个石化南瓜。",
+      "group": 1
+    },
+    {
+      "api_name": "PLANT_BAMBOO",
+      "name": "竹子",
+      "description": "种植竹子。",
+      "group": 1
+    },
+    {
+      "api_name": "BAMBOO_FARMER",
+      "name": "竹农",
+      "description": "收获 1,000 份竹子。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_BAMBOO_FARMER",
+      "name": "大竹农",
+      "description": "收获 1,000,000,000 份竹子。",
+      "group": 1
+    },
+    {
+      "api_name": "BAMBOO_MASTER",
+      "name": "竹子大师",
+      "description": "在 1 分钟内开采 15,000,000 份竹子。",
+      "group": 1
+    },
+    {
+      "api_name": "MINE_MUSHROOM",
+      "name": "蘑菇",
+      "description": "找到 1 个蘑菇。",
+      "group": 1
+    },
+    {
+      "api_name": "MUSHROOM_MINER",
+      "name": "蘑菇矿工",
+      "description": "收获 1,000 个蘑菇。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_MUSHROOM_MINER",
+      "name": "蘑菇大矿工",
+      "description": "收获 500,000 个蘑菇。",
+      "group": 1
+    },
+    {
+      "api_name": "MINE_DYNAMITE",
+      "name": "炸药",
+      "description": "找到 1 层炸药。",
+      "group": 1
+    },
+    {
+      "api_name": "DYNAMITE_MINER",
+      "name": "炸药矿工",
+      "description": "开采 1,000 份炸药。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_DYNAMITE_MINER",
+      "name": "炸药大矿工",
+      "description": "开采 50,000,000 份炸药。",
+      "group": 1
+    },
+    {
+      "api_name": "PLACE_BLOCK",
+      "name": "放置",
+      "description": "放置 1 个地块。",
+      "group": 1
+    },
+    {
+      "api_name": "BLOCK_PLACER",
+      "name": "建造者",
+      "description": "放置 1,000 个地块。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_BLOCK_PLACER",
+      "name": "大建造者",
+      "description": "放置 10,000 个地块。",
+      "group": 1
+    },
+    {
+      "api_name": "COLOR_BLOCK_PLACER",
+      "name": "毕加索",
+      "description": "放置 1,000 个彩色地块。",
+      "group": 1
+    },
+    {
+      "api_name": "REACH_DEPTH",
+      "name": "深层采矿",
+      "description": "到达 z = -10,000 的深度。",
+      "group": 1
+    },
+    {
+      "api_name": "REACH_ACCUMULATED_DEPTH",
+      "name": "坚持不懈的矿工",
+      "description": "累计挖掘深度达到 1,000。",
+      "group": 1
+    },
+    {
+      "api_name": "BIG_REACH_ACCUMULATED_DEPTH",
+      "name": "不知疲倦的矿工",
+      "description": "累计挖掘深度达到 100,000。",
+      "group": 1
+    },
+    {
+      "api_name": "REACH_HEIGHT",
+      "name": "摩天大楼",
+      "description": "放置地块，使高度达到 z = +150。",
+      "group": 1
+    },
+    {
+      "api_name": "TILL_ROCK",
+      "name": "坏掉的锄头",
+      "description": "尝试耕作岩石。",
+      "group": 1
+    },
+    {
+      "api_name": "PROSPECTING",
+      "name": "探矿者",
+      "description": "使用铁矿探查 1,000 次。",
+      "group": 1
+    },
+    {
+      "api_name": "RESTORE_PYRAMID",
+      "name": "金字塔",
+      "description": "找到并修复 1 座金字塔。",
+      "group": 1
+    },
+    {
+      "api_name": "PYRAMID_RESTORER",
+      "name": "埃及学家",
+      "description": "找到并修复 200 座金字塔。",
+      "group": 1
+    },
+    {
+      "api_name": "RESTORE_MAX_PYRAMID",
+      "name": "大金字塔",
+      "description": "找到并修复 1 座底座为 29×29 的金字塔。",
+      "group": 1
+    },
+    {
+      "api_name": "RESTORE_COLOR_PYRAMID",
+      "name": "彩色金字塔",
+      "description": "用彩色地块修复 1 座金字塔。",
+      "group": 1
+    },
+    {
+      "api_name": "FIND_TREASURE_MAP",
+      "name": "藏宝图",
+      "description": "使用地图找到宝藏。",
+      "group": 1
+    },
+    {
+      "api_name": "TREASURE_MAP_FINDER",
+      "name": "大宝藏",
+      "description": "使用 200 张藏宝图，找到各自指向的宝藏。",
+      "group": 1
+    },
+    {
+      "api_name": "TREASURE_OPTIMAL",
+      "name": "藏宝图大师",
+      "description": "找到宝藏，且不重复经过同一个地块。",
+      "group": 1
+    },
+    {
+      "api_name": "PUSH_MUSHROOM_BLOCKED",
+      "name": "蘑菇挤不下",
+      "description": "尝试推动蘑菇，但未能成功。",
+      "group": 1
+    },
+    {
+      "api_name": "MUSHROOM_STRATUM_OPTIMAL",
+      "name": "牵线搭桥",
+      "description": "将同一层中的 95% 蘑菇配对。",
+      "group": 1
+    },
+    {
+      "api_name": "MUSHROOM_STARTUM_SKIP",
+      "name": "远距离友谊",
+      "description": "将蘑菇与更下方蘑菇层中颜色相同的蘑菇配对。",
+      "group": 1
+    },
+    {
+      "api_name": "DYNAMITE_OPTIMAL",
+      "name": "炸药排除",
+      "description": "挖出同一炸药层中的所有哑弹地块。",
+      "group": 1
+    },
+    {
+      "api_name": "DYNAMITE_MAX_OPTIMAL",
+      "name": "炸药排除专家",
+      "description": "在 32×32 的农场中，挖出 z = -600 或更深处同一炸药层中的所有哑弹地块。",
+      "group": 1
+    },
+    {
+      "api_name": "EXPLOSIVE_DRILL",
+      "name": "爆破大师",
+      "description": "使用爆破钻头。",
+      "group": 1
+    },
+    {
+      "api_name": "MINING_HELMET_UNSAFE",
+      "name": "不安全的代码",
+      "description": "摘下矿工帽，继续挖掘。",
+      "group": 1
+    }
+  ]
+}

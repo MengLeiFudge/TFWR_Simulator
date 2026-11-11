@@ -3,7 +3,7 @@ import mining
 
 
 def quartz(target=-1):
-    mining.mine(Items.Quartz, Grounds.Quartz, 80, Unlocks.Quartz, target)
+    mining.mine(Items.Quartz, target)
 
 
 if __name__ == "__main__":

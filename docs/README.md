@@ -2,7 +2,8 @@
 
 - [项目结构与边界](architecture.md)：模块分工、脚本分类、数据流和命名迁移。
 - [游戏脚本验证与替换准入](script-validation.md)：全科技前提、本地效率验证、严格更快才允许覆盖存档。
-- [功能脚本效率对照](functional-validation.md)：成熟算法来源、历史实际增长率、固定窗口库存及完整周期。
+- [当前常规速率与特殊成就验证](script-rate-validation.md)：20项常规净产出速率、24个成就入口的三seed时长，以及111项Steam中文成就筛选。
+- [功能脚本历史效率对照](functional-validation.md)：成熟算法来源、历史实际增长率、固定窗口库存及完整周期。
 - [地下功能批次效率](underground-functional-validation.md)：三seed净增长、完整两盘炸药与对应版本的调度边界。
 - [铁与石英勘探对照](underground-prospecting.md)：探测返回值、铁的煤引导采矿与石英32机候选结果。
 - [地下方向与淘汰记录](leaderboards/underground_efficiency_iteration.md)：14榜的策略筛选、完整目标结果和后续方向。

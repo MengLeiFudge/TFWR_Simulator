@@ -1,6 +1,6 @@
 [environment]
 # 游戏类型声明随仓库保存，检查源码时无需连接真实存档。
-extra-paths = ["typings"]
+extra-paths = ["typings", "scripts/functional"]
 
 [[overrides]]
 include = ["scripts/functional/**", "scripts/leaderboard/**"]
