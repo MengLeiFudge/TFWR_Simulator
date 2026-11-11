@@ -5,19 +5,21 @@ import production
 def power_sunflower(target=-1):
     global power_target
     power_target = target
-    # 保留完整排行榜生产周期；有限目标在最后一波同步点提前收口。
+    # 每波完整收获后统一判断目标；后续周期复用土壤和水位。
+    first = True
     while production.active(Items.Power, target):
         before = num_items(Items.Power)
-        production_cycle()
+        production_cycle(first)
+        first = False
         if num_items(Items.Power) <= before:
             quick_print("生产周期没有净收益，停止：", Items.Power)
             return
 
-def production_cycle():
+def production_cycle(first):
     global hay_origin
     global hay_step
     global carrot_step
-    global goal_hay
+
     if max_drones() < 32:
         quick_print("pair_farm_failed", "requires_32_drones")
         return
@@ -25,7 +27,8 @@ def production_cycle():
     if cost == None or Items.Carrot not in cost or cost[Items.Carrot] <= 0:
         quick_print("pair_farm_failed", "pumpkin_signal_cost")
         return
-    clear()
+    if first:
+        clear()
     set_world_size(32)
     if get_world_size() != 32:
         quick_print("pair_farm_failed", "requires_32_world")
@@ -34,9 +37,8 @@ def production_cycle():
     hay_origin = num_items(Items.Hay)
     hay_step = 32 * 2 ** max(0, num_unlocked(Unlocks.Grass) - 1)
     carrot_step = 32 * cost[Items.Carrot]
-    goal_hay = hay_origin + 14 * 2 * hay_step
     quick_print("pair_farm_begin", get_time(), num_items(Items.Power))
-    quick_print("pair_sync_setup", hay_origin, hay_step, carrot_step, goal_hay)
+    quick_print("pair_sync_setup", hay_origin, hay_step, carrot_step)
     result = launch_farm(0, 16, get_time() + 400)
     quick_print("pair_farm_done", result, get_time(), num_items(Items.Power))
 
@@ -86,7 +88,7 @@ def go(index, deadline):
 
 def water():
     if get_water() < 0.425 and num_items(Items.Water) > 32:
-        return use_item(Items.Water)
+        return use_item(Items.Water, 4)
     return True
 
 
@@ -202,40 +204,47 @@ def routes(pod, buckets):
     return plans
 
 
-def goal_signal(marker, deadline):
-    # 有限目标达到后才广播最后一波结束；-1 保留持续生产的原有收口。
-    if num_items(Items.Hay) > goal_hay:
-        return True
-    if power_target == -1 or num_items(Items.Power) < power_target:
-        return False
-    if not go(marker, deadline):
-        return None
-    while not can_harvest():
-        if num_items(Items.Hay) > goal_hay:
+def finish_wave(pod, cycle, base, deadline):
+    # 全部9瓣阶段已经同步完成。仅0号组决策，其他组读取同一次材料变化。
+    hay = hay_origin + (cycle * 2 + 2) * hay_step
+    carrot = base - 9 * carrot_step
+    if pod == 0:
+        marker = pod * 64 + 16
+        if not go(marker, deadline):
+            return None
+        if num_items(Items.Power) >= power_target:
+            # 停止只多收一格Grass；继续只多种一棵Pumpkin，不增加补料种类。
+            while not can_harvest():
+                if get_time() > deadline:
+                    return None
+                pause()
+            if not harvest():
+                return None
+        else:
+            if get_ground_type() != Grounds.Soil:
+                till()
+            if not plant(Entities.Pumpkin) or not harvest():
+                return None
+    while True:
+        if num_items(Items.Hay) > hay:
             return True
+        if num_items(Items.Carrot) < carrot:
+            return False
         if get_time() > deadline:
+            quick_print("pair_sync_timeout", "wave_decision", pod, cycle)
             return None
         pause()
-    if not harvest():
-        return None
-    quick_print("pair_goal_signal", marker, get_time(), num_items(Items.Power))
-    return True
 
 
-def consume_signal(base, rank, deadline, last_wave):
-    # 只有本轮种花结束后才进入；临时南瓜不提供伴生或成熟收益。
+def consume_signal(base, rank, deadline):
+    # 本轮种花已全部结束；临时南瓜只用于各瓣阶段的共享库存屏障。
     if get_ground_type() != Grounds.Soil:
         till()
-    if not plant(Entities.Pumpkin):
-        return False
-    if not harvest():
+    if not plant(Entities.Pumpkin) or not harvest():
         return False
     while num_items(Items.Carrot) > base - (rank + 1) * carrot_step:
-        if last_wave and num_items(Items.Hay) > goal_hay:
-            return True
         if get_time() > deadline:
-            quick_print("pair_sync_timeout", "carrot", rank,
-                        num_items(Items.Carrot), base - (rank + 1) * carrot_step, get_time())
+            quick_print("pair_sync_timeout", "carrot", rank, get_time())
             return False
         pause()
     return True
@@ -245,40 +254,22 @@ def collect(pod, side, cycle, plan, base, deadline):
     marker = pod * 64 + side * 32 + 16
     if not hay_barrier(marker, cycle * 2 + 2, deadline):
         return False
-    last_wave = cycle == 13
     harvested = 0
     for rank in range(9):
         began = get_time()
         for cell in plan[rank]:
-            if last_wave:
-                done = goal_signal(marker, deadline)
-                if done == None:
-                    return False
-                if done:
-                    return True
             if not go(pod * 64 + cell, deadline):
                 return False
             if not can_harvest() and num_items(Items.Fertilizer) > 0:
-                # 库存由32机共享；竞争失败则回到原成熟等待，不假设使用成功。
                 use_item(Items.Fertilizer)
             while not can_harvest():
-                if last_wave and num_items(Items.Hay) > goal_hay:
-                    return True
-                if get_time() > deadline:
-                    return False
-                if not water():
+                if get_time() > deadline or not water():
                     return False
                 pause()
             if not harvest():
                 return False
             harvested += 1
-        if last_wave:
-            done = goal_signal(marker, deadline)
-            if done == None:
-                return False
-            if done:
-                return True
-        if not consume_signal(base, rank, deadline, last_wave):
+        if not consume_signal(base, rank, deadline):
             return False
         if pod == 0 and side == 0:
             quick_print("pair_rank_end", cycle, rank, began, get_time(), num_items(Items.Power), num_items(Items.Water))
@@ -323,6 +314,12 @@ def farm(pod, deadline):
         if not local or not other:
             quick_print("pair_farm_failed", "collect", pod, cycle)
             return False
+        if power_target != -1:
+            done = finish_wave(pod, cycle, base, wave_deadline)
+            if done == None:
+                return False
+            if done:
+                return True
     return True
 
 
@@ -367,7 +364,7 @@ def split(positions, cells, order, prefix):
 hay_origin = 0
 hay_step = 0
 carrot_step = 0
-goal_hay = 0
+
 power_target = -1
 
 

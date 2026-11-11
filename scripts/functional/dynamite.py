@@ -14,9 +14,7 @@ def dynamite(target=-1, round_limit=0):
     if num_drones() != 1:
         quick_print("请在其他无人机结束后启动。")
         return
-    near = []
-    for cell in range(size * size):
-        near.append(neighbors(cell, size))
+    near = make_near(size)
 
     initial = num_items(Items.Dynamite)
     change_hat(Hats.Mining_Hat)
@@ -53,6 +51,34 @@ def dynamite(target=-1, round_limit=0):
                     "rate", total / (get_time() - started))
         if status != "ended":
             return
+
+
+def make_near(size):
+    # 各段只依赖固定几何，并行建立后按原索引顺序拼接；全程不读取地层。
+    workers = min(size, max_drones())
+    count = size * size
+    handles = []
+    for group in range(1, workers):
+        lo = group * count // workers
+        hi = (group + 1) * count // workers
+        handle = spawn_drone(near_strip, lo, hi, size)
+        result = None
+        if handle == None:
+            result = near_strip(lo, hi, size)
+        handles.append((handle, result))
+    near = near_strip(0, count // workers, size)
+    for handle, result in handles:
+        if handle != None:
+            result = wait_for(handle)
+        near = near + result
+    return near
+
+
+def near_strip(lo, hi, size):
+    result = []
+    for cell in range(lo, hi):
+        result.append(neighbors(cell, size))
+    return result
 
 
 UNKNOWN = -3

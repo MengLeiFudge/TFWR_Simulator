@@ -2,7 +2,7 @@
 
 本目录的初版以**科技全解、32×32农场、32台无人机**为运行前提，持续生产对应资源。Fastest Reset类脚本仍归排行榜目录，使用各自的重置初始条件。运行与文件同名的入口即可，例如打开 `rice.py` 执行。
 
-有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，地下批次见[效率记录](../../docs/underground-functional-validation.md)，铁与石英的勘探对照见[勘探记录](../../docs/underground-prospecting.md)。成就入口的筛选边界见[特殊成就目录](../achievement/README.md)。常规入口只保留生产或排行榜机制本身；能随正常流程触发的成就不在 `scripts/achievement/` 重复建文件。
+有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，持续生产优化见[布局复用与完整周期对照](../../docs/functional-optimization.md)，地下批次见[效率记录](../../docs/underground-functional-validation.md)，铁与石英的勘探对照见[勘探记录](../../docs/underground-prospecting.md)。成就入口的筛选边界见[特殊成就目录](../achievement/README.md)。常规入口只保留生产或排行榜机制本身；能随正常流程触发的成就不在 `scripts/achievement/` 重复建文件。
 
 ## 按库存目标补齐
 
@@ -40,22 +40,22 @@ TARGETS = {
 | [pumpkin.py](pumpkin.py) | 南瓜 3129.29万 | 怪异物质 9.68万 | 60.00 |
 | [cactus.py](cactus.py) | 仙人掌 3355.44万 | — | 60.00 |
 | [bone_dinosaur.py](bone_dinosaur.py) | 骨头 259.14万 | — | 775.38 |
-| [weird_substance.py](weird_substance.py) | 怪异物质 1392.64万 | 木材 1392.64万 | 60.00 |
+| [weird_substance.py](weird_substance.py) | 怪异物质 4.95亿 | 木材 4.95亿 | 60.00 |
 | [gold_maze.py](gold_maze.py) | 金币 649.93万 | 干草 1.64万 | 60.00 |
 | [rice.py](rice.py) | 水稻 104.79万 | 建材 9,456；煤 48 | 60.00 |
-| [bamboo.py](bamboo.py) | 竹子 4402.75万 | — | 60.00 |
+| [bamboo.py](bamboo.py) | 竹子 1.01亿 | — | 450.00 |
 | [coal.py](coal.py) | 煤 1.53万 | 南瓜 382.31万；建材 147.66万；铁 21.30万；石英 13.99万 | 60.00 |
 | [mushroom.py](mushroom.py) | 蘑菇 1.93万 | 建材 4,144；煤 60；铁 96 | 60.00 |
-| [dynamite.py](dynamite.py) | 炸药 39.01万 | 南瓜 1.38万；建材 2,477；煤 2；铁 96；石英 88 | 60.00 |
+| [dynamite.py](dynamite.py) | 炸药 39.06万 | 南瓜 1.38万；建材 2,515；煤 2；铁 144；石英 120 | 60.00 |
 | [block.py](block.py) | 建材 147.49万 | 南瓜 382.31万；煤 1.53万；铁 21.30万；石英 13.97万 | 60.00 |
 | [iron.py](iron.py) | 铁 21.30万 | 南瓜 382.31万；建材 147.66万；煤 1.53万；石英 13.99万 | 60.00 |
 | [quartz.py](quartz.py) | 石英 13.99万 | 南瓜 382.31万；建材 147.66万；煤 1.53万；铁 21.30万 | 60.00 |
 | [gold_treasure_map.py](gold_treasure_map.py) | 金币 18.09万 | 南瓜 6.55万；建材 7,942；铁 1,648；石英 728 | 60.00 |
-| [power_pyramids.py](power_pyramids.py) | 能量 2,091.5 | 南瓜 9,728；建材 9,111；煤 400；铁 704；石英 272 | 60.00 |
-| [power_sunflower.py](power_sunflower.py) | 能量 3.23万 | 干草 16.38万；怪异物质 444 | 60.00 |
+| [power_pyramids.py](power_pyramids.py) | 能量 2,888.1 | 南瓜 2.07万；建材 9,666.7；煤 400.5；铁 866.9；石英 245；炸药 5.7 | 127.35 |
+| [power_sunflower.py](power_sunflower.py) | 能量 3.41万 | 干草 16.38万；怪异物质 148 | 60.00 |
 | [pumpkin_petrified.py](pumpkin_petrified.py) | 南瓜 382.31万 | 建材 147.66万；煤 1.53万；铁 21.30万；石英 13.99万 | 60.00 |
 
-恐龙按完整一轮入库3348.89万骨头折算，实际模拟耗时10.76墙钟秒；其他入口先限制为10墙钟秒，均推进到60游戏秒。采矿入口采用相同连续深钻机制，区别是有限库存目标对应不同资源。详细版本、原始数量、三seed优化对照及口径见[本轮验证](../../docs/script-rate-validation.md)和[数据](../../docs/script-rate-validation.json)。
+竹子观察450游戏秒，覆盖500M批次后保留竹桩的阶段；首60秒仍受筛选成本影响，不能套用该长期平均值。金字塔以增加5000能量的完整周期取样，实际运行127.35游戏秒。恐龙按完整一轮入库3348.89万骨头折算，实际耗时10.76墙钟秒；其余入口观察60游戏秒。本轮优化每例限10墙钟秒，不为凑窗口延长预算。详细版本、数量及三seed对照见[持续生产优化](../../docs/functional-optimization.md)、[验证汇总](../../docs/script-rate-validation.md)和[数据](../../docs/script-rate-validation.json)。
 
 ## 脚本清单
 
@@ -70,27 +70,27 @@ TARGETS = {
 | 迷宫产金币 | [gold_maze.py](gold_maze.py) | `lb_maze.py`，32座独立小迷宫及增量路由 |
 | 向日葵产能量 | [power_sunflower.py](power_sunflower.py) | `lb_sunflowers.py`，16组双机分瓣收获与同步 |
 | 水稻 | [rice.py](rice.py) | `lb_rice.py`两层粘土清单流水及补水，实际收割后下挖、全部回收后换田 |
-| 竹子 | [bamboo.py](bamboo.py) | `lb_bamboo.py`按行分片、统一花节并批量切收 |
+| 竹子 | [bamboo.py](bamboo.py) | `lb_bamboo.py`按行分片、统一花节，后续批次复用合格竹桩 |
 | 煤 | [coal.py](coal.py) | `mining.mine`，单爆破钻连续深挖，有限目标按煤库存停止 |
 | 蘑菇 | [mushroom.py](mushroom.py) | 用户原逐层同步与采样柱，加公开颜色缓存、低台搬运与同高配对 |
-| 炸药 | [dynamite.py](dynamite.py) | `lb_dynamite.py`区域差集推理、并行找层和逐盘正常结算 |
+| 炸药 | [dynamite.py](dynamite.py) | `lb_dynamite.py`区域差集推理、并行找层；固定邻接表并行建立，每盘正常结算 |
 | 藏宝图产金币 | [gold_treasure_map.py](gold_treasure_map.py) | `lb_treasure_map.py`，按层去环，适配普通地形入口 |
-| 金字塔产能量 | [power_pyramids.py](power_pyramids.py) | `lb_pyramids.py`修补主体，普通田使用Jump和浅层爆破钻头 |
+| 金字塔产能量 | [power_pyramids.py](power_pyramids.py) | `lb_pyramids.py`并行探边、邻格采样和树形维修，普通田使用Jump与浅层爆破钻头 |
 | 建材 | [block.py](block.py) | 单机连续深钻与原生炸药层连锁收集；[机制与验证记录](../../docs/block-mining.md) |
 | 铁 | [iron.py](iron.py) | `mining.mine`，单爆破钻连续深挖，有限目标按铁库存停止 |
 | 石英 | [quartz.py](quartz.py) | 同上，有限目标按石英库存停止 |
 | 石化南瓜 | [pumpkin_petrified.py](pumpkin_petrified.py) | 同上，收取石化南瓜真实掉落，有限目标按南瓜库存停止 |
-| 怪异物质 | [weird_substance.py](weird_substance.py) | `lb_fastest_reset.py`的并行伴生树苗圃 |
+| 怪异物质 | [weird_substance.py](weird_substance.py) | `lb_fastest_reset.py`苗圃，持续入口保留未收获的合格树，定期回收后恢复真实状态 |
 
-向日葵入口保留完整生产周期；传入有限 `target` 时，最后一波同步点会读取该目标并提前收口，`-1` 仍表示持续生产。
+向日葵传入有限 `target` 时，每一整波9个瓣阶段同步结束后统一检查目标并收口；`-1` 持续生产，后续周期复用土壤与水位。补水每次使用4份水；最终库存可能超过目标。
 
 水和肥料由游戏自动获取，不设生产脚本。`mining.py`集中煤、铁、石英、石化南瓜共用的连续深钻；建材的60秒库存窗口由 `block.py` 保存。`resources.materials` 为这些采矿入口准备炸药；煤不再沿浅矿层逐格搜索，铁不再额外支付煤勘探。爆破只计实际入库。
 
 ## 整体审查结论
 
-本轮逐个对照 `scripts/leaderboard/lb_*.py`：竹子、干草、木材、胡萝卜、南瓜、仙人掌、恐龙、迷宫、藏宝图、蘑菇、炸药、金字塔、向日葵和水稻均已复用对应成熟算法；目标参数只在入口、闭包和子机边界传递，不改变榜单策略。煤、铁、石英、石化南瓜、建材和怪异物质没有可直接一一对应的普通榜单入口，按地下机制单独维护。
+常规入口沿用对应成熟功能或多机排行榜算法，按普通地形、库存目标和持续生产调整。煤、铁、石英、石化南瓜共用连续深钻；建材保留60秒净增窗口。怪异物质保留合格树，竹子跨批次复用竹桩，金字塔迁入并行探边与维修，向日葵按整波退出，炸药并行建立邻接表。
 
-当前 C# 对照确认连续深钻优于反复重生浅层、探孔与追脉：煤、铁、石英、石化南瓜在三个seed下均更快，目标资源速率分别提升5.6–11.3倍、4.3–7.0倍、4.8–10.8倍、2.6–5.7倍。四入口共用 `mining.mine`，每次开挖前检查有限目标和炸药库存；调度已验证从零炸药先补料再生产煤，结束时只有主机。建材也显式检查炸药，避免耗尽后退化为普通挖掘。炸药求解器增加可选截止时间与禁止部分结算参数，供成就入口复用；常规调用继续正常结算。其余成熟算法本轮保持原实现。
+这些结构均有本地对照，具体窗口、收益范围与失败候选见[持续生产优化记录](../../docs/functional-optimization.md)。蘑菇连续向下找层、扩大探孔和减少重复读取的候选未取得稳定优势，当前保持原实现。
 
 ## 运行与依赖
 
