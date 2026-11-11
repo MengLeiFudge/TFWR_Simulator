@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：22:43.254（2026-11-09，build26462009，官方完整6轮，request482）。
+# 完整轮时间：本地三seed均值21:14.446（2026-11-11）；上版实机22:43.254（request482）。
 
 
 def lb_pyramids():
@@ -50,7 +50,7 @@ def lb_pyramids():
         for count in attempts:
             wasted += count
         cleaned = get_time()
-        jobs = pyramid_dispatch(pyramid_missing_column, bounds)
+        jobs = pyramid_missing(bounds)
         if jobs == None:
             return
         needed = 0
@@ -128,30 +128,50 @@ def pyramid_floor_at(x, y, floor):
 
 
 def pyramid_edge_bounds(x, y, floor):
-    # 沿一条西侧基边确认南北端点，用正方形边长直接得到东边。
+    # 同深度石灰岩的连续区间给出基边；探查产生的单层缺口留给统一修补。
     west = pyramid_boundary((x, y), floor, (-1, 0))
     if west == None:
         return None
-    handles = []
-    edges = []
-    for delta in [(0, -1), (0, 1)]:
-        if num_drones() < max_drones():
-            handle = spawn_drone(pyramid_boundary, west, floor, delta)
-            if handle != None:
-                handles.append(handle)
-                continue
-        edges.append(pyramid_boundary(west, floor, delta))
-    for handle in handles:
-        edges.append(wait_for(handle))
-    if edges[0] == None or edges[1] == None:
-        return None
     x0 = west[0]
-    y0 = min(edges[0][1], edges[1][1])
-    y1 = max(edges[0][1], edges[1][1])
+    size = get_world_size()
+    handle = spawn_drone(pyramid_edge_samples, 0, size - 1, x0, floor, y)
+    if handle == None:
+        samples = pyramid_edge_samples(0, size - 1, x0, floor, y)
+    else:
+        samples = wait_for(handle)
+    samples.append(y)
+    y0 = min(samples)
+    y1 = max(samples)
     length = y1 - y0 + 1
-    if length < 5 or length % 2 != 1 or x0 + length > get_world_size():
+    if length != len(samples) or length < 5 or length % 2 != 1 or x0 + length > size:
+        quick_print("edge_failed", x0, floor, samples)
         return None
     return x0, x0 + length - 1, y0, y1, floor
+
+
+def pyramid_edge_samples(lo, hi, x, floor, skip):
+    if hi - lo == 1:
+        y = lo
+        if y >= skip:
+            y += 1
+        if not pyramid_move_to(x, y):
+            return []
+        while get_pos_z() > floor:
+            if not dig():
+                return []
+        if get_pos_z() == floor and get_ground_type() == Grounds.Limestone:
+            return [y]
+        return []
+    middle = (lo + hi) // 2
+    handle = spawn_drone(pyramid_edge_samples, middle, hi, x, floor, skip)
+    samples = pyramid_edge_samples(lo, middle, x, floor, skip)
+    if handle == None:
+        other = pyramid_edge_samples(middle, hi, x, floor, skip)
+    else:
+        other = wait_for(handle)
+    for y in other:
+        samples.append(y)
+    return samples
 
 
 def pyramid_boundary(point, floor, delta):
@@ -200,15 +220,16 @@ def pyramid_clean_fill(x, bounds, _layer):
     for y in range(y0, y1 + 1):
         if not pyramid_move_to(x, y):
             return None
+        target = floor + 1 + min(x - x0, x1 - x, y - y0, y1 - y)
         while get_pos_z() > floor:
             ground = get_ground_type()
-            if ground == Grounds.Sand or ground == Grounds.Limestone:
+            # 高于几何顶面的Sand也须清除，不能仅凭地面类型结束清理。
+            if get_pos_z() <= target and (ground == Grounds.Sand or ground == Grounds.Limestone):
                 break
             if not dig():
                 return None
         if get_pos_z() < floor:
             return None
-        target = floor + 1 + min(x - x0, x1 - x, y - y0, y1 - y)
         if x == cx and y == cy:
             target -= 1
         z = get_pos_z()
@@ -224,20 +245,50 @@ def pyramid_clean_fill(x, bounds, _layer):
     return wasted
 
 
-def pyramid_missing_column(x, bounds, _layer):
-    # 在清理与预留顶块全部结束后取快照，避免并发塌方使缺口高度失效。
+def pyramid_missing(bounds):
+    # 清理结束后再采样；观测合并为三列，施工任务仍按原列独占。
+    handles = []
+    results = []
+    for lo in range(bounds[0], bounds[1] + 1, 3):
+        handle = spawn_drone(pyramid_missing_strip, lo, bounds)
+        if handle == None:
+            results.append(pyramid_missing_strip(lo, bounds))
+        else:
+            handles.append(handle)
+    for handle in handles:
+        results.append(wait_for(handle))
+    columns = []
+    for result in results:
+        if result == None:
+            return None
+        for holes in result:
+            columns.append(holes)
+    return columns
+
+
+def pyramid_missing_strip(lo, bounds):
     x0, x1, y0, y1, floor = bounds
-    holes = []
+    hi = min(lo + 2, x1)
+    cx = min(lo + 1, hi)
+    columns = []
+    for x in range(lo, hi + 1):
+        columns.append([])
     for y in range(y0, y1 + 1):
-        if not pyramid_move_to(x, y):
+        if not pyramid_move_to(cx, y):
             return None
-        target = floor + 1 + min(x - x0, x1 - x, y - y0, y1 - y)
-        z = get_pos_z()
-        if z < floor or z > target:
-            return None
-        if z < target:
-            holes.append((x, y, z, target))
-    return holes
+        for x in range(lo, hi + 1):
+            direction = None
+            if x < cx:
+                direction = West
+            elif x > cx:
+                direction = East
+            z = get_pos_z(direction)
+            target = floor + 1 + min(x - x0, x1 - x, y - y0, y1 - y)
+            if z < floor or z > target:
+                return None
+            if z < target:
+                columns[x - lo].append((x, y, z, target))
+    return columns
 
 
 def pyramid_repair(columns, bounds, height):
@@ -266,24 +317,25 @@ def pyramid_repair(columns, bounds, height):
         for hole in active[i]:
             jobs[i % len(jobs)].append(hole)
     deadline = get_time() + 120
-    handles = []
-    local = []
-    for job in jobs:
-        handle = spawn_drone(pyramid_patch_layers, job, floor, thresholds, deadline)
-        if handle == None:
-            for hole in job:
-                local.append(hole)
-        else:
-            handles.append(handle)
-    ok = True
-    if len(local) > 0:
-        ok = pyramid_patch_layers(local, floor, thresholds, deadline)
-    if not pyramid_move_to((bounds[0] + bounds[1]) // 2, (bounds[2] + bounds[3]) // 2):
-        ok = False
-    for handle in handles:
-        if not wait_for(handle):
-            ok = False
-    return ok
+    handle = spawn_drone(pyramid_patch_group, jobs, 0, len(jobs), floor, thresholds, deadline)
+    if handle == None:
+        return False
+    centered = pyramid_move_to((bounds[0] + bounds[1]) // 2, (bounds[2] + bounds[3]) // 2)
+    ok = wait_for(handle)
+    return centered and ok
+
+
+def pyramid_patch_group(jobs, lo, hi, floor, thresholds, deadline):
+    # 最多31个叶子，主机保留在中心。派发失败不串行执行依赖同层屏障的任务。
+    if hi - lo == 1:
+        return pyramid_patch_layers(jobs[lo], floor, thresholds, deadline)
+    middle = (lo + hi) // 2
+    handle = spawn_drone(pyramid_patch_group, jobs, middle, hi, floor, thresholds, deadline)
+    if handle == None:
+        return False
+    left = pyramid_patch_group(jobs, lo, middle, floor, thresholds, deadline)
+    right = wait_for(handle)
+    return left and right
 
 
 def pyramid_patch_layers(holes, floor, thresholds, deadline):

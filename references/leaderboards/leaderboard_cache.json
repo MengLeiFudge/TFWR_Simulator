@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "app_id": 2060160,
-  "last_attempt_at": "2026-11-11T07:33:10.363430+00:00",
+  "last_attempt_at": "2026-11-11T09:58:51.031115+00:00",
   "boards": [
     {
       "script": "lb_cactus",
@@ -6334,8 +6334,8 @@
     {
       "script": "lb_bamboo",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21488263/",
-      "retrieved_at": "2026-11-10T06:15:57.101039+00:00",
-      "total_entries": 37,
+      "retrieved_at": "2026-11-11T09:13:17.340487+00:00",
+      "total_entries": 41,
       "entries": [
         {
           "rank": 1,
@@ -6363,134 +6363,150 @@
         },
         {
           "rank": 7,
-          "time_ms": 319845
+          "time_ms": 264016
         },
         {
           "rank": 8,
-          "time_ms": 325440
+          "time_ms": 273885
         },
         {
           "rank": 9,
-          "time_ms": 328103
+          "time_ms": 319845
         },
         {
           "rank": 10,
-          "time_ms": 360960
+          "time_ms": 325440
         },
         {
           "rank": 11,
-          "time_ms": 410629
+          "time_ms": 328103
         },
         {
           "rank": 12,
-          "time_ms": 439874
+          "time_ms": 360960
         },
         {
           "rank": 13,
-          "time_ms": 551403
+          "time_ms": 410629
         },
         {
           "rank": 14,
-          "time_ms": 558422
+          "time_ms": 439874
         },
         {
           "rank": 15,
-          "time_ms": 568514
+          "time_ms": 551403
         },
         {
           "rank": 16,
-          "time_ms": 598537
+          "time_ms": 558422
         },
         {
           "rank": 17,
-          "time_ms": 600208
+          "time_ms": 568514
         },
         {
           "rank": 18,
-          "time_ms": 616062
+          "time_ms": 598537
         },
         {
           "rank": 19,
-          "time_ms": 820306
+          "time_ms": 599299
         },
         {
           "rank": 20,
-          "time_ms": 823897
+          "time_ms": 616062
         },
         {
           "rank": 21,
-          "time_ms": 861156
+          "time_ms": 820306
         },
         {
           "rank": 22,
-          "time_ms": 888668
+          "time_ms": 823897
         },
         {
           "rank": 23,
-          "time_ms": 897857
+          "time_ms": 861156
         },
         {
           "rank": 24,
-          "time_ms": 921670
+          "time_ms": 888668
         },
         {
           "rank": 25,
-          "time_ms": 1053397
+          "time_ms": 897857
         },
         {
           "rank": 26,
-          "time_ms": 1071834
+          "time_ms": 921670
         },
         {
           "rank": 27,
-          "time_ms": 1181616
+          "time_ms": 1053397
         },
         {
           "rank": 28,
-          "time_ms": 1240526
+          "time_ms": 1071834
         },
         {
           "rank": 29,
-          "time_ms": 1347408
+          "time_ms": 1073427
         },
         {
           "rank": 30,
-          "time_ms": 1552940
+          "time_ms": 1181616
         },
         {
           "rank": 31,
-          "time_ms": 1558360
+          "time_ms": 1240526
         },
         {
           "rank": 32,
-          "time_ms": 1768640
+          "time_ms": 1347408
         },
         {
           "rank": 33,
-          "time_ms": 1786858
+          "time_ms": 1552940
         },
         {
           "rank": 34,
-          "time_ms": 1995085
+          "time_ms": 1558360
         },
         {
           "rank": 35,
-          "time_ms": 5963315
+          "time_ms": 1768640
         },
         {
           "rank": 36,
-          "time_ms": 12108973
+          "time_ms": 1786858
         },
         {
           "rank": 37,
+          "time_ms": 1995085
+        },
+        {
+          "rank": 38,
+          "time_ms": 5963315
+        },
+        {
+          "rank": 39,
+          "time_ms": 12108973
+        },
+        {
+          "rank": 40,
           "time_ms": 15626515
+        },
+        {
+          "rank": 41,
+          "time_ms": 17464611
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:15:57.101071+00:00",
-        "rank": 7,
+        "retrieved_at": "2026-11-11T09:13:17.340508+00:00",
+        "rank": 9,
         "time_ms": 319845,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
@@ -6501,7 +6517,7 @@
     {
       "script": "lb_bamboo_single",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444624/",
-      "retrieved_at": "2026-11-10T06:15:56.688247+00:00",
+      "retrieved_at": "2026-11-11T09:13:17.340204+00:00",
       "total_entries": 31,
       "entries": [
         {
@@ -6632,7 +6648,7 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:15:56.688291+00:00",
+        "retrieved_at": "2026-11-11T09:13:17.340235+00:00",
         "rank": 16,
         "time_ms": 268226,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
@@ -6644,16 +6660,16 @@
     {
       "script": "lb_rice",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444638/",
-      "retrieved_at": "2026-11-10T06:15:56.731562+00:00",
-      "total_entries": 31,
+      "retrieved_at": "2026-11-11T09:13:17.490986+00:00",
+      "total_entries": 34,
       "entries": [
         {
           "rank": 1,
-          "time_ms": 110532
+          "time_ms": 109284
         },
         {
           "rank": 2,
-          "time_ms": 110588
+          "time_ms": 109943
         },
         {
           "rank": 3,
@@ -6689,93 +6705,105 @@
         },
         {
           "rank": 11,
-          "time_ms": 161307
+          "time_ms": 155791
         },
         {
           "rank": 12,
-          "time_ms": 169464
+          "time_ms": 161307
         },
         {
           "rank": 13,
-          "time_ms": 169906
+          "time_ms": 162669
         },
         {
           "rank": 14,
-          "time_ms": 171181
+          "time_ms": 169906
         },
         {
           "rank": 15,
-          "time_ms": 172688
+          "time_ms": 171181
         },
         {
           "rank": 16,
-          "time_ms": 178396
+          "time_ms": 172688
         },
         {
           "rank": 17,
-          "time_ms": 183789
+          "time_ms": 178396
         },
         {
           "rank": 18,
-          "time_ms": 186506
+          "time_ms": 183789
         },
         {
           "rank": 19,
-          "time_ms": 193665
+          "time_ms": 186506
         },
         {
           "rank": 20,
-          "time_ms": 198677
+          "time_ms": 186995
         },
         {
           "rank": 21,
-          "time_ms": 206443
+          "time_ms": 193665
         },
         {
           "rank": 22,
-          "time_ms": 219163
+          "time_ms": 198677
         },
         {
           "rank": 23,
-          "time_ms": 239655
+          "time_ms": 206443
         },
         {
           "rank": 24,
-          "time_ms": 268180
+          "time_ms": 219163
         },
         {
           "rank": 25,
-          "time_ms": 278660
+          "time_ms": 220059
         },
         {
           "rank": 26,
-          "time_ms": 299608
+          "time_ms": 239655
         },
         {
           "rank": 27,
-          "time_ms": 353467
+          "time_ms": 268180
         },
         {
           "rank": 28,
-          "time_ms": 474083
+          "time_ms": 278660
         },
         {
           "rank": 29,
-          "time_ms": 665655
+          "time_ms": 299608
         },
         {
           "rank": 30,
-          "time_ms": 846194
+          "time_ms": 353467
         },
         {
           "rank": 31,
+          "time_ms": 474083
+        },
+        {
+          "rank": 32,
+          "time_ms": 665655
+        },
+        {
+          "rank": 33,
+          "time_ms": 846194
+        },
+        {
+          "rank": 34,
           "time_ms": 22423116
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:15:56.731594+00:00",
+        "retrieved_at": "2026-11-11T09:13:17.491012+00:00",
         "rank": 8,
         "time_ms": 140721,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
@@ -6787,7 +6815,7 @@
     {
       "script": "lb_rice_single",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444639/",
-      "retrieved_at": "2026-11-10T06:15:52.154472+00:00",
+      "retrieved_at": "2026-11-11T09:13:17.307957+00:00",
       "total_entries": 23,
       "entries": [
         {
@@ -6804,7 +6832,7 @@
         },
         {
           "rank": 4,
-          "time_ms": 145722
+          "time_ms": 145673
         },
         {
           "rank": 5,
@@ -6828,7 +6856,7 @@
         },
         {
           "rank": 10,
-          "time_ms": 179016
+          "time_ms": 178583
         },
         {
           "rank": 11,
@@ -6880,13 +6908,13 @@
         },
         {
           "rank": 23,
-          "time_ms": 8269570
+          "time_ms": 4853272
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:15:52.154509+00:00",
+        "retrieved_at": "2026-11-11T09:13:17.307988+00:00",
         "rank": 9,
         "time_ms": 165682,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
@@ -6898,8 +6926,8 @@
     {
       "script": "lb_ores",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444636/",
-      "retrieved_at": "2026-11-10T06:15:57.397386+00:00",
-      "total_entries": 17,
+      "retrieved_at": "2026-11-11T09:13:18.875078+00:00",
+      "total_entries": 18,
       "entries": [
         {
           "rank": 1,
@@ -6955,25 +6983,29 @@
         },
         {
           "rank": 14,
-          "time_ms": 992904
+          "time_ms": 879976
         },
         {
           "rank": 15,
-          "time_ms": 1045067
+          "time_ms": 992904
         },
         {
           "rank": 16,
-          "time_ms": 2161205
+          "time_ms": 1045067
         },
         {
           "rank": 17,
+          "time_ms": 2161205
+        },
+        {
+          "rank": 18,
           "time_ms": 12306558
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:15:57.397415+00:00",
+        "retrieved_at": "2026-11-11T09:13:18.875102+00:00",
         "rank": 4,
         "time_ms": 151307,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
@@ -6985,7 +7017,7 @@
     {
       "script": "lb_ores_single",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444637/",
-      "retrieved_at": "2026-11-10T06:15:58.814302+00:00",
+      "retrieved_at": "2026-11-11T09:13:18.823086+00:00",
       "total_entries": 13,
       "entries": [
         {
@@ -7044,7 +7076,7 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:15:58.814332+00:00",
+        "retrieved_at": "2026-11-11T09:13:18.823110+00:00",
         "rank": 4,
         "time_ms": 534068,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
@@ -7056,8 +7088,8 @@
     {
       "script": "lb_mushrooms",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444618/",
-      "retrieved_at": "2026-11-10T06:15:58.460941+00:00",
-      "total_entries": 20,
+      "retrieved_at": "2026-11-11T09:13:19.156940+00:00",
+      "total_entries": 21,
       "entries": [
         {
           "rank": 1,
@@ -7137,13 +7169,17 @@
         },
         {
           "rank": 20,
+          "time_ms": 35865147
+        },
+        {
+          "rank": 21,
           "time_ms": 36820276
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:15:58.460967+00:00",
+        "retrieved_at": "2026-11-11T09:13:19.156964+00:00",
         "rank": 6,
         "time_ms": 314194,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
@@ -7155,8 +7191,8 @@
     {
       "script": "lb_mushrooms_single",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444535/",
-      "retrieved_at": "2026-11-10T06:15:58.838139+00:00",
-      "total_entries": 15,
+      "retrieved_at": "2026-11-11T09:12:45.338412+00:00",
+      "total_entries": 16,
       "entries": [
         {
           "rank": 1,
@@ -7216,26 +7252,30 @@
         },
         {
           "rank": 15,
+          "time_ms": 11224119
+        },
+        {
+          "rank": 16,
           "time_ms": 48919053
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:15:58.838166+00:00",
+        "retrieved_at": "2026-11-11T09:12:45.338412+00:00",
         "rank": 5,
         "time_ms": 812194,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
       },
       "refresh_error": null,
-      "transport": "steam_xml"
+      "transport": "steamworks"
     },
     {
       "script": "lb_dynamite",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444631/",
-      "retrieved_at": "2026-11-10T06:15:59.507726+00:00",
-      "total_entries": 50,
+      "retrieved_at": "2026-11-11T09:12:46.916920+00:00",
+      "total_entries": 56,
       "entries": [
         {
           "rank": 1,
@@ -7243,226 +7283,250 @@
         },
         {
           "rank": 2,
-          "time_ms": 753849
+          "time_ms": 519688
         },
         {
           "rank": 3,
-          "time_ms": 801559
+          "time_ms": 638097
         },
         {
           "rank": 4,
-          "time_ms": 874708
+          "time_ms": 753849
         },
         {
           "rank": 5,
-          "time_ms": 955873
+          "time_ms": 801559
         },
         {
           "rank": 6,
-          "time_ms": 1068528
+          "time_ms": 874708
         },
         {
           "rank": 7,
-          "time_ms": 1347939
+          "time_ms": 1068528
         },
         {
           "rank": 8,
-          "time_ms": 1379363
+          "time_ms": 1347939
         },
         {
           "rank": 9,
-          "time_ms": 1508140
+          "time_ms": 1379363
         },
         {
           "rank": 10,
-          "time_ms": 1635069
+          "time_ms": 1380503
         },
         {
           "rank": 11,
-          "time_ms": 1875695
+          "time_ms": 1398822
         },
         {
           "rank": 12,
-          "time_ms": 1882173
+          "time_ms": 1508140
         },
         {
           "rank": 13,
-          "time_ms": 1945294
+          "time_ms": 1635069
         },
         {
           "rank": 14,
-          "time_ms": 1971611
+          "time_ms": 1820031
         },
         {
           "rank": 15,
-          "time_ms": 2157297
+          "time_ms": 1875695
         },
         {
           "rank": 16,
-          "time_ms": 2359209
+          "time_ms": 1945294
         },
         {
           "rank": 17,
-          "time_ms": 2545730
+          "time_ms": 1971611
         },
         {
           "rank": 18,
-          "time_ms": 2655627
+          "time_ms": 2157297
         },
         {
           "rank": 19,
-          "time_ms": 2865760
+          "time_ms": 2359209
         },
         {
           "rank": 20,
-          "time_ms": 2994395
+          "time_ms": 2545730
         },
         {
           "rank": 21,
-          "time_ms": 3099211
+          "time_ms": 2655627
         },
         {
           "rank": 22,
-          "time_ms": 3631236
+          "time_ms": 2865760
         },
         {
           "rank": 23,
-          "time_ms": 3933416
+          "time_ms": 2994395
         },
         {
           "rank": 24,
-          "time_ms": 4047640
+          "time_ms": 3099211
         },
         {
           "rank": 25,
-          "time_ms": 4427753
+          "time_ms": 3608812
         },
         {
           "rank": 26,
-          "time_ms": 4525275
+          "time_ms": 3933416
         },
         {
           "rank": 27,
-          "time_ms": 4569564
+          "time_ms": 4047640
         },
         {
           "rank": 28,
-          "time_ms": 4737444
+          "time_ms": 4427753
         },
         {
           "rank": 29,
-          "time_ms": 5009998
+          "time_ms": 4525275
         },
         {
           "rank": 30,
-          "time_ms": 5131320
+          "time_ms": 4569564
         },
         {
           "rank": 31,
-          "time_ms": 5267312
+          "time_ms": 4737444
         },
         {
           "rank": 32,
-          "time_ms": 5274078
+          "time_ms": 5009998
         },
         {
           "rank": 33,
-          "time_ms": 5535687
+          "time_ms": 5064702
         },
         {
           "rank": 34,
-          "time_ms": 5593925
+          "time_ms": 5131320
         },
         {
           "rank": 35,
-          "time_ms": 6073499
+          "time_ms": 5267312
         },
         {
           "rank": 36,
-          "time_ms": 6231258
+          "time_ms": 5274078
         },
         {
           "rank": 37,
-          "time_ms": 6256722
+          "time_ms": 5535687
         },
         {
           "rank": 38,
-          "time_ms": 6348563
+          "time_ms": 5593925
         },
         {
           "rank": 39,
-          "time_ms": 6489174
+          "time_ms": 5854822
         },
         {
           "rank": 40,
-          "time_ms": 6565600
+          "time_ms": 5878708
         },
         {
           "rank": 41,
-          "time_ms": 7358190
+          "time_ms": 6231258
         },
         {
           "rank": 42,
-          "time_ms": 8698758
+          "time_ms": 6256722
         },
         {
           "rank": 43,
-          "time_ms": 11709341
+          "time_ms": 6348563
         },
         {
           "rank": 44,
-          "time_ms": 11948263
+          "time_ms": 6532984
         },
         {
           "rank": 45,
-          "time_ms": 11991481
+          "time_ms": 6565600
         },
         {
           "rank": 46,
-          "time_ms": 12416796
+          "time_ms": 7358190
         },
         {
           "rank": 47,
-          "time_ms": 17228688
+          "time_ms": 8698758
         },
         {
           "rank": 48,
-          "time_ms": 19638831
+          "time_ms": 11709341
         },
         {
           "rank": 49,
-          "time_ms": 30313344
+          "time_ms": 11948263
         },
         {
           "rank": 50,
+          "time_ms": 11991481
+        },
+        {
+          "rank": 51,
+          "time_ms": 12416796
+        },
+        {
+          "rank": 52,
+          "time_ms": 13430790
+        },
+        {
+          "rank": 53,
+          "time_ms": 17228688
+        },
+        {
+          "rank": 54,
+          "time_ms": 19638831
+        },
+        {
+          "rank": 55,
+          "time_ms": 30313344
+        },
+        {
+          "rank": 56,
           "time_ms": 110483050
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:15:59.507762+00:00",
-        "rank": 4,
+        "retrieved_at": "2026-11-11T09:12:46.916920+00:00",
+        "rank": 6,
         "time_ms": 874708,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
       },
       "refresh_error": null,
-      "transport": "steam_xml"
+      "transport": "steamworks"
     },
     {
       "script": "lb_dynamite_single",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444632/",
-      "retrieved_at": "2026-11-10T06:16:00.534628+00:00",
-      "total_entries": 42,
+      "retrieved_at": "2026-11-11T09:12:48.693513+00:00",
+      "total_entries": 45,
       "entries": [
         {
           "rank": 1,
-          "time_ms": 141199
+          "time_ms": 140824
         },
         {
           "rank": 2,
-          "time_ms": 156387
+          "time_ms": 141199
         },
         {
           "rank": 3,
@@ -7470,225 +7534,241 @@
         },
         {
           "rank": 4,
-          "time_ms": 233201
+          "time_ms": 180522
         },
         {
           "rank": 5,
-          "time_ms": 243014
+          "time_ms": 233201
         },
         {
           "rank": 6,
-          "time_ms": 257237
+          "time_ms": 243014
         },
         {
           "rank": 7,
-          "time_ms": 261802
+          "time_ms": 257237
         },
         {
           "rank": 8,
-          "time_ms": 268274
+          "time_ms": 261802
         },
         {
           "rank": 9,
-          "time_ms": 279588
+          "time_ms": 268274
         },
         {
           "rank": 10,
-          "time_ms": 326192
+          "time_ms": 279588
         },
         {
           "rank": 11,
-          "time_ms": 343374
+          "time_ms": 313627
         },
         {
           "rank": 12,
-          "time_ms": 349615
+          "time_ms": 326192
         },
         {
           "rank": 13,
-          "time_ms": 356100
+          "time_ms": 349615
         },
         {
           "rank": 14,
-          "time_ms": 367286
+          "time_ms": 356100
         },
         {
           "rank": 15,
-          "time_ms": 392012
+          "time_ms": 367286
         },
         {
           "rank": 16,
-          "time_ms": 396189
+          "time_ms": 380018
         },
         {
           "rank": 17,
-          "time_ms": 444352
+          "time_ms": 389460
         },
         {
           "rank": 18,
-          "time_ms": 457183
+          "time_ms": 392012
         },
         {
           "rank": 19,
-          "time_ms": 458841
+          "time_ms": 444352
         },
         {
           "rank": 20,
-          "time_ms": 485371
+          "time_ms": 457183
         },
         {
           "rank": 21,
-          "time_ms": 491491
+          "time_ms": 458841
         },
         {
           "rank": 22,
-          "time_ms": 503749
+          "time_ms": 485371
         },
         {
           "rank": 23,
-          "time_ms": 647316
+          "time_ms": 491491
         },
         {
           "rank": 24,
-          "time_ms": 735034
+          "time_ms": 503749
         },
         {
           "rank": 25,
-          "time_ms": 825253
+          "time_ms": 647316
         },
         {
           "rank": 26,
-          "time_ms": 914376
+          "time_ms": 735034
         },
         {
           "rank": 27,
-          "time_ms": 936994
+          "time_ms": 825253
         },
         {
           "rank": 28,
-          "time_ms": 942938
+          "time_ms": 874657
         },
         {
           "rank": 29,
-          "time_ms": 943948
+          "time_ms": 914376
         },
         {
           "rank": 30,
-          "time_ms": 980169
+          "time_ms": 936152
         },
         {
           "rank": 31,
-          "time_ms": 991119
+          "time_ms": 936994
         },
         {
           "rank": 32,
-          "time_ms": 1012034
+          "time_ms": 942938
         },
         {
           "rank": 33,
-          "time_ms": 1082110
+          "time_ms": 943948
         },
         {
           "rank": 34,
-          "time_ms": 1102596
+          "time_ms": 980169
         },
         {
           "rank": 35,
-          "time_ms": 1366498
+          "time_ms": 1012034
         },
         {
           "rank": 36,
-          "time_ms": 1683451
+          "time_ms": 1082110
         },
         {
           "rank": 37,
-          "time_ms": 2047941
+          "time_ms": 1102596
         },
         {
           "rank": 38,
-          "time_ms": 2352381
+          "time_ms": 1366498
         },
         {
           "rank": 39,
-          "time_ms": 3066714
+          "time_ms": 1683451
         },
         {
           "rank": 40,
-          "time_ms": 3392903
+          "time_ms": 2047941
         },
         {
           "rank": 41,
-          "time_ms": 3455264
+          "time_ms": 2352381
         },
         {
           "rank": 42,
+          "time_ms": 3066714
+        },
+        {
+          "rank": 43,
+          "time_ms": 3392903
+        },
+        {
+          "rank": 44,
+          "time_ms": 3455264
+        },
+        {
+          "rank": 45,
           "time_ms": 6412482
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:16:00.534658+00:00",
-        "rank": 7,
+        "retrieved_at": "2026-11-11T09:12:48.693513+00:00",
+        "rank": 8,
         "time_ms": 261802,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
       },
       "refresh_error": null,
-      "transport": "steam_xml"
+      "transport": "steamworks"
     },
     {
       "script": "lb_pyramids",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21488014/",
-      "retrieved_at": "2026-11-10T06:16:01.529016+00:00",
-      "total_entries": 10,
+      "retrieved_at": "2026-11-11T09:58:52.452062+00:00",
+      "total_entries": 11,
       "entries": [
         {
           "rank": 1,
-          "time_ms": 861541
+          "time_ms": 628758
         },
         {
           "rank": 2,
-          "time_ms": 1084182
+          "time_ms": 861541
         },
         {
           "rank": 3,
-          "time_ms": 1164086
+          "time_ms": 1084182
         },
         {
           "rank": 4,
-          "time_ms": 1363254
+          "time_ms": 1164086
         },
         {
           "rank": 5,
-          "time_ms": 1444751
+          "time_ms": 1363254
         },
         {
           "rank": 6,
-          "time_ms": 1473603
+          "time_ms": 1444751
         },
         {
           "rank": 7,
-          "time_ms": 2827421
+          "time_ms": 1473603
         },
         {
           "rank": 8,
-          "time_ms": 3023877
+          "time_ms": 2827421
         },
         {
           "rank": 9,
-          "time_ms": 4031197
+          "time_ms": 3023877
         },
         {
           "rank": 10,
+          "time_ms": 4031197
+        },
+        {
+          "rank": 11,
           "time_ms": 448402629
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:16:01.529041+00:00",
-        "rank": 4,
+        "retrieved_at": "2026-11-11T09:58:52.452086+00:00",
+        "rank": 5,
         "time_ms": 1363254,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
@@ -7699,8 +7779,8 @@
     {
       "script": "lb_pyramids_single",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21488443/",
-      "retrieved_at": "2026-11-10T06:16:01.153566+00:00",
-      "total_entries": 9,
+      "retrieved_at": "2026-11-11T09:12:52.089424+00:00",
+      "total_entries": 10,
       "entries": [
         {
           "rank": 1,
@@ -7732,30 +7812,34 @@
         },
         {
           "rank": 8,
-          "time_ms": 3896509
+          "time_ms": 3750507
         },
         {
           "rank": 9,
+          "time_ms": 3896509
+        },
+        {
+          "rank": 10,
           "time_ms": 53628923
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:16:01.153592+00:00",
+        "retrieved_at": "2026-11-11T09:12:52.089424+00:00",
         "rank": 5,
         "time_ms": 1074147,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
       },
       "refresh_error": null,
-      "transport": "steam_xml"
+      "transport": "steamworks"
     },
     {
       "script": "lb_treasure_map",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21469574/",
-      "retrieved_at": "2026-11-10T06:16:01.632599+00:00",
-      "total_entries": 34,
+      "retrieved_at": "2026-11-11T09:12:53.809850+00:00",
+      "total_entries": 39,
       "entries": [
         {
           "rank": 1,
@@ -7783,7 +7867,7 @@
         },
         {
           "rank": 7,
-          "time_ms": 29535
+          "time_ms": 27925
         },
         {
           "rank": 8,
@@ -7803,113 +7887,133 @@
         },
         {
           "rank": 12,
-          "time_ms": 44248
+          "time_ms": 41947
         },
         {
           "rank": 13,
-          "time_ms": 45818
+          "time_ms": 43305
         },
         {
           "rank": 14,
-          "time_ms": 48001
+          "time_ms": 44248
         },
         {
           "rank": 15,
-          "time_ms": 48574
+          "time_ms": 45818
         },
         {
           "rank": 16,
-          "time_ms": 51759
+          "time_ms": 47194
         },
         {
           "rank": 17,
-          "time_ms": 54766
+          "time_ms": 47311
         },
         {
           "rank": 18,
-          "time_ms": 55114
+          "time_ms": 48001
         },
         {
           "rank": 19,
-          "time_ms": 57153
+          "time_ms": 48574
         },
         {
           "rank": 20,
-          "time_ms": 58253
+          "time_ms": 49944
         },
         {
           "rank": 21,
-          "time_ms": 63129
+          "time_ms": 54766
         },
         {
           "rank": 22,
-          "time_ms": 67302
+          "time_ms": 55114
         },
         {
           "rank": 23,
-          "time_ms": 69105
+          "time_ms": 55128
         },
         {
           "rank": 24,
-          "time_ms": 72612
+          "time_ms": 58253
         },
         {
           "rank": 25,
-          "time_ms": 72925
+          "time_ms": 60124
         },
         {
           "rank": 26,
-          "time_ms": 73146
+          "time_ms": 63129
         },
         {
           "rank": 27,
-          "time_ms": 75115
+          "time_ms": 64227
         },
         {
           "rank": 28,
-          "time_ms": 265703
+          "time_ms": 69105
         },
         {
           "rank": 29,
-          "time_ms": 269242
+          "time_ms": 72612
         },
         {
           "rank": 30,
-          "time_ms": 269339
+          "time_ms": 72925
         },
         {
           "rank": 31,
-          "time_ms": 270911
+          "time_ms": 73146
         },
         {
           "rank": 32,
-          "time_ms": 279841
+          "time_ms": 75115
         },
         {
           "rank": 33,
-          "time_ms": 279932
+          "time_ms": 265703
         },
         {
           "rank": 34,
+          "time_ms": 269242
+        },
+        {
+          "rank": 35,
+          "time_ms": 269339
+        },
+        {
+          "rank": 36,
+          "time_ms": 270559
+        },
+        {
+          "rank": 37,
+          "time_ms": 279841
+        },
+        {
+          "rank": 38,
+          "time_ms": 279932
+        },
+        {
+          "rank": 39,
           "time_ms": 419285
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:16:01.632626+00:00",
+        "retrieved_at": "2026-11-11T09:12:53.809850+00:00",
         "rank": 9,
         "time_ms": 38151,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
       },
       "refresh_error": null,
-      "transport": "steam_xml"
+      "transport": "steamworks"
     },
     {
       "script": "lb_fastest_underground_reset",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444633/",
-      "retrieved_at": "2026-11-11T07:33:11.675157+00:00",
+      "retrieved_at": "2026-11-11T09:12:55.081224+00:00",
       "total_entries": 12,
       "entries": [
         {
@@ -7964,7 +8068,7 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-11T07:33:11.675157+00:00",
+        "retrieved_at": "2026-11-11T09:12:55.081224+00:00",
         "rank": 4,
         "time_ms": 3279570,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
