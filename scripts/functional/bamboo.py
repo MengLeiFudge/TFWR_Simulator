@@ -78,7 +78,7 @@ def bamboo_batch(y0, rows, goal, water_level, interval, ready):
                             if not bamboo_seed():
                                 return False
                             seeded = True
-                        watered = bamboo_water(water_level)
+                        watered = bamboo_water(0.75)
                         if seeded or watered:
                             hover(4)
                 move(East)
