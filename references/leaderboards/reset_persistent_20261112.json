@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-11-12T03:12:08.451297+00:00",
+  "recorded_at": "2026-11-12T03:35:39.878776+00:00",
   "baseline_commit": "0836fea",
   "scope": [
     "lb_fastest_reset",
@@ -83,6 +83,75 @@
       "improvement_percent": 3.6104153143630913,
       "all_three_paired_samples_faster": true,
       "gap_to_public_first_percent": 138.65995370601064,
+      "within_automatic_two_times_gate": false
+    }
+  },
+  "best_simulation": {
+    "lb_fastest_reset": {
+      "source": ".codex/reset-persistent-20261112/candidates/lb_fastest_reset-funded-poly2.py",
+      "source_sha256": "79debe701df62cf7798587f16ea49e0e70cc59702ad39747a4034bcfbd573418",
+      "reports": [
+        ".codex/reset-persistent-20261112/reports/ground-funded-poly2-s1.json",
+        ".codex/reset-persistent-20261112/reports/ground-funded-poly2-s2.json",
+        ".codex/reset-persistent-20261112/reports/ground-funded-poly2-s3.json"
+      ],
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "seconds": [
+        2739.911192623,
+        2756.126302066,
+        2751.302761212
+      ],
+      "mean_seconds": 2749.1134186336667,
+      "paired_seconds_delta_vs_selected": [
+        -5.4917848850000155,
+        -20.844580273000247,
+        18.73902258299995
+      ],
+      "promoted": false,
+      "comparison_basis": "Complete original-reset routes, same model, initial state and seeds 1/2/3; mean per route. Single-seed regressions are not compared with a different route mean.",
+      "comparable_means_seconds": {
+        ".codex/reset-persistent-20261112/candidates/lb_fastest_reset-early-fields.py": 2750.698751388,
+        ".codex/reset-persistent-20261112/candidates/lb_fastest_reset-funded-poly2.py": 2749.1134186336667,
+        ".codex/reset-persistent-20261112/candidates/lb_fastest_reset-immediate-support.py": 2751.6458661586666
+      },
+      "gap_to_public_first_percent": 100.98796743922117,
+      "within_automatic_two_times_gate": false
+    },
+    "lb_fastest_underground_reset": {
+      "source": ".codex/reset-persistent-20261112/candidates/lb_fastest_underground_reset-early-fields.py",
+      "source_sha256": "54af75943a20fc506123fe32203e0a858d4dc69d4cc45925f047995be0644336",
+      "reports": [
+        ".codex/reset-persistent-20261112/reports/underground-early-fields-s1.json",
+        ".codex/reset-persistent-20261112/reports/underground-early-fields-s2.json",
+        ".codex/reset-persistent-20261112/reports/underground-early-fields-s3.json"
+      ],
+      "seeds": [
+        1,
+        2,
+        3
+      ],
+      "seconds": [
+        3003.315896719,
+        3048.121795187,
+        3141.589373799
+      ],
+      "mean_seconds": 3064.342355235,
+      "paired_seconds_delta_vs_selected": [
+        -51.70574395199992,
+        -63.57034107900017,
+        106.88080577900018
+      ],
+      "promoted": false,
+      "comparison_basis": "Complete original-reset routes, same model, initial state and seeds 1/2/3; mean per route. Single-seed regressions are not compared with a different route mean.",
+      "comparable_means_seconds": {
+        ".codex/reset-persistent-20261112/candidates/lb_fastest_underground_reset-early-fields.py": 3064.342355235,
+        ".codex/reset-persistent-20261112/candidates/lb_fastest_underground_reset-immediate-support.py": 3067.1407816523333
+      },
+      "gap_to_public_first_percent": 138.4422029189566,
       "within_automatic_two_times_gate": false
     }
   },
@@ -1042,6 +1111,246 @@
         "directed_supply 2137.09 35076 1089.92 208",
         "persistent_stock True 2156 2177.53 {Items.Weird_Substance:202522} 912 221319 1742 203841",
         "reset_small_maze_gold 2326.03 1000072"
+      ]
+    },
+    {
+      "report": ".codex/reset-persistent-20261112/reports/ground-funded-poly2-s2.json",
+      "report_sha256": "7257e325a44499eaaab75a0e3705755ab249dcccbaf8b19e7f715ad0f0356c90",
+      "source": ".codex/reset-persistent-20261112/candidates/lb_fastest_reset-funded-poly2.py",
+      "source_sha256": "79debe701df62cf7798587f16ea49e0e70cc59702ad39747a4034bcfbd573418",
+      "leaderboard": "fastest_reset",
+      "seed": 2,
+      "initial_state_ref": "fastest_reset",
+      "random_mode": "seeded_leaderboard_screening",
+      "game_seconds": 2756.126302066,
+      "nanoseconds": 2756126302066,
+      "wall_seconds": 13.0052491,
+      "limits": {
+        "game_seconds": 7000,
+        "wall_seconds": 14.9976262,
+        "api_calls": 5000000,
+        "nodes": 100000000
+      },
+      "goal_reached": true,
+      "state_complete": true,
+      "leaderboard_has_overrides": false,
+      "ending_drones": 1,
+      "api_counts": {
+        "clear": 23,
+        "move": 139220,
+        "plant": 12078,
+        "harvest": 7662,
+        "spawn_drone": 543,
+        "wait_for": 543
+      },
+      "ending_inventory": {
+        "hay": 3022,
+        "wood": 220458,
+        "carrot": 1614,
+        "rice": 0,
+        "bamboo": 0,
+        "pumpkin": 3128,
+        "cactus": 18758,
+        "bone": 84256,
+        "weird_substance": 2413,
+        "gold": 72,
+        "water": 1034,
+        "fertilizer": 332,
+        "block": 0,
+        "coal": 0,
+        "iron": 0,
+        "quartz": 0,
+        "mushroom": 0,
+        "dynamite": 0,
+        "power": 1076.8209999999985,
+        "piggy": 0
+      },
+      "purchased_unlocks": {
+        "cactus": 2,
+        "carrots": 4,
+        "dinosaurs": 4,
+        "expand": 7,
+        "fertilizer": 2,
+        "grass": 4,
+        "hats": 1,
+        "leaderboard": 1,
+        "mazes": 4,
+        "megafarm": 3,
+        "plant": 1,
+        "polyculture": 2,
+        "pumpkins": 4,
+        "speed": 5,
+        "sunflowers": 1,
+        "trees": 5,
+        "watering": 5
+      },
+      "warnings": [
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use"
+      ],
+      "key_messages": [
+        "directed polyculture 1247.06 0 37 374 204 176",
+        "persistent_stock True 1263.35 1273.77 {Items.Weird_Substance:1400} 354 1724 140 1486",
+        "directed_megafarm 1307.84 2 163.64 42 144",
+        "persistent_stock True 1307.89 1311.24 {Items.Carrot:324} 646 116 340 144",
+        "persistent_stock True 1353.09 1359.27 {Items.Weird_Substance:1008} 1138 1008 66 1035",
+        "directed_megafarm 1439.06 4 355.29 68 27",
+        "persistent_stock True 1439.06 1454.97 {Items.Wood:6250} 1526 6824 66 27",
+        "persistent_stock True 1455.01 1470.01 {Items.Carrot:4000} 1086 2114 4082 27",
+        "persistent_stock True 1470.05 1476.54 {Items.Carrot:1920} 646 1530 2002 27",
+        "persistent_stock True 1540.72 1549.21 {Items.Carrot:1728} 822 962 2026 27",
+        "persistent_stock True 1595.5 1605.99 {Items.Weird_Substance:2712} 774 4050 750 2906",
+        "directed_megafarm 1724.65 8 435.43 125 194",
+        "early_poly_bones 1724.76 1777.87 13456",
+        "early_poly_two 1777.9 2",
+        "persistent_stock True 1777.91 1781.6 {Items.Hay:4800} 5302 4050 750 194",
+        "persistent_stock True 1781.64 1791.64 {Items.Hay:19200} 19982 4250 750 194",
+        "persistent_stock True 1791.79 1802.11 {Items.Wood:12800} 5486 13682 750 194",
+        "persistent_stock True 1819.39 1832.67 {Items.Carrot:16000} 3014 1994 16462 194",
+        "persistent_stock True 1832.71 1842.86 {Items.Carrot:17280} 2142 7802 17902 194",
+        "persistent_stock True 1955.41 1960.28 {Items.Carrot:6144} 2838 10922 6710 194",
+        "directed_supply 2148.34 35078 965.98 210",
+        "persistent_stock True 2167.43 2189.11 {Items.Weird_Substance:202522} 2958 220458 1614 202709",
+        "reset_small_maze_gold 2332.02 1000072"
+      ]
+    },
+    {
+      "report": ".codex/reset-persistent-20261112/reports/ground-funded-poly2-s3.json",
+      "report_sha256": "25c8f79c580e2eb2c81401ce96553aa56f23f7f8ead8f5a0318eacea2afecfcc",
+      "source": ".codex/reset-persistent-20261112/candidates/lb_fastest_reset-funded-poly2.py",
+      "source_sha256": "79debe701df62cf7798587f16ea49e0e70cc59702ad39747a4034bcfbd573418",
+      "leaderboard": "fastest_reset",
+      "seed": 3,
+      "initial_state_ref": "fastest_reset",
+      "random_mode": "seeded_leaderboard_screening",
+      "game_seconds": 2751.302761212,
+      "nanoseconds": 2751302761212,
+      "wall_seconds": 12.9539798,
+      "limits": {
+        "game_seconds": 7000,
+        "wall_seconds": 14.9977455,
+        "api_calls": 5000000,
+        "nodes": 100000000
+      },
+      "goal_reached": true,
+      "state_complete": true,
+      "leaderboard_has_overrides": false,
+      "ending_drones": 1,
+      "api_counts": {
+        "clear": 23,
+        "move": 136587,
+        "plant": 12051,
+        "harvest": 7701,
+        "spawn_drone": 550,
+        "wait_for": 550
+      },
+      "ending_inventory": {
+        "hay": 2640,
+        "wood": 218903,
+        "carrot": 2312,
+        "rice": 0,
+        "bamboo": 0,
+        "pumpkin": 3128,
+        "cactus": 18770,
+        "bone": 82900,
+        "weird_substance": 4221,
+        "gold": 72,
+        "water": 1020,
+        "fertilizer": 329,
+        "block": 0,
+        "coal": 0,
+        "iron": 0,
+        "quartz": 0,
+        "mushroom": 0,
+        "dynamite": 0,
+        "power": 1140.8559999999923,
+        "piggy": 0
+      },
+      "purchased_unlocks": {
+        "cactus": 2,
+        "carrots": 4,
+        "dinosaurs": 4,
+        "expand": 7,
+        "fertilizer": 2,
+        "grass": 4,
+        "hats": 1,
+        "leaderboard": 1,
+        "mazes": 4,
+        "megafarm": 3,
+        "plant": 1,
+        "polyculture": 2,
+        "pumpkins": 4,
+        "speed": 5,
+        "sunflowers": 1,
+        "trees": 5,
+        "watering": 5
+      },
+      "warnings": [
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use",
+        "Warning: warning_no_item_to_use"
+      ],
+      "key_messages": [
+        "directed polyculture 1273.01 0 40 320 61 216",
+        "persistent_stock True 1288.5 1297.89 {Items.Weird_Substance:1400} 316 1549 180 1486",
+        "directed_megafarm 1322.67 2 173.94 44 144",
+        "persistent_stock True 1322.72 1328.7 {Items.Carrot:324} 776 1761 340 144",
+        "persistent_stock True 1368.99 1375.34 {Items.Weird_Substance:1008} 1252 2657 24 1035",
+        "directed_megafarm 1458.9 4 355.78 70 27",
+        "persistent_stock True 1458.91 1469.21 {Items.Wood:6250} 1612 6437 24 27",
+        "persistent_stock True 1469.25 1487.11 {Items.Carrot:4000} 260 1423 4104 27",
+        "persistent_stock True 1487.15 1494.33 {Items.Carrot:1920} 292 943 1952 27",
+        "persistent_stock True 1561.77 1570.06 {Items.Carrot:1728} 556 535 1888 27",
+        "persistent_stock True 1608.92 1619.54 {Items.Weird_Substance:2712} 556 3599 708 2740",
+        "directed_megafarm 1719.33 8 526.85 122 28",
+        "early_poly_bones 1719.43 1777.2 12100",
+        "early_poly_two 1777.23 2",
+        "persistent_stock True 1777.24 1781.37 {Items.Hay:4800} 5060 3599 708 28",
+        "persistent_stock True 1781.41 1791.6 {Items.Hay:19200} 19668 3807 708 28",
+        "persistent_stock True 1791.71 1793.55 {Items.Wood:3200} 2492 3239 708 28",
+        "persistent_stock True 1793.59 1803.67 {Items.Wood:12800} 3980 14847 708 28",
+        "persistent_stock True 1820.26 1833.75 {Items.Carrot:16000} 1788 3535 16404 28",
+        "persistent_stock True 1833.79 1845.37 {Items.Carrot:17280} 1236 7319 18004 28",
+        "persistent_stock True 1955.31 1960.52 {Items.Carrot:6144} 1972 11111 6932 28",
+        "directed_supply 2148.62 35090 1034.47 208",
+        "persistent_stock True 2168.19 2189.26 {Items.Weird_Substance:202522} 2576 218903 2312 204517",
+        "reset_small_maze_gold 2334.53 1000072"
       ]
     },
     {
@@ -2168,7 +2477,7 @@
       ]
     }
   ],
-  "trial_count": 17,
+  "trial_count": 19,
   "reused_reference_reports": [
     {
       "report": ".codex/reset-route-20261111/reports/ground-single-power-s1.json",
@@ -2221,7 +2530,7 @@
   ],
   "rejected": {
     "early_fields": "Three-cell Grass rotation and earlier paid Speed2 finish all goals, but mean full-route improvement over the selected persistent version is under 3 seconds and is not stable across seeds; not promoted.",
-    "funded_poly2": "D1 partial harvest settles 13689 Bone and pays Poly2. The 55.26-second extra cycle produces only a small single-seed net gain; not promoted or parameter-tuned.",
+    "funded_poly2": "Paid D1 harvest funds Poly2; seed1 settles 13689 Bone in a 55.26-second extra cycle. Three full seeds average 2749.113419 seconds, only 2.532448 seconds faster than the selected route; seed3 is 18.739023 seconds slower. Valid best simulation is reported, but this small inconsistent extra gain does not justify another saved-source replacement or parameter scan.",
     "cached_support": "Owner-local type caching is correct in the two full trials but does not improve either paired seed1 full route; not promoted."
   },
   "static_diagnostics": {
