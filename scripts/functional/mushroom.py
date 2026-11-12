@@ -3,7 +3,7 @@ import production
 
 
 # 启动时跳到蘑菇附近；每片结束后回到地表重新寻找，持续采集。
-# 蘑菇分区保持共同两格高度带，(0,0)留作地层采样柱。
+# 分区工人连续处理整片，各自保留两格高度带；(0,0)只用于公开测厚。
 OFFSETS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 DIRECTIONS = [North, East, South, West]
 BACKS = [South, West, North, East]
@@ -42,34 +42,30 @@ def mushroom(target=-1):
             clear()
             continue
         ceiling = get_pos_z()
+        height = 0
+        for _ in range(7):
+            if get_ground_type() != Grounds.Mushroom:
+                break
+            if not dig():
+                return
+            height += 1
+        if height == 0 or height > 6:
+            quick_print("mushroom_failed", "height", height)
+            return
         if not dig_layer(ceiling):
             quick_print("覆盖层挖掘或移动失败，已等待子机结束，停止：z", ceiling)
             return
-        if not move_to(0, 0):
-            return
-        quick_print("开始采集蘑菇：z", ceiling, "分区", len(blocks))
-        layers = 0
-        while get_ground_type() == Grounds.Mushroom:
-            layer_start = get_time()
-            result = run_layer(blocks, ceiling)
-            if result == None:
-                quick_print("蘑菇采集失败，已等待子机结束，停止：z", ceiling)
-                return
-            if not move_to(0, 0) or get_pos_z() != ceiling:
-                quick_print("采样点高度异常，停止：应为 z", ceiling)
-                return
-            if not dig() or get_pos_z() != ceiling - 1:
-                quick_print("采样点挖掘失败，停止：z", ceiling)
-                return
-            pairs, digs = result
-            layers += 1
-            quick_print("蘑菇层", layers, "配对", pairs, "挖掘", digs + 1,
-                        "耗时", get_time() - layer_start)
-            ceiling -= 1
+        quick_print("mushroom_prepare", ceiling, height, get_time() - start)
+        # 沿用榜单的末层取舍：保留两格工作窗口，避免低产底层及跨区高度差扩大。
+        result = run_patch(blocks, ceiling, max(1, height - 1), target)
+        if result == None:
+            # 已回收整片全部工人；保留正常配对的收益，再换田恢复。
+            quick_print("mushroom_restart", ceiling, get_time(), num_items(Items.Mushroom) - before)
+            clear()
+            continue
         batches += 1
-        quick_print("本片蘑菇已采完：片数", batches, "层数", layers,
-                    "获得", num_items(Items.Mushroom) - before, "耗时", get_time() - start)
-        # 全部工人已回收；clear恢复默认帽子，下一片开始时重新戴采矿帽。
+        quick_print("mushroom_patch", batches, height, result[0], result[1],
+                    num_items(Items.Mushroom) - before, get_time() - start, get_time())
         clear()
 
 
@@ -106,7 +102,7 @@ def dig_columns(first_x, stride, size, target):
             while get_pos_z() > target:
                 if not dig():
                     return False
-            if get_pos_z() != target:
+            if get_pos_z() > target:
                 return False
             if not move(North):
                 return False
@@ -136,17 +132,17 @@ def make_blocks():
     return blocks
 
 
-# 各分区共用本层高度上限；先收回全部子机，再推进采样点和下一层。
-def run_layer(blocks, ceiling):
+# 各区只派发一次，完成整片后统一回收；内部不再为每层重新派工。
+def run_patch(blocks, ceiling, levels, target):
     handles = []
     results = []
     for k in range(1, len(blocks)):
-        handle = spawn_drone(work_layer, blocks[k], ceiling)
+        handle = spawn_drone(work_patch, blocks[k], ceiling, levels, target)
         if handle == None:
-            results.append(work_layer(blocks[k], ceiling))
+            results.append(work_patch(blocks[k], ceiling, levels, target))
         else:
             handles.append(handle)
-    results.append(work_layer(blocks[0], ceiling))
+    results.append(work_patch(blocks[0], ceiling, levels, target))
     for handle in handles:
         results.append(wait_for(handle))
     pairs = 0
@@ -159,7 +155,24 @@ def run_layer(blocks, ceiling):
     return pairs, digs
 
 
-# 保留全层同步；利用本分区已公开低台搬运，避免把同高同色块直接挖掉。
+def work_patch(block, ceiling, levels, target):
+    # 只读真实柱顶和颜色；库存目标在每层完成后检查，确保退出时已正常入库。
+    pairs = 0
+    digs = 0
+    for layer in range(levels):
+        if not production.active(Items.Mushroom, target):
+            break
+        result = work_layer(block, ceiling - layer)
+        if result == None:
+            return None
+        pairs += result[0]
+        digs += result[1]
+        if result[2] == 0:
+            break
+    return pairs, digs
+
+
+# 各区在本地高度带内利用公开低台搬运，保留同高配对和双邻喂料。
 def work_layer(block, ceiling):
     x0, x1, y0, y1 = block
     cache = {}

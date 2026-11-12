@@ -54,33 +54,59 @@ def dynamite(target=-1, round_limit=0):
 
 
 def make_near(size):
-    # 各段只依赖固定几何，并行建立后按原索引顺序拼接；全程不读取地层。
+    # 同一批工人并行建立邻接表和固定区域；缓存只含几何，不含任何盘面事实。
     workers = min(size, max_drones())
-    count = size * size
     handles = []
     for group in range(1, workers):
-        lo = group * count // workers
-        hi = (group + 1) * count // workers
-        handle = spawn_drone(near_strip, lo, hi, size)
+        handle = spawn_drone(plan_strip, group, workers, size)
         result = None
         if handle == None:
-            result = near_strip(lo, hi, size)
+            result = plan_strip(group, workers, size)
         handles.append((handle, result))
-    near = near_strip(0, count // workers, size)
+    near, first = plan_strip(0, workers, size)
+    layouts = [first]
     for handle, result in handles:
         if handle != None:
             result = wait_for(handle)
-        near = near + result
+        near = near + result[0]
+        layouts.append(result[1])
+    WORK_LAYOUTS[(size, workers)] = layouts
     return near
 
 
-def near_strip(lo, hi, size):
-    result = []
-    for cell in range(lo, hi):
-        result.append(neighbors(cell, size))
-    return result
+def plan_strip(group, groups, size):
+    near = []
+    count = size * size
+    for cell in range(group * count // groups, (group + 1) * count // groups):
+        near.append(neighbors(cell, size))
+    return near, work_layout(group, groups, size)
 
 
+def work_layout(group, groups, size):
+    # owned保留原蛇形顺序，clue_cells只限定可读约束范围，不扩大开挖权。
+    columns = min(8, groups)
+    rows = groups // columns
+    left = (group % columns) * size // columns
+    right = (group % columns + 1) * size // columns
+    bottom = (group // columns) * size // rows
+    top = (group // columns + 1) * size // rows
+    owned = []
+    for y in range(bottom, top):
+        if (y - bottom) % 2 == 0:
+            for x in range(left, right):
+                owned.append(x + y * size)
+        else:
+            for x in range(right - 1, left - 1, -1):
+                owned.append(x + y * size)
+    clue_cells = []
+    for y in range(max(0, bottom - 2), min(size, top + 2)):
+        for x in range(max(0, left - 2), min(size, right + 2)):
+            clue_cells.append(x + y * size)
+    return owned, set(owned), clue_cells
+
+
+# 主机建立后由后代继承只读副本；尺寸或工人数不同的求解调用独立构造。
+WORK_LAYOUTS = {}
 UNKNOWN = -3
 MINE = -1
 SAFE = -2
@@ -138,28 +164,15 @@ def dispatch(lo, hi, groups, known, near, size, depth, deadline=0):
 
 # 各区独立推理并连续开安全格；相邻区域只交换公开数字与确定证明。
 def work(group, groups, known, near, size, depth, deadline=0):
-    columns = min(8, groups)
-    rows = groups // columns
-    left = (group % columns) * size // columns
-    right = (group % columns + 1) * size // columns
-    bottom = (group // columns) * size // rows
-    top = (group // columns + 1) * size // rows
-    owned = []
-    for y in range(bottom, top):
-        if (y - bottom) % 2 == 0:
-            for x in range(left, right):
-                owned.append(x + y * size)
-        else:
-            for x in range(right - 1, left - 1, -1):
-                owned.append(x + y * size)
+    key = (size, groups)
+    if key in WORK_LAYOUTS:
+        owned, owned_set, clue_cells = WORK_LAYOUTS[key][group]
+    else:
+        owned, owned_set, clue_cells = work_layout(group, groups, size)
     clues = set()
-    # 两格边界允许本区利用相邻数字约束，不取得邻区的开挖权。
-    for y in range(max(0, bottom - 2), min(size, top + 2)):
-        for x in range(max(0, left - 2), min(size, right + 2)):
-            cell = x + y * size
-            if known[cell] >= 0 and known[cell] != DONE:
-                clues.add(cell)
-    owned_set = set(owned)
+    for cell in clue_cells:
+        if known[cell] >= 0 and known[cell] != DONE:
+            clues.add(cell)
     updates = {}
     for step in range(PHASE_LIMIT):
         if deadline > 0 and get_time() >= deadline:

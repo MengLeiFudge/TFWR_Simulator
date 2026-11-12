@@ -7,7 +7,7 @@ def weird_substance(target=-1):
     if not production.active(Items.Weird_Substance, target):
         return
     size = get_world_size()
-    workers = min(max_drones(), size // 2)
+    workers = min(max_drones(), (size // 2) ** 2)
     deadline = get_time() + 700
     while num_items(Items.Fertilizer) < workers:
         if get_time() > deadline:
@@ -41,13 +41,14 @@ def weird_substance(target=-1):
 
 
 def nursery_produce_strip(worker, workers, size, target, deadline):
-    # 偶数坐标独占树位，其余格保留自然Grass；重派后从真实树和伴生关系恢复。
+    # 树位按连续片段分工，32田时每机负责半行8棵树；奇数坐标仍保留Grass。
     anchors = []
-    for y in range(0, size, 2):
-        if (y // 2) % workers == worker:
-            for x in range(0, size, 2):
-                anchors.append((x, y))
+    width = size // 2
+    count = width * width
+    for slot in range(worker * count // workers, (worker + 1) * count // workers):
+        anchors.append((2 * (slot % width), 2 * (slot // width)))
     index = 0
+    step = 1
     while production.active(Items.Weird_Substance, target) and get_time() < deadline:
         x, y = anchors[index]
         nursery_move_to(x, y, size)
@@ -83,7 +84,11 @@ def nursery_produce_strip(worker, workers, size, target, deadline):
                 return False
         if get_water() < 0.5 and num_items(Items.Water) >= 2:
             use_item(Items.Water, 2)
-        index = (index + 1) % len(anchors)
+        # 往返经过同一片段，避免半行末端每次绕回起点。
+        if len(anchors) > 1:
+            if index + step < 0 or index + step >= len(anchors):
+                step = -step
+            index += step
     return True
 
 

@@ -4,7 +4,7 @@
 
 ## 成就与运行时间
 
-名称来自 [Steam 简体中文成就页](https://steamcommunity.com/achievements/2060160?l=schinese)，[111项原始名称和说明](../../references/achievements/steam-schinese.json)保留抓取时间与来源哈希。下表使用2026-11-11当前 C# 模拟器、全科技、物料充足、seed=0/1/2的实际完成时间范围。随机盘面不保证每次都能完成，300秒是停止上限，不是预计时长。本地核对原版触发条件和实际动作，不代替 Steam 账号解锁记录。
+名称来自 [Steam 简体中文成就页](https://steamcommunity.com/achievements/2060160?l=schinese)，[111项原始名称和说明](../../references/achievements/steam-schinese.json)保留抓取时间与来源哈希。下表使用2026-11-11当前 C# 模拟器、全科技、物料充足、seed=0/1/2的实际完成时间范围；炸药依赖于12日更新并重新验证。随机盘面不保证每次都能完成，300秒是停止上限，不是预计时长。本地核对原版触发条件和实际动作，不代替 Steam 账号解锁记录。
 
 | Steam 成就中文名 | 脚本 | 预计游戏时间 | 完成条件 / 注意事项 |
 | --- | --- | ---: | --- |
@@ -28,7 +28,7 @@
 | 蘑菇挤不下 | [push_mushroom_blocked.py](push_mushroom_blocked.py) | 6.0–13.3秒 | 刻意制造一次受阻推蘑菇。 |
 | 牵线搭桥 | [mushroom_matchmaker.py](mushroom_matchmaker.py) | 150.5–236.9秒 | 实际配对比例严格超过95%，回收子机。 |
 | 远距离友谊 | [mushroom_cross_stratum.py](mushroom_cross_stratum.py) | 22.5–228.9秒 | 原生不同地层的同色蘑菇相遇。 |
-| 炸药排除、炸药排除专家 | [dynamite_expert.py](dynamite_expert.py) | 63.2–239.3秒 | 32×32、深度≤-600，完整解盘；无确定安全格则换田。 |
+| 炸药排除、炸药排除专家 | [dynamite_expert.py](dynamite_expert.py) | 63.4–239.7秒 | 32×32、深度≤-600，完整解盘；无确定安全格则换田。 |
 | 不安全的代码 | [mining_helmet_unsafe.py](mining_helmet_unsafe.py) | <1秒 | 戴非采矿帽挖掘。 |
 | 坏掉的锄头 | [till_rock.py](till_rock.py) | 1.0–1.2秒 | 对岩石使用耕作。 |
 | 宝藏猎人 | [treasure_hunter.py](treasure_hunter.py) | 20.9–70.2秒 | 覆盖32×32农场的迷宫，找到并收获宝藏。 |
@@ -59,5 +59,5 @@
 - `dynamite_expert.py`需要同目录的常规 [dynamite.py](../functional/dynamite.py) 和 [production.py](../functional/production.py)。本地验证把入口与依赖冻结到同一临时目录后执行；游戏也按同目录模块解析。不能只复制入口漏掉依赖。
 - 截止时间贯穿派机、下挖和解盘；计时循环预留最后动作与回收时间。固定短序列和故意报错入口直接结束。所有专用入口均已在三个seed下于300游戏秒内完成本地条件或触发预期错误，结束时只剩主机。
 - `cause_runtime_error.py`和`stack_overflow.py`的正确结果就是指定运行时错误；报告的`state_complete=false`不作为资源效率证据。`infinite_loop.py`按原版进入字面量循环的判定触发后主动退出。
-- 本轮证据见[验证说明](../../docs/script-rate-validation.md)和[完整数据](../../docs/script-rate-validation.json)。既有三项实机成就记录继续归[历史验证](../../docs/achievement-validation.json)。本轮没有运行真实游戏，也没有修改Save0。
+- 本轮证据见[验证说明](../../docs/script-rate-validation.md)和[完整数据](../../docs/script-rate-validation.json)，12日炸药依赖复验归[第二轮功能优化](../../docs/functional-parallel-validation.md)。既有三项实机成就记录继续归[历史验证](../../docs/achievement-validation.json)。本轮没有运行真实游戏；只备份覆盖通过效率对照的已有常规脚本，成就入口没有添加到Save0。
 - 表格更新时间、脚本及依赖哈希、seed、实际游戏时长与停止原因一起保存。脚本改变后重新做有界模拟；先短墙钟预算，不能用未兑现的批量产量或“预计会完成”填成功时间。
