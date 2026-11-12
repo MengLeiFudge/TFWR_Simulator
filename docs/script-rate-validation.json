@@ -1441,17 +1441,17 @@
     },
     "mushroom": {
       "backend": "csharp-native", "seed": 1, "stop_reason": "game_time_limit", "state_complete": true,
-      "game_seconds": 120, "wall_seconds": 4.7906616, "error": null,
-      "net_inventory": {"hay":0,"wood":0,"carrot":0,"rice":0,"bamboo":0,"pumpkin":0,"cactus":0,"bone":0,"weird_substance":0,"gold":0,"water":3071,"fertilizer":95,"block":8897,"coal":276,"iron":864,"quartz":0,"mushroom":55776,"dynamite":-56,"power":-1579.894165635109,"piggy":0},
+      "game_seconds": 120, "wall_seconds": 4.0337968, "error": null,
+      "net_inventory": {"hay":0,"wood":0,"carrot":0,"rice":0,"bamboo":0,"pumpkin":0,"cactus":0,"bone":0,"weird_substance":0,"gold":0,"water":3071,"fertilizer":95,"block":8895,"coal":276,"iron":864,"quartz":0,"mushroom":57088,"dynamite":-56,"power":-1576.007332444191,"piggy":0},
       "achievement_verification": "not_recorded",
       "assembly_sha256": "7b493e17de59229c2ac2a1ffefc5609a57791ad320aa28f4472b02f6b9c0e323",
       "resources_sha256": "8c3c889c6f8c7415beee2b1c8e2fa428de20bdeb3775eddd65369032aee179d7",
-      "report": ".codex/functional-parallel-20261112/reports/resident-skip120-mushroom-s1/report.json",
-      "report_sha256": "e1ddf3396a4ae97e94e53eb74be4a191394c7ae27babb798ce65ee5b7451b837",
-      "dependencies": {"mushroom.py":"e81443425c4f8fd3826ea87e93d7319082aba6d42d1b148ecd288664b5a653f3","production.py":"4ff6852da2fabb529d77837fc375ade25f2f1c27d6fae962429076e26c682df4"},
+      "report": ".codex/functional-room-20261112/reports/step-window-mushroom-s1/report.json",
+      "report_sha256": "363116216bf3c35729a3e48b3aff02a7a07417acab47b7c70af30167126ae1e6",
+      "dependencies": {"mushroom.py":"9b2380c9b684dbafb1242b80018baf24c6d282b85cc68dca7fe3c6ad53cc2586","production.py":"4ff6852da2fabb529d77837fc375ade25f2f1c27d6fae962429076e26c682df4"},
       "final_drone_count": 32, "efficiency_valid": true,
-      "positive_per_game_minute": {"block":4448.5,"coal":138.0,"iron":432.0,"mushroom":27888.0},
-      "evidence_record": "functional-parallel-validation.json#cases/resident-skip120-mushroom-s1"
+      "positive_per_game_minute": {"block":4447.5,"coal":138.0,"iron":432.0,"mushroom":28544.0},
+      "evidence_record": "functional-room-optimization.json#mushroom"
     },
     "dynamite": {
       "backend": "csharp-native", "seed": 1, "stop_reason": "game_time_limit", "state_complete": true,

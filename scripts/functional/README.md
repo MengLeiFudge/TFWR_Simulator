@@ -2,7 +2,7 @@
 
 本目录的初版以**科技全解、32×32农场、32台无人机**为运行前提，持续生产对应资源。Fastest Reset类脚本仍归排行榜目录，使用各自的重置初始条件。运行与文件同名的入口即可，例如打开 `rice.py` 执行。
 
-有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，持续生产优化见[布局复用与完整周期对照](../../docs/functional-optimization.md)，蘑菇、32机苗圃和炸药分区对照见[第二轮优化](../../docs/functional-parallel-validation.md)，最新恐龙递归分区及蘑菇扫推比较见[B站思路实施](../../docs/functional-dinosaur-validation.md)，地下批次见[效率记录](../../docs/underground-functional-validation.md)，铁与石英的勘探对照见[勘探记录](../../docs/underground-prospecting.md)。成就入口的筛选边界见[特殊成就目录](../achievement/README.md)。常规入口只保留生产或排行榜机制本身；能随正常流程触发的成就不在 `scripts/achievement/` 重复建文件。
+有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，持续生产优化见[布局复用与完整周期对照](../../docs/functional-optimization.md)，蘑菇、32机苗圃和炸药分区对照见[第二轮优化](../../docs/functional-parallel-validation.md)，蘑菇路线复用的后续对照见[协作优化](../../docs/functional-room-optimization.md)，最新恐龙递归分区及蘑菇扫推比较见[B站思路实施](../../docs/functional-dinosaur-validation.md)，地下批次见[效率记录](../../docs/underground-functional-validation.md)，铁与石英的勘探对照见[勘探记录](../../docs/underground-prospecting.md)。成就入口的筛选边界见[特殊成就目录](../achievement/README.md)。常规入口只保留生产或排行榜机制本身；能随正常流程触发的成就不在 `scripts/achievement/` 重复建文件。
 
 ## 按库存目标补齐
 
@@ -45,7 +45,7 @@ TARGETS = {
 | [rice.py](rice.py) | 水稻 104.79万 | 建材 9,456；煤 48 | 60.00 |
 | [bamboo.py](bamboo.py) | 竹子 1.01亿 | — | 450.00 |
 | [coal.py](coal.py) | 煤 1.53万 | 南瓜 382.31万；建材 147.66万；铁 21.30万；石英 13.99万 | 60.00 |
-| [mushroom.py](mushroom.py) | 蘑菇 2.79万 | 建材 4,448.5；煤 138；铁 432 | 120.00 |
+| [mushroom.py](mushroom.py) | 蘑菇 2.85万 | 建材 4,447.5；煤 138；铁 432 | 120.00 |
 | [dynamite.py](dynamite.py) | 炸药 39.06万 | 南瓜 1.38万；建材 2,521；煤 2；铁 144；石英 144 | 60.00 |
 | [block.py](block.py) | 建材 147.49万 | 南瓜 382.31万；煤 1.53万；铁 21.30万；石英 13.97万 | 60.00 |
 | [iron.py](iron.py) | 铁 21.30万 | 南瓜 382.31万；建材 147.66万；煤 1.53万；石英 13.99万 | 60.00 |
@@ -55,7 +55,7 @@ TARGETS = {
 | [power_sunflower.py](power_sunflower.py) | 能量 3.41万 | 干草 16.38万；怪异物质 148 | 60.00 |
 | [pumpkin_petrified.py](pumpkin_petrified.py) | 南瓜 382.31万 | 建材 147.66万；煤 1.53万；铁 21.30万；石英 13.99万 | 60.00 |
 
-竹子观察450游戏秒，覆盖500M批次后保留竹桩的阶段；首60秒仍受筛选成本影响，不能套用该长期平均值。蘑菇观察120游戏秒，包含完整采集片；相同窗口三个seed提高6.5%～10.3%。炸药的完整两盘对照提高1.4%～1.6%，首分钟因结算时点变化很小，仍按实际入库显示。金字塔以增加5000能量的完整周期取样，实际运行127.35游戏秒。恐龙按完整一轮入库3348.89万骨头折算，当前seed1为684.09游戏秒、11.62墙钟秒；在递归区域迁入版基础上，本轮区域计算延迟、按需读坐标及分段循环使三个seed再提高1.92%～1.96%。恐龙每例预设30墙钟秒，其余本轮候选仍为10秒，不在预算结束后延长补跑。详细版本、数量及对照见[恐龙与扫推](../../docs/functional-dinosaur-validation.md)、[第二轮优化](../../docs/functional-parallel-validation.md)、[上一轮记录](../../docs/functional-optimization.md)、[验证汇总](../../docs/script-rate-validation.md)和[数据](../../docs/script-rate-validation.json)。
+竹子观察450游戏秒，覆盖500M批次后保留竹桩的阶段；首60秒仍受筛选成本影响，不能套用该长期平均值。蘑菇观察120游戏秒，包含完整采集片；每片复用路线及单步蛇形移动，在增加3万/5万目标的三个seed中速率均提高1.09%～2.06%，固定120秒窗口的seed0则少0.06%，不称为无限期稳增；详见[协作优化](../../docs/functional-room-optimization.md)。炸药的完整两盘对照提高1.4%～1.6%，首分钟因结算时点变化很小，仍按实际入库显示。金字塔以增加5000能量的完整周期取样，实际运行127.35游戏秒。恐龙按完整一轮入库3348.89万骨头折算，当前seed1为684.09游戏秒、11.62墙钟秒；在递归区域迁入版基础上，本轮区域计算延迟、按需读坐标及分段循环使三个seed再提高1.92%～1.96%。恐龙每例预设30墙钟秒，其余本轮候选仍为10秒，不在预算结束后延长补跑。详细版本、数量及对照见[恐龙与扫推](../../docs/functional-dinosaur-validation.md)、[第二轮优化](../../docs/functional-parallel-validation.md)、[上一轮记录](../../docs/functional-optimization.md)、[验证汇总](../../docs/script-rate-validation.md)和[数据](../../docs/script-rate-validation.json)。
 
 ## 脚本清单
 
@@ -72,7 +72,7 @@ TARGETS = {
 | 水稻 | [rice.py](rice.py) | `lb_rice.py`两层粘土清单流水及补水，实际收割后下挖、全部回收后换田 |
 | 竹子 | [bamboo.py](bamboo.py) | `lb_bamboo.py`按行分片、统一花节，后续批次复用合格竹桩 |
 | 煤 | [coal.py](coal.py) | `mining.mine`，单爆破钻连续深挖，有限目标按煤库存停止 |
-| 蘑菇 | [mushroom.py](mushroom.py) | `lb_mushrooms.py`常驻分区与末层取舍，保留普通田找层、公开颜色缓存、低台搬运与同高配对 |
+| 蘑菇 | [mushroom.py](mushroom.py) | `lb_mushrooms.py`常驻分区与末层取舍，每片复用路线及邻格，保留普通田找层、公开颜色缓存、低台搬运与同高配对 |
 | 炸药 | [dynamite.py](dynamite.py) | `lb_dynamite.py`区域差集推理、并行找层；邻接表和固定分区一起建立，盘面事实每盘重建 |
 | 藏宝图产金币 | [gold_treasure_map.py](gold_treasure_map.py) | `lb_treasure_map.py`，按层去环，适配普通地形入口 |
 | 金字塔产能量 | [power_pyramids.py](power_pyramids.py) | `lb_pyramids.py`并行探边、邻格采样和树形维修，普通田使用Jump与浅层爆破钻头 |

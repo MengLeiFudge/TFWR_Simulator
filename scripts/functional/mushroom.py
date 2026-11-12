@@ -157,12 +157,13 @@ def run_patch(blocks, ceiling, levels, target):
 
 def work_patch(block, ceiling, levels, target):
     # 只读真实柱顶和颜色；库存目标在每层完成后检查，确保退出时已正常入库。
+    path = make_path(block)
     pairs = 0
     digs = 0
     for layer in range(levels):
         if not production.active(Items.Mushroom, target):
             break
-        result = work_layer(block, ceiling - layer)
+        result = work_layer(path, ceiling - layer)
         if result == None:
             return None
         pairs += result[0]
@@ -172,14 +173,10 @@ def work_patch(block, ceiling, levels, target):
     return pairs, digs
 
 
-# 各区在本地高度带内利用公开低台搬运，保留同高配对和双邻喂料。
-def work_layer(block, ceiling):
+# 路线与分区边界不随层高变化，整片只构造一次；避开主机测厚孔。
+def make_path(block):
     x0, x1, y0, y1 = block
-    cache = {}
-    floor = ceiling - 2
-    pairs = 0
-    digs = 0
-    mushrooms = 0
+    path = []
     for y in range(y0, y1):
         for offset in range(x1 - x0):
             x = x0 + offset
@@ -187,8 +184,6 @@ def work_layer(block, ceiling):
                 x = x1 - 1 - offset
             if x == 0 and y == 0:
                 continue
-            if not move_to(x, y):
-                return None
             neighbors = []
             if y + 1 < y1:
                 neighbors.append(0)
@@ -198,31 +193,56 @@ def work_layer(block, ceiling):
                 neighbors.append(2)
             if x > x0 and (x != 1 or y != 0):
                 neighbors.append(3)
-            z = get_pos_z()
-            if z < floor:
-                continue
-            mushroom = get_ground_type() == Grounds.Mushroom
-            if mushroom:
-                mushrooms += 1
-            if z >= ceiling and mushroom:
-                count = carry_match(cache, x, y, neighbors, floor)
-                if count == None:
-                    return None
-                pairs += count
-                if count == 0:
-                    if get_hardness() >= 10000000 or not dig():
-                        return None
-                    if get_pos_z() != z - 1:
-                        return None
-                    digs += 1
-            count = feed_column(neighbors, floor)
+            step = East
+            if offset == 0:
+                step = North
+            elif (y - y0) % 2 != 0:
+                step = West
+            if len(path) == 0:
+                step = None
+            path.append((x, y, neighbors, step))
+    return path
+
+
+# 各区在本地高度带内利用公开低台搬运，每层重新读取真实柱顶和颜色。
+def work_layer(path, ceiling):
+    cache = {}
+    floor = ceiling - 2
+    pairs = 0
+    digs = 0
+    mushrooms = 0
+    # 搬运成功后都返回原格；层内沿预定单步路线走，跨层只定位首格。
+    for x, y, neighbors, step in path:
+        if step == None:
+            if not move_to(x, y):
+                return None
+        elif not move(step):
+            return None
+        z = get_pos_z()
+        if z < floor:
+            continue
+        mushroom = get_ground_type() == Grounds.Mushroom
+        if mushroom:
+            mushrooms += 1
+        if z >= ceiling and mushroom:
+            count = carry_match(cache, x, y, neighbors, floor)
             if count == None:
                 return None
             pairs += count
-            read_column(cache, x, y)
-            for i in neighbors:
-                dx, dy = OFFSETS[i]
-                read_column(cache, x + dx, y + dy, DIRECTIONS[i])
+            if count == 0:
+                if get_hardness() >= 10000000 or not dig():
+                    return None
+                if get_pos_z() != z - 1:
+                    return None
+                digs += 1
+        count = feed_column(neighbors, floor)
+        if count == None:
+            return None
+        pairs += count
+        read_column(cache, x, y)
+        for i in neighbors:
+            dx, dy = OFFSETS[i]
+            read_column(cache, x + dx, y + dy, DIRECTIONS[i])
     return pairs, digs, mushrooms
 
 
