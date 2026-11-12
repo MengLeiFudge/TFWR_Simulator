@@ -4,210 +4,210 @@
     "lb_dinosaur": {
       "label": "恐龙",
       "simulation_seconds": 684.08607339,
-      "simulation_basis": "2026-11-12原生恐龙榜、无覆盖，区域计算延迟、主区域复用、按需读坐标与后半分段循环，三seed完整687.88971666/684.08607339/704.01886290秒，每轮实际入库33488928 Bone、goal_reached且仅主机。相对递归迁入版普通田速率提高1.92%～1.96%，移动调用及移动tick相同。已持锁idle498备份同步两个已有入口，原版语法通过，LSP零错误/警告。本版未实机，旧成绩不归入当前源码。证据functional-dinosaur-refinement.json。",
+      "simulation_basis": "原生榜三个seed完整687.88971666/684.08607339/704.01886290秒，主表采用已有最好684.08607339秒；当前版本未实机。旧版request226正式9轮800.065777778秒及后续809.907秒复验属于历史。",
       "evidence": "lb_dinosaur.md",
       "direction": "同路线计算优化已采用，距#1仍+117.2%；继续研究可恢复区域的退出路程与后半安全短切，先保证新蛇身的恢复条件，不把循环改写当成移动减少。"
     },
     "lb_cactus_single": {
       "label": "仙人掌·单机",
       "simulation_seconds": 15.93578436,
-      "simulation_basis": "47+44株稀疏连通田两次完整收获132640；三seed完整原目标均值15.93578436秒。2026-11-09 request454官方465轮15.518秒；账号记录单独经Steam SDK核实。",
+      "simulation_basis": "三seed完整16.52404563/15.78297141/15.50033604秒，均15.93578436秒；2026-11-09 request454正式465轮均15.517909677秒。",
       "evidence": "lb_cactus_single.md",
       "direction": "47+44稀疏连通两轮已实机提交；继续比较成熟收尾、短偏序链与更省移动的连通结构。"
     },
     "lb_maze": {
       "label": "迷宫·多机",
       "simulation_seconds": 84.74419098,
-      "simulation_basis": "已迁入真源并备份同步已有存档；新原版语法前置层下seed1原目标完整84.74419098秒。 证据local_promotion_validation.json；本版未实机打榜。",
+      "simulation_basis": "当前达标收尾版seed1完整84.744190980秒，尚无本版完整实机；前版2026-11-03 request257正式83轮86.964698795秒。",
       "evidence": "lb_maze.md",
       "direction": "按每箱收益、建图摊销与唯一兑现成本重比宫数/机数；现有32座小宫及失败双机方案不原样重试。"
     },
     "lb_cactus": {
       "label": "仙人掌·多机",
       "simulation_seconds": 34.753,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "seed1完整34.753450860秒；2026-11-03 request249正式208轮均34.633932692秒。",
       "evidence": "lb_cactus.md",
       "direction": "比较稀疏连通多轮收割与在线构盘；按新#1重算仅因旧门槛停止的方向，计入平方产量及实际调度。"
     },
     "lb_sunflowers_single": {
       "label": "向日葵·单机",
       "simulation_seconds": 294.007406975,
-      "simulation_basis": "2026-11-09当前修正模型重新完成原10000目标seed1：294.007406975秒；报告sunflower-final-current-model-s1，历史model-v3的293.356868255秒使用修正前模型，不再有效。request452官方25轮295.371秒；实机与模型统计独立记录。",
+      "simulation_basis": "当前模型seed1完整294.007406975秒；2026-11-09 request452正式25轮均295.370520秒，显示295.371秒。修正前模型293.356868255秒已撤回。",
       "evidence": "lb_sunflowers_single.md",
       "direction": "比较支撑与分批生产布局，降低重种和成熟等待。"
     },
     "lb_sunflowers": {
       "label": "向日葵·多机",
       "simulation_seconds": 207.419,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "当前相对库存同步版seed1完整207.418751969秒；request319短筛两轮205.300500秒，2026-11-06 request320正式35轮205.816485714秒。公开毫秒记录为205.817秒。",
       "evidence": "lb_sunflowers.md",
       "direction": "重分每档收割负载、减少全田最慢区等待；备选少档筛花，维持全局最大瓣和真实净Power。"
     },
     "lb_wood_single": {
       "label": "木头·单机",
       "simulation_seconds": 313.238,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "seed1完整313.237685880秒；2026-11-03 request262正式23轮均320.570869565秒。",
       "evidence": "lb_wood_single.md",
       "direction": "降低伴生请求冲突和重复支撑改写，保持成熟兑现。"
     },
     "lb_maze_single": {
       "label": "迷宫·单机",
       "simulation_seconds": 128.237,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "seed1完整128.237280570秒；2026-11-03 request258正式57轮均126.355421053秒。",
       "evidence": "lb_maze_single.md",
       "direction": "利用已拆墙增量更新路径，减少规划与重复访问。"
     },
     "lb_wood": {
       "label": "木头·多机",
       "simulation_seconds": 277.998,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "修正静态函数返回计费后的seed1完整277.998141690秒；2026-11-03 request261正式26轮均277.434038462秒。",
       "evidence": "lb_wood.md",
       "direction": "调整生产/支撑布局及请求归属，减少重抽和支撑等待。"
     },
     "lb_carrots": {
       "label": "胡萝卜·多机",
       "simulation_seconds": 231.9,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "修正静态函数返回计费后的seed1完整231.899769630秒；2026-11-03 request251正式32轮均231.428875秒。账号最高231.310秒是此前完整统计。",
       "evidence": "lb_carrots.md",
       "direction": "改进局部支撑承接与生产布局，减少重抽和成熟等待。"
     },
     "lb_pumpkins_single": {
       "label": "南瓜·单机",
       "simulation_seconds": 440.873,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "seed1完整440.872658460秒；2026-11-03 request260正式16轮455.8626875秒。账号最高452.911秒来自此前编号早停版。",
       "evidence": "lb_pumpkins_single.md",
       "direction": "减少种植、补种和成熟巡查的总路程。"
     },
     "lb_carrots_single": {
       "label": "胡萝卜·单机",
       "simulation_seconds": 251.84,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "seed1完整251.839966590秒；2026-11-03 request252正式29轮均251.449414秒。账号最高250.642秒属于之前动态请求版。",
       "evidence": "lb_carrots_single.md",
       "direction": "比较生产位/支撑格组织，减少请求队列空访。"
     },
     "lb_pumpkins": {
       "label": "南瓜·多机",
       "simulation_seconds": 373.17,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "修正模型后的seed1完整373.169717730秒，与同seed原生simulate纳秒一致；2026-11-03 request259正式20轮均374.127700秒。",
       "evidence": "lb_pumpkins.md",
       "direction": "比较分区和修补调度，减少死株长尾及最慢区等待。"
     },
     "lb_hay": {
       "label": "干草·多机",
       "simulation_seconds": 112.697,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "seed1完整112.696615080秒；2026-11-03 request255正式65轮均112.014277秒。账号最高111.991秒来自此前版本。",
       "evidence": "lb_hay.md",
       "direction": "重排生产与支撑布局，减少伴生重抽和支撑改写。"
     },
     "lb_hay_single": {
       "label": "干草·单机",
       "simulation_seconds": 178.35,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "seed1完整178.349667480秒；2026-11-03 request256正式42轮均172.448643秒。此前成熟等待版正式171.998秒仍是账号最高。",
       "evidence": "lb_hay_single.md",
       "direction": "减少伴生重抽、成熟空访与支撑往返。"
     },
     "lb_fastest_reset": {
       "label": "快速重置",
       "simulation_seconds": 2479.105835993667,
-      "simulation_basis": "2026-11-12原版1×1零库存三seed完整2464.635501042/2479.786027471/2492.895979468秒，均2479.105836；供水供电后提前筹最终Weird，联产木头实付Carrots5/6与Watering6，末段供电按完整花瓣组达到1600停止，骨头保留400。相对本轮冻结均2514.803380减少35.697544秒，三个配对均更快；终点Wood20332/22027/20770、Power265.901/188.936/303.150，目标与完整骨头结算、非负库存和工人回收均通过。已持锁idle504备份同步已有目标，原版Parser通过，14项既有Measure类型诊断无新增。本版request506正常完成三轮2498.140/2510.990/2513.958秒，均2507.696秒；52条缺水警告保留、双日志无Error/Exception，恢复入口后quit507正常退出，当前目标注释同步；此前中期小迷宫/早Speed3/末蛇235节版request503完整均2539.922667秒，独立保留。完整条件、两条余额路径和混合获取证据归reset_resource_balance_20261112.json及reset_startup_routes.md。",
+      "simulation_basis": "完整三seed2464.635501042/2479.786027471/2492.895979468秒，均2479.105835994秒；request506前两轮短筛2504.565秒，正式三轮2498.140/2510.990/2513.958秒、均2507.696秒。",
       "evidence": "lb_fastest_reset.md",
       "direction": "联产木头再投资与按需供电已采用；常规仙人掌缓存的两份完整重置代表未改善，保留现源。继续压缩单机到伴生/首次无人机的前缀，比较提前投资、少采与混合获取的完整成本。"
     },
     "lb_mushrooms": {
       "label": "蘑菇·多机",
       "simulation_seconds": 299.9475531048155,
-      "simulation_basis": "六层场筛选三seed、九个完整场次外推299.947553105秒；原240000目标未完整跑完，未完成场次库存剔除。相同窗口实际存档完整周期均值306.512793807秒，新版平均改善2.1419%，seed3略慢；当前源未实机。旧request476的314.194秒仍作为账号/旧版成绩保留。证据structure_iteration_20261109.json。",
+      "simulation_basis": "三seed九个完整场次外推299.947553105秒，原240k未在该窗口跑完，seed3略慢；旧常驻版request476正式23轮314.194217391秒。较早完整目标三seed均320.579401620秒。",
       "evidence": "lb_mushrooms.md",
       "direction": "双柱连续配对因材料利用率低已淘汰；比较能保留失配块的连续配对结构，先核算每对移动和真实兑现，不再调六层选场。"
     },
     "lb_mushrooms_single": {
       "label": "蘑菇·单机",
       "simulation_seconds": 791.82913461,
-      "simulation_basis": "六层场筛选原30000目标三seed完整786.9477348/813.40401861/775.13565042秒，均值791.82913461；实际存档均818.99883816，平均改善3.3174%，seed2略慢。当前源未实机，旧request473的812.194秒仍作为账号/旧版成绩。证据structure_iteration_20261109.json。",
+      "simulation_basis": "六层筛选三seed完整786.94773480/813.40401861/775.13565042秒，均791.82913461秒；seed2比同条件旧版慢4.255秒。旧版request473正式9轮812.194222222秒。",
       "evidence": "lb_mushrooms_single.md",
       "direction": "联合安排连续可兑现匹配，降低每对move/dig及损耗；+50%仅容许含准备平均0.210秒/对，先核算动作。"
     },
     "lb_dynamite": {
       "label": "炸药·多机",
       "simulation_seconds": 821.0345455752362,
-      "simulation_basis": "相邻数字差集确定推理，三seed30现实秒、31盘正常结算外推821.034545575秒；原目标未本地跑完。2026-11-09 request464官方9轮874.708秒正常结束；正式榜随机样本不能直接当同seed模型误差。",
+      "simulation_basis": "三seed固定30现实秒，共31盘正常结算，以初始化加已结算吞吐外推821.034545575秒；原10M未完整跑完。2026-11-09 request464正式9轮874.707888889秒。",
       "evidence": "lb_dynamite.md",
       "direction": "放射分区增加跨区批次，已淘汰；继续比较公开煤灰状态的常驻协作，先证明邻区读数成本低于重复派机与合并。"
     },
     "lb_dynamite_single": {
       "label": "炸药·单机",
       "simulation_seconds": 258.98590617,
-      "simulation_basis": "2026-11-09原版仅支持数值乘法，改为逐项append初始化后，原目标三seed完整重算：256.88164167/257.96066022/262.11541662秒。旧列表乘法源码的效率放行资格撤回。实机与新公开排名见real_game_batch_20261109.json及同名文档。",
+      "simulation_basis": "合法append初始化版三seed完整256.88164167/257.96066022/262.11541662秒，均258.98590617秒；2026-11-09 request467正式28轮261.801607143秒。",
       "evidence": "lb_dynamite_single.md",
       "direction": "按完成围雷收益选择安全开格；备选小型约束精确推断，新增规划须由实际结算收益抵偿。"
     },
     "lb_treasure_map": {
       "label": "藏宝图",
       "simulation_seconds": 37.948,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "三seed完整34.58439639/42.40435905/36.85601439秒，均37.94825661秒；候选request421正式189轮38.151秒，真源request432正式189轮38.185497354秒。公开账号保留38.151秒。",
       "evidence": "lb_treasure_map.md",
       "direction": "按阶段费用比较一次解析维护无环路径、按实际必要动作与奖励选图；不重做原串长度筛图或旧BFS。"
     },
     "lb_bamboo": {
       "label": "竹子·多机",
       "simulation_seconds": 320.61792036,
-      "simulation_basis": "2026-11-09原版仅支持数值乘法，改为逐项append初始化后，原目标三seed完整重算：321.17797845/321.61337190/319.06241073秒。旧列表乘法源码的效率放行资格撤回。实机与新公开排名见real_game_batch_20261109.json及同名文档。",
+      "simulation_basis": "合法append初始化版三seed完整321.17797845/321.61337190/319.06241073秒，均320.61792036秒；2026-11-09 request471正式23轮319.845478261秒。",
       "evidence": "lb_bamboo.md",
       "direction": "比较按现成花节分组、已选区域先生产与后续选种重叠；计入额外升降，检验固定生长间隔。"
     },
     "lb_bamboo_single": {
       "label": "竹子·单机",
       "simulation_seconds": 265.46358402,
-      "simulation_basis": "2026-11-09原版仅支持数值乘法，改为逐项append初始化后，原目标三seed完整重算：270.75414942/264.65452587/260.98207677秒。旧列表乘法源码的效率放行资格撤回。实机与新公开排名见real_game_batch_20261109.json及同名文档。",
+      "simulation_basis": "合法append初始化版三seed完整均265.46358402秒；2026-11-09 request469正式27轮268.225444444秒，显示268.226秒。",
       "evidence": "lb_bamboo_single.md",
       "direction": "比较花节分组与部分田先生产，减少统一选种返工；核算整个目标的升降、成熟与巡回成本。"
     },
     "lb_pyramids": {
       "label": "金字塔·多机",
       "simulation_seconds": 1274.445765901,
-      "simulation_basis": "2026-11-11 C#原场景150000 Power目标三seed完整1285.509868964/1241.532496481/1296.294932258秒，均值1274.445765901；同条件实际存档基线1338.123112245，三seed均改善。并行基边、邻格高度采样、树形维修与几何清理上限已备份同步已有Save0脚本。当前源未实机；账号1363.254秒仍归request482。证据underground_structure_20261111.json。",
+      "simulation_basis": "三seed完整1285.509868964/1241.532496481/1296.294932258秒，均1274.445765901秒；当前版本未实机。上版2026-11-09 request482正式6轮1363.254秒。",
       "evidence": "lb_pyramids.md",
       "direction": "并行基边、三列感知与树形维修已迁入；仍+102.7%，比较保留天然支撑的清理/修补依赖次序，先计整个缺口体积与最长施工链；中心重叠清理已淘汰。"
     },
     "lb_pyramids_single": {
       "label": "金字塔·单机",
       "simulation_seconds": 1072.628647187,
-      "simulation_basis": "5×5清土补底、中心最后补尖，原30000目标三seed完整均值1072.628647187000秒。2026-11-09 request484官方完整7轮1074.147秒正常结束，双日志无错误；专用榜随机流不替代同seed模型精度对照。证据real_game_batch_20261109.json。",
+      "simulation_basis": "中心最后版三seed完整均1072.628647187秒；2026-11-09 request484正式7轮1074.146857143秒。",
       "evidence": "lb_pyramids_single.md",
       "direction": "减少入口与覆土开挖，按几何直接补缺，中心最后补尖。"
     },
     "lb_ores_single": {
       "label": "石英矿·单机",
       "simulation_seconds": 572.569,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "三seed完整538.47601803/626.64278013/552.58819794秒，均572.56899870秒；候选request423正式534.068秒，真源request436正式14轮548.380785714秒。公开账号最高534.068秒。",
       "evidence": "lb_ores_single.md",
       "direction": "减少锚点准备和错误定位回退，不假设多次最近矿相同。"
     },
     "lb_ores": {
       "label": "石英矿·多机",
       "simulation_seconds": 154.667,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_basis": "三seed完整153.74195397/154.93554108/155.32253919秒，均154.66667808秒；候选request422正式151.307秒，真源request434正式48轮152.023958333秒。公开账号保留更快的151.307秒。",
       "evidence": "lb_ores.md",
       "direction": "比较勘探后区域自主采矿与沟网覆盖，计入榜内真实筹资。"
     },
     "lb_rice": {
       "label": "稻米·多机",
       "simulation_seconds": 140.07603177,
-      "simulation_basis": "低水位单桶补水，原2M目标三seed完整均值140.076031770000秒。2026-11-09 request478官方完整52轮140.721秒正常结束，双日志无错误；专用榜随机流不替代同seed模型精度对照。证据real_game_batch_20261109.json。",
+      "simulation_basis": "三seed完整141.39620397/139.61709909/139.21479225秒，均140.07603177秒；2026-11-09 request478正式52轮140.72125秒。",
       "evidence": "lb_rice.md",
       "direction": "增加两层种植/成熟重叠，减少跨列回访和最慢工人等待。"
     },
     "lb_rice_single": {
       "label": "稻米·单机",
       "simulation_seconds": 166.88776344000001,
-      "simulation_basis": "两层流水与实际被动供水，原100k目标三seed完整均值166.887763440000秒。2026-11-09 request480官方完整44轮165.682秒正常结束，双日志无错误；专用榜随机流不替代同seed模型精度对照。证据real_game_batch_20261109.json。",
+      "simulation_basis": "三seed完整165.16457109/168.15355947/167.34515976秒，均166.88776344秒；2026-11-09 request480正式44轮165.681545455秒。",
       "evidence": "lb_rice_single.md",
       "direction": "优化两层清单访问顺序，减少成熟空等和回访。"
     },
     "lb_fastest_underground_reset": {
       "label": "地下重置",
       "simulation_seconds": 3026.821846255125,
-      "simulation_basis": "2026-11-12当前有效更快候选为中期小宫+蘑菇找层80+连续扑空32，预先扩至同seed1–8后八例全部达标、均3026.821846255秒。原seed1–3均2938.444410115仅保留研究历史，不再作为当前主表预估；未加容错的原cap80版seed7失败，与本候选区分。候选seed6相对共同冻结回退263.188秒，整体小均值优势不代表稳定更快，未确认应覆盖生产源。当前已采用源为扫雷查层256→208与仅最终解锁阶段供电1000→500，共同八seed均3034.092696204、8/8优于冻结八seed3061.424416942，原三seed子集2991.607494878；终点Power17.431–60.590。当前源已持锁idle507备份同步，Parser过、ty零错误，本轮未实机。常规蘑菇静态路线/单步移动迁入原版零库存后的同八seed完整均3052.779017551，仅3/8更快，未采用且未覆盖存档；各样本完整目标、非负库存、spawn/wait及仅主机均通过。证据reset_five_directions_20261112.json、reset_resource_balance_20261112.json及reset_functional_followup_20261112.json。",
+      "simulation_basis": "采用源八seed完整均3034.092696秒；主表更快有效候选“小宫＋80层＋32次扑空容错”八seed均3026.821846秒，有明显seed回退而未采用。当前采用源未实机；历史request497正式三轮3279.570秒。",
       "evidence": "lb_fastest_underground_reset.md",
       "direction": "末段按需供能及扫雷层有效边界已采用；混合获取、少采与再投资已比较，Rice6/Bamboo5及米减半的所测组合未改善。继续优先压缩地上启动和矿物投资链，找层收益按共同seed完整目标判断；常规蘑菇路线复用的整轮组合未改善，其他缓存和派发方式仍开放。"
     }

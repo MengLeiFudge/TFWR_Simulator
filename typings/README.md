@@ -8,13 +8,15 @@
 ty check scripts/functional typings
 ```
 
-ty LSP 使用同一份配置。诊断关注错误和警告；模板省略的可选返回值与未用变量仍可能产生提示。静态类型检查不替代游戏语言编译、本地模拟或实机验证。
+ty LSP使用同一份游戏配置。历史代码库已在`ty.toml`的`src.exclude`显式排除；默认检查和部署都不将归档当当前入口。诊断关注错误和警告，可选返回近似及未用变量仍可能有提示；静态检查不替代原版语法、本地模拟或实机。
+
+普通Python控制工具不使用游戏内置声明。根目录的游戏桩会把`str`等当函数而影响宿主注解检查；需要核对`game_control`时，使用不带游戏桩的独立CPython工作区检查同源包副本，核对副本与实际源码逐字节一致，再报告LSP结果。不要修改宿主类型来迎合游戏声明。
 
 ## 声明来源与维护
 
-声明从游戏提供的类型模板提取，保留函数签名、泛型、枚举和贡献者信息，省略说明字符串与函数体。来源SHA256写在文件头；中文模板的来源记录见[游戏更新验证](../docs/leaderboards/game-update-validation.md#api提示同步)。地下新增帽子、排行榜和科技按 [underground_resources.json](../simulator/local_simulator/underground_resources.json) 补齐，爆破钻头及地下排行榜同时核对了 `Core.decompiled.cs`。
+声明从游戏提供的类型模板提取，保留函数签名、泛型、枚举和贡献者信息，省略说明字符串与函数体；来源SHA256写在文件头。地下帽子、排行榜和科技按[资源快照](../simulator/local_simulator/underground_resources.json)并核对`Core.decompiled.cs`补齐，当前语言与导入边界见[原版语法检查](../simulator/headless/syntax-validation.md)。
 
-模板中的枚举若与当前游戏冲突，先核对资源注册表和实机证据，再同步声明及来源指纹。在WSL的Windows盘更新声明时，按[文件读取完整性要求](../docs/wsl-file-read.md#完整性要求)核对完整字节。彩色块的校正依据和存档备份见[成就验证记录](../docs/achievement-validation.json)的 `external_stub_mismatch.correction`。
+枚举与游戏冲突时先核资源注册表和实机，再同步声明及来源指纹。Windows挂载盘按[完整性要求](../docs/wsl-file-read.md#完整性要求)核对全部字节；彩色块声明校正与截断拦截见[既有证据](../docs/wsl-file-read.md#本次证据)。
 
 游戏更新后，先读取新的真实 `__builtins__.py`，核对函数声明和资源枚举，再更新本地声明及来源指纹。新增API必须由游戏注册表与资源证据支持；反编译中未注册的方法不能作为可用接口。不要修改真实存档的类型文件来满足检查器。
 

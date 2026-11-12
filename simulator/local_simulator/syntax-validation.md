@@ -77,7 +77,7 @@ mine(Items.Block, None, 16, None, target)
 
 完整CLI重新读取旧冻结脚本后，退出码为1，在第66行、第44列返回`error_expected_close_token`，预测时间、效率与目标状态均为null，没有初始化世界或产生有效产量。修正后的54份现有游戏脚本全部通过静态编译；48项语法形态编译记录为38项按原版拒绝、9项合法保留、1项本地覆盖缺口。记录只编译源码，不执行其函数或构造测试套件。
 
-代码和词法逐段依据当前原版源码核对；本轮未新增游戏端编译或完整打榜对照，不将静态编译等同于全部语义与时间精度通过。长期证据见[语法修复记录](../../docs/leaderboards/game_syntax_validation.json)，本机原始证据在`.codex/game-syntax-parity-20261108/`。
+代码和词法逐段依据当时原版源码核对；该轮未新增游戏端编译或完整打榜对照，静态编译不等于所有语义与计时通过。当前入口及原版Parser前置检查见[语言规则](../headless/syntax-validation.md)，本机旧批次原始证据保留在`.codex/game-syntax-parity-20261108/`。
 
 ## 历史关键字参数与木材条件修正
 
@@ -89,4 +89,4 @@ mine(Items.Block, None, 16, None, target)
 if c == Entities.Carrot and (num_items(Items.Hay) < carrot_hay or num_items(Items.Wood) < carrot_wood):
 ```
 
-Hay或Wood不够支付胡萝卜种子时才退回Bush。移除排行榜库存终点时，材料判断必须保留。旧报错位置为第86行、第80列`or`；该修复的静态编译记录归`.codex/functional-syntax-20261108/`。修正后的连续产出采样及来源对照见[功能效率记录](../../docs/functional-validation.md)和[实际时间采样数据](../../docs/functional-rate-validation.json)；早先含`or True`的效率数据已经撤回。
+Hay或Wood不够支付胡萝卜种子时才退回Bush。移除排行榜库存终点时，材料判断必须保留。旧报错位置为第86行、第80列`or`；该修复的静态编译记录归`.codex/functional-syntax-20261108/`。修正后的连续产出采样及来源对照见[功能效率记录](../../docs/script-rate-validation.md)和[实际时间采样数据](../../docs/script-rate-validation.md#条件与口径)；早先含`or True`的效率数据已经撤回。

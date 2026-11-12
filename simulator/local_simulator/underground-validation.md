@@ -6,7 +6,7 @@
 
 地下Reset路线研究发现：本地`Underground.generate_chunk`仅在宽、高均小于3时禁止石化南瓜，漏掉3×3。已只将该条件改为宽、高均小于等于3，与当前安装Core.dll中`Core.Content.WorldGen.PetrifiedPumpkinsFeature.GetProbability`一致。当前程序集SHA256为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`，本轮重新反编译了该类型，没有改动游戏程序集。
 
-本地方法对照采用reset预设、Mining1/Petrified_Pumpkins1、Expand2或3、seed1/2/3，每组有界生成32个区块。3×3修前分别含0/54/27块石化南瓜，修后均为0；4×4三seed的整份地层内容哈希逐项不变。路线研究启用石化南瓜时使用8格田，初期3格田未启用该科技，不受这个修正影响。修前/后源指纹、原生指纹及六组数据归[路线预算证据的boundary_alignment](../../docs/leaderboards/underground_reset_budget_20261110.json)。
+本地方法对照使用reset预设、Mining1／Petrified_Pumpkins1、Expand2或3、seed1／2／3，每组有界生成32个区块。3×3修前含0／54／27块石化南瓜，修后均0；4×4三seed整份地层哈希不变。路线中启用石化南瓜时已用8格田，早期3格未启用该科技。这里保留完整边界结论，原指纹和六组报告留`.codex/`；当前路线取舍见[地下Reset](../../docs/leaderboards/lb_fastest_underground_reset.md)。
 
 内存编译通过。仓库根ty LSP在6处未改行报告宿主数值类型诊断，变更行无诊断；未顺带修改类型配置。该修正完成源码和有界本地生成对照，尚无新鲜实机配对，不扩大为任意seed或长程精度已通过。
 

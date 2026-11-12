@@ -24,7 +24,7 @@
 
 原件备份、完整修复与回读记录保存在 `.codex/underground-achievements/builtins-colors-fix/`。故障候选在恢复时已被完整候选覆盖；故障内容可由原件、三个等长替换及前缀长度精确确定，历史回执保留其哈希。
 
-完整性校验在部署前阻止了故障候选。真实存档只接收了完整结果，见 [声明校正记录](achievement-validation.json)的 `external_stub_mismatch.correction`。
+完整性校验在部署前阻止了故障候选，真实存档只接收上述66,722字节的完整结果。三个游戏名称声明改为与真实内置资源一致；这项校正不改变脚本算法。
 
 ## 读取链路与缺口
 

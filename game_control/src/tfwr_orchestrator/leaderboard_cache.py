@@ -25,7 +25,6 @@ from .config import (
     LEADERBOARD_DOCS_ROOT,
     LEADERBOARD_LOCAL_PROGRESS_PATH,
     LEADERBOARD_PROGRESS_PATH,
-    LEADERBOARD_REPORT_PATH,
     LEADERBOARD_SNAPSHOT_PATH,
     normalize_config_path,
     resolve_steam_manifest_path,
@@ -69,6 +68,7 @@ BOARD_IDS = {
     "lb_fastest_underground_reset": 21444633,
 }
 RESET_BOARDS = {"lb_fastest_reset", "lb_fastest_underground_reset"}
+# 兼容保留：若 leaderboard_progress.md 含扩展附录则原样保留，缺省不附加。
 HISTORY_HEADING = "## 历史完整统计与研究\n"
 
 
@@ -355,64 +355,56 @@ def render_report(boards: dict[str, BoardSnapshot], results: dict[str, LocalProg
                   refreshed: set[str], output: Path, title: str, offline: bool,
                   local_path: Path = LEADERBOARD_LOCAL_PROGRESS_PATH,
                   snapshot_path: Path = LEADERBOARD_SNAPSHOT_PATH) -> str:
-    """同一数据生成两份七列表；门槛判断使用原精度，不用显示值舍入判断。"""
+    """从公开缓存与研究状态生成八列进度表；门槛判断使用原始精度。"""
     dates = sorted(datetime.fromisoformat(board.retrieved_at).astimezone(timezone.utc).isoformat() for board in boards.values())
     ratios = {script: relative_time(boards.get(script), result) for script, result in results.items()}
     reached = sum(ratio is not None and ratio <= 2 for script, ratio in ratios.items() if script not in RESET_BOARDS)
-    mode = "离线重建，公开值均为历史缓存" if offline else f"本次成功联网刷新{len(refreshed)}/30榜；其余行标为历史缓存"
-    lines = [f"# {title}", "", f"{mode}。公开数据UTC范围：{dates[0]} 至 {dates[-1]}。" if dates else f"{mode}，尚无有效公开数据。", "",
-             "时间为游戏时间`累计分钟:秒.毫秒`。实机是Steam安装清单LastOwner所对应账号的公开最高记录及排名，未核实与未上榜分别显示。#10不足时显示末名及排名。", "",
-             "比例为`(min(实机,模拟)/#1-1)×100%`，显示一位小数。模拟采用已有最好有效结果，可由实际采样推算；版本、窗口、进度与未覆盖阶段见各榜记录。", "",
-             f"全部榜以#1为目标。28个非重置榜中{reached}榜在2倍时间以内；阶段顺序见[三阶段计划]({document_link(LEADERBOARD_DOCS_ROOT / 'strategy_review.md', output)}#三阶段计划)。阶段内先按非重置榜的倍率差距研究，超过2倍先重列策略方向及完整成本。", "",
-             "本地证明更快即在idle等存档约束内同步对应已有脚本，无需完成整个原目标；批量机制仍须兑现完整周期。复制与游戏执行分别判断，实机运行须明确授权，或模拟≤2×#1且严格快于账号记录。", ""]
+    mode = "公开缓存离线重建" if offline else f"本次联网刷新 {len(refreshed)}/30 榜"
+    date_note = f"公开数据 UTC 范围：`{dates[0]}` 至 `{dates[-1]}`。" if dates else "尚无有效公开数据。"
+    lines = [f"# {title}", "", f"{mode}。{date_note}每榜查询时间与账号核对见[公开快照]({document_link(snapshot_path, output)})。", "",
+             "时间为游戏时间 `分钟:秒.毫秒`。`实机` 为当前账号公开最高记录及排名，`模拟` 为本地最佳有效预估，`比例` 为 `(min(实机,模拟)/#1-1)×100%`；名次不足时显示末名。", "",
+             f"28 个非重置榜中 {reached} 榜在 2×#1 以内；执行顺序见[三阶段计划]({document_link(LEADERBOARD_DOCS_ROOT / 'strategy_review.md', output)}#三阶段计划)，本地模拟与研究方向编辑入口为[研究状态 JSON]({document_link(local_path, output)})。", ""]
     for underground, heading in ((False, "常规排行榜"), (True, "地下排行榜")):
-        lines.extend([f"## {heading}", "", "| 排行榜 | #1 | #10 | 实机 | 模拟 | 比例 | 改进方向 |",
-                      "| --- | ---: | ---: | ---: | ---: | ---: | --- |"])
+        lines.extend([f"## {heading}", "", "| 排行榜 | #1 | #3 | #10 | 实机 | 模拟 | 比例 | 改进方向 |",
+                      "| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |"])
         scripts = [script for script in BOARD_IDS if (BOARD_IDS[script] >= 21000000) == underground]
         scripts.sort(key=lambda script: (script in RESET_BOARDS, -(ratios[script] or -1), script))
         for script in scripts:
             board, result = boards.get(script), results[script]
-            first = checkpoint(board, 1)
-            if board is not None and script not in refreshed:
-                first += "（历史缓存）"
             ratio = ratios[script]
             simulation = format_time(round(result.simulation_seconds * 1000)) if result.simulation_seconds is not None else "未取得"
             name = f"[{cell(result.label)}]({document_link(LEADERBOARD_DOCS_ROOT / (script + '.md'), output)})"
-            lines.append("| " + " | ".join((name, first, checkpoint(board, 10),
+            lines.append("| " + " | ".join((name, checkpoint(board, 1), checkpoint(board, 3), checkpoint(board, 10),
                          format_account(board.account) if board else "未核实", simulation,
                          f"{(ratio - 1) * 100:+.1f}%" if ratio is not None else "未取得", cell(result.direction))) + " |")
         lines.append("")
-    lines.extend([f"公开来源、每榜实际查询日期、账号核对日期和刷新错误见[公开快照]({document_link(snapshot_path, output)})。引用历史账号记录时，以该页原日期为准。",
-                  f"本地模拟时间、依据与方向的编辑入口为[研究状态JSON]({document_link(local_path, output)})；更新后运行`refresh_leaderboard_cache.py --offline`重建两份七列表。历史正式统计继续归各榜文档和lb_start.py，不代填账号或模拟。", ""])
-    return "\n".join(lines)
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def render_snapshot(boards: dict[str, BoardSnapshot], refreshed: set[str], offline: bool,
                     output: Path = LEADERBOARD_SNAPSHOT_PATH,
                     cache_path: Path = LEADERBOARD_CACHE_PATH,
                     progress_path: Path = LEADERBOARD_PROGRESS_PATH) -> str:
+    mode = "公开缓存离线重建。" if offline else f"本次联网刷新 {len(refreshed)}/30 榜。"
     lines = ["# 排行榜公开成绩与当前账号快照", "",
-             f"由项目内refresh_leaderboard_cache.py生成。事实真源为[公开缓存]({document_link(cache_path, output)})；只保存排名、成绩、查询时间和账号身份摘要，不保存玩家姓名或Steam ID。", "",
-             "离线重建，全部公开值为历史缓存。" if offline else f"本次成功联网刷新{len(refreshed)}/30榜。未刷新榜保留原日期；失败项列在表后。",
-             "时间均为游戏时间。账号最高为已核实账号的公开记录；历史账号查询保留原日期，不当作本次核对。", "",
-             "| 脚本 | 公开来源 | 公开查询UTC | 公开人数 | #1 | #10 | 账号最高 | 账号核对UTC |",
-             "| --- | --- | --- | ---: | ---: | ---: | ---: | --- |"]
+             f"{mode}事实真源为[公开缓存]({document_link(cache_path, output)})（仅存名次、毫秒成绩、查询时间与账号摘要），模拟与改进方向见[排行榜进度]({document_link(progress_path, output)})。", "",
+             "| 脚本 | 公开来源 | 公开查询UTC | 公开人数 | #1 | #3 | #10 | 账号最高 | 账号核对UTC |",
+             "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |"]
     for script in BOARD_IDS:
         board = boards.get(script)
         if board is None:
-            lines.append(f"| {script} | [Steam]({board_url(script)}) | 未取得 | — | 未取得 | 未取得 | 未核实 | 未取得 |")
+            lines.append(f"| {script} | [Steam]({board_url(script)}) | 未取得 | — | 未取得 | 未取得 | 未取得 | 未核实 | 未取得 |")
             continue
         account = board.account
-        status = "本次刷新" if script in refreshed else "历史缓存"
         source = "Steam SDK" if board.transport == "steamworks" else "Steam网页"
-        lines.append(f"| {script} | [{source}]({board.source}) | {board.retrieved_at}（{status}） | {board.total_entries} | "
-                     f"{checkpoint(board, 1)} | {checkpoint(board, 10)} | {format_account(account)} | {account.retrieved_at or '未核实'} |")
+        lines.append(f"| {script} | [{source}]({board.source}) | {board.retrieved_at} | {board.total_entries} | "
+                     f"{checkpoint(board, 1)} | {checkpoint(board, 3)} | {checkpoint(board, 10)} | {format_account(account)} | {account.retrieved_at or '未核实'} |")
     errors = [(script, kind, error) for script, board in boards.items()
               for kind, error in (("公开成绩", board.refresh_error), ("账号核对", board.account.refresh_error)) if error]
     if errors:
-        lines.extend(["", "最近刷新未完成的项目：", ""])
+        lines.extend(["", "最近刷新未完成项：", ""])
         lines.extend(f"- {script} {kind}：{cell(error)}" for script, kind, error in errors)
-    lines.extend(["", f"模拟、距#1比例及改进方向见[排行榜进度]({document_link(progress_path, output)})。", ""])
+    lines.append("")
     return "\n".join(lines)
 
 
@@ -430,16 +422,15 @@ def write_atomic(path: Path, text: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="刷新TFWR常规及地下30榜，核对账号并同步七列进度文档。")
+    parser = argparse.ArgumentParser(description="刷新TFWR常规及地下30榜，核对账号并同步八列进度文档。")
     parser.add_argument("--script", action="append", choices=tuple(BOARD_IDS), help="仅刷新指定榜，可重复；默认全部30榜。")
     parser.add_argument("--limit", type=int, default=100, help="每榜前N名，默认100，范围1..1000。")
-    parser.add_argument("--offline", action="store_true", help="不联网，使用事实缓存及研究状态重建三份Markdown。")
+    parser.add_argument("--offline", action="store_true", help="不联网，使用事实缓存及研究状态重建进度与公开快照。")
     parser.add_argument("--steam", action="store_true", help="通过游戏随附Steam SDK只读刷新；需要64位Windows Python及已登录的Steam客户端，无需启动游戏。")
     parser.add_argument("--timeout", type=float, default=20, help="每次网络操作超时，默认20秒，范围(0,60]。")
     parser.add_argument("--proxy", help="HTTP/HTTPS代理URL；省略时使用系统或环境代理。")
     parser.add_argument("--cache", default=str(LEADERBOARD_CACHE_PATH), help="公开事实JSON路径。")
-    parser.add_argument("--report", default=str(LEADERBOARD_REPORT_PATH), help="目标报告Markdown路径。")
-    parser.add_argument("--progress", default=str(LEADERBOARD_PROGRESS_PATH), help="进度Markdown路径，保留历史统计段。")
+    parser.add_argument("--progress", default=str(LEADERBOARD_PROGRESS_PATH), help="进度Markdown路径。")
     parser.add_argument("--snapshot", default=str(LEADERBOARD_SNAPSHOT_PATH), help="公开来源及账号查询日期Markdown路径。")
     parser.add_argument("--local-progress", default=str(LEADERBOARD_LOCAL_PROGRESS_PATH), help="本地模拟与研究方向JSON路径。")
     args = parser.parse_args(argv)
@@ -453,19 +444,18 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--steam由Steam客户端联网，不接受--proxy。")
     if args.proxy and urlsplit(args.proxy).scheme not in {"http", "https"}:
         parser.error("--proxy必须是HTTP/HTTPS代理URL。")
-    paths = [normalize_config_path(value) for value in (args.cache, args.report, args.progress, args.snapshot, args.local_progress)]
-    cache_path, report_path, progress_path, snapshot_path, local_path = paths
+    paths = [normalize_config_path(value) for value in (args.cache, args.progress, args.snapshot, args.local_progress)]
+    cache_path, progress_path, snapshot_path, local_path = paths
     if len({path.resolve() for path in paths}) != len(paths):
         parser.error("输入与输出路径必须互不相同。")
     try:
         results = load_local_progress(local_path)
-        history = HISTORY_HEADING
+        history = ""
         if progress_path.exists():
             existing = progress_path.read_text(encoding="utf-8")
             _, separator, tail = existing.partition(HISTORY_HEADING)
-            if not separator:
-                raise ValueError("进度文档缺少历史统计标题，停止覆盖以保留现有内容。")
-            history = separator + tail
+            if separator:
+                history = "\n" + separator + tail
         owner = None
         try:
             match = re.search(r'"LastOwner"\s+"([0-9]{17})"', resolve_steam_manifest_path().read_text(encoding="utf-8"))
@@ -508,20 +498,17 @@ def main(argv: list[str] | None = None) -> int:
                         print(f"{script}刷新失败，保留旧数据及日期：{error}", file=sys.stderr, flush=True)
         if not boards:
             raise RuntimeError("没有有效公开缓存；既有报告未改写。请检查网络或--proxy后刷新。")
-        report = render_report(boards, results, refreshed, report_path, "排行榜成绩与提升目标", args.offline,
-                               local_path, snapshot_path)
         progress = render_report(boards, results, refreshed, progress_path, "排行榜进度", args.offline,
-                                 local_path, snapshot_path) + "\n" + history
+                                 local_path, snapshot_path) + history
         snapshot = render_snapshot(boards, refreshed, args.offline, snapshot_path, cache_path, progress_path)
         if not args.offline:
             payload = {"schema_version": SCHEMA_VERSION, "app_id": APP_ID, "last_attempt_at": attempted_at,
                        "boards": [asdict(boards[script]) for script in BOARD_IDS if script in boards]}
             write_atomic(cache_path, json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
-        write_atomic(report_path, report)
         write_atomic(progress_path, progress)
         write_atomic(snapshot_path, snapshot)
     except (OSError, ValueError, RuntimeError, KeyError, TypeError, AttributeError) as exc:
         print(f"排行榜更新失败：{exc}", file=sys.stderr)
         return 1
-    print(f"公开缓存：{cache_path}\n目标报告：{report_path}\n进度：{progress_path}\n公开快照：{snapshot_path}\n有效缓存：{len(boards)}/30榜；本次联网刷新：{len(refreshed)}榜。")
+    print(f"公开缓存：{cache_path}\n进度：{progress_path}\n公开快照：{snapshot_path}\n有效缓存：{len(boards)}/30榜；本次联网刷新：{len(refreshed)}榜。")
     return 1 if failures else 0

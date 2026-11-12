@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 全科技功能初版；来源 lb_pumpkins.py，本地对照见docs/functional-validation.md。
+# 全科技功能初版；来源 lb_pumpkins.py，本地对照见docs/script-rate-validation.md。
 import production
 # Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
 # 固定布局占824格；15个派发子机加16个区域助手，连同主机最多32机。

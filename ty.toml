@@ -1,3 +1,7 @@
+[src]
+# 历史脚本仅供查阅，不参与当前实现的类型检查。
+exclude = ["references/leaderboard_history/**"]
+
 [environment]
 # 游戏类型声明随仓库保存，检查源码时无需连接真实存档。
 extra-paths = ["typings", "scripts/functional"]

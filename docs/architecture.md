@@ -10,8 +10,8 @@
 | `scripts/functional/` | 全科技下持续生产资源，复用成熟功能与多机算法 | [运行约定](../scripts/functional/README.md) |
 | `scripts/leaderboard/` | 对应榜单初始条件下的最快已确认策略 | [脚本约定](../scripts/leaderboard/README.md) |
 | `scripts/achievement/` | 全科技下完成一次成就任务后退出 | [成就脚本](../scripts/achievement/README.md) |
-| `references/` | 反编译源码、资源和解锁快照、外部来源及公开成绩缓存 | [参考资料](../references/README.md) |
-| `docs/` | 架构、研究方法、策略结论和验证记录 | [文档索引](README.md) |
+| `references/` | 反编译／资源／解锁来源、公开缓存、外部来源与各榜历史代码 | [参考资料](../references/README.md) |
+| `docs/` | 六份核心文档、30份单榜策略、共用方法与进度 | [文档索引](README.md) |
 
 ## 执行与数据流
 
@@ -19,11 +19,13 @@
 
 实机路径是“脚本 → game_control 部署至已有存档文件 → 请求状态文件 → game_mod → 游戏执行 → 三份日志 → game_control 采集”。`gamesave/` 只是本机 Save0 链接，不是源码目录。运行期间冻结存档脚本，终态确认后才能再次部署。
 
-路径统一由 `game_control/src/tfwr_orchestrator/config.py` 推导。排行榜同步读取 `scripts/leaderboard/`；公开成绩写入 `references/leaderboards/leaderboard_cache.json`；本地模拟及方向写入`docs/leaderboards/leaderboard_progress.json`。`leaderboard_cache.py`读取这两份JSON，一次生成进度、`leaderboard_targets.md`和公开来源快照；账号最高取公开查询，`scripts/leaderboard/lb_start.py`只保留历史正式复跑。公开缓存和策略研究文档分别拥有来源事实与解释结论，不混作脚本依赖。
+路径统一由`game_control/src/tfwr_orchestrator/config.py`推导。排行榜同步只读`scripts/leaderboard/`；公开成绩写`references/leaderboards/leaderboard_cache.json`，本地模拟及方向写`docs/leaderboards/leaderboard_progress.json`。`leaderboard_cache.py`读取两份JSON，生成八列进度总表和公开来源快照两份Markdown，离线保留原抓取时间。账号最高取公开查询，仓库`lb_start.py`只记历史正式复跑。
 
 功能脚本按资源名或 `资源_机制.py` 命名，例如 `rice.py`、`bone_dinosaur.py`；排行榜脚本保留 `lb_` 前缀。功能初版以科技全解为前提，优先迁入用户已有功能脚本，没有对应实现时使用成熟多机排行榜算法。每个资源入口使用 `入口(target=-1)`：无参持续生产，有限目标由入口及子机按实际库存判断，正常结算后返回。`resources.py` 负责目标配置、材料补给和跨资源调用；`production.py` 提供库存判断与整次执行的Jump额度。保留原算法的并行、路径、同步与热路径。`mining.py` 只集中普通地形开采的共用函数。水、化肥自动获取，不设功能脚本。
 
-功能脚本不依赖排行榜文件，来源、许可、材料和地图前提见[功能脚本说明](../scripts/functional/README.md)。全部游戏脚本先通过[本地验证与替换准入](script-validation.md)，实际时间采样、固定窗口库存与完整周期见[功能效率报告](functional-validation.md)。低科技适配不在功能初版范围；模拟器仍保留科技配置能力，供重置榜及明确指定的场景使用。功能脚本部署遵守既有存档边界，现有同步命令只处理排行榜。
+功能脚本不导入排行榜文件，来源、许可、材料和地图前提见[功能脚本](../scripts/functional/README.md)。全部入口满足[脚本准入](script-validation.md)，算法、实际窗口和完整周期结论归[速率与成就](script-rate-validation.md)。初版不扩低科技，模拟器仍可配置科技供重置及指定场景。现有自动同步只处理排行榜，功能部署也须遵守已有存档边界。
+
+旧正式实现与未采用候选归`references/leaderboard_history/<lb_xxx>/`，`manifest.json`维护源码、原实验路径及提交映射。归档位于类型检查和部署扫描之外；同名单榜文档只保留当前策略、淘汰表、版本演进和下一步四节。公开缓存目录仅两份数据／快照，原始实验回执留`.codex/`，正式目录不新增阶段或日期过程文档。
 
 ## 命名迁移
 

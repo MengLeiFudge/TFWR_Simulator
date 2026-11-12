@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 全科技功能初版；来源 lb_maze.py，本地对照见docs/functional-validation.md。
+# 全科技功能初版；来源 lb_maze.py，本地对照见docs/script-rate-validation.md。
 import production
 # 算法来源：zzlg-git/TheFarmerWasReplaced_Maze_1min28s，commit e5d5e2d9c8df5c22fee0c1c591d70bd69d4a6629。
 # 保留32座小迷宫、出发点探墙与增量路由；许可信息见docs/leaderboards/lb_maze.md。

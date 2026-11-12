@@ -14,13 +14,13 @@
 | [scripts/functional/](scripts/functional/README.md) | 全科技下持续生产资源，优先沿用已有功能脚本和成熟多机排行榜算法 |
 | [scripts/leaderboard/](scripts/leaderboard/README.md) | `lb_*.py` 排行榜脚本真源 |
 | [scripts/achievement/](scripts/achievement/README.md) | 全科技下的一次性成就脚本 |
-| [references/](references/README.md) | 游戏源码、资源与科技快照、公开成绩缓存等参考事实 |
-| [docs/](docs/README.md) | 项目架构、共用研究方法、各榜策略与验证记录 |
+| [references/](references/README.md) | 游戏源码、资源与科技快照、公开缓存，以及30榜历史／淘汰代码库 |
+| [docs/](docs/README.md) | 六份核心文档、共用研究方法、30份单榜策略与进度总表 |
 | `gamesave/` | 指向本机真实 Save0 的链接，只是部署目标，不进 Git |
 
 本地模拟通过CLI手动运行，尚未自动接在部署命令前。默认[C#脚本模拟入口](simulator/headless/README.md)运行原版语言、调度及地上/地下机制，不依赖Python或游戏进程。当前版本归档重放、覆盖范围、性能与限制见[验收记录](simulator/headless/validation.md)。旧Python执行器已移除，历史对照资料保留；最终成绩仍由真实游戏验证。
 
-所有准备在游戏内执行的脚本，必须先通过本地模拟的正确性与效率验证。只有同条件下效率严格高于当前存档版本，才允许覆盖已有对应文件。功能初版按科技全解，Fastest Reset按原版重置条件；详细要求见[脚本验证与替换准入](docs/script-validation.md)，当前常规产出表、特殊成就中文名称与运行时间见[脚本验证汇总](docs/script-rate-validation.md)；早期算法来源与对照保留在[历史功能记录](docs/functional-validation.md)。
+所有准备在游戏内执行的脚本，必须先通过本地模拟的语法、正确性与效率验证。只有同条件效率严格高于存档现版，才覆盖对应已有文件；功能初版全科技，Fastest Reset用原版重置条件。要求见[脚本准入](docs/script-validation.md)，功能机制与成就条件见[算法和速率汇总](docs/script-rate-validation.md)。
 
 ## 首次配置
 
@@ -55,7 +55,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
    python3 game_control/tools/refresh_leaderboard_cache.py --offline
    ```
 
-   默认每榜前100名；统一生成“排行榜、#1、#10、实机、模拟、比例、改进方向”七列，实机为账号最高并附排名。公开事实与本地研究状态分别保存为JSON；进度、targets和来源快照同步生成。命令及Windows/WSL代理用法见[排行榜缓存](game_control/README.md#排行榜缓存)。
+   默认每榜前100名；统一生成“排行榜、#1、#3、#10、实机、模拟、比例、改进方向”八列，实机为账号最高并附排名。公开事实与本地研究状态分别保存JSON，生成进度总表及公开快照两份Markdown，保留各榜原抓取时间。命令及代理设置见[排行榜缓存](game_control/README.md#排行榜缓存)。
 2. 先用 [本地模型](simulator/README.md) 筛选，例如：
 
    ```bash
@@ -80,7 +80,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
    ```
 
    `estimated_total_game_seconds`是本轮预计总游戏时间；`eta_game_seconds`是预计剩余时间。用前者对照#1目标和当前账号记录；它仍是预测。库存线性增长时才能按库存估算，Cactus/Dinosaur等批量结算前可能长期0%，须看阶段进度和完整生产周期。Fastest Reset按阶段预算推算，不套资源比例。
-5. 把预测、实测轮数/均值/波动、失败原因和下一步写回同名 `.md`；[Cactus 记录样本](docs/leaderboards/lb_cactus.md#2026-10-22-研究记录样本) 展示完整口径。`.py` 只保留当前确认最快的实现。
+5. 将当前策略、淘汰原因、历史版本和后续方向写入同名`.md`的四节模板；[仙人掌](docs/leaderboards/lb_cactus.md)可作示例。`.py`只放当前最快实现，旧正式版及淘汰代码归[历史库](references/leaderboard_history/)，通过`manifest.json`查原实验路径和提交。原始报告留`.codex/`，不在正式目录新建阶段过程MD／JSON。
 
 `--request-only` 只投递请求，默认拒绝覆盖活动请求；明确替换须加 `--replace`，终态须先回收；它不负责持续监测或自动回收终态。长流程使用它时必须自行监看日志、按请求 ID 停止和确认终态，接口见 [协调器说明](game_control/README.md)。常规等待命令会在超时或中断时请求停止当前任务。
 
@@ -104,7 +104,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
 - `game_control/tools/refresh_decompiled_sources.py --help`：刷新反编译事实源。
 - `game_control/tools/extract_unlock_snapshot.py --help`：提取科技事实表。
 
-XERJ 项目索引范围由 [.xerjignore](.xerjignore) 限定。`docs/*-validation.json` 自动生成报告由对应Markdown说明承载检索，图标和.NET框架反编译产物也排除；游戏源码、项目实现和模型资源JSON保留。进入仓库后运行 `xerj-project index` 增量更新，使用 `xerj-project search "查询"` 或 `xerj-project def 符号` 定位。
+XERJ沿用`.gitignore`并补充[.xerjignore](.xerjignore)，排除构建／缓存／外部存档、图标及.NET框架反编译产物；项目源码、文档及JSON保留检索。进入仓库后运行`xerj-project index`增量更新，用`xerj-project search "查询"`或`xerj-project def 符号`定位。
 
 若新增结构文件报 `no frozen dataset accepts family`，表示旧索引的字段或格式集合已冻结。不要改写源JSON迎合缓存，也不要用 `--fresh` 清除旧记录；备份本项目的索引记录和journal后，仅重建本项目对应prefix的缓存，保留其他项目。重建后再运行普通增量命令，确认退出码为0且检索命中当前源码。
 

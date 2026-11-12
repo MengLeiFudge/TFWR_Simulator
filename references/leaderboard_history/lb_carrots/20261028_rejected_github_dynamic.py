@@ -1,0 +1,150 @@
+from __builtins__ import *
+# 淘汰候选归档：lb_carrots | 原实验路径 .codex/leaderboard-astra/github-carrots/lb_carrots_dynamic.py
+# 私有候选：独占4x8区域动态处理伴生请求；尚无正式完整成绩。
+# Copyright (c) 2026 enihsyou；原文和MIT许可来源见fetch.json。
+
+def lb_carrots():
+    set_world_size(32)
+    clear()
+    child = spawn_drone(straight_move_do(BLOCK_H, North, spawn_drone_task1(North)))
+    spawn_drone_task1(South)()
+    wait_for(child)
+
+W = 0.15
+BLOCK_W, BLOCK_H = 4, 8
+
+
+def traverse_rectangle(fn, w, h):
+    fn()
+    move(North)
+    for i in range(w, 0, -2):
+        for j in range(h, 1, -1):
+            fn()
+            if j != 2:
+                move(North)
+        move(East)
+        for j in range(h, 1, -1):
+            fn()
+            if j != 2:
+                move(South)
+        if i != 2:
+            move(East)
+    move(South)
+    for _ in range(1, w):
+        fn()
+        move(West)
+
+
+def traverse_rectangle_if(fn, w, h):
+    if fn():
+        return False
+    move(North)
+    for i in range(w, 0, -2):
+        for j in range(h, 1, -1):
+            if fn():
+                return False
+            if j != 2:
+                move(North)
+        move(East)
+        for j in range(h, 1, -1):
+            if fn():
+                return False
+            if j != 2:
+                move(South)
+        if i != 2:
+            move(East)
+    move(South)
+    for _ in range(1, w):
+        if fn():
+            return False
+        move(West)
+
+    return True
+
+
+def work_drone_task():
+    wants = {}
+    x_lower, y_lower = get_pos_x(), get_pos_y()
+    x_upper, y_upper = x_lower + 4, y_lower + 8
+
+    def on_eachcell():
+        t = (get_pos_x(), get_pos_y())
+
+        # 满足当前位置的种植需求
+        if t in wants:
+            c = wants.pop(t)
+            if get_entity_type() != c:
+                harvest()
+                plant(c)
+            return
+
+        if get_water() < W:
+            use_item(Items.Water)
+        while True:
+            harvest()
+            plant(Entities.Carrot)
+            c, p = get_companion()
+            x, y = p
+            if x_lower <= x < x_upper and y_lower <= y < y_upper:
+                if p in wants and wants[p] != c:
+                    continue  # 和其他植物的请求种植的冲突
+                wants[p] = c  # 标记格子接下来要种植的作物
+                break
+        return
+
+    def first_round():
+        till()
+        on_eachcell()
+
+    def while_round():
+        on_eachcell()
+        return num_items(Items.Carrot) >= 2000000000
+
+    traverse_rectangle(first_round, 4, 8)
+    while traverse_rectangle_if(while_round, 4, 8):
+        continue
+
+
+def straight_move_do(side_length, d, do):
+    def fn():
+        for _ in range(side_length):
+            move(d)
+        do()
+
+    return fn
+
+
+def spawn_drone_task1(face):
+    def fn():
+        child = spawn_drone(straight_move_do(BLOCK_H, face, spawn_drone_task2()))
+        spawn_drone_task2()()
+        wait_for(child)
+
+    return fn
+
+
+def spawn_drone_task2():
+    def fn():
+        child = spawn_drone(straight_move_do(BLOCK_W, East, spawn_drone_task3(East)))
+        spawn_drone_task3(West)()
+        wait_for(child)
+
+    return fn
+
+
+def spawn_drone_task3(face):
+    def fn():
+        children = []
+        for _ in range(3):
+            children.append(spawn_drone(work_drone_task))
+            for _ in range(BLOCK_W):
+                move(face)
+        work_drone_task()
+        for child in children:
+            wait_for(child)
+
+    return fn
+
+
+if __name__ == "__main__":
+    lb_carrots()

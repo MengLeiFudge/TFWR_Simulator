@@ -42,4 +42,4 @@
 
 原生请求269～281全部正常结束并按同ID回到idle，BepInEx和Unity新增日志无Error/Exception；26次临时覆盖均已逐字节恢复，Save0中文API指纹保留。收口时为idle281、游戏PID70264，游戏保持开启。Implementation deviations：None。
 
-关联：[新版16榜复验](../../docs/leaderboards/game-update-validation.md)、[总验收记录](validation.md)、[解释器费用指南](../../docs/leaderboards/interpreter_cost_notes.md)。
+关联：[新版16榜复验](validation.md)、[总验收记录](validation.md)、[解释器费用指南](../../docs/leaderboards/interpreter_cost_notes.md)。

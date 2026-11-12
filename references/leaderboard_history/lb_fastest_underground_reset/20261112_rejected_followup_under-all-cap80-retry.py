@@ -1,0 +1,2626 @@
+from __builtins__ import *
+# 完整轮时间：未取得；C#原目标3seed均值3006.673秒（2026-11-12，当前策略未实机）。
+
+def lb_fastest_underground_reset():
+    ur_s_step1()
+    for technology in [Unlocks.Speed, Unlocks.Expand, Unlocks.Trees, Unlocks.Speed,
+                       Unlocks.Grass, Unlocks.Trees, Unlocks.Grass, Unlocks.Carrots,
+                       Unlocks.Expand, Unlocks.Watering, Unlocks.Fertilizer, Unlocks.Sunflowers]:
+        if not ur_s_buy(technology):
+            return
+    if not ur_s_solar_reserve():
+        return
+    for technology in [Unlocks.Trees, Unlocks.Grass, Unlocks.Carrots,
+                       Unlocks.Pumpkins, Unlocks.Speed, Unlocks.Pumpkins, Unlocks.Polyculture]:
+        if not ur_s_buy(technology):
+            return
+    if not ur_s_first_megafarm():
+        return
+    if not ur_s_buy(Unlocks.Fertilizer) or not ur_s_buy(Unlocks.Expand):
+        return
+    if not ur_s_solar_reserve() or not ur_s_next_megafarm():
+        return
+    quick_print("underground_reset_prefix", get_time(), max_drones(), get_world_size())
+    # 开采升级按实际支付；迷宫资金供蘑菇增产，12格扫雷减少找层与结算次数。
+    stages = [(Unlocks.Mining, 2), (Unlocks.Coal, 1), (Unlocks.Rice, 1),
+              (Unlocks.Mining, 3), (Unlocks.Rice, 3), (Unlocks.Coal, 2),
+              (Unlocks.Iron, 1), (Unlocks.Mining, 4), (Unlocks.Bamboo, 1),
+              (Unlocks.Mining, 5), (Unlocks.Prospecting, 1), (Unlocks.Iron, 2),
+              (Unlocks.Mining, 6), (Unlocks.Rice, 5), (Unlocks.Coal, 3),
+              (Unlocks.Iron, 4), (Unlocks.Quartz, 3), (Unlocks.Ore_Boost, 1), (Unlocks.Bamboo, 3),
+              (Unlocks.Mining, 7), (Unlocks.Mushrooms, 3), (Unlocks.Mining, 8),
+              (Unlocks.Bamboo, 4), (Unlocks.Dynamite, 4), (Unlocks.Pumpkins, 3),
+              (Unlocks.Expand, 6), (Unlocks.Underground_Leaderboard, 1)]
+    for tech, level in stages:
+        while num_unlocked(tech) < level:
+            if get_time() > 7000:
+                quick_print("underground_reset_failed", "deadline", tech)
+                return
+            cost = get_cost(tech)
+            ready = False
+            for funding in range(8):
+                for item in cost:
+                    if num_items(Items.Power) < 100:
+                        if not ur_power_stock(1000):
+                            quick_print("underground_reset_failed", "power", tech)
+                            return
+                    if not ur_need(item, cost[item]):
+                        quick_print("underground_reset_failed", "resource", tech, item, cost[item])
+                        return
+                ready = True
+                for item in cost:
+                    if num_items(item) < cost[item]:
+                        ready = False
+                if ready:
+                    break
+            if not ready or not unlock(tech):
+                quick_print("underground_reset_failed", "unlock", tech)
+                return
+            quick_print("underground_reset_upgrade", tech, num_unlocked(tech), get_time())
+    quick_print("underground_reset_done", num_unlocked(Unlocks.Underground_Leaderboard) > 0, get_time())
+
+
+def ur_s_affordable(cost):
+    for item in cost:
+        if num_items(item) < cost[item]:
+            return False
+    return True
+
+
+def ur_s_missing(cost, item):
+    if item in cost:
+        return max(0, cost[item] - num_items(item))
+    return 0
+
+
+def ur_s_tick_cell(cost):
+    if get_time() > 7000:
+        return False
+    entity = get_entity_type()
+    if entity != None and can_harvest():
+        harvest()
+        entity = None
+    if entity != None and entity != Entities.Grass:
+        return True
+    wood = ur_s_missing(cost, Items.Wood)
+    hay = ur_s_missing(cost, Items.Hay)
+    carrot = ur_s_missing(cost, Items.Carrot)
+    desired = Entities.Grass
+    if wood > 0:
+        if num_unlocked(Unlocks.Trees) > 0:
+            if (get_pos_x() + get_pos_y()) % 2 == 0:
+                desired = Entities.Tree
+        elif hay == 0:
+            desired = Entities.Bush
+    if desired == Entities.Grass and hay == 0 and carrot > 0:
+        if ur_s_affordable(get_cost(Entities.Carrot)):
+            desired = Entities.Carrot
+        elif num_items(Items.Wood) < get_cost(Entities.Carrot)[Items.Wood]:
+            if num_unlocked(Unlocks.Trees) > 0:
+                if (get_pos_x() + get_pos_y()) % 2 == 0:
+                    desired = Entities.Tree
+            else:
+                desired = Entities.Bush
+    if desired == Entities.Grass:
+        if get_ground_type() != Grounds.Grassland:
+            till()
+    else:
+        if desired == Entities.Carrot and get_ground_type() != Grounds.Soil:
+            till()
+        if not plant(desired):
+            quick_print("directed_failed", "plant", desired, get_time())
+            return False
+    return True
+
+
+def ur_s_basic(cost):
+    if num_unlocked(Unlocks.Polyculture) > 0:
+        return ur_s_boost_stock(cost)
+    passes = 0
+    while not ur_s_affordable(cost):
+        if get_time() > 7000 or passes >= 1500:
+            quick_print("directed_failed", "basic_limit", get_time(), cost)
+            return False
+        size = get_world_size()
+        for x in range(size):
+            for y in range(size):
+                if not ur_s_tick_cell(cost):
+                    return False
+                if ur_s_affordable(cost):
+                    return True
+                move(North)
+            move(East)
+        passes += 1
+        if passes % 40 == 0:
+            quick_print("directed_progress", get_time(), cost, num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot))
+    return True
+
+
+def ur_s_origin():
+    size = get_world_size()
+    for _ in range((size - get_pos_x()) % size):
+        move(East)
+    for _ in range((size - get_pos_y()) % size):
+        move(North)
+
+
+def ur_s_pumpkin_stock(target):
+    if num_items(Items.Pumpkin) < target:
+        size = get_world_size()
+        gain = size * size * min(6, size) * 2 ** (num_unlocked(Unlocks.Pumpkins) - 1)
+        fields = (target - num_items(Items.Pumpkin) + gain - 1) // gain
+        seeds = (fields * size * size * 3 + 1) // 2
+        price = get_cost(Entities.Pumpkin)[Items.Carrot]
+        if not ur_s_basic({Items.Carrot: seeds * price}):
+            return False
+    if max_drones() > 1:
+        return ur_s_parallel_pumpkin_stock(target)
+    size = get_world_size()
+    while num_items(Items.Pumpkin) < target:
+        if get_time() > 7000:
+            return False
+        # 预备一田和额外一田重补料，每株仍逐次核价。
+        cost = get_cost(Entities.Pumpkin)
+        if not ur_s_basic({Items.Carrot: cost[Items.Carrot] * size * size * 2}):
+            return False
+        ur_s_origin()
+        if not ur_s_pumpkin_strip(0, 1, size):
+            return False
+        before = num_items(Items.Pumpkin)
+        harvest()
+        quick_print("directed_pumpkin", get_time(), num_items(Items.Pumpkin) - before)
+    return True
+
+
+def ur_s_buy(technology):
+    cost = get_cost(technology)
+    if Items.Pumpkin in cost:
+        if not ur_s_pumpkin_stock(cost[Items.Pumpkin]):
+            return False
+    basic_cost = {}
+    for item in cost:
+        if item != Items.Pumpkin:
+            basic_cost[item] = cost[item]
+    if not ur_s_basic(basic_cost):
+        return False
+    if not unlock(technology):
+        quick_print("directed_failed", "unlock", technology, get_time())
+        return False
+    quick_print("directed_upgrade", technology, num_unlocked(technology), get_time(), num_items(Items.Power))
+    return True
+
+
+def ur_s_solar_reserve():
+    size = get_world_size()
+    if not ur_s_basic({Items.Carrot: size * size}):
+        return False
+    if max_drones() > 1:
+        return ur_s_parallel_solar_reserve(size)
+    ur_s_origin()
+    buckets = {}
+    for petals in range(7, 16):
+        buckets[petals] = []
+    for x in range(size):
+        for y in range(size):
+            if get_entity_type() != None:
+                harvest()
+            if get_ground_type() != Grounds.Soil:
+                till()
+            if not plant(Entities.Sunflower):
+                return False
+            buckets[measure()].append((x, y))  # ty: ignore[invalid-argument-type]  此处已种向日葵，测量返回整数花瓣数。
+            move(North)
+        move(East)
+    for petals in range(15, 6, -1):
+        for x, y in buckets[petals]:
+            for _ in range((x - get_pos_x()) % size):
+                move(East)
+            for _ in range((y - get_pos_y()) % size):
+                move(North)
+            while not can_harvest():
+                if get_time() > 7000:
+                    return False
+                if get_water() < 0.5 and num_items(Items.Water) > 0:
+                    use_item(Items.Water)
+            harvest()
+    quick_print("directed_solar", get_time(), num_items(Items.Power))
+    return True
+
+
+def ur_s_solar_plant_strip(worker, workers, size, deadline):
+    buckets = {}
+    for petals in range(7, 16):
+        buckets[petals] = []
+    first = worker * size // workers
+    last = (worker + 1) * size // workers
+    for y in range(first, last):
+        for x in range(size):
+            if get_time() > deadline:
+                return None
+            ur_s_go(x, y)
+            if get_entity_type() != None:
+                harvest()
+            if get_ground_type() != Grounds.Soil:
+                till()
+            if not plant(Entities.Sunflower):
+                return None
+            buckets[measure()].append((x, y))  # ty: ignore[invalid-argument-type]  此处已种向日葵，测量返回整数花瓣数。
+    return buckets
+
+
+def ur_s_solar_harvest_rank(points, deadline):
+    for x, y in points:
+        if get_time() > deadline:
+            return False
+        ur_s_go(x, y)
+        while not can_harvest():
+            if get_time() > deadline:
+                return False
+            if get_water() < 0.5 and num_items(Items.Water) > 0:
+                use_item(Items.Water)
+        if not harvest():
+            return False
+    return True
+
+
+def ur_s_parallel_solar_reserve(size):
+    started = get_time()
+    deadline = min(7000, started + 180)
+    workers = min(size, max_drones())
+    handles = []
+    passed = True
+    batches = []
+    for worker in range(1, workers):
+        handle = spawn_drone(ur_s_solar_plant_strip, worker, workers, size, deadline)
+        if handle == None:
+            passed = False
+            break
+        handles.append(handle)
+    if passed:
+        own = ur_s_solar_plant_strip(0, workers, size, deadline)
+        if own == None:
+            passed = False
+        else:
+            batches.append(own)
+    for handle in handles:
+        result = wait_for(handle)
+        if result == None:
+            passed = False
+        else:
+            batches.append(result)
+    if not passed or len(batches) != workers:
+        quick_print("directed_failed", "solar_plant_workers", get_time())
+        return False
+    for petals in range(15, 6, -1):
+        handles = []
+        passed = True
+        for worker in range(1, workers):
+            if len(batches[worker][petals]) > 0:
+                handle = spawn_drone(ur_s_solar_harvest_rank, batches[worker][petals], deadline)
+                if handle == None:
+                    passed = False
+                    break
+                handles.append(handle)
+        if passed:
+            passed = ur_s_solar_harvest_rank(batches[0][petals], deadline)
+        for handle in handles:
+            if not wait_for(handle):
+                passed = False
+        if not passed:
+            quick_print("directed_failed", "solar_rank_workers", petals, get_time())
+            return False
+    quick_print("directed_parallel_solar", get_time(), workers, get_time() - started, num_items(Items.Power))
+    return True
+
+
+def ur_s_step1():
+    # 速度1 20草
+    while num_items(Items.Hay) < 20:
+        harvest()
+    unlock(Unlocks.Speed)
+
+    # 扩张1 30草 1x1->1*3
+    while num_items(Items.Hay) < 30:
+        while not can_harvest():
+            pass
+        harvest()
+    unlock(Unlocks.Expand)
+
+    # 种植 50草
+    while num_items(Items.Hay) < 50:
+        while not can_harvest():
+            pass
+        harvest()
+    unlock(Unlocks.Plant)
+
+    # 扩张2 20木 1x3->3*3
+    plant(Entities.Bush)
+    move(North)
+    plant(Entities.Bush)
+    move(North)
+    plant(Entities.Bush)
+    move(North)
+    while num_items(Items.Wood) < 20:
+        while not can_harvest():
+            pass
+        harvest()
+        plant(Entities.Bush)
+        move(North)
+    unlock(Unlocks.Expand)
+
+    # 胡萝卜 50木
+    while num_items(Items.Wood) < 50:
+        while not can_harvest():
+            pass
+        harvest()
+        plant(Entities.Bush)
+        move(North)
+        while not can_harvest():
+            pass
+        harvest()
+        plant(Entities.Bush)
+        move(North)
+        while not can_harvest():
+            pass
+        harvest()
+        plant(Entities.Bush)
+        move(East)
+    unlock(Unlocks.Carrots)
+
+
+def ur_s_boost_stock(cost):
+    # 原料订单复用现成田；所有工人回收后才允许调用方切换机制。
+    if ur_s_affordable(cost):
+        return True
+    for item in cost:
+        if item not in [Items.Hay, Items.Wood, Items.Carrot, Items.Weird_Substance]:
+            quick_print("persistent_failed", "unsupported", item)
+            return False
+    began = get_time()
+    deadline = min(7000, began + 700)
+    size = get_world_size()
+    workers = 1
+    limit = min(size, max_drones())
+    while workers * 2 <= limit:
+        workers *= 2
+    handles = []
+    passed = True
+    for worker in range(1, workers):
+        handle = spawn_drone(ur_s_stock_worker, worker, workers, cost, deadline)
+        if handle == None:
+            passed = False
+            break
+        handles.append(handle)
+    if passed and not ur_s_stock_worker(0, workers, cost, deadline):
+        passed = False
+    for handle in handles:
+        if not wait_for(handle):
+            passed = False
+    quick_print("persistent_stock", passed, began, get_time(), cost,
+                num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot),
+                num_items(Items.Weird_Substance))
+    return passed and ur_s_affordable(cost)
+
+
+def ur_s_stock_worker(worker, workers, cost, deadline):
+    size = get_world_size()
+    columns = 1
+    while columns * columns < workers:
+        columns *= 2
+    rows = workers // columns
+    x0 = (worker % columns) * size // columns
+    x1 = (worker % columns + 1) * size // columns
+    y0 = (worker // columns) * size // rows
+    y1 = (worker // columns + 1) * size // rows
+    bounds = (x0, x1, y0, y1)
+    anchors = []
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            if x % 2 == 0 and y % 2 == 0:
+                anchors.append((x, y))
+    if len(anchors) == 0:
+        return True
+    for visit in range(20000):
+        if ur_s_affordable(cost):
+            return True
+        if get_time() > deadline:
+            quick_print("persistent_failed", "deadline", worker, cost)
+            return False
+        x, y = anchors[visit % len(anchors)]
+        ur_s_go(x, y)
+        if not ur_s_stock_cell(cost, bounds, deadline):
+            return False
+    return ur_s_affordable(cost)
+
+
+def ur_s_stock_crop(cost):
+    hay, wood = ur_s_stock_seed_budget(cost, 4 * max_drones() + 4)
+    if num_items(Items.Hay) < hay:
+        return Entities.Grass
+    if num_items(Items.Wood) < wood:
+        return Entities.Tree
+    if ur_s_missing(cost, Items.Carrot) > 0:
+        return Entities.Carrot
+    return Entities.Tree
+
+
+def ur_s_stock_cell(cost, bounds, deadline):
+    entity = get_entity_type()
+    if entity in [Entities.Grass, Entities.Bush, Entities.Tree, Entities.Carrot]:
+        if not can_harvest():
+            if get_water() < 0.5 and num_items(Items.Water) >= 2:
+                use_item(Items.Water, 2)
+            return True
+        companion = get_companion()
+        if companion != None:
+            kind, position = companion
+            if ur_s_stock_companion_inside(position, bounds):
+                hay, wood = ur_s_stock_seed_budget(cost, 2 * max_drones() + 2)
+                if kind != Entities.Carrot or (num_items(Items.Hay) >= hay and num_items(Items.Wood) >= wood):
+                    if not ur_s_stock_support(kind, position):
+                        return False
+        if entity == Entities.Tree and ur_s_missing(cost, Items.Weird_Substance) > 0:
+            if num_items(Items.Weird_Substance) > 0:
+                if not use_item(Items.Weird_Substance, 1):
+                    return False
+            elif num_items(Items.Fertilizer) > 0:
+                if not use_item(Items.Fertilizer):
+                    return False
+            else:
+                return True
+        if not harvest():
+            return False
+    elif entity != None:
+        if not harvest():
+            return False
+    if ur_s_affordable(cost):
+        return True
+    crop = ur_s_stock_crop(cost)
+    if crop == Entities.Grass and get_ground_type() != Grounds.Grassland:
+        till()
+    elif crop == Entities.Carrot and get_ground_type() != Grounds.Soil:
+        till()
+    for attempt in range(128):
+        if get_time() > deadline:
+            return False
+        if not ur_s_affordable(get_cost(crop)) or not plant(crop):
+            quick_print("persistent_failed", "plant", crop, get_time())
+            return False
+        companion = get_companion()
+        if companion != None and ur_s_stock_companion_inside(companion[1], bounds):
+            return True
+        if not harvest():
+            return False
+    quick_print("persistent_failed", "companion", get_time())
+    return False
+
+
+def ur_s_stock_companion_inside(position, bounds):
+    # 支撑位不能占用本机主种植位，也不能进入其他工人的矩形。
+    x, y = position
+    x0, x1, y0, y1 = bounds
+    return x >= x0 and x < x1 and y >= y0 and y < y1 and (x % 2 != 0 or y % 2 != 0)
+
+
+def ur_s_stock_seed_budget(cost, margin):
+    # 并发种子留工作余量，支撑播种不能花掉订单要求保留的Hay/Wood。
+    seed = get_cost(Entities.Carrot)
+    hay = seed[Items.Hay] * margin
+    wood = seed[Items.Wood] * margin
+    if Items.Hay in cost:
+        hay += cost[Items.Hay]
+    if Items.Wood in cost:
+        wood += cost[Items.Wood]
+    return hay, wood
+
+
+def ur_s_stock_support(kind, position):
+    x, y = get_pos_x(), get_pos_y()
+    px, py = position
+    ur_s_go(px, py)
+    if get_entity_type() != kind:
+        if get_entity_type() != None and not harvest():
+            return False
+        if kind == Entities.Grass and get_ground_type() != Grounds.Grassland:
+            till()
+        elif kind == Entities.Carrot and get_ground_type() != Grounds.Soil:
+            till()
+        if not ur_s_affordable(get_cost(kind)) or not plant(kind):
+            return False
+    ur_s_go(x, y)
+    return True
+
+
+def ur_s_go(x, y):
+    size = get_world_size()
+    dx = (x - get_pos_x()) % size
+    dy = (y - get_pos_y()) % size
+    if dx > size // 2:
+        for _ in range(size - dx):
+            move(West)
+    else:
+        for _ in range(dx):
+            move(East)
+    if dy > size // 2:
+        for _ in range(size - dy):
+            move(South)
+    else:
+        for _ in range(dy):
+            move(North)
+
+
+def ur_s_first_megafarm():
+    while num_unlocked(Unlocks.Speed) < 5:
+        if not ur_s_buy(Unlocks.Speed):
+            return False
+    if not ur_s_solar_reserve():
+        return False
+    if not ur_s_boost_stock({Items.Weird_Substance: 1400}):
+        return False
+    if not unlock(Unlocks.Mazes):
+        return False
+    clear()
+    if not plant(Entities.Bush):
+        return False
+    size = get_world_size()
+    if not use_item(Items.Weird_Substance, size):
+        return False
+    graph = ur_s_build_maze_graph(size)
+    for _ in range(60):
+        if get_time() > 7000:
+            return False
+        target = measure()
+        if target == None or not ur_s_goto_treasure_with_graph(target[0], target[1], size, graph):  # ty: ignore[not-subscriptable]  活动迷宫返回宝藏坐标。
+            return False
+        if not use_item(Items.Weird_Substance, size):
+            return False
+        if num_items(Items.Gold) >= 2000:
+            clear()
+            if not unlock(Unlocks.Megafarm):
+                return False
+            quick_print("directed_megafarm", get_time(), max_drones(), num_items(Items.Power), num_items(Items.Fertilizer), num_items(Items.Weird_Substance))
+            return True
+    return False
+
+
+def ur_s_build_maze_graph(size):
+    directions = [North, East, South, West]
+    backs = [South, West, North, East]
+    dx = [0, 1, 0, -1]
+    dy = [1, 0, -1, 0]
+    graph = []
+    for _ in range(size * size):
+        graph.append([])
+    visited = []
+    backtrack = []
+    while True:
+        current = get_pos_x() + get_pos_y() * size
+        if current not in visited:
+            visited.append(current)
+        moved = False
+        for idx in range(4):
+            nx = get_pos_x() + dx[idx]
+            ny = get_pos_y() + dy[idx]
+            if nx < 0 or ny < 0 or nx >= size or ny >= size:
+                continue
+            neighbor = nx + ny * size
+            if can_move(directions[idx]):
+                ur_s_add_maze_edge(graph, current, neighbor, directions[idx])
+                ur_s_add_maze_edge(graph, neighbor, current, backs[idx])
+                if neighbor not in visited:
+                    move(directions[idx])
+                    backtrack.append(backs[idx])
+                    moved = True
+                    break
+        if moved:
+            continue
+        if len(backtrack) <= 0:
+            return graph
+        move(backtrack.pop())
+
+
+def ur_s_add_maze_edge(graph, source, target, direction):
+    for edge in graph[source]:
+        if edge[0] == target:
+            return
+    graph[source].append([target, direction])
+
+
+def ur_s_goto_treasure_with_graph(tx, ty, size, graph):
+    target = tx + ty * size
+    while get_pos_x() + get_pos_y() * size != target:
+        if ur_s_move_direct_toward_treasure(tx, ty, size, graph):
+            continue
+        if not ur_s_move_with_graph_path(target, size, graph):
+            return False
+    return True
+
+
+def ur_s_move_direct_toward_treasure(tx, ty, size, graph):
+    current = get_pos_x() + get_pos_y() * size
+    if tx > get_pos_x() and can_move(East):
+        neighbor = get_pos_x() + 1 + get_pos_y() * size
+        ur_s_add_maze_edge(graph, current, neighbor, East)
+        ur_s_add_maze_edge(graph, neighbor, current, West)
+        move(East)
+        return True
+    if tx < get_pos_x() and can_move(West):
+        neighbor = get_pos_x() - 1 + get_pos_y() * size
+        ur_s_add_maze_edge(graph, current, neighbor, West)
+        ur_s_add_maze_edge(graph, neighbor, current, East)
+        move(West)
+        return True
+    if ty > get_pos_y() and can_move(North):
+        neighbor = get_pos_x() + (get_pos_y() + 1) * size
+        ur_s_add_maze_edge(graph, current, neighbor, North)
+        ur_s_add_maze_edge(graph, neighbor, current, South)
+        move(North)
+        return True
+    if ty < get_pos_y() and can_move(South):
+        neighbor = get_pos_x() + (get_pos_y() - 1) * size
+        ur_s_add_maze_edge(graph, current, neighbor, South)
+        ur_s_add_maze_edge(graph, neighbor, current, North)
+        move(South)
+        return True
+    return False
+
+
+def ur_s_move_with_graph_path(target, size, graph):
+    start = get_pos_x() + get_pos_y() * size
+    previous = []
+    previous_direction = []
+    for _ in range(size * size):
+        previous.append(-1)
+        previous_direction.append(None)
+    queue = [start]
+    previous[start] = start
+    head = 0
+    while head < len(queue):
+        current = queue[head]
+        head = head + 1
+        for edge in graph[current]:
+            neighbor = edge[0]
+            if previous[neighbor] != -1:
+                continue
+            previous[neighbor] = current
+            previous_direction[neighbor] = edge[1]
+            if neighbor == target:
+                head = len(queue)
+                break
+            queue.append(neighbor)
+    if previous[target] == -1:
+        return False
+    path = []
+    current = target
+    while current != start:
+        path.append(previous_direction[current])
+        current = previous[current]
+    while len(path) > 0:
+        move(path.pop())
+    return True
+
+
+def ur_s_pumpkin_strip(start, stride, size):
+    # 各列只有一个写者；健康成熟格在整田收割前不会再枯死。
+    pending = []
+    for x in range(start, size, stride):
+        for y in range(size):
+            pending.append((x, y))
+    watering = max_drones() > 1
+    deadline = min(7000, get_time() + 120)
+    while pending and get_time() < deadline:
+        remaining = []
+        for x, y in pending:
+            if get_time() >= deadline:
+                quick_print("directed_failed", "pumpkin_pending_deadline", get_time(), start, len(pending))
+                return False
+            ur_s_go(x, y)
+            kind = get_entity_type()
+            if kind != None and kind != Entities.Pumpkin and kind != Entities.Dead_Pumpkin:
+                # 单机原流程收草；多机原流程直接翻地，保留各自准备费用。
+                if kind != Entities.Grass or not watering:
+                    harvest()
+            if get_ground_type() != Grounds.Soil:
+                till()
+            if get_entity_type() != Entities.Pumpkin:
+                if not ur_s_affordable(get_cost(Entities.Pumpkin)) or not plant(Entities.Pumpkin):
+                    return False
+            if not can_harvest():
+                if watering and get_water() < 0.5 and num_items(Items.Water) >= 2:
+                    use_item(Items.Water, 2)
+                remaining.append((x, y))
+        pending = remaining
+    return not pending
+
+
+def ur_s_parallel_pumpkin_stock(target):
+    size = get_world_size()
+    workers = min(size, max_drones())
+    while num_items(Items.Pumpkin) < target:
+        if get_time() > 7000:
+            return False
+        price = get_cost(Entities.Pumpkin)[Items.Carrot]
+        if not ur_s_boost_stock({Items.Carrot: price * size * size * 2}):
+            return False
+        handles = []
+        success = True
+        for worker in range(1, workers):
+            handle = spawn_drone(ur_s_pumpkin_strip, worker, workers, size)
+            if handle == None:
+                success = False
+                break
+            handles.append(handle)
+        if success:
+            success = ur_s_pumpkin_strip(0, workers, size)
+        for handle in handles:
+            if not wait_for(handle):
+                success = False
+        if not success:
+            quick_print("directed_failed", "pumpkin_workers", get_time())
+            return False
+        ur_s_origin()
+        before = num_items(Items.Pumpkin)
+        if not harvest():
+            return False
+        expected = size * size * min(6, size) * 2 ** (num_unlocked(Unlocks.Pumpkins) - 1)
+        if num_items(Items.Pumpkin) - before != expected:
+            quick_print("directed_failed", "pumpkin_group", get_time(), expected, num_items(Items.Pumpkin) - before)
+            return False
+        quick_print("directed_parallel_pumpkin", get_time(), workers, num_items(Items.Pumpkin) - before, num_items(Items.Power))
+    return True
+
+
+def ur_s_next_megafarm():
+    size = get_world_size()
+    factor = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
+    unit = size * factor
+    gain = size * size * factor
+    target_gold = get_cost(Unlocks.Megafarm)[Items.Gold]
+    count = (max(0, target_gold - num_items(Items.Gold)) + gain - 1) // gain
+    if count > 299:
+        return False
+    if not small_maze_gold(target_gold, size // 2):
+        return False
+    clear()
+    if not unlock(Unlocks.Megafarm):
+        return False
+    quick_print("directed_megafarm", get_time(), max_drones(), num_items(Items.Power), num_items(Items.Fertilizer), num_items(Items.Weird_Substance))
+    return True
+
+
+def ur_s_maze_team(graph, size, workers, target_gold, unit, deadline):
+    directions = [North, East, South, West]
+    reverse = {North: South, East: West, South: North, West: East}
+    dx = [0, 1, 0, -1]
+    dy = [1, 0, -1, 0]
+
+    def distances(center):
+        dist = []
+        parent = []
+        incoming = []
+        for _ in range(size * size):
+            dist.append(size * size)
+            parent.append(-1)
+            incoming.append(None)
+        dist[center] = 0
+        parent[center] = center
+        queue = [center]
+        for current in queue:
+            for edge in graph[current]:
+                if parent[edge[0]] == -1:
+                    parent[edge[0]] = current
+                    incoming[edge[0]] = edge[1]
+                    dist[edge[0]] = dist[current] + 1
+                    queue.append(edge[0])
+        return dist, parent, incoming
+
+    centers = [0]
+    tables = []
+    closest = []
+    for _ in range(size * size):
+        closest.append(size * size)
+    for worker in range(workers):
+        table = distances(centers[worker])
+        tables.append(table)
+        for node in range(size * size):
+            closest[node] = min(closest[node], table[0][node])
+        if worker + 1 < workers:
+            farthest = 0
+            for node in range(size * size):
+                if closest[node] > closest[farthest]:
+                    farthest = node
+            centers.append(farthest)
+    owners = []
+    for node in range(size * size):
+        owner = 0
+        for worker in range(1, workers):
+            if tables[worker][0][node] < tables[owner][0][node]:
+                owner = worker
+        owners.append(owner)
+
+    def serve(worker):
+        center = centers[worker]
+        dist, parent, incoming = tables[worker]
+        route = []
+        node = center
+        while node != 0:
+            route.append(tables[0][2][node])
+            node = tables[0][1][node]
+        for i in range(len(route) - 1, -1, -1):
+            if not move(route[i]):
+                return False
+        hits = 0
+        outbound = 0
+        discoveries = 0
+        while num_items(Items.Gold) < target_gold:
+            if get_time() >= deadline:
+                return False
+            treasure = measure()
+            if treasure == None:
+                return False
+            target = treasure[0] + treasure[1] * size  # ty: ignore[not-subscriptable]  活动迷宫返回宝藏坐标。
+            if owners[target] != worker:
+                # 原开边永久保留；闭合往返后仍在center。每次实际付400t移动和约0.066秒响应间隔。
+                idle_direction = graph[center][0][1]
+                if not move(idle_direction) or not move(reverse[idle_direction]):
+                    return False
+                continue
+            route = []
+            node = target
+            while node != center:
+                route.append(incoming[node])
+                node = parent[node]
+            walked = []
+            for i in range(len(route) - 1, -1, -1):
+                if measure() != treasure or num_items(Items.Gold) >= target_gold:
+                    break
+                if not move(route[i]):
+                    return False
+                walked.append(route[i])
+                outbound += 1
+            if len(walked) == len(route) and num_items(Items.Gold) < target_gold and measure() == treasure:
+                if not use_item(Items.Weird_Substance, unit):
+                    return False
+                hits += 1
+            if num_items(Items.Gold) >= target_gold:
+                quick_print("station_worker", worker, hits, outbound, discoveries, get_time())
+                return True
+            # 返回路径仍使用本次出发的不可变方向列；新边只修改下一次出发的父指针。
+            new_edges = []
+            for i in range(len(walked) - 1, -2, -1):
+                x = get_pos_x()
+                y = get_pos_y()
+                current = x + y * size
+                for j in range(4):
+                    nx = x + dx[j]
+                    ny = y + dy[j]
+                    if 0 <= nx < size and 0 <= ny < size and can_move(directions[j]):
+                        neighbor = nx + ny * size
+                        known = False
+                        for edge in graph[current]:
+                            if edge[0] == neighbor:
+                                known = True
+                                break
+                        if not known:
+                            ur_s_add_maze_edge(graph, current, neighbor, directions[j])
+                            ur_s_add_maze_edge(graph, neighbor, current, reverse[directions[j]])
+                            new_edges.append(current)
+                            new_edges.append(neighbor)
+                            discoveries += 1
+                if i >= 0 and not move(reverse[walked[i]]):
+                    return False
+            for current in new_edges:
+                for edge in graph[current]:
+                    neighbor = edge[0]
+                    if dist[neighbor] > dist[current] + 1:
+                        dist[neighbor] = dist[current] + 1
+                        parent[neighbor] = current
+                        incoming[neighbor] = edge[1]
+                        new_edges.append(neighbor)
+        quick_print("station_worker", worker, hits, outbound, discoveries, get_time())
+        return True
+
+    handles = []
+    passed = True
+    for worker in range(1, workers):
+        handle = spawn_drone(serve, worker)
+        if handle == None:
+            passed = False
+            break
+        handles.append(handle)
+    if passed:
+        passed = serve(0)
+    for handle in handles:
+        if not wait_for(handle):
+            passed = False
+    return passed and num_items(Items.Gold) >= target_gold
+
+
+def ur_c_ur_mine_parallel(item, goal, deadline=None):
+    empty = 0
+    if deadline == None:
+        deadline = get_time() + 18000
+    layers = 1024
+    if item == Items.Coal and num_unlocked(Unlocks.Rice) > 0:
+        layers = 16
+    workers = min(get_world_size(), max_drones())
+    for cycle in range(128):
+        if num_items(item) >= goal:
+            return True
+        clear()
+        before = num_items(item)
+        handles = []
+        passed = True
+        for worker in range(1, workers):
+            handle = spawn_drone(ur_c_ur_mine_parallel_worker, worker, workers, layers, item, goal, deadline)
+            if handle == None:
+                passed = False
+                break
+            handles.append(handle)
+        if passed:
+            passed = ur_c_ur_mine_parallel_worker(0, workers, layers, item, goal, deadline)
+        for handle in handles:
+            if not wait_for(handle):
+                passed = False
+        if not passed:
+            return False
+        if num_items(item) >= goal:
+            return True
+        if num_items(item) == before:
+            empty += 1
+            if empty >= 8:
+                return False
+        else:
+            empty = 0
+    return False
+
+
+def ur_c_ur_mine_parallel_worker(first, stride, layers, item, goal, deadline):
+    size = get_world_size()
+    for layer in range(layers):
+        if get_time() > deadline:
+            return False
+        for x in range(first, size, stride):
+            if not ur_c_ur_d_move_to(x, 0, size):
+                return False
+            for y in range(size):
+                if num_items(item) >= goal:
+                    return True
+                if get_time() > deadline:
+                    return False
+                if get_pos_z() >= -layer and get_hardness() < 10000000:
+                    if not dig():
+                        return False
+                if y + 1 < size:
+                    if not move(North):
+                        return False
+    return True
+
+
+def ur_c_ur_d_move_to(tx, ty, size):
+    dx = (tx - get_pos_x()) % size
+    dy = (ty - get_pos_y()) % size
+    horizontal = East
+    vertical = North
+    if dx > size // 2:
+        dx = size - dx
+        horizontal = West
+    if dy > size // 2:
+        dy = size - dy
+        vertical = South
+    for _ in range(dx):
+        if not move(horizontal):
+            return False
+    for _ in range(dy):
+        if not move(vertical):
+            return False
+    return True
+
+
+def ur_c_hour_coal(goal):
+    size = get_world_size()
+    workers = min(max_drones(), size)
+    deadline = get_time() + 1200
+    for cycle in range(64):
+        if num_items(Items.Coal) >= goal:
+            return True
+        if get_time() > deadline:
+            return False
+        clear()
+        handles = []
+        for worker in range(1, workers):
+            handle = spawn_drone(ur_c_hour_coal_worker, worker, workers, goal, deadline)
+            if handle != None:
+                handles.append(handle)
+        ur_c_hour_coal_worker(0, workers, goal, deadline)
+        for handle in handles:
+            wait_for(handle)
+    return num_items(Items.Coal) >= goal
+
+
+def ur_c_hour_coal_worker(worker, workers, goal, deadline):
+    size = get_world_size()
+    left = worker * size // workers
+    right = (worker + 1) * size // workers
+    cursor = 0
+    ur_c_ur_d_move_to(left, 0, size)
+    for action in range(size * size * 32):
+        if num_items(Items.Coal) >= goal:
+            return True
+        if get_time() > deadline:
+            return False
+        if get_ground_type() == Grounds.Coal:
+            if not dig():
+                return False
+            continue
+        x = get_pos_x()
+        y = get_pos_y()
+        selected = None
+        for direction, nx, ny in [(North, x, y + 1), (East, x + 1, y),
+                                  (South, x, y - 1), (West, x - 1, y)]:
+            if left <= nx < right and 0 <= ny < size and get_ground_type(direction) == Grounds.Coal:
+                selected = direction
+                break
+        if selected != None:
+            move(selected)
+            continue
+        if get_pos_z() > -16:
+            if not dig():
+                return False
+            continue
+        found = False
+        while cursor < (right - left) * size:
+            tx = left + cursor // size
+            ty = cursor % size
+            cursor += 1
+            ur_c_ur_d_move_to(tx, ty, size)
+            if get_pos_z() > -16 or get_ground_type() == Grounds.Coal:
+                found = True
+                break
+        if not found:
+            return False
+    return False
+
+
+def ur_need(item, goal):
+    if num_items(item) >= goal:
+        return True
+    quick_print("underground_reset_collect", item, goal, get_time())
+    if item == Items.Hay or item == Items.Wood or item == Items.Carrot or item == Items.Pumpkin:
+        return ur_farm(item, goal)
+    if item == Items.Quartz:
+        return ur_q_stock(goal)
+    if item == Items.Iron and num_unlocked(Unlocks.Prospecting) > 0:
+        return ur_i_stock(goal)
+    if item == Items.Coal:
+        return ur_c_hour_coal(goal)
+    if item == Items.Block:
+        return ur_c_ur_mine_parallel(item, goal)
+    if item == Items.Iron:
+        return ur_mine(item, goal)
+    if item == Items.Rice:
+        ur_rice_stock(goal)
+    elif item == Items.Bamboo:
+        factor = 2 ** (num_unlocked(Unlocks.Bamboo) - 1)
+        stems = (goal - num_items(item)) // (81 * factor) + 2
+        reserve = (2 * stems + get_world_size() * get_world_size()) * factor
+        if not ur_need(Items.Rice, reserve):
+            return False
+        ur_bamboo_stock(goal)
+    elif item == Items.Gold:
+        return hour_maze_gold(goal)
+    elif item == Items.Mushroom:
+        if num_unlocked(Unlocks.Mining) >= 8 and num_unlocked(Unlocks.Dynamite) == 0:
+            goal = max(goal, 580)
+        ur_mushroom_stock(goal)
+    elif item == Items.Dynamite:
+        ur_dynamite_stock(goal)
+    else:
+        return False
+    return num_items(item) >= goal
+
+
+def ur_farm(item, goal):
+    clear()
+    if item == Items.Pumpkin:
+        return ur_s_pumpkin_stock(goal)
+    return ur_s_basic({item: goal})
+
+
+def hour_maze_gold(goal):
+    clear()
+    if not small_maze_gold(goal, get_world_size() // 2):
+        return False
+    quick_print("hour_maze_gold", get_time(), num_items(Items.Gold))
+    return True
+
+
+def ur_mine(item, goal, deadline=None):
+    # 普通Reset按实际地层采集；Rice开启后的煤只采首段再重生。
+    empty = 0
+    if deadline == None:
+        deadline = get_time() + 18000
+    layers = 1024
+    if item == Items.Coal and num_unlocked(Unlocks.Rice) > 0:
+        layers = 16
+    for cycle in range(128):
+        clear()
+        size = get_world_size()
+        before = num_items(item)
+        for layer in range(layers):
+            active = 0
+            for x in range(size):
+                for y in range(size):
+                    if num_items(item) >= goal:
+                        return True
+                    if get_time() > deadline:
+                        return False
+                    if get_pos_z() >= -layer and get_hardness() < 10000000:
+                        if not dig():
+                            return False
+                        active += 1
+                    move(North)
+                move(East)
+            if layer % 16 == 0:
+                quick_print("underground_reset_mine", item, cycle, layer, get_time(), num_items(item))
+            if active == 0:
+                break
+        if num_items(item) == before:
+            empty += 1
+            if empty >= 8:
+                return False
+        else:
+            empty = 0
+    return False
+
+
+def ur_i_stock(goal):
+    # 每片持续追采已露矿脉；方向勘探只负责选下一根柱，收入由实际dig确认。
+    deadline = get_time() + 18000
+    size = get_world_size()
+    empty = 0
+    for cycle in range(64):
+        if num_items(Items.Iron) >= goal:
+            return True
+        if get_time() > deadline:
+            return False
+        # 预付足够的方向勘探煤，避免半途缺煤后重新清场、揭盖。
+        if num_items(Items.Coal) < 2 * size + 8 and not ur_need(Items.Coal, max(64, 4 * size)):
+            return False
+        clear()
+        before = num_items(Items.Iron)
+        dry = 0
+        drilling = 0
+        for action in range(512):
+            if num_items(Items.Iron) >= goal:
+                return True
+            if get_time() > deadline:
+                return False
+            direction = None
+            if get_ground_type() != Grounds.Iron:
+                for nearby in [North, East, South, West]:
+                    if get_ground_type(nearby) == Grounds.Iron:
+                        direction = nearby
+                        break
+                if direction == None and drilling <= 0:
+                    if num_items(Items.Coal) < 1:
+                        break
+                    direction = prospect_iron()
+                    if direction == None:
+                        drilling = 16
+            else:
+                drilling = 0
+            if direction != None:
+                if not move(direction):
+                    return False
+                drilling = 0
+                continue
+            if get_pos_z() < -128 or get_hardness() >= 10000000:
+                break
+            drilling -= 1
+            previous = num_items(Items.Iron)
+            if not dig():
+                return False
+            if num_items(Items.Iron) > previous:
+                dry = 0
+            else:
+                dry += 1
+                # 首矿在32..63层，不能套用满科技Jump后的16口空挖限制。
+                if dry >= 64:
+                    break
+        gained = num_items(Items.Iron) - before
+        quick_print("iron_frontier_cycle", cycle, gained, get_time(), num_items(Items.Coal))
+        if gained > 0:
+            empty = 0
+        else:
+            empty += 1
+            # 无矿片只作有限重生；不为短订单改扫整片深层。
+            if empty >= 8:
+                return False
+    return num_items(Items.Iron) >= goal
+
+
+def ur_q_stock(goal):
+    deadline = get_time() + 18000
+    size = get_world_size()
+    empty = 0
+    anchors = [(0, 0), (1, 0), (0, 1)]
+    for cycle in range(64):
+        if num_items(Items.Quartz) >= goal:
+            return True
+        if get_time() > deadline:
+            return False
+        # 勘探按真实库存支付Iron，筹资发生在新片开始前，避免清场使定位失效。
+        if num_items(Items.Iron) < 16 and not ur_need(Items.Iron, 32):
+            return False
+        clear()
+        before = num_items(Items.Quartz)
+        for layer in range(0, 129, 16):
+            if not ur_q_prepare(0, 0, -layer, deadline, size):
+                break
+            if num_items(Items.Quartz) >= goal:
+                return True
+            if num_items(Items.Iron) < 4:
+                break
+            if prospect_quartz() == None:
+                continue
+            # 邻接锚点保留实际高度；测距期间不挖掘，无须再钻两根同深柱。
+            samples = []
+            for point in anchors:
+                if not ur_d_move_to(point[0], point[1], size):
+                    return False
+                distance = prospect_quartz()
+                if distance == None:
+                    break
+                samples.append((get_pos_x(), get_pos_y(), get_pos_z(), distance))
+            if len(samples) != 3:
+                continue
+            target = ur_q_locate(samples, size)
+            if target == None:
+                quick_print("quartz_prospect_ambiguous", cycle, layer, get_time())
+                continue
+            if not ur_d_move_to(target[0], target[1], size):
+                return False
+            found = False
+            for _ in range(192):
+                if num_items(Items.Quartz) >= goal:
+                    return True
+                if get_time() > deadline:
+                    return False
+                ground = get_ground_type()
+                if ground == Grounds.Quartz:
+                    if not dig():
+                        return False
+                    found = True
+                    continue
+                if found:
+                    # 先兑现仍露在相邻柱顶的石英，再考虑重生。
+                    direction = None
+                    for side in [North, East, South, West]:
+                        if get_ground_type(side) == Grounds.Quartz:
+                            direction = side
+                            break
+                    if direction != None:
+                        if not move(direction):
+                            return False
+                        continue
+                    break
+                if get_pos_z() < target[2] or get_hardness() >= 10000000:
+                    break
+                if not dig():
+                    return False
+            quick_print("quartz_prospect_column", cycle, layer, target, num_items(Items.Quartz) - before, get_time())
+            if num_items(Items.Quartz) > before:
+                break
+        if num_items(Items.Quartz) > before:
+            empty = 0
+        else:
+            empty += 1
+            if empty >= 2:
+                quick_print("quartz_prospect_fallback", get_time(), num_items(Items.Quartz), goal)
+                return ur_mine(Items.Quartz, goal, deadline)
+    return num_items(Items.Quartz) >= goal
+
+
+def ur_q_prepare(x, y, target, deadline, size):
+    if not ur_d_move_to(x, y, size):
+        return False
+    for _ in range(192):
+        if get_pos_z() <= target:
+            return True
+        if get_time() > deadline or get_hardness() >= 10000000 or not dig():
+            return False
+    return False
+
+
+def ur_q_locate(samples, size):
+    # 只枚举公开距离允许的整数坐标；三点的最近矿可能变化，失配就放弃定位。
+    x0, y0, z0, d0 = samples[0]
+    best = None
+    for x in range(size):
+        for y in range(size):
+            square = d0 * d0 - (x - x0) ** 2 - (y - y0) ** 2
+            if square < 0:
+                continue
+            dz = (square ** 0.5 + 0.5) // 1
+            for z in [z0 - dz, z0 + dz]:
+                if z > 0 or z < -256:
+                    continue
+                valid = True
+                for sx, sy, sz, distance in samples:
+                    residual = (x - sx) ** 2 + (y - sy) ** 2 + (z - sz) ** 2 - distance * distance
+                    if abs(residual) > 0.01:
+                        valid = False
+                        break
+                    if x == sx and y == sy and z > sz:
+                        valid = False
+                        break
+                if valid and (best == None or z < best[2]):
+                    best = (x, y, z)
+    return best
+
+
+def ur_rice_stock(goal):
+    size = get_world_size()
+    workers = min(size, max_drones())
+    deadline = get_time() + 3600
+    for batch in range(128):
+        if num_items(Items.Rice) >= goal:
+            quick_print("rice_done", True, batch, get_time(), num_items(Items.Rice))
+            return
+        # 上一批所有句柄已回收，clear不会取消仍在工作的子机。
+        clear()
+        handles = []
+        local = True
+        for column in range(1, workers):
+            handle = spawn_drone(ur_r_rice_columns, column, workers, size, goal, deadline)
+            if handle == None:
+                local = False
+                break
+            handles.append(handle)
+        if not ur_r_rice_columns(0, workers, size, goal, deadline):
+            local = False
+        for handle in handles:
+            if not wait_for(handle):
+                local = False
+        quick_print("rice_batch", batch, local, get_time(), num_items(Items.Rice))
+        if not local:
+            quick_print("rice_failed", "batch", batch)
+            return
+    quick_print("rice_failed", "batch_limit", get_time(), num_items(Items.Rice))
+
+
+def ur_r_rice_columns(first, stride, size, goal, deadline):
+    # 每个柱独占；两层粘土用尽就返回，由主机在全体结束后重生下一片。
+    for layer in range(2):
+        planted = []
+        for x in range(first, size, stride):
+            if not ur_r_rice_move_to(x, 0, size):
+                return False
+            for y in range(size):
+                if num_items(Items.Rice) >= goal:
+                    return True
+                ground = get_ground_type()
+                digs = 0
+                while ground != Grounds.Clay and ground != Grounds.Rock and digs < 128:
+                    if get_time() > deadline or not dig():
+                        return False
+                    ground = get_ground_type()
+                    digs += 1
+                if ground == Grounds.Clay:
+                    if not plant(Entities.Rice):
+                        return False
+                    planted.append((x, y))
+                if not move(North):
+                    return False
+        for x, y in planted:
+            if num_items(Items.Rice) >= goal:
+                return True
+            if not ur_r_rice_move_to(x, y, size):
+                return False
+            while get_entity_type() == Entities.Rice and not can_harvest():
+                if get_time() > deadline:
+                    return False
+                # 一秒等待避免忙轮询；不继续下挖，保留相邻尚未成熟的稻米。
+                do_a_flip()
+            if get_entity_type() == Entities.Rice and not harvest():
+                return False
+    return True
+
+
+def ur_r_rice_move_to(tx, ty, size):
+    # 常规帽子可跨高度移动；每次到柱后重新读取地层，不缓存塌方前深度。
+    dx = (tx - get_pos_x()) % size
+    direction = East
+    if dx > size // 2:
+        direction = West
+        dx = size - dx
+    for _ in range(dx):
+        if not move(direction):
+            return False
+    dy = (ty - get_pos_y()) % size
+    direction = North
+    if dy > size // 2:
+        direction = South
+        dy = size - dy
+    for _ in range(dy):
+        if not move(direction):
+            return False
+    return True
+
+
+def ur_bamboo_stock(goal):
+    # 每列唯一写者；子机只通过全局库存判断结束，不共享私有作用域。
+    clear()
+    size = get_world_size()
+    workers = min(size, max_drones())
+    deadline = get_time() + 3600
+    handles = []
+    for column in range(1, workers):
+        handle = spawn_drone(ur_b_bamboo_columns, column, workers, size, goal, deadline)
+        if handle == None:
+            quick_print("bamboo_failed", "spawn", column)
+            break
+        handles.append(handle)
+    local = ur_b_bamboo_columns(0, workers, size, goal, deadline)
+    for handle in handles:
+        if not wait_for(handle):
+            local = False
+    quick_print("bamboo_done", local, get_time(), num_items(Items.Bamboo))
+
+
+def ur_b_bamboo_columns(first, stride, size, goal, deadline):
+    # 偶数行种竹，奇数行留通道；低飞切花的出入不会碰到另一株竹子。
+    phases = {}
+    for x in range(first, size, stride):
+        for y in range(0, size - 1, 2):
+            phases[(x, y)] = 0
+    hover(18)
+    rounds = 0
+    while num_items(Items.Bamboo) < goal:
+        if get_time() > deadline:
+            quick_print("bamboo_failed", "deadline", first, get_time())
+            return False
+        for x in range(first, size, stride):
+            for y in range(0, size - 1, 2):
+                if num_items(Items.Bamboo) >= goal:
+                    return True
+                if not ur_b_bamboo_move_to(x, y + 1, size) or not move(South):
+                    return False
+                if get_entity_type() != Entities.Bamboo:
+                    if get_ground_type() != Grounds.Soil:
+                        till()
+                    if not plant(Entities.Bamboo):
+                        return False
+                    phases[(x, y)] = 0
+                    hover(18)
+                elif can_harvest():
+                    phase = phases[(x, y)]
+                    if phase < 2:
+                        height = measure()
+                        if not move(North):
+                            return False
+                        hover(height)  # ty: ignore[invalid-argument-type]  此处测量的是竹子高度。
+                        if not move(South):
+                            return False
+                        if measure() <= height:  # ty: ignore[unsupported-operator]  返回原竹子，比较其生长高度。
+                            quick_print("bamboo_failed", "flower_not_cut", x, y, phase)
+                            return False
+                        phases[(x, y)] = phase + 1
+                        hover(18)
+                    else:
+                        if not harvest() or not plant(Entities.Bamboo):
+                            return False
+                        phases[(x, y)] = 0
+                        hover(18)
+                if not move(North):
+                    return False
+        rounds += 1
+        if first == 0 and rounds % 8 == 0:
+            quick_print("bamboo_round", rounds, get_time(), num_items(Items.Bamboo))
+    return True
+
+
+def ur_b_bamboo_move_to(tx, ty, size):
+    # 定位期间高飞，切花仅在专属空通道与目标竹子之间往返。
+    dx = (tx - get_pos_x()) % size
+    direction = East
+    if dx > size // 2:
+        direction = West
+        dx = size - dx
+    for _ in range(dx):
+        if not move(direction):
+            return False
+    dy = (ty - get_pos_y()) % size
+    direction = North
+    if dy > size // 2:
+        direction = South
+        dy = size - dy
+    for _ in range(dy):
+        if not move(direction):
+            return False
+    return True
+
+
+def ur_mushroom_stock(goal):
+    began = get_time()
+    empty = 0
+    for batch in range(128):
+        if num_items(Items.Mushroom) >= goal:
+            quick_print("mushrooms_done", True, get_time(), num_items(Items.Mushroom))
+            return
+        # 只有上一批句柄全部回收后才重生，禁止clear取消仍在采集的子机。
+        clear()
+        covers = 0
+        while get_ground_type() != Grounds.Mushroom and covers < 80:
+            if get_time() - began > 18000 or not dig():
+                quick_print("mushrooms_failed", "search_action", batch)
+                return
+            covers += 1
+        if get_ground_type() != Grounds.Mushroom:
+            empty += 1
+            quick_print("mushrooms_search_miss", batch, empty, get_time())
+            if empty >= 32:
+                quick_print("mushrooms_failed", "eight_search_misses")
+                return
+            continue
+        empty = 0
+        top = get_pos_z()
+        height = 0
+        for sample in range(7):
+            if get_ground_type() != Grounds.Mushroom:
+                break
+            if not dig():
+                quick_print("mushrooms_failed", "probe", batch)
+                return
+            height += 1
+        if height < 1 or height > 6:
+            quick_print("mushrooms_failed", "height", batch, height)
+            return
+        if not ur_m_dig_layer(top):
+            quick_print("mushrooms_failed", "cover", batch, top)
+            return
+        quick_print("mushrooms_prepared", batch, covers, top, get_time(), "height", height)
+        blocks = ur_m_make_blocks()
+        result = ur_m_run_patch(blocks, top, max(1, height - 1), goal)
+        if result == None:
+            quick_print("mushrooms_restart", batch, get_time(), num_items(Items.Mushroom))
+            continue
+        quick_print("mushrooms_batch", batch, height, result[0], result[1], get_time(), num_items(Items.Mushroom))
+    quick_print("mushrooms_failed", "batch_limit", get_time(), num_items(Items.Mushroom))
+
+
+def ur_m_dig_layer(target):
+    size = get_world_size()
+    workers = min(size, max_drones())
+    handles = []
+    ok = True
+    for x in range(workers - 1):
+        if not ur_m_move_to(x, 0):
+            ok = False
+            break
+        handle = spawn_drone(ur_m_dig_columns, x, workers, size, target)
+        if handle == None:
+            if not ur_m_dig_columns(x, workers, size, target):
+                ok = False
+        else:
+            handles.append(handle)
+    if ok and not ur_m_dig_columns(workers - 1, workers, size, target):
+        ok = False
+    for handle in handles:
+        if not wait_for(handle):
+            ok = False
+    return ok
+
+
+def ur_m_dig_columns(first_x, stride, size, target):
+    for x in range(first_x, size, stride):
+        if not ur_m_move_to(x, 0):
+            return False
+        for y in range(size):
+            while get_pos_z() > target:
+                if not dig():
+                    return False
+            if get_pos_z() > target:
+                return False
+            if not move(North):
+                return False
+    return True
+
+
+def ur_m_make_blocks():
+    size = get_world_size()
+    limit = max(1, size // 4)
+    capacity = max_drones()
+    gx = 1
+    gy = 1
+    best = 1
+    for ty in range(1, limit + 1):
+        tx = min(limit, capacity // ty)
+        if tx * ty > best:
+            best = tx * ty
+            gx = tx
+            gy = ty
+    blocks = []
+    for k in range(best):
+        bx = k % gx
+        by = k // gx
+        blocks.append((bx * size // gx, (bx + 1) * size // gx,
+                       by * size // gy, (by + 1) * size // gy))
+    return blocks
+
+
+def ur_m_run_patch(blocks, ceiling, levels, goal):
+    # 每区只派工一次，全部工人结束后才返回或允许换田。
+    handles = []
+    results = []
+    for k in range(1, len(blocks)):
+        handle = spawn_drone(ur_m_work_patch, blocks[k], ceiling, levels, goal)
+        if handle == None:
+            results.append(ur_m_work_patch(blocks[k], ceiling, levels, goal))
+        else:
+            handles.append(handle)
+    results.append(ur_m_work_patch(blocks[0], ceiling, levels, goal))
+    for handle in handles:
+        results.append(wait_for(handle))
+    pairs = 0
+    digs = 0
+    for result in results:
+        if result == None:
+            return None
+        pairs += result[0]
+        digs += result[1]
+    return pairs, digs
+
+
+def ur_m_work_patch(block, ceiling, levels, goal):
+    # 层末检查真实库存，已开始的配对先兑现；各区自行连续推进。
+    pairs = 0
+    digs = 0
+    for layer in range(levels):
+        if num_items(Items.Mushroom) >= goal:
+            break
+        result = ur_m_work_layer(block, ceiling - layer)
+        if result == None:
+            return None
+        pairs += result[0]
+        digs += result[1]
+        if result[2] == 0:
+            break
+    return pairs, digs
+
+
+def ur_m_work_layer(block, ceiling):
+    x0, x1, y0, y1 = block
+    cache = {}
+    floor = ceiling - 2
+    pairs = 0
+    digs = 0
+    mushrooms = 0
+    for y in range(y0, y1):
+        for offset in range(x1 - x0):
+            x = x0 + offset
+            if (y - y0) % 2 != 0:
+                x = x1 - 1 - offset
+            if x == 0 and y == 0:
+                continue
+            if not ur_m_move_to(x, y):
+                return None
+            neighbors = []
+            if y + 1 < y1:
+                neighbors.append(0)
+            if x + 1 < x1:
+                neighbors.append(1)
+            if y > y0 and (x != 0 or y != 1):
+                neighbors.append(2)
+            if x > x0 and (x != 1 or y != 0):
+                neighbors.append(3)
+            z = get_pos_z()
+            if z < floor:
+                continue
+            mushroom = get_ground_type() == Grounds.Mushroom
+            if mushroom:
+                mushrooms += 1
+            if z >= ceiling and mushroom:
+                count = ur_m_carry_match(cache, x, y, neighbors, floor)
+                if count == None:
+                    return None
+                pairs += count
+                if count == 0:
+                    if get_hardness() >= 10000000 or not dig():
+                        return None
+                    if get_pos_z() != z - 1:
+                        return None
+                    digs += 1
+            count = ur_m_feed_column(neighbors, floor)
+            if count == None:
+                return None
+            pairs += count
+            ur_m_read_column(cache, x, y)
+            for i in neighbors:
+                dx, dy = ur_m_OFFSETS[i]
+                ur_m_read_column(cache, x + dx, y + dy, ur_m_DIRECTIONS[i])
+    return pairs, digs, mushrooms
+
+
+def ur_m_push_match(neighbors, floor):
+    if get_ground_type() != Grounds.Mushroom:
+        return 0
+    t = measure()
+    z = get_pos_z()
+    for i in neighbors:
+        direction = ur_m_DIRECTIONS[i]
+        if get_ground_type(direction) == Grounds.Mushroom:
+            goal = get_pos_z(direction)
+            if floor < goal and goal < z and measure(direction) == t:
+                if not push(direction):
+                    return None
+                return 1
+    return 0
+
+
+def ur_m_push_neighbor(i):
+    if not move(ur_m_DIRECTIONS[i]):
+        return False
+    pushed = push(ur_m_BACKS[i])
+    if not move(ur_m_BACKS[i]):
+        return False
+    return pushed
+
+
+def ur_m_feed_column(neighbors, floor):
+    matched = 0
+    while True:
+        z = get_pos_z()
+        if z < floor:
+            return matched
+        mushroom = get_ground_type() == Grounds.Mushroom
+        t = -1
+        if mushroom:
+            t = measure()
+        types = [-1, -1, -1, -1]
+        heights = [0, 0, 0, 0]
+        hit = -1
+        for i in neighbors:
+            direction = ur_m_DIRECTIONS[i]
+            if get_ground_type(direction) == Grounds.Mushroom:
+                types[i] = measure(direction)
+                heights[i] = get_pos_z(direction)
+                if mushroom and z > floor and types[i] == t and heights[i] > z:
+                    hit = i
+                    break
+        if hit >= 0:
+            if not ur_m_push_neighbor(hit):
+                return None
+            matched += 1
+            continue
+        goal = z
+        if not mushroom:
+            goal = floor
+        pair_a = -1
+        pair_b = -1
+        for i in neighbors:
+            if types[i] < 0 or types[i] == t or heights[i] < goal + 2:
+                continue
+            for j in neighbors:
+                if j > i and types[j] == types[i] and heights[j] >= goal + 2:
+                    pair_a = i
+                    pair_b = j
+                    break
+            if pair_a >= 0:
+                break
+        if pair_a < 0:
+            return matched
+        if not mushroom:
+            while get_pos_z() > floor:
+                if get_ground_type() == Grounds.Mushroom:
+                    return matched
+                if get_hardness() >= 10000000 or not dig():
+                    return None
+            if get_pos_z() != floor:
+                return None
+            if get_ground_type() == Grounds.Mushroom:
+                return matched
+        if not ur_m_push_neighbor(pair_a):
+            return None
+        if not ur_m_push_neighbor(pair_b):
+            return None
+        matched += 1
+
+
+def ur_m_move_to(tx, ty):
+    size = get_world_size()
+    dx = (tx - get_pos_x()) % size
+    dy = (ty - get_pos_y()) % size
+    horizontal = East
+    vertical = North
+    if dx > size // 2:
+        dx = size - dx
+        horizontal = West
+    if dy > size // 2:
+        dy = size - dy
+        vertical = South
+    for _ in range(dx):
+        if not move(horizontal):
+            return False
+    for _ in range(dy):
+        if not move(vertical):
+            return False
+    return True
+
+
+# 缓存仅保存本分区公开柱顶，搬运后更新全部受影响的柱。
+def ur_m_read_column(cache, x, y, direction=None):
+    if direction == None:
+        z = get_pos_z()
+        ground = get_ground_type()
+        t = -1
+        if ground == Grounds.Mushroom:
+            t = measure()
+    else:
+        z = get_pos_z(direction)
+        ground = get_ground_type(direction)
+        t = -1
+        if ground == Grounds.Mushroom:
+            t = measure(direction)
+    cache[(x, y)] = (z, t)
+
+
+def ur_m_carry_match(cache, x, y, neighbors, floor):
+    # 实测相邻低台搬运同色块；缺建材时保留其他可支付路径。
+    direct = ur_m_push_match(neighbors, floor)
+    if direct != 0:
+        return direct
+    ur_m_read_column(cache, x, y)
+    z, t = cache[(x, y)]
+    if t < 0 or z - 1 <= floor:
+        return 0
+    for i in neighbors:
+        dx, dy = ur_m_OFFSETS[i]
+        ur_m_read_column(cache, x + dx, y + dy, ur_m_DIRECTIONS[i])
+    for i in neighbors:
+        dx, dy = ur_m_OFFSETS[i]
+        mx = x + dx
+        my = y + dy
+        height = cache[(mx, my)][0]
+        if height != z - 1 and height != z - 2:
+            continue
+        for j in range(4):
+            ex, ey = ur_m_OFFSETS[j]
+            end = (mx + ex, my + ey)
+            if end not in cache:
+                continue
+            goal, color = cache[end]
+            if goal != z - 1 or color != t:
+                continue
+            if height == z - 2:
+                if num_items(Items.Block) < 1:
+                    continue
+                if not move(ur_m_DIRECTIONS[i]) or get_pos_z() != height:
+                    return None
+                if not place(Grounds.Dirt) or get_pos_z() != z - 1:
+                    return None
+                if not move(ur_m_BACKS[i]):
+                    return None
+            if not push(ur_m_DIRECTIONS[i]):
+                return None
+            ur_m_read_column(cache, x, y)
+            if not move(ur_m_DIRECTIONS[i]) or not push(ur_m_DIRECTIONS[j]):
+                return None
+            ur_m_read_column(cache, mx, my)
+            ur_m_read_column(cache, end[0], end[1], ur_m_DIRECTIONS[j])
+            if not move(ur_m_BACKS[i]):
+                return None
+            return 1
+    return ur_m_fixture_match(neighbors, floor)
+
+
+def ur_m_fixture_match(neighbors, floor):
+    # 相邻同高同色A/B借低两格的C完成B→C、A→B、B→C。
+    if get_ground_type() != Grounds.Mushroom:
+        return 0
+    z = get_pos_z()
+    if z - 2 < floor:
+        return 0
+    t = measure()
+    for i in neighbors:
+        source = ur_m_DIRECTIONS[i]
+        if get_pos_z(source) != z or get_ground_type(source) != Grounds.Mushroom or measure(source) != t:
+            continue
+        for j in neighbors:
+            if i == j or get_pos_z(ur_m_DIRECTIONS[j]) != z - 2:
+                continue
+            if not push(ur_m_DIRECTIONS[j]):
+                return None
+            if not move(source) or not push(ur_m_BACKS[i]):
+                return None
+            if not move(ur_m_BACKS[i]) or not push(ur_m_DIRECTIONS[j]):
+                return None
+            return 1
+    return 0
+
+
+ur_m_OFFSETS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+ur_m_DIRECTIONS = [North, East, South, West]
+ur_m_BACKS = [South, West, North, East]
+
+
+def ur_dynamite_stock(goal):
+    # 扫雷几何在首次采炸药时准备，后代继承只读分区；盘面事实仍逐盘重建。
+    global ur_d_WORK_LAYOUTS
+    ur_d_WORK_LAYOUTS = {}
+    def ur_d_make_near(size):
+        # 同一批工人并行建立邻接表和固定区域；缓存只含几何，不含任何盘面事实。
+        workers = min(size, max_drones())
+        handles = []
+        for group in range(1, workers):
+            handle = spawn_drone(ur_d_plan_strip, group, workers, size)
+            result = None
+            if handle == None:
+                result = ur_d_plan_strip(group, workers, size)
+            handles.append((handle, result))
+        near, first = ur_d_plan_strip(0, workers, size)
+        layouts = [first]
+        for handle, result in handles:
+            if handle != None:
+                result = wait_for(handle)
+            near = near + result[0]
+            layouts.append(result[1])
+        ur_d_WORK_LAYOUTS[(size, workers)] = layouts
+        return near
+
+
+    def ur_d_plan_strip(group, groups, size):
+        near = []
+        count = size * size
+        for cell in range(group * count // groups, (group + 1) * count // groups):
+            near.append(ur_d_neighbors(cell, size))
+        return near, ur_d_work_layout(group, groups, size)
+
+
+    def ur_d_work_layout(group, groups, size):
+        # owned保留原蛇形顺序，clue_cells只限定可读约束范围，不扩大开挖权。
+        columns = min(8, groups)
+        rows = groups // columns
+        left = (group % columns) * size // columns
+        right = (group % columns + 1) * size // columns
+        bottom = (group // columns) * size // rows
+        top = (group // columns + 1) * size // rows
+        owned = []
+        for y in range(bottom, top):
+            if (y - bottom) % 2 == 0:
+                for x in range(left, right):
+                    owned.append(x + y * size)
+            else:
+                for x in range(right - 1, left - 1, -1):
+                    owned.append(x + y * size)
+        clue_cells = []
+        for y in range(max(0, bottom - 2), min(size, top + 2)):
+            for x in range(max(0, left - 2), min(size, right + 2)):
+                clue_cells.append(x + y * size)
+        return owned, set(owned), clue_cells
+
+    began = get_time()
+    empty = 0
+    size = get_world_size()
+    near = ur_d_make_near(size)
+    for cycle in range(512):
+        if num_items(Items.Dynamite) >= goal:
+            quick_print("dynamite_done", True, get_time(), num_items(Items.Dynamite))
+            return
+        clear()
+        if not ur_d_move_to(size // 2, size // 2, size):
+            return
+        covers = 0
+        while get_ground_type() != Grounds.Dynamite and covers < 256:
+            if get_time() - began > 72000 or not dig():
+                quick_print("dynamite_failed", "search_action", cycle)
+                return
+            covers += 1
+        if get_ground_type() != Grounds.Dynamite:
+            empty += 1
+            if empty >= 32:
+                quick_print("dynamite_failed", "eight_search_misses")
+                return
+            continue
+        empty = 0
+        depth = get_pos_z()
+        before = num_items(Items.Dynamite)
+        status, number = ur_d_open_ground(depth)
+        phases = 0
+        if status == "number":
+            status, phases = ur_d_solve(size, depth, near, number)
+        if status == "mine":
+            status = ur_d_settle(size, depth)
+        quick_print("dynamite_cycle", cycle, status, phases, num_items(Items.Dynamite) - before,
+                    get_time(), num_items(Items.Dynamite))
+        if status != "ended":
+            return
+    quick_print("dynamite_failed", "cycle_limit", get_time(), num_items(Items.Dynamite))
+
+
+UR_D_UNKNOWN = -2
+
+
+UR_D_MINE = -1
+
+
+UR_D_SAFE = -3
+
+
+UR_D_DONE = 9
+
+
+UR_D_DIG_LIMIT = 256
+
+
+UR_D_PHASE_LIMIT = 256
+
+
+def ur_d_solve(size, depth, near, number):
+    known = []
+    for cell in range(size * size):
+        known.append(UR_D_UNKNOWN)
+    known[(size // 2) * (size + 1)] = number
+    groups = min(max_drones(), size)
+    rounds = 0
+    for phase in range(UR_D_PHASE_LIMIT):
+        results = ur_d_dispatch(0, groups, groups, known, near, size, depth)
+        changed = False
+        status = "running"
+        for state, updates in results:
+            # 主机叶子也会修改known；以本批新事实判断进展。
+            if len(updates) > 0:
+                changed = True
+            if state == "error":
+                status = state
+            elif state == "mine" and status != "error":
+                status = state
+            elif state == "ended" and status == "running":
+                status = state
+            for cell in updates:
+                value = updates[cell]
+                old = known[cell]
+                if old == value or (old >= 0 and value == UR_D_SAFE) or (old == UR_D_DONE and value >= 0):
+                    continue
+                if old == UR_D_UNKNOWN or (old == UR_D_SAFE and value >= 0) or (old >= 0 and value == UR_D_DONE):
+                    known[cell] = value
+                else:
+                    quick_print("dynamite_conflict", cell, old, value)
+                    return "error", rounds
+        rounds += 1
+        if status != "running" or not changed:
+            break
+    if status == "running":
+        status = ur_d_settle(size, depth)
+    return status, rounds
+
+
+def ur_d_dispatch(lo, hi, groups, known, near, size, depth):
+    if hi - lo == 1:
+        return [ur_d_work(lo, groups, known, near, size, depth)]
+    mid = (lo + hi) // 2
+    handle = spawn_drone(ur_d_dispatch, mid, hi, groups, known, near, size, depth)
+    results = ur_d_dispatch(lo, mid, groups, known, near, size, depth)
+    if handle == None:
+        right = ur_d_dispatch(mid, hi, groups, known, near, size, depth)
+    else:
+        right = wait_for(handle)
+    for result in right:
+        results.append(result)
+    return results
+
+
+def ur_d_work(group, groups, known, near, size, depth):
+    owned, owned_set, clue_cells = ur_d_WORK_LAYOUTS[(size, groups)][group]
+    clues = set()
+    for cell in clue_cells:
+        if known[cell] >= 0 and known[cell] != UR_D_DONE:
+            clues.add(cell)
+    updates = {}
+    for step in range(UR_D_PHASE_LIMIT):
+        if not ur_d_propagate(known, clues, near, updates):
+            return "error", updates
+        targets = []
+        for cell in owned:
+            if known[cell] == UR_D_SAFE:
+                targets.append(cell)
+        if len(targets) == 0:
+            return "running", updates
+        while len(targets) > 0:
+            cell = targets.pop()
+            if not ur_d_move_to(cell % size, cell // size, size):
+                return "error", updates
+            status, number = ur_d_open_ground(depth)
+            if status != "number":
+                return status, updates
+            known[cell] = number
+            updates[cell] = number
+            if number == 0:
+                known[cell] = UR_D_DONE
+                updates[cell] = UR_D_DONE
+                for other in near[cell]:
+                    if known[other] == UR_D_UNKNOWN:
+                        known[other] = UR_D_SAFE
+                        updates[other] = UR_D_SAFE
+                        if other in owned_set:
+                            targets.append(other)
+            else:
+                clues.add(cell)
+    return "error", updates
+
+
+def ur_d_propagate(known, active, near, updates):
+    pending = []
+    queued = set()
+    for clue in active:
+        pending.append(clue)
+        queued.add(clue)
+    while len(pending) > 0:
+        clue = pending.pop()
+        queued.remove(clue)
+        if clue not in active:
+            continue
+        remaining = known[clue]
+        unknown = []
+        for cell in near[clue]:
+            value = known[cell]
+            if value == UR_D_MINE:
+                remaining -= 1
+            elif value == UR_D_UNKNOWN:
+                unknown.append(cell)
+        if remaining < 0 or remaining > len(unknown):
+            return False
+        if remaining != 0 and remaining != len(unknown):
+            continue
+        active.remove(clue)
+        known[clue] = UR_D_DONE
+        updates[clue] = UR_D_DONE
+        value = UR_D_MINE
+        if remaining == 0:
+            value = UR_D_SAFE
+        for cell in unknown:
+            known[cell] = value
+            updates[cell] = value
+            for other in near[cell]:
+                if other in active and other not in queued:
+                    pending.append(other)
+                    queued.add(other)
+    return True
+
+
+def ur_d_read_ground(depth):
+    z = get_pos_z()
+    if z >= depth:
+        return "closed", None
+    if z < depth - 1:
+        return "ended", None
+    if get_ground_type() != Grounds.Soot:
+        return "error", None
+    if get_entity_type() == Entities.Dynamite:
+        return "mine", None
+    number = measure()
+    # 实际结算可返回None，外部Measure类型桩未声明此终态。
+    if number == None:
+        return "ended", None
+    if number not in range(9):
+        return "error", None
+    return "number", number
+
+
+def ur_d_open_ground(depth):
+    for _ in range(UR_D_DIG_LIMIT):
+        if get_pos_z() <= depth:
+            break
+        if get_hardness() >= 10000000 or not dig():
+            return "error", None
+    z = get_pos_z()
+    if z > depth:
+        return "error", None
+    if z == depth:
+        if get_ground_type() != Grounds.Dynamite or not dig():
+            return "error", None
+    return ur_d_read_ground(depth)
+
+
+def ur_d_settle(size, depth):
+    if not ur_d_move_to(size // 2, size // 2, size):
+        return "error"
+    status, number = ur_d_read_ground(depth)
+    if status == "ended":
+        return status
+    if status != "number" or not dig():
+        return "error"
+    status, number = ur_d_read_ground(depth)
+    if status != "ended":
+        return "error"
+    return status
+
+
+def ur_d_neighbors(cell, size):
+    x = cell % size
+    y = cell // size
+    result = []
+    if y > 0:
+        if x > 0:
+            result.append(cell - size - 1)
+        result.append(cell - size)
+        if x + 1 < size:
+            result.append(cell - size + 1)
+    if x > 0:
+        result.append(cell - 1)
+    if x + 1 < size:
+        result.append(cell + 1)
+    if y + 1 < size:
+        if x > 0:
+            result.append(cell + size - 1)
+        result.append(cell + size)
+        if x + 1 < size:
+            result.append(cell + size + 1)
+    return result
+
+
+def ur_d_move_to(tx, ty, size):
+    dx = (tx - get_pos_x()) % size
+    dy = (ty - get_pos_y()) % size
+    horizontal = East
+    vertical = North
+    if dx > size // 2:
+        dx = size - dx
+        horizontal = West
+    if dy > size // 2:
+        dy = size - dy
+        vertical = South
+    for _ in range(dx):
+        if not move(horizontal):
+            return False
+    for _ in range(dy):
+        if not move(vertical):
+            return False
+    return True
+
+
+def ur_power_stock(goal):
+    size = get_world_size()
+    deadline = get_time() + 3600
+    for batch in range(64):
+        if num_items(Items.Power) >= goal:
+            return True
+        cost = get_cost(Entities.Sunflower)
+        for item in cost:
+            if not ur_need(item, cost[item] * size * size):
+                return False
+        clear()
+        flowers = []
+        for petals in range(16):
+            flowers.append([])
+        for x in range(size):
+            for y in range(size):
+                if get_ground_type() != Grounds.Soil:
+                    till()
+                if not plant(Entities.Sunflower):
+                    return False
+                flowers[measure()].append((x, y))  # ty: ignore[invalid-argument-type]  此处已种向日葵，测量返回整数花瓣数。
+                move(North)
+            move(East)
+        remaining = size * size
+        for petals in range(15, 6, -1):
+            for x, y in flowers[petals]:
+                if remaining < 10:
+                    break
+                if num_items(Items.Power) >= goal:
+                    return True
+                if not ur_r_rice_move_to(x, y, size):
+                    return False
+                while not can_harvest():
+                    if get_time() > deadline:
+                        return False
+                    do_a_flip()
+                if not harvest():
+                    return False
+                remaining -= 1
+        quick_print("underground_reset_power", batch, get_time(), num_items(Items.Power))
+    return False
+
+
+def small_maze_gold(target, n=None):
+    # 八机各修一座5格小迷宫；所有子机回收后才清场。
+    WORLD = get_world_size()
+    TARGET_GOLD = target
+    DRONES = min(max_drones(), 8)
+    REUSE_LIMIT = 300
+    DIRS = [North, East, South, West]
+    BACK = [2, 3, 0, 1]
+    MULT = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
+    cols = 3
+    if n == None:
+        n = WORLD // 3
+    else:
+        cols = WORLD // n
+    deadline = min(7000, get_time() + 800)
+    # 金币/Weird比为宫边长；另付创建、到位登记和并行超收的完整储备。
+    required = (max(0, target - num_items(Items.Gold)) + n - 1) // n + 8 * n * MULT * DRONES + 2 * DRONES
+    if not ur_s_boost_stock({Items.Weird_Substance: required}):
+        return False
+    clear()
+    start_stock = num_items(Items.Weird_Substance)
+    jobs = []
+    for index in range(DRONES):
+        jobs.append((n, n // 2 + n * (index % cols), n // 2 + n * (index // cols)))
+
+    def go_empty(tx, ty):
+        # 仅在迷宫生成前使用农场环绕，分别走较短的横、纵位移。
+        dx = (tx - get_pos_x()) % WORLD
+        if dx <= WORLD // 2:
+            for _ in range(dx):
+                move(East)
+        else:
+            for _ in range(WORLD - dx):
+                move(West)
+        dy = (ty - get_pos_y()) % WORLD
+        if dy <= WORLD // 2:
+            for _ in range(dy):
+                move(North)
+        else:
+            for _ in range(WORLD - dy):
+                move(South)
+
+    def go_home(cx, cy):
+        # 本宫harvest消失后回到中心；路径不穿越邻宫。
+        while get_pos_x() < cx:
+            move(East)
+        while get_pos_x() > cx:
+            move(West)
+        while get_pos_y() < cy:
+            move(North)
+        while get_pos_y() > cy:
+            move(South)
+
+    def geometry(n):
+        # 本地格号p=y*n+x；grid[p][方向]是几何邻居，-1表示本宫边界。
+        grid = []
+        for y in range(n):
+            for x in range(n):
+                p = y * n + x
+                row = [-1, -1, -1, -1]
+                if y < n - 1:
+                    row[0] = p + n
+                if x < n - 1:
+                    row[1] = p + 1
+                if y > 0:
+                    row[2] = p - n
+                if x > 0:
+                    row[3] = p - 1
+                grid.append(row)
+        return grid
+
+    def explore(n, grid, home):
+        # links是实测通路，walls是以后可能打开的墙；DFS给出初始树。
+        count = n * n
+        links = []
+        graph = []
+        walls = []
+        seen = []
+        parent = []
+        up_hop = []
+        down_hop = []
+        for _ in range(count):
+            links.append([-1, -1, -1, -1])
+            graph.append([])
+            walls.append([])
+            seen.append(False)
+            parent.append(-1)
+            up_hop.append(None)
+            down_hop.append(None)
+        order = []
+        trail = []
+        p = home
+        visited = 0
+        while True:
+            if get_time() > deadline:
+                return None
+            if not seen[p]:
+                if num_items(Items.Gold) >= TARGET_GOLD:
+                    return None
+                seen[p] = True
+                visited += 1
+                order.append(p)
+                for d in range(4):
+                    q = grid[p][d]
+                    if q == -1 or links[p][d] != -1:
+                        continue
+                    if can_move(DIRS[d]):
+                        back = BACK[d]
+                        links[p][d] = q
+                        links[q][back] = p
+                        graph[p].append((q, d))
+                        graph[q].append((p, back))
+                    else:
+                        walls[p].append(d)
+                if visited == count:
+                    break
+            choice = -1
+            next_p = -1
+            for q, d in graph[p]:
+                if not seen[q]:
+                    choice = d
+                    next_p = q
+                    break
+            if choice != -1:
+                move(DIRS[choice])
+                parent[next_p] = p
+                up_hop[next_p] = (p, DIRS[BACK[choice]])
+                down_hop[next_p] = (next_p, DIRS[choice])
+                trail.append(BACK[choice])
+                p = next_p
+            else:
+                d = trail.pop()
+                move(DIRS[d])
+                p = grid[p][d]
+        tree = (parent, up_hop, down_hop, order)
+        return (p, links, walls, tree)
+
+    def build_all_routes(tree, blank):
+        # rows[目标]保存各起点的距离与首步；每个无序点对只计算一次。
+        parent, up_hop, down_hop, order = tree
+        rows = []
+        for goal in range(len(blank)):
+            dist = list(blank)
+            hop = list(up_hop)
+            dist[goal] = 0
+            hop[goal] = None
+            rows.append([dist, hop])
+        visited = []
+        for v in order:
+            p = parent[v]
+            if p != -1:
+                dist_v, toward_v = rows[v]
+                parent_hop = rows[p][1]
+                up = up_hop[v]
+                down = down_hop[v]
+                for u in visited:
+                    dist_u, toward_u = rows[u]
+                    distance = dist_u[p] + 1
+                    dist_u[v] = distance
+                    toward_u[v] = up
+                    dist_v[u] = distance
+                    if u == p:
+                        toward_v[u] = down
+                    else:
+                        toward_v[u] = parent_hop[u]
+            visited.append(v)
+        return rows
+
+    def add_route_edge(rows, a, b, hop_ab, hop_ba):
+        # 先冻结新边两端的旧距离，再只更新可能经该边缩短的点对。
+        da, ha = rows[a]
+        db, hb = rows[b]
+        left = []
+        right = []
+        for u in range(len(rows)):
+            x = da[u]
+            y = db[u]
+            if x + 1 < y:
+                next_hop = ha[u]
+                if u == a:
+                    next_hop = hop_ab
+                left.append((u, x + 1, next_hop, rows[u]))
+            elif y + 1 < x:
+                next_hop = hb[u]
+                if u == b:
+                    next_hop = hop_ba
+                right.append((u, y, next_hop, rows[u]))
+        if len(left) > len(right):
+            left, right = right, left
+        for u, x, hop_u, row_u in left:
+            dist_u, toward_u = row_u
+            for v, y, hop_v, row_v in right:
+                candidate = x + y
+                if candidate < dist_u[v]:
+                    dist_u[v] = candidate
+                    toward_u[v] = hop_v
+                    dist_v, toward_v = row_v
+                    dist_v[u] = candidate
+                    toward_v[u] = hop_u
+
+    def scan_departure(p, links, walls, grid, routes):
+        # 从上一宝箱位置检查旧墙，发现新边后更新下一次导航。
+        remaining = []
+        for side in walls[p]:
+            if links[p][side] != -1:
+                continue
+            if can_move(DIRS[side]):
+                q = grid[p][side]
+                back = BACK[side]
+                links[p][side] = q
+                links[q][back] = p
+                add_route_edge(routes, p, q, (q, DIRS[side]), (p, DIRS[back]))
+            else:
+                remaining.append(side)
+        walls[p] = remaining
+
+    def solve_one(n, bx, by, grid, mapped, blank):
+        p, links, walls, tree = mapped
+        cost = n * MULT
+        routes = build_all_routes(tree, blank)
+        relocations = 0
+        while num_items(Items.Gold) < TARGET_GOLD:
+            if get_time() > deadline:
+                return 0
+            t = measure()
+            goal = (t[1] - by) * n + t[0] - bx  # ty: ignore[not-subscriptable]  本机始终处于独占迷宫，measure返回坐标。
+            if p != goal:
+                if relocations > 0 and len(walls[p]) > 0:
+                    scan_departure(p, links, walls, grid, routes)
+                dist, hop = routes[goal]
+                for _ in range(dist[p]):
+                    p, direction = hop[p]
+                    move(direction)
+            if num_items(Items.Gold) >= TARGET_GOLD:
+                return relocations
+            if relocations >= REUSE_LIMIT:
+                # 300次成功迁移后只正常收取一次末箱，再重建本宫。
+                harvest()
+                return relocations + 1
+            use_item(Items.Weird_Substance, cost)
+            relocations += 1
+        return relocations
+
+    def worker(job, start_stock):
+        n, cx, cy = job
+        generations = 0
+        boxes = 0
+        go_empty(cx, cy)
+        grid = geometry(n)
+        blank = []
+        for _ in range(n * n):
+            blank.append(-1)
+        half = n // 2
+        home = half * n + half
+        bx = cx - half
+        by = cy - half
+        if get_entity_type() == None:
+            plant(Entities.Grass)
+        # 每台感染再恢复草，合计2*DRONES次消耗构成全部到位的屏障。
+        for _ in range(2):
+            use_item(Items.Weird_Substance, 1)
+        while num_items(Items.Weird_Substance) > start_stock - 2 * DRONES:
+            if get_time() > deadline:
+                return (n, 0, 0)
+            if num_unlocked(Unlocks.Dinosaurs) > 0:
+                change_hat(Hats.Straw_Hat)
+            else:
+                can_harvest()
+        while num_items(Items.Gold) < TARGET_GOLD and get_time() <= deadline:
+            go_home(cx, cy)
+            if get_entity_type() != None:
+                harvest()
+            plant(Entities.Bush)
+            use_item(Items.Weird_Substance, n * MULT)
+            mapped = explore(n, grid, home)
+            generations += 1
+            if mapped == None:
+                # 达标或超时都结束本机，父机最终按实际Gold判断成功。
+                break
+            boxes += solve_one(n, bx, by, grid, mapped, blank)
+        return (n, generations, boxes)
+
+    handles = []
+    passed = True
+    for job in jobs[1:]:
+        handle = spawn_drone(worker, job, start_stock)
+        if handle == None:
+            passed = False
+            break
+        handles.append(handle)
+    if passed:
+        worker(jobs[0], start_stock)
+    for handle in handles:
+        wait_for(handle)
+    clear()
+    quick_print("reset_small_maze_gold", get_time(), num_items(Items.Gold))
+    return num_items(Items.Gold) >= target
+
+
+if __name__ == "__main__":
+    lb_fastest_underground_reset()
