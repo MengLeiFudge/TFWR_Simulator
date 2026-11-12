@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得；C#原目标3seed均值3006.673秒（2026-11-12，当前策略未实机）。
+# 完整轮时间：未取得；C#原目标8seed均值3034.093秒（2026-11-12，末段按需供能与扫雷层边界版未实机）。
 
 def lb_fastest_underground_reset():
     ur_s_step1()
@@ -41,7 +41,11 @@ def lb_fastest_underground_reset():
             for funding in range(8):
                 for item in cost:
                     if num_items(Items.Power) < 100:
-                        if not ur_power_stock(1000):
+                        # 只缩减最终付款前的供电，科技链仍保留原1000库存目标。
+                        power_goal = 1000
+                        if tech == Unlocks.Underground_Leaderboard:
+                            power_goal = 500
+                        if not ur_power_stock(power_goal):
                             quick_print("underground_reset_failed", "power", tech)
                             return
                     if not ur_need(item, cost[item]):
@@ -2033,7 +2037,8 @@ def ur_dynamite_stock(goal):
         if not ur_d_move_to(size // 2, size // 2, size):
             return
         covers = 0
-        while get_ground_type() != Grounds.Dynamite and covers < 256:
+        # 当前Quartz已解锁，地层按7块循环；208至255层没有扫雷候选区。
+        while get_ground_type() != Grounds.Dynamite and covers < 208:
             if get_time() - began > 72000 or not dig():
                 quick_print("dynamite_failed", "search_action", cycle)
                 return

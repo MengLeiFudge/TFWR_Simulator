@@ -1,15 +1,15 @@
 from __builtins__ import *
-# 完整轮时间：2703.337666667秒（2026-11-12，实机完整3轮）；C#原目标3seed均值2682.885秒。
+# 完整轮时间：2507.696秒（2026-11-12，实机完整3轮）；C#原目标3seed均值2479.106秒。
 # 恐龙路径Copyright (c) [2026] [lywlucas]，MIT许可见lywlucas_LICENSE.txt。
 # 小迷宫沿用lb_maze的zzlg-git方案；来源与许可边界见同名策略文档。
 
 
 def lb_fastest_reset():
     step1()
-    # 先取得树和胡萝卜增产，供能后再实付Speed5与伴生。
-    for technology in [Unlocks.Speed, Unlocks.Trees, Unlocks.Expand,
+    # 扩4格后实付Speed3，供能后再付Speed4/5及伴生。
+    for technology in [Unlocks.Speed, Unlocks.Trees, Unlocks.Expand, Unlocks.Speed,
                        Unlocks.Grass, Unlocks.Trees, Unlocks.Carrots,
-                       Unlocks.Speed, Unlocks.Expand, Unlocks.Watering,
+                       Unlocks.Expand, Unlocks.Watering,
                        Unlocks.Grass, Unlocks.Trees, Unlocks.Grass,
                        Unlocks.Carrots, Unlocks.Fertilizer, Unlocks.Sunflowers]:
         if not buy(technology):
@@ -234,7 +234,7 @@ def solar_harvest_rank(points, deadline):
     return True
 
 
-def parallel_solar_reserve(size):
+def parallel_solar_reserve(size, target=0):
     started = get_time()
     deadline = min(7000, started + 180)
     workers = min(size, max_drones())
@@ -263,6 +263,9 @@ def parallel_solar_reserve(size):
         quick_print("directed_failed", "solar_plant_workers", get_time())
         return False
     for petals in range(15, 6, -1):
+        # 同花瓣工人全部回收后检查库存，末段够用即停止；target=0收完整田。
+        if target > 0 and num_items(Items.Power) >= target:
+            break
         handles = []
         passed = True
         for worker in range(1, workers):
@@ -746,24 +749,10 @@ def parallel_pumpkin_stock(target):
 
 
 def next_megafarm():
-    size = get_world_size()
-    factor = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
-    unit = size * factor
-    gain = size * size * factor
     target_gold = get_cost(Unlocks.Megafarm)[Items.Gold]
-    count = (max(0, target_gold - num_items(Items.Gold)) + gain - 1) // gain
-    if count > 299:
+    if not small_maze_gold(target_gold, get_world_size() // 2):
+        quick_print("directed_failed", "early_small_gold", get_time(), num_items(Items.Gold))
         return False
-    if not boost_stock({Items.Weird_Substance: unit * (count + 1)}):
-        return False
-    clear()
-    if not plant(Entities.Bush) or not use_item(Items.Weird_Substance, unit):
-        return False
-    graph = build_maze_graph(size)
-    if not maze_team(graph, size, min(max_drones(), 8), target_gold, unit, min(7000, get_time() + 800)):
-        quick_print("directed_failed", "early_station_gold", get_time(), num_items(Items.Gold))
-        return False
-    clear()
     if not unlock(Unlocks.Megafarm):
         return False
     quick_print("directed_megafarm", get_time(), max_drones(), num_items(Items.Power), num_items(Items.Fertilizer), num_items(Items.Weird_Substance))
@@ -883,6 +872,13 @@ def staged_supply():
     # 供料前真实补电，支付播种、成熟和收获，以覆盖P4与扩田生产。
     if not solar_reserve():
         return False
+    # 提前筹最终8座5格M4小迷宫的Weird，联产木头支付胡萝卜5/6与供水6。
+    required = (max(0, 1000000 - num_items(Items.Gold)) + 4) // 5 + 8 * 5 * 8 * 8 + 16
+    if not boost_stock({Items.Weird_Substance: required}):
+        return False
+    for technology in [Unlocks.Carrots, Unlocks.Carrots, Unlocks.Watering]:
+        if not buy(technology):
+            return False
     # 用实际16000 Carrot购买P4，再支付Expand7与Cactus科技的整田供料。
     if not buy(Unlocks.Pumpkins):
         return False
@@ -908,158 +904,16 @@ def staged_supply():
     return True
 
 
-# 驻点服务：仅由预分配owner兑现；所有worker实际回程并观察新开墙。
-def maze_team(graph, size, workers, target_gold, unit, deadline):
-    directions = [North, East, South, West]
-    reverse = {North: South, East: West, South: North, West: East}
-    dx = [0, 1, 0, -1]
-    dy = [1, 0, -1, 0]
 
-    def distances(center):
-        dist = []
-        parent = []
-        incoming = []
-        for _ in range(size * size):
-            dist.append(size * size)
-            parent.append(-1)
-            incoming.append(None)
-        dist[center] = 0
-        parent[center] = center
-        queue = [center]
-        for current in queue:
-            for edge in graph[current]:
-                if parent[edge[0]] == -1:
-                    parent[edge[0]] = current
-                    incoming[edge[0]] = edge[1]
-                    dist[edge[0]] = dist[current] + 1
-                    queue.append(edge[0])
-        return dist, parent, incoming
-
-    centers = [0]
-    tables = []
-    closest = []
-    for _ in range(size * size):
-        closest.append(size * size)
-    for worker in range(workers):
-        table = distances(centers[worker])
-        tables.append(table)
-        for node in range(size * size):
-            closest[node] = min(closest[node], table[0][node])
-        if worker + 1 < workers:
-            farthest = 0
-            for node in range(size * size):
-                if closest[node] > closest[farthest]:
-                    farthest = node
-            centers.append(farthest)
-    owners = []
-    for node in range(size * size):
-        owner = 0
-        for worker in range(1, workers):
-            if tables[worker][0][node] < tables[owner][0][node]:
-                owner = worker
-        owners.append(owner)
-
-    def serve(worker):
-        center = centers[worker]
-        dist, parent, incoming = tables[worker]
-        route = []
-        node = center
-        while node != 0:
-            route.append(tables[0][2][node])
-            node = tables[0][1][node]
-        for i in range(len(route) - 1, -1, -1):
-            if not move(route[i]):
-                return False
-        hits = 0
-        outbound = 0
-        discoveries = 0
-        while num_items(Items.Gold) < target_gold:
-            if get_time() >= deadline:
-                return False
-            treasure = measure()
-            if treasure == None:
-                return False
-            target = treasure[0] + treasure[1] * size
-            if owners[target] != worker:
-                # 原开边永久保留；闭合往返后仍在center。每次实际付400t移动和约0.066秒响应间隔。
-                idle_direction = graph[center][0][1]
-                if not move(idle_direction) or not move(reverse[idle_direction]):
-                    return False
-                continue
-            route = []
-            node = target
-            while node != center:
-                route.append(incoming[node])
-                node = parent[node]
-            walked = []
-            for i in range(len(route) - 1, -1, -1):
-                if measure() != treasure or num_items(Items.Gold) >= target_gold:
-                    break
-                if not move(route[i]):
-                    return False
-                walked.append(route[i])
-                outbound += 1
-            if len(walked) == len(route) and num_items(Items.Gold) < target_gold and measure() == treasure:
-                if not use_item(Items.Weird_Substance, unit):
-                    return False
-                hits += 1
-            if num_items(Items.Gold) >= target_gold:
-                quick_print("station_worker", worker, hits, outbound, discoveries, get_time())
-                return True
-            # 返回路径仍使用本次出发的不可变方向列；新边只修改下一次出发的父指针。
-            new_edges = []
-            for i in range(len(walked) - 1, -2, -1):
-                x = get_pos_x()
-                y = get_pos_y()
-                current = x + y * size
-                for j in range(4):
-                    nx = x + dx[j]
-                    ny = y + dy[j]
-                    if 0 <= nx < size and 0 <= ny < size and can_move(directions[j]):
-                        neighbor = nx + ny * size
-                        known = False
-                        for edge in graph[current]:
-                            if edge[0] == neighbor:
-                                known = True
-                                break
-                        if not known:
-                            add_maze_edge(graph, current, neighbor, directions[j])
-                            add_maze_edge(graph, neighbor, current, reverse[directions[j]])
-                            new_edges.append(current)
-                            new_edges.append(neighbor)
-                            discoveries += 1
-                if i >= 0 and not move(reverse[walked[i]]):
-                    return False
-            for current in new_edges:
-                for edge in graph[current]:
-                    neighbor = edge[0]
-                    if dist[neighbor] > dist[current] + 1:
-                        dist[neighbor] = dist[current] + 1
-                        parent[neighbor] = current
-                        incoming[neighbor] = edge[1]
-                        new_edges.append(neighbor)
-        quick_print("station_worker", worker, hits, outbound, discoveries, get_time())
-        return True
-
-    handles = []
-    passed = True
-    for worker in range(1, workers):
-        handle = spawn_drone(serve, worker)
-        if handle == None:
-            passed = False
-            break
-        handles.append(handle)
-    if passed:
-        passed = serve(0)
-    for handle in handles:
-        if not wait_for(handle):
-            passed = False
-    return passed and num_items(Items.Gold) >= target_gold
 
 
 def finish_gold():
-    if not ensure_power(2000):
-        return False
+    # Weird已提前支付；补足末段迷宫与四条蛇所需能量，避免再收整田。
+    if num_items(Items.Power) < 1600:
+        if not basic({Items.Carrot: get_world_size() * get_world_size()}):
+            return False
+        if not parallel_solar_reserve(get_world_size(), 1600):
+            return False
     return small_maze_gold(1000000)
 
 
@@ -1067,8 +921,8 @@ def finish_gold():
 
 
 def finish_bones():
-    # 迷宫工人均已回收，预留600 Power，串行完成完整恐龙周期。
-    if not ensure_power(600):
+    # 迷宫工人均已回收，预留400 Power，串行完成完整恐龙周期。
+    if not ensure_power(400):
         return False
     clear()
     for cycle in range(15):
@@ -1080,11 +934,20 @@ def finish_bones():
         if get_time() > 7000 or num_items(Items.Cactus) < get_world_size() * get_world_size() * get_cost(Entities.Apple)[Items.Cactus]:
             return False
         origin()
+        maximum = get_world_size() * get_world_size() - 1
+        factor = 2 ** (num_unlocked(Unlocks.Dinosaurs) - 1)
+        length = maximum
+        remaining = 2000000 - num_items(Items.Bone)
+        while (length - 1) * (length - 1) * factor >= remaining:
+            length -= 1
+        cactus_floor = -1
+        if length < maximum:
+            cactus_floor = num_items(Items.Cactus) - (length + 1) * get_cost(Entities.Apple)[Items.Cactus]
         before = num_items(Items.Bone)
         change_hat(Hats.Dinosaur_Hat)
-        run_dinosaur_chase_loop(get_world_size())
+        run_dinosaur_chase_loop(get_world_size(), cactus_floor)
         change_hat(Hats.Straw_Hat)
-        expected = (get_world_size() * get_world_size() - 1) ** 2 * 2 ** (num_unlocked(Unlocks.Dinosaurs) - 1)
+        expected = length * length * factor
         if num_items(Items.Bone) - before < expected:
             quick_print("directed_failed", "bone_incomplete_cycle", get_time(), cycle)
             return False
@@ -1193,7 +1056,7 @@ def move_cactus_line_to(forward, backward, target, deadline):
                 return False
     return get_time() < deadline
 
-def run_dinosaur_chase_loop(size):
+def run_dinosaur_chase_loop(size, cactus_floor):
     global farm_size
     global cycle_deadline
     global main_area
@@ -1225,7 +1088,7 @@ def run_dinosaur_chase_loop(size):
             next_id = cycle_index(next_x, next_y)
         if cnt >= turn_point:
             quick_print('dinosaur_finish', cnt, get_time())
-            fill_main_cycle(id, main_move)
+            fill_main_cycle(id, main_move, next_id, cactus_floor)
             break
         ccnt = cnt - size + cnt // size
         if id < ccnt:
@@ -1547,18 +1410,43 @@ def collect_in_region(target, area, cnt):
     return (newt, cnt)
 
 
-# 按主回路的剩余段和后续整圈前进；失败后由入口统一换帽结算。
-def fill_main_cycle(start, moves):
+# 未满蛇且只有本机消耗Cactus时，可由扣除首个Apple的实耗核算身体增长。
+# 沿主回路整段到果，只在Apple处核对；满蛇保留原快速循环。
+def fill_main_cycle(start, moves, apple_index, cactus_floor):
     count = len(moves)
     start = start % count
+    if cactus_floor >= 0:
+        apple_index = apple_index % count
+        if num_items(Items.Cactus) <= cactus_floor:
+            return
+        if get_entity_type() == Entities.Apple:
+            if not move(moves[start]):
+                return
+            start = (start + 1) % count
+        while num_items(Items.Cactus) > cactus_floor:
+            if start > apple_index:
+                for i in range(start, count):
+                    if not move(moves[i]):
+                        return
+                start = 0
+            for i in range(start, apple_index):
+                if not move(moves[i]):
+                    return
+            x, y = measure()  # ty: ignore[not-iterable]  此时沿已知回路到达唯一Apple。
+            following = cycle_index(x, y) % count
+            if not move(moves[apple_index]):
+                return
+            start = (apple_index + 1) % count
+            apple_index = following
+        return
     while True:
         for i in range(start, count):
             if not move(moves[i]):
                 return
         start = 0
 
-def small_maze_gold(target):
-    # 八机各修一座5格小迷宫；所有子机回收后才清场。
+def small_maze_gold(target, n=None):
+    # 中期2/4机用半幅小迷宫，末段8机用三列布局；工人全回收后才清场。
     WORLD = get_world_size()
     TARGET_GOLD = target
     DRONES = min(max_drones(), 8)
@@ -1566,7 +1454,11 @@ def small_maze_gold(target):
     DIRS = [North, East, South, West]
     BACK = [2, 3, 0, 1]
     MULT = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
-    n = WORLD // 3
+    cols = 3
+    if n == None:
+        n = WORLD // 3
+    else:
+        cols = WORLD // n
     deadline = min(7000, get_time() + 800)
     # 金币/Weird比为宫边长；另付创建、到位登记和并行超收的完整储备。
     required = (max(0, target - num_items(Items.Gold)) + n - 1) // n + 8 * n * MULT * DRONES + 2 * DRONES
@@ -1576,7 +1468,7 @@ def small_maze_gold(target):
     start_stock = num_items(Items.Weird_Substance)
     jobs = []
     for index in range(DRONES):
-        jobs.append((n, n // 2 + n * (index % 3), n // 2 + n * (index // 3)))
+        jobs.append((n, n // 2 + n * (index % cols), n // 2 + n * (index // cols)))
 
     def go_empty(tx, ty):
         # 仅在迷宫生成前使用农场环绕，分别走较短的横、纵位移。
@@ -1817,7 +1709,10 @@ def small_maze_gold(target):
         while num_items(Items.Weird_Substance) > start_stock - 2 * DRONES:
             if get_time() > deadline:
                 return (n, 0, 0)
-            change_hat(Hats.Straw_Hat)
+            if num_unlocked(Unlocks.Dinosaurs) > 0:
+                change_hat(Hats.Straw_Hat)
+            else:
+                can_harvest()
         while num_items(Items.Gold) < TARGET_GOLD and get_time() <= deadline:
             go_home(cx, cy)
             if get_entity_type() != None:
