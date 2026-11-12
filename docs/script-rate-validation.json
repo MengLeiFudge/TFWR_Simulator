@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-11-12T07:11:10.672590+00:00",
+  "recorded_at": "2026-11-12T08:41:16.194795+00:00",
   "conditions": {
     "width": 32,
     "height": 32,
@@ -386,20 +386,20 @@
     },
     "bone_dinosaur": {
       "backend": "csharp-native", "seed": 1, "stop_reason": "finished", "state_complete": true,
-      "game_seconds": 697.5249984, "wall_seconds": 19.2563755, "error": null,
-      "api_calls": {"num_items":5,"get_time":3441,"clear":1,"get_world_size":1,"range":1496,"abs":5870,"change_hat":2,"measure":514,"get_pos_x":10029,"get_pos_y":10029,"move":101769,"quick_print":3,"num_unlocked":1,"max":1,"num_drones":1},
-      "net_inventory": {"hay":0,"wood":0,"carrot":0,"rice":0,"bamboo":0,"pumpkin":0,"cactus":-65472,"bone":33488928,"weird_substance":0,"gold":0,"water":17856,"fertilizer":558,"block":0,"coal":0,"iron":0,"quartz":0,"mushroom":0,"dynamite":0,"power":-706.1186559200287,"piggy":0},
-      "messages": ["dinosaur_finish 514 401.31","dinosaur_cycle 1 33488928 697.52 697.52","finite_complete 1 697.52"],
+      "game_seconds": 684.08854254, "wall_seconds": 11.6162427, "error": null,
+      "api_calls": {"num_items":5,"get_time":3441,"clear":1,"get_world_size":1,"range":1545,"abs":5464,"change_hat":2,"measure":514,"get_pos_x":7187,"get_pos_y":7187,"move":101769,"quick_print":3,"len":1,"num_unlocked":1,"max":1,"num_drones":1},
+      "net_inventory": {"hay":0,"wood":0,"carrot":0,"rice":0,"bamboo":0,"pumpkin":0,"cactus":-65472,"bone":33488928,"weird_substance":0,"gold":0,"water":17512,"fertilizer":547,"block":0,"coal":0,"iron":0,"quartz":0,"mushroom":0,"dynamite":0,"power":-692.5461708307266,"piggy":0},
+      "messages": ["dinosaur_finish 514 396.09","dinosaur_cycle 1 33488928 684.08 684.09","finite_complete 1 684.09"],
       "achievement_verification": "not_recorded",
       "assembly_sha256": "7b493e17de59229c2ac2a1ffefc5609a57791ad320aa28f4472b02f6b9c0e323",
       "resources_sha256": "8c3c889c6f8c7415beee2b1c8e2fa428de20bdeb3775eddd65369032aee179d7",
-      "limits": {"game_seconds":1200,"wall_seconds":29.9962879,"api_calls":5000000,"nodes":100000000},
-      "report": ".codex/bilibili-improvement-20261112/reports/final-current-bone_dinosaur-s1/report.json",
-      "report_sha256": "809afa21b958399f4aa692aec12b95560ae8268fbb8b4c4253365d1a964e90ec",
-      "dependencies": {"run_once.py":"ec0d4b74f59308a2e3b3b6721b58fa580aef52ec1351d73fac4b32d1be1a930f","bone_dinosaur.py":"9056ce5fc7fd595a1cd1d535f247c317cc1c977d92f71f91f7303dfd7fde6923","production.py":"4ff6852da2fabb529d77837fc375ade25f2f1c27d6fae962429076e26c682df4"},
+      "limits": {"game_seconds":1200,"wall_seconds":29.9979374,"api_calls":5000000,"nodes":100000000},
+      "report": ".codex/dinosaur-refine-20261112/reports/position-bone_dinosaur-s1/report.json",
+      "report_sha256": "59d3daa6aee61a8f00d86bdb43c8abd16982415663bd06b32267dbaaf4865800",
+      "dependencies": {"run_once.py":"ec0d4b74f59308a2e3b3b6721b58fa580aef52ec1351d73fac4b32d1be1a930f","bone_dinosaur.py":"43dca283cfa9ced6cf15e398907c7fafe402dbfd6decc52bf94d1bdf98de1d54","production.py":"4ff6852da2fabb529d77837fc375ade25f2f1c27d6fae962429076e26c682df4"},
       "final_drone_count": 1, "efficiency_valid": true,
-      "positive_per_game_minute": {"bone":2880664.75697511},
-      "evidence_record": "functional-dinosaur-validation.json#cases/final-current-bone_dinosaur-s1"
+      "positive_per_game_minute": {"bone":2937245.0421978966},
+      "evidence_record": "functional-dinosaur-refinement.json#cases/position-bone_dinosaur-s1"
     },
     "cactus": {
       "backend": "csharp-native",
@@ -10170,11 +10170,12 @@
   "functional_optimization_evidence": "functional-optimization.json",
   "functional_parallel_evidence": "functional-parallel-validation.json",
   "functional_dinosaur_evidence": "functional-dinosaur-validation.json",
+  "functional_dinosaur_refinement_evidence": "functional-dinosaur-refinement.json",
   "functional_windows": {
     "mushroom": "120 game seconds, including complete patches; finite target +30000 separately verified in all three seeds",
     "bamboo": "450 game seconds to cover persistent stumps across batches",
     "power_pyramids": "finite +5000 Power; 127.34608203 actual game seconds",
-    "bone_dinosaur": "one complete harvest; 697.5249984 actual game seconds; three paired seeds and native leaderboard goals separately verified",
+    "bone_dinosaur": "one complete harvest; 684.08854254 actual game seconds; three paired seeds and native leaderboard goals separately verified",
     "others": "60 game seconds"
   }
 }

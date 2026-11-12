@@ -39,7 +39,7 @@ TARGETS = {
 | [carrot.py](carrot.py) | 胡萝卜 5.06亿 | 干草 2853.94万；木材 1.03亿 | 60.00 |
 | [pumpkin.py](pumpkin.py) | 南瓜 3129.29万 | 怪异物质 9.68万 | 60.00 |
 | [cactus.py](cactus.py) | 仙人掌 3355.44万 | — | 60.00 |
-| [bone_dinosaur.py](bone_dinosaur.py) | 骨头 288.07万 | — | 697.52 |
+| [bone_dinosaur.py](bone_dinosaur.py) | 骨头 293.72万 | — | 684.09 |
 | [weird_substance.py](weird_substance.py) | 怪异物质 9.13亿 | 木材 9.13亿 | 60.00 |
 | [gold_maze.py](gold_maze.py) | 金币 649.93万 | 干草 1.64万 | 60.00 |
 | [rice.py](rice.py) | 水稻 104.79万 | 建材 9,456；煤 48 | 60.00 |
@@ -55,7 +55,7 @@ TARGETS = {
 | [power_sunflower.py](power_sunflower.py) | 能量 3.41万 | 干草 16.38万；怪异物质 148 | 60.00 |
 | [pumpkin_petrified.py](pumpkin_petrified.py) | 南瓜 382.31万 | 建材 147.66万；煤 1.53万；铁 21.30万；石英 13.99万 | 60.00 |
 
-竹子观察450游戏秒，覆盖500M批次后保留竹桩的阶段；首60秒仍受筛选成本影响，不能套用该长期平均值。蘑菇观察120游戏秒，包含完整采集片；相同窗口三个seed提高6.5%～10.3%。炸药的完整两盘对照提高1.4%～1.6%，首分钟因结算时点变化很小，仍按实际入库显示。金字塔以增加5000能量的完整周期取样，实际运行127.35游戏秒。恐龙按完整一轮入库3348.89万骨头折算，seed1为697.52游戏秒、最终源码复验19.26墙钟秒；三个seed速率均提高11.2%～18.2%。恐龙在运行前按完整周期设每例30墙钟秒上限，其余本轮候选仍为10秒，不在预算结束后延长补跑。详细版本、数量及对照见[恐龙与扫推](../../docs/functional-dinosaur-validation.md)、[第二轮优化](../../docs/functional-parallel-validation.md)、[上一轮记录](../../docs/functional-optimization.md)、[验证汇总](../../docs/script-rate-validation.md)和[数据](../../docs/script-rate-validation.json)。
+竹子观察450游戏秒，覆盖500M批次后保留竹桩的阶段；首60秒仍受筛选成本影响，不能套用该长期平均值。蘑菇观察120游戏秒，包含完整采集片；相同窗口三个seed提高6.5%～10.3%。炸药的完整两盘对照提高1.4%～1.6%，首分钟因结算时点变化很小，仍按实际入库显示。金字塔以增加5000能量的完整周期取样，实际运行127.35游戏秒。恐龙按完整一轮入库3348.89万骨头折算，当前seed1为684.09游戏秒、11.62墙钟秒；在递归区域迁入版基础上，本轮区域计算延迟、按需读坐标及分段循环使三个seed再提高1.92%～1.96%。恐龙每例预设30墙钟秒，其余本轮候选仍为10秒，不在预算结束后延长补跑。详细版本、数量及对照见[恐龙与扫推](../../docs/functional-dinosaur-validation.md)、[第二轮优化](../../docs/functional-parallel-validation.md)、[上一轮记录](../../docs/functional-optimization.md)、[验证汇总](../../docs/script-rate-validation.md)和[数据](../../docs/script-rate-validation.json)。
 
 ## 脚本清单
 
@@ -66,7 +66,7 @@ TARGETS = {
 | 胡萝卜 | [carrot.py](carrot.py) | `lb_carrots.py`，区域动态伴生请求 |
 | 南瓜 | [pumpkin.py](pumpkin.py) | `lb_pumpkins.py`，16个双机区域及成熟队列 |
 | 仙人掌 | [cactus.py](cactus.py) | `lb_cactus.py`，树形派发、铺田预交换和三格窗口排序 |
-| 恐龙产骨头 | [bone_dinosaur.py](bone_dinosaur.py) | lywlucas `snaky2.py`递归矩形追果、退出恢复父区域，后半预建回路；与`lb_dinosaur.py`共用同一已验证结构 |
+| 恐龙产骨头 | [bone_dinosaur.py](bone_dinosaur.py) | lywlucas `snaky2.py`递归矩形追果、恢复父区域；本轮复用主区域、延迟子区域计算，后半按预建回路分段遍历 |
 | 迷宫产金币 | [gold_maze.py](gold_maze.py) | `lb_maze.py`，32座独立小迷宫及增量路由 |
 | 向日葵产能量 | [power_sunflower.py](power_sunflower.py) | `lb_sunflowers.py`，16组双机分瓣收获与同步 |
 | 水稻 | [rice.py](rice.py) | `lb_rice.py`两层粘土清单流水及补水，实际收割后下挖、全部回收后换田 |

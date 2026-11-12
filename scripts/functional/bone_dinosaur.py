@@ -23,6 +23,8 @@ def bone_dinosaur(target=-1):
 REVERSE = {East: West, West: East, North: South, South: North}
 farm_size = 32
 cycle_deadline = 0
+# 主区域由每轮入口按田尺寸建立，区域查询只复用它。
+main_area = None
 
 
 # 主回路编号只用本轮固定田尺寸，避免每次坐标换算重新读取世界。
@@ -39,16 +41,16 @@ def cycle_index(x, y):
 # 判断目标是否仍在区域的前方，左右转向随区域旋转。
 def in_region(location, area, upper=False, can_equal=True):
     size = farm_size
-    main_area = ((1, size - 1), size - 1, West, North)
     (x_n, y_n), width, dir, up = area
     x, y = location
-    a, b = (get_pos_x(), get_pos_y())
     if area == main_area:
         if upper == False:
             return x != 0
         else:
+            a, b = (get_pos_x(), get_pos_y())
             return size < cycle_index(a, b) <= cycle_index(x, y)
     if upper == True:
+        a, b = (get_pos_x(), get_pos_y())
         flg = False
         if in_region((a, b), area) == False:
             return False
@@ -251,43 +253,46 @@ def collect_in_region(target, area, cnt):
         return (target, cnt)
     cnt += 1
     x, y = (get_pos_x(), get_pos_y())
-    x_b, y_b = last_break
-    x_g, y_g = (x, y)
-    x_f, y_f = (x, y)
-    if up == North or up == South:
-        warn = abs(y - y_n)
-        n_width = abs(y - y_b)
-        if dir == East:
-            x_f = x_n - width + 1
-            x_g = x_n
-        else:
-            x_f = x_n + width - 1
-            x_g = x_n
-    else:
-        warn = abs(x - x_n)
-        n_width = abs(x - x_b)
-        if dir == North:
-            y_f = y_n - width + 1
-            y_g = y_n
-        else:
-            y_f = y_n + width - 1
-            y_g = y_n
-    area_ins = ((x_g, y_g), n_width - 1, up, dir)
-    area_out = ((x_f, y_f), n_width - 1, up, REVERSE[dir])
-    if x == a and y == b:
-        newt = measure()
-    else:
+    if x != a or y != b:
         return (target, cnt)
+    newt = measure()
     if in_region(newt, area, True) == True:
         newt, cnt = collect_in_region(newt, area, cnt)
-    elif warn != 0 and in_region(newt, area_ins, True, False) == True:
-        move(dir)
-        newt, cnt = collect_in_region(newt, area_ins, cnt)
-        newt, cnt = collect_in_region(newt, area, cnt)
-    elif warn != 0 and in_region(newt, area_out, True, False) == True:
-        move(REVERSE[dir])
-        newt, cnt = collect_in_region(newt, area_out, cnt)
-        newt, cnt = collect_in_region(newt, area, cnt)
+    else:
+        # 目标需要跨区时才计算转折带；外侧区域仅在内侧不可达时构造。
+        x_b, y_b = last_break
+        x_g, y_g = (x, y)
+        x_f, y_f = (x, y)
+        if up == North or up == South:
+            warn = abs(y - y_n)
+            n_width = abs(y - y_b)
+            if dir == East:
+                x_f = x_n - width + 1
+                x_g = x_n
+            else:
+                x_f = x_n + width - 1
+                x_g = x_n
+        else:
+            warn = abs(x - x_n)
+            n_width = abs(x - x_b)
+            if dir == North:
+                y_f = y_n - width + 1
+                y_g = y_n
+            else:
+                y_f = y_n + width - 1
+                y_g = y_n
+        if warn != 0:
+            area_ins = ((x_g, y_g), n_width - 1, up, dir)
+            if in_region(newt, area_ins, True, False) == True:
+                move(dir)
+                newt, cnt = collect_in_region(newt, area_ins, cnt)
+                newt, cnt = collect_in_region(newt, area, cnt)
+            else:
+                area_out = ((x_f, y_f), n_width - 1, up, REVERSE[dir])
+                if in_region(newt, area_out, True, False) == True:
+                    move(REVERSE[dir])
+                    newt, cnt = collect_in_region(newt, area_out, cnt)
+                    newt, cnt = collect_in_region(newt, area, cnt)
     if width < farm_size - 1:
         leave_region(area)
     elif cnt <= y * 2 + 1:
@@ -298,10 +303,22 @@ def collect_in_region(target, area, cnt):
     return (newt, cnt)
 
 
+# 按主回路的剩余段和后续整圈前进；失败后由入口统一换帽结算。
+def fill_main_cycle(start, moves):
+    count = len(moves)
+    start = start % count
+    while True:
+        for i in range(start, count):
+            if not move(moves[i]):
+                return
+        start = 0
+
+
 # 一轮前半采用递归区域，后半按预建主回路填满；退出时换帽真实结算。
 def production_cycle():
     global farm_size
     global cycle_deadline
+    global main_area
     clear()
     size = get_world_size()
     farm_size = size
@@ -333,8 +350,7 @@ def production_cycle():
             next_id = cycle_index(next_x, next_y)
         if cnt >= turn_point:
             quick_print('dinosaur_finish', cnt, get_time())
-            while move(main_move[id % A]):
-                id += 1
+            fill_main_cycle(id, main_move)
             break
         ccnt = cnt - size + cnt // size
         if id < ccnt:
