@@ -1,0 +1,778 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-12T00:51:05.593064+00:00",
+  "baseline_commit": "f88c649",
+  "scope": "Assess functional changes for both reset leaderboards",
+  "functional_evidence": "docs/functional-optimization.json",
+  "functional_evidence_sha256": "6da3054e4d2a6bf635b37bfe4bb98c7dcb047393d2db07f2ad8a0aaabeb5d4ff",
+  "functional_source_commit": "aead6ab",
+  "functional_assessments": {
+    "weird_substance": {
+      "source": "scripts/functional/weird_substance.py",
+      "source_sha256": "74df8413a69b7e0e1fa3fdbfe4f5ecdf36570db8a2d241eaba4d59842a3e5ca5",
+      "window": "60 game seconds; persistent nursery",
+      "verified_comparisons": [
+        {
+          "seed": 0,
+          "rate_ratio": 40.016129032258064,
+          "before_clear": 12,
+          "after_clear": 1
+        },
+        {
+          "seed": 1,
+          "rate_ratio": 35.544117647058826,
+          "before_clear": 12,
+          "after_clear": 1
+        },
+        {
+          "seed": 2,
+          "rate_ratio": 36.35294117647059,
+          "before_clear": 12,
+          "after_clear": 1
+        }
+      ]
+    },
+    "bamboo": {
+      "source": "scripts/functional/bamboo.py",
+      "source_sha256": "daf206baa01f73d5fbcd06622edfce9490b1343036fbf32f773b871c7385e31f",
+      "window": "450 game seconds; crosses 500M batch boundary",
+      "verified_comparisons": [
+        {
+          "seed": 0,
+          "rate_ratio": 1.078961456296291,
+          "before_clear": 2,
+          "after_clear": 1
+        },
+        {
+          "seed": 1,
+          "rate_ratio": 1.0866937565430603,
+          "before_clear": 2,
+          "after_clear": 1
+        },
+        {
+          "seed": 2,
+          "rate_ratio": 1.098720400936619,
+          "before_clear": 2,
+          "after_clear": 1
+        }
+      ]
+    },
+    "power_pyramids": {
+      "source": "scripts/functional/power_pyramids.py",
+      "source_sha256": "b0fece2400aa99ca2292096056e64ca92b90c217105ae1bc499dc8ba19191f43",
+      "window": "finite inventory target +5000 Power; complete cycles",
+      "verified_comparisons": [
+        {
+          "seed": 0,
+          "rate_ratio": 1.0452030061667337,
+          "before_clear": 14,
+          "after_clear": 14
+        },
+        {
+          "seed": 1,
+          "rate_ratio": 1.0888106540717752,
+          "before_clear": 7,
+          "after_clear": 7
+        },
+        {
+          "seed": 2,
+          "rate_ratio": 1.1442216271434789,
+          "before_clear": 4,
+          "after_clear": 4
+        }
+      ]
+    },
+    "power_sunflower": {
+      "source": "scripts/functional/power_sunflower.py",
+      "source_sha256": "a8014aade65f5eed81e92e9bd2c45c9df73d06a5288f396efff85c33c4abeb9e",
+      "window": "60 game seconds; batched watering and whole-wave exit",
+      "verified_comparisons": [
+        {
+          "seed": 0,
+          "rate_ratio": 1.1158592110426195,
+          "before_clear": 1,
+          "after_clear": 1
+        },
+        {
+          "seed": 1,
+          "rate_ratio": 1.0567787309450667,
+          "before_clear": 1,
+          "after_clear": 1
+        },
+        {
+          "seed": 2,
+          "rate_ratio": 1.0776818074578391,
+          "before_clear": 1,
+          "after_clear": 1
+        }
+      ]
+    },
+    "dynamite": {
+      "source": "scripts/functional/dynamite.py",
+      "source_sha256": "eb3635767926954d76a8729c84166c7da278d9179b8e2ece107604adf89dabd2",
+      "window": "finite inventory target +300000 Dynamite; two settled boards",
+      "verified_comparisons": [
+        {
+          "seed": 0,
+          "rate_ratio": 1.05385957322094,
+          "before_clear": 1,
+          "after_clear": 1
+        },
+        {
+          "seed": 1,
+          "rate_ratio": 1.0681125042358521,
+          "before_clear": 1,
+          "after_clear": 1
+        },
+        {
+          "seed": 2,
+          "rate_ratio": 1.0674044265593563,
+          "before_clear": 1,
+          "after_clear": 1
+        }
+      ]
+    }
+  },
+  "component_conditions": {
+    "preset": "reset",
+    "unlocks": {
+      "auto_unlock": 1,
+      "bamboo": 4,
+      "cactus": 0,
+      "carrots": 3,
+      "coal": 3,
+      "costs": 1,
+      "debug": 1,
+      "debug_2": 1,
+      "debug_place": 0,
+      "dictionaries": 1,
+      "dinosaurs": 0,
+      "dynamite": 4,
+      "expand": 6,
+      "explosive_drill": 0,
+      "fertilizer": 2,
+      "functions": 1,
+      "grass": 4,
+      "hats": 0,
+      "import": 1,
+      "iron": 4,
+      "jump": 0,
+      "leaderboard": 0,
+      "lists": 1,
+      "loops": 1,
+      "mazes": 1,
+      "megafarm": 2,
+      "mining": 8,
+      "mushrooms": 3,
+      "operators": 1,
+      "ore_boost": 1,
+      "petrified_pumpkins": 0,
+      "plant": 1,
+      "polyculture": 1,
+      "prospecting": 1,
+      "pumpkins": 3,
+      "pyramid": 0,
+      "quartz": 3,
+      "rice": 5,
+      "senses": 1,
+      "simulation": 1,
+      "special_soils": 0,
+      "speed": 5,
+      "sunflowers": 1,
+      "the_farmers_remains": 0,
+      "timing": 1,
+      "top_hat": 0,
+      "treasure_map": 0,
+      "trees": 3,
+      "underground_leaderboard": 0,
+      "underground_senses": 1,
+      "utilities": 1,
+      "variables": 1,
+      "watering": 1
+    },
+    "items": {
+      "Power": 1000,
+      "Rice": 30000
+    },
+    "goal": {
+      "item": "Bamboo",
+      "amount": 200000
+    }
+  },
+  "component_size": 12,
+  "component_drones": 4,
+  "model": {
+    "assembly_sha256": "7b493e17de59229c2ac2a1ffefc5609a57791ad320aa28f4472b02f6b9c0e323",
+    "resources_sha256": "8c3c889c6f8c7415beee2b1c8e2fa428de20bdeb3775eddd65369032aee179d7"
+  },
+  "component_only": true,
+  "initial_materials_and_technology_borrowed": true,
+  "bamboo_pairs": [
+    {
+      "seed": 1,
+      "current_seconds": 64.1748546,
+      "retained_seconds": 84.66929343,
+      "current_rice": 2056,
+      "retained_rice": 9784,
+      "current_bamboo": 200256,
+      "retained_bamboo": 265280
+    },
+    {
+      "seed": 2,
+      "current_seconds": 63.20349099,
+      "retained_seconds": 95.61997368,
+      "current_rice": 2008,
+      "retained_rice": 10816,
+      "current_bamboo": 200480,
+      "retained_bamboo": 259744
+    },
+    {
+      "seed": 3,
+      "current_seconds": 64.25287974,
+      "retained_seconds": 82.34022654,
+      "current_rice": 2024,
+      "retained_rice": 8864,
+      "current_bamboo": 200784,
+      "retained_bamboo": 259272
+    }
+  ],
+  "bamboo_mean_seconds": {
+    "current": 63.87707511,
+    "retained": 87.54316455
+  },
+  "bamboo_mean_rice": {
+    "current": 2029.3333333333333,
+    "retained": 9821.333333333334
+  },
+  "geometry_component_total_seconds_saved": 0.5744889,
+  "reports": [
+    {
+      "source": ".codex/functional-reset-transfer-20261112/candidates/bamboo-reset-current.py",
+      "source_sha256": "69585a8624eef857710f44af23070d354f496cdb8c6f821b900813c78c28adb3",
+      "report": ".codex/functional-reset-transfer-20261112/reports/bamboo-reset-current-s1.json",
+      "report_sha256": "d22e29535e38fff53e7e5c163519a99122d96568ea7e48ae45ad8dfcbd19873d",
+      "seed": 1,
+      "game_seconds": 64.1748546,
+      "wall_seconds": 0.5207578,
+      "stop_reason": "finished",
+      "state_complete": true,
+      "goal_reached": true,
+      "net_inventory": {
+        "hay": 0,
+        "wood": 0,
+        "carrot": 0,
+        "rice": -2056,
+        "bamboo": 200256,
+        "pumpkin": 0,
+        "cactus": 0,
+        "bone": 0,
+        "weird_substance": 0,
+        "gold": 0,
+        "water": 6,
+        "fertilizer": 12,
+        "block": 0,
+        "coal": 0,
+        "iron": 0,
+        "quartz": 0,
+        "mushroom": 0,
+        "dynamite": 0,
+        "power": -258.8573333333335,
+        "piggy": 0
+      },
+      "messages": [
+        "bamboo_round 8 36.26 89376",
+        "bamboo_done True 64.17 200256"
+      ],
+      "is_geometry_component": false,
+      "ending_drones": 1,
+      "spawn_drone": 3,
+      "wait_for": 3,
+      "warnings": [],
+      "input_hashes": {
+        "D:\\project\\other\\TFWR_Simulator\\.codex\\functional-reset-transfer-20261112\\bamboo-scenario.json": "10a4c7d3c92f20fadc22b1f67e44260e2d8982f25085605df17710b42ecd137a"
+      },
+      "limits": {
+        "game_seconds": 300,
+        "wall_seconds": 9.9979324,
+        "api_calls": 2000000,
+        "nodes": 50000000
+      }
+    },
+    {
+      "source": ".codex/functional-reset-transfer-20261112/candidates/bamboo-reset-current.py",
+      "source_sha256": "69585a8624eef857710f44af23070d354f496cdb8c6f821b900813c78c28adb3",
+      "report": ".codex/functional-reset-transfer-20261112/reports/bamboo-reset-current-s2.json",
+      "report_sha256": "bb82488ea656a4583e307f7d6bb0da16e39deca52386ea3fec579abe5a52c95d",
+      "seed": 2,
+      "game_seconds": 63.20349099,
+      "wall_seconds": 0.4805607,
+      "stop_reason": "finished",
+      "state_complete": true,
+      "goal_reached": true,
+      "net_inventory": {
+        "hay": 0,
+        "wood": 0,
+        "carrot": 0,
+        "rice": -2008,
+        "bamboo": 200480,
+        "pumpkin": 0,
+        "cactus": 0,
+        "bone": 0,
+        "weird_substance": 0,
+        "gold": 0,
+        "water": 6,
+        "fertilizer": 12,
+        "block": 0,
+        "coal": 0,
+        "iron": 0,
+        "quartz": 0,
+        "mushroom": 0,
+        "dynamite": 0,
+        "power": -255.36099999999908,
+        "piggy": 0
+      },
+      "messages": [
+        "bamboo_round 8 34.12 86264",
+        "bamboo_done True 63.2 200480"
+      ],
+      "is_geometry_component": false,
+      "ending_drones": 1,
+      "spawn_drone": 3,
+      "wait_for": 3,
+      "warnings": [],
+      "input_hashes": {
+        "D:\\project\\other\\TFWR_Simulator\\.codex\\functional-reset-transfer-20261112\\bamboo-scenario.json": "10a4c7d3c92f20fadc22b1f67e44260e2d8982f25085605df17710b42ecd137a"
+      },
+      "limits": {
+        "game_seconds": 300,
+        "wall_seconds": 9.9979822,
+        "api_calls": 2000000,
+        "nodes": 50000000
+      }
+    },
+    {
+      "source": ".codex/functional-reset-transfer-20261112/candidates/bamboo-reset-current.py",
+      "source_sha256": "69585a8624eef857710f44af23070d354f496cdb8c6f821b900813c78c28adb3",
+      "report": ".codex/functional-reset-transfer-20261112/reports/bamboo-reset-current-s3.json",
+      "report_sha256": "d2932e25d96cb15dd8f1bacdacf71965477ecfb1b575d90f9cbc67b0ef7c73f2",
+      "seed": 3,
+      "game_seconds": 64.25287974,
+      "wall_seconds": 0.4644471,
+      "stop_reason": "finished",
+      "state_complete": true,
+      "goal_reached": true,
+      "net_inventory": {
+        "hay": 0,
+        "wood": 0,
+        "carrot": 0,
+        "rice": -2024,
+        "bamboo": 200784,
+        "pumpkin": 0,
+        "cactus": 0,
+        "bone": 0,
+        "weird_substance": 0,
+        "gold": 0,
+        "water": 6,
+        "fertilizer": 12,
+        "block": 0,
+        "coal": 0,
+        "iron": 0,
+        "quartz": 0,
+        "mushroom": 0,
+        "dynamite": 0,
+        "power": -259.65033333333236,
+        "piggy": 0
+      },
+      "messages": [
+        "bamboo_round 8 34.62 87088",
+        "bamboo_done True 64.25 200784"
+      ],
+      "is_geometry_component": false,
+      "ending_drones": 1,
+      "spawn_drone": 3,
+      "wait_for": 3,
+      "warnings": [],
+      "input_hashes": {
+        "D:\\project\\other\\TFWR_Simulator\\.codex\\functional-reset-transfer-20261112\\bamboo-scenario.json": "10a4c7d3c92f20fadc22b1f67e44260e2d8982f25085605df17710b42ecd137a"
+      },
+      "limits": {
+        "game_seconds": 300,
+        "wall_seconds": 9.9968545,
+        "api_calls": 2000000,
+        "nodes": 50000000
+      }
+    },
+    {
+      "source": ".codex/functional-reset-transfer-20261112/candidates/bamboo-retained-stumps.py",
+      "source_sha256": "f2d100e64209bc2d2ee80272afec3b21dcf90087fbb259519776a752f0021fbe",
+      "report": ".codex/functional-reset-transfer-20261112/reports/bamboo-retained-stumps-s1.json",
+      "report_sha256": "63df476c740b06ec2515e132e556e88ae96d9dd624ea3c42b9a1764c1c332518",
+      "seed": 1,
+      "game_seconds": 84.66929343,
+      "wall_seconds": 0.4718017,
+      "stop_reason": "finished",
+      "state_complete": true,
+      "goal_reached": true,
+      "net_inventory": {
+        "hay": 0,
+        "wood": 0,
+        "carrot": 0,
+        "rice": -9784,
+        "bamboo": 265280,
+        "pumpkin": 0,
+        "cactus": 0,
+        "bone": 0,
+        "weird_substance": 0,
+        "gold": 0,
+        "water": 0,
+        "fertilizer": 16,
+        "block": 0,
+        "coal": 0,
+        "iron": 0,
+        "quartz": 0,
+        "mushroom": 0,
+        "dynamite": 0,
+        "power": -279.36333333333346,
+        "piggy": 0
+      },
+      "messages": [
+        "bamboo_select 9 11 22.32",
+        "bamboo_select 0 14 23.39",
+        "bamboo_select 3 11 23.39",
+        "bamboo_select 6 14 25.46",
+        "bamboo_select 3 7 30.85",
+        "bamboo_select 9 5 31.2",
+        "bamboo_select 0 4 33.03",
+        "bamboo_select 6 7 35.16",
+        "bamboo_select 9 5 37.68",
+        "bamboo_select 3 3 37.93",
+        "bamboo_select 0 2 39.83",
+        "bamboo_select 6 5 41.95",
+        "bamboo_select 9 2 44.11",
+        "bamboo_select 3 2 44.3",
+        "bamboo_select 0 2 46.34",
+        "bamboo_select 6 4 49",
+        "bamboo_select 3 1 50.01",
+        "bamboo_select 9 2 50.02",
+        "bamboo_select 0 1 52.14",
+        "bamboo_selected 3 54.17 108080",
+        "bamboo_select 6 0 54.82",
+        "bamboo_select 9 1 55.63",
+        "bamboo_selected 6 56.23 116320",
+        "bamboo_select 0 1 58.24",
+        "bamboo_select 9 1 61.39",
+        "bamboo_select 0 1 63.9",
+        "bamboo_selected 9 66.92 168296",
+        "bamboo_selected 0 69.87 174984",
+        "bamboo_done 6 76.51 223456",
+        "bamboo_done 9 77.07 229208",
+        "bamboo_done 0 80.01 246896",
+        "bamboo_done 3 84.67 265280",
+        "bamboo_all_done True 84.67 265280"
+      ],
+      "is_geometry_component": false,
+      "ending_drones": 1,
+      "spawn_drone": 3,
+      "wait_for": 3,
+      "warnings": [],
+      "input_hashes": {
+        "D:\\project\\other\\TFWR_Simulator\\.codex\\functional-reset-transfer-20261112\\bamboo-scenario.json": "10a4c7d3c92f20fadc22b1f67e44260e2d8982f25085605df17710b42ecd137a"
+      },
+      "limits": {
+        "game_seconds": 300,
+        "wall_seconds": 9.9978878,
+        "api_calls": 2000000,
+        "nodes": 50000000
+      }
+    },
+    {
+      "source": ".codex/functional-reset-transfer-20261112/candidates/bamboo-retained-stumps.py",
+      "source_sha256": "f2d100e64209bc2d2ee80272afec3b21dcf90087fbb259519776a752f0021fbe",
+      "report": ".codex/functional-reset-transfer-20261112/reports/bamboo-retained-stumps-s2.json",
+      "report_sha256": "27e092e2d0711fca0c6850c9d052107201f8d12de30a062ae5e0cb9cbcf8f1ca",
+      "seed": 2,
+      "game_seconds": 95.61997368,
+      "wall_seconds": 0.433995,
+      "stop_reason": "finished",
+      "state_complete": true,
+      "goal_reached": true,
+      "net_inventory": {
+        "hay": 0,
+        "wood": 0,
+        "carrot": 0,
+        "rice": -10816,
+        "bamboo": 259744,
+        "pumpkin": 0,
+        "cactus": 0,
+        "bone": 0,
+        "weird_substance": 0,
+        "gold": 0,
+        "water": 0,
+        "fertilizer": 19,
+        "block": 0,
+        "coal": 0,
+        "iron": 0,
+        "quartz": 0,
+        "mushroom": 0,
+        "dynamite": 0,
+        "power": -307.2943333333326,
+        "piggy": 0
+      },
+      "messages": [
+        "bamboo_select 3 12 24.29",
+        "bamboo_select 0 13 24.64",
+        "bamboo_select 9 13 25.28",
+        "bamboo_select 6 14 26.05",
+        "bamboo_select 3 7 32.69",
+        "bamboo_select 9 7 33.81",
+        "bamboo_select 0 6 34.55",
+        "bamboo_select 6 7 34.75",
+        "bamboo_select 3 4 39.48",
+        "bamboo_select 6 4 41.57",
+        "bamboo_select 9 6 41.74",
+        "bamboo_select 0 3 41.85",
+        "bamboo_select 3 3 46.18",
+        "bamboo_select 6 3 47.93",
+        "bamboo_select 0 1 48.02",
+        "bamboo_select 9 4 48.35",
+        "bamboo_selected 0 50.84 101096",
+        "bamboo_select 3 3 52.07",
+        "bamboo_select 6 3 54.55",
+        "bamboo_select 9 2 54.74",
+        "bamboo_select 3 1 57.88",
+        "bamboo_select 6 1 60.4",
+        "bamboo_select 9 1 60.41",
+        "bamboo_selected 3 60.66 134312",
+        "bamboo_select 9 1 66.24",
+        "bamboo_select 6 1 66.5",
+        "bamboo_selected 9 71.77 188688",
+        "bamboo_select 6 1 72.2",
+        "bamboo_select 6 1 77.89",
+        "bamboo_done 3 80.98 231960",
+        "bamboo_done 0 81.3 240816",
+        "bamboo_done 9 81.91 248680",
+        "bamboo_select 6 1 83.79",
+        "bamboo_select 6 1 89.75",
+        "bamboo_selected 6 95.62 259744",
+        "bamboo_done 6 95.62 259744",
+        "bamboo_all_done True 95.62 259744"
+      ],
+      "is_geometry_component": false,
+      "ending_drones": 1,
+      "spawn_drone": 3,
+      "wait_for": 3,
+      "warnings": [],
+      "input_hashes": {
+        "D:\\project\\other\\TFWR_Simulator\\.codex\\functional-reset-transfer-20261112\\bamboo-scenario.json": "10a4c7d3c92f20fadc22b1f67e44260e2d8982f25085605df17710b42ecd137a"
+      },
+      "limits": {
+        "game_seconds": 300,
+        "wall_seconds": 9.9976274,
+        "api_calls": 2000000,
+        "nodes": 50000000
+      }
+    },
+    {
+      "source": ".codex/functional-reset-transfer-20261112/candidates/bamboo-retained-stumps.py",
+      "source_sha256": "f2d100e64209bc2d2ee80272afec3b21dcf90087fbb259519776a752f0021fbe",
+      "report": ".codex/functional-reset-transfer-20261112/reports/bamboo-retained-stumps-s3.json",
+      "report_sha256": "aca4407a13175e20284f8b73727d802b5a7dc8be3881af3361f8ecaaefe296f0",
+      "seed": 3,
+      "game_seconds": 82.34022654,
+      "wall_seconds": 0.4277426,
+      "stop_reason": "finished",
+      "state_complete": true,
+      "goal_reached": true,
+      "net_inventory": {
+        "hay": 0,
+        "wood": 0,
+        "carrot": 0,
+        "rice": -8864,
+        "bamboo": 259272,
+        "pumpkin": 0,
+        "cactus": 0,
+        "bone": 0,
+        "weird_substance": 0,
+        "gold": 0,
+        "water": 0,
+        "fertilizer": 16,
+        "block": 0,
+        "coal": 0,
+        "iron": 0,
+        "quartz": 0,
+        "mushroom": 0,
+        "dynamite": 0,
+        "power": -285.9695000000005,
+        "piggy": 0
+      },
+      "messages": [
+        "bamboo_select 6 10 19.74",
+        "bamboo_select 9 8 22.65",
+        "bamboo_select 3 14 23.84",
+        "bamboo_select 0 10 24.19",
+        "bamboo_select 6 4 28.13",
+        "bamboo_select 9 4 29.48",
+        "bamboo_select 0 4 30.97",
+        "bamboo_select 3 6 33.07",
+        "bamboo_select 6 2 34.19",
+        "bamboo_select 9 3 36.14",
+        "bamboo_select 0 1 36.83",
+        "bamboo_select 6 1 39.79",
+        "bamboo_select 3 5 40.76",
+        "bamboo_select 0 1 42.49",
+        "bamboo_select 9 2 42.72",
+        "bamboo_selected 0 45.27 86848",
+        "bamboo_select 6 1 46.48",
+        "bamboo_select 3 2 46.62",
+        "bamboo_select 9 1 49.35",
+        "bamboo_select 6 1 52.18",
+        "bamboo_select 3 1 52.45",
+        "bamboo_select 9 1 55.01",
+        "bamboo_select 3 1 58.05",
+        "bamboo_select 6 1 58.34",
+        "bamboo_select 9 0 60.61",
+        "bamboo_selected 9 62.05 134480",
+        "bamboo_select 3 1 63.72",
+        "bamboo_select 6 1 64.24",
+        "bamboo_select 3 0 69.65",
+        "bamboo_selected 6 69.87 164928",
+        "bamboo_selected 3 71.09 174472",
+        "bamboo_done 0 75.7 205424",
+        "bamboo_done 6 80.02 226216",
+        "bamboo_done 3 81.27 246528",
+        "bamboo_done 9 82.34 259272",
+        "bamboo_all_done True 82.34 259272"
+      ],
+      "is_geometry_component": false,
+      "ending_drones": 1,
+      "spawn_drone": 3,
+      "wait_for": 3,
+      "warnings": [],
+      "input_hashes": {
+        "D:\\project\\other\\TFWR_Simulator\\.codex\\functional-reset-transfer-20261112\\bamboo-scenario.json": "10a4c7d3c92f20fadc22b1f67e44260e2d8982f25085605df17710b42ecd137a"
+      },
+      "limits": {
+        "game_seconds": 300,
+        "wall_seconds": 9.9977722,
+        "api_calls": 2000000,
+        "nodes": 50000000
+      }
+    },
+    {
+      "source": ".codex/functional-reset-transfer-20261112/candidates/neighbors-parallel.py",
+      "source_sha256": "1facf7707a31f731f07c7931f99c51ed0004fc301034a7810dec6ce8922334c8",
+      "report": ".codex/functional-reset-transfer-20261112/reports/neighbors-parallel-s1.json",
+      "report_sha256": "d51d1d5995c5ae252c98c2dead32c10185a7eafbe1e9c4d06d5418018f50572b",
+      "seed": 1,
+      "game_seconds": 1.56692259,
+      "wall_seconds": 0.397445,
+      "stop_reason": "finished",
+      "state_complete": true,
+      "goal_reached": false,
+      "net_inventory": {
+        "hay": 0,
+        "wood": 0,
+        "carrot": 0,
+        "rice": 0,
+        "bamboo": 0,
+        "pumpkin": 0,
+        "cactus": 0,
+        "bone": 0,
+        "weird_substance": 0,
+        "gold": 0,
+        "water": 0,
+        "fertilizer": 0,
+        "block": 0,
+        "coal": 0,
+        "iron": 0,
+        "quartz": 0,
+        "mushroom": 0,
+        "dynamite": 0,
+        "power": -2.161999999999921,
+        "piggy": 0
+      },
+      "messages": [
+        "near_component True 0.39 144 1"
+      ],
+      "is_geometry_component": true,
+      "ending_drones": 1,
+      "spawn_drone": 3,
+      "wait_for": 3,
+      "warnings": [],
+      "input_hashes": {
+        "D:\\project\\other\\TFWR_Simulator\\.codex\\functional-reset-transfer-20261112\\bamboo-scenario.json": "10a4c7d3c92f20fadc22b1f67e44260e2d8982f25085605df17710b42ecd137a"
+      },
+      "limits": {
+        "game_seconds": 300,
+        "wall_seconds": 9.9976958,
+        "api_calls": 2000000,
+        "nodes": 50000000
+      }
+    },
+    {
+      "source": ".codex/functional-reset-transfer-20261112/candidates/neighbors-serial.py",
+      "source_sha256": "e2bc2a95c231aed49c7068c0bf39c10d8ccb8fe094d873b709cbe348babb02db",
+      "report": ".codex/functional-reset-transfer-20261112/reports/neighbors-serial-s1.json",
+      "report_sha256": "db47a28d303753ffbcee3a764724a66058c19aa6a5a999b77ee7d384a39f573a",
+      "seed": 1,
+      "game_seconds": 2.14141149,
+      "wall_seconds": 0.3978274,
+      "stop_reason": "finished",
+      "state_complete": true,
+      "goal_reached": false,
+      "net_inventory": {
+        "hay": 0,
+        "wood": 0,
+        "carrot": 0,
+        "rice": 0,
+        "bamboo": 0,
+        "pumpkin": 0,
+        "cactus": 0,
+        "bone": 0,
+        "weird_substance": 0,
+        "gold": 0,
+        "water": 0,
+        "fertilizer": 0,
+        "block": 0,
+        "coal": 0,
+        "iron": 0,
+        "quartz": 0,
+        "mushroom": 0,
+        "dynamite": 0,
+        "power": -2.0249999999998636,
+        "piggy": 0
+      },
+      "messages": [
+        "near_component True 0.96 144 1"
+      ],
+      "is_geometry_component": true,
+      "ending_drones": 1,
+      "spawn_drone": 0,
+      "wait_for": 0,
+      "warnings": [],
+      "input_hashes": {
+        "D:\\project\\other\\TFWR_Simulator\\.codex\\functional-reset-transfer-20261112\\bamboo-scenario.json": "10a4c7d3c92f20fadc22b1f67e44260e2d8982f25085605df17710b42ecd137a"
+      },
+      "limits": {
+        "game_seconds": 300,
+        "wall_seconds": 9.9976728,
+        "api_calls": 2000000,
+        "nodes": 50000000
+      }
+    }
+  ],
+  "conclusions": [
+    "The five functional improvements have matching source/report hashes and valid evidence under their all-unlocked, material-rich conditions.",
+    "The 35-40x Weird gain removes repeated million-item batch nursery clearing. The ordinary reset already preserves accepted trees within each order and uses paid Weird infection for parallel mature trees.",
+    "The underground reset still uses Fertilizer for its nursery. Fertilizer availability is part of reset costs; all-unlocked functional throughput is not its rate.",
+    "Long-running Bamboo reuse is useful; the tested 200k reset target completes more slowly and consumes more Rice with full functional flower selection. Extra final Bamboo is reported explicitly.",
+    "The functional Sunflower implementation requires 32 drones and a 32x32 map and uses real Pumpkin seed costs for signals. Its small-target exit improvement does not apply to the reset helper, which already checks the goal before every harvest.",
+    "Functional pyramid geometry came from the existing pyramid leaderboard. Both reset sources currently use Sunflowers; Jump and explosive-drill assumptions cannot be copied into their startup.",
+    "Parallel fixed adjacency construction is correct at 12x12/four drones and saves about 0.57 game seconds once; this is not a material full-route change.",
+    "Retaining independent production areas across resource orders remains a structural research direction. Geometry, clear barriers, seed funding and actual critical-path rates must be budgeted first."
+  ],
+  "deployment_performed": false,
+  "production_code_changed": false,
+  "real_game_performed": false,
+  "implementation_deviations": "None"
+}

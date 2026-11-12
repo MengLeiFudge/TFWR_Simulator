@@ -41,4 +41,6 @@
 
 本轮没有修改C#，复用未变的执行器；LSP无错误或警告，36项hint为未用变量及外部类型桩造成的不可达分支。模型与API组合的精度限制仍遵守[模拟器验收](../simulator/README.md#模拟精度与验收)，本地结果不代替真实游戏精度或Steam到账验证。
 
+向两个快速重置榜迁移时的条件、同规模组件和采用判断归[重置迁移核对](leaderboards/reset_startup_routes.md#功能脚本成果向重置榜迁移的核对)。本页保留全科技功能生产的结果口径。
+
 Implementation deviations: None。
