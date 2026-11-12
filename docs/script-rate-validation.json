@@ -91,73 +91,18 @@
   "steam_achievement_state": "not recorded; verify original mechanics, actual actions and output only",
   "functional": {
     "hay": {
-      "backend": "csharp-native",
-      "seed": 1,
-      "stop_reason": "game_time_limit",
-      "state_complete": true,
-      "game_seconds": 60,
-      "wall_seconds": 0.9740512,
-      "error": null,
-      "api_calls": {
-        "set_world_size": 1,
-        "spawn_drone": 31,
-        "append": 31,
-        "get_world_size": 1024,
-        "get_pos_x": 1056,
-        "get_pos_y": 1056,
-        "range": 2048,
-        "move": 14980,
-        "get_entity_type": 960,
-        "harvest": 40125,
-        "plant": 768,
-        "num_items": 176,
-        "use_item": 176,
-        "get_companion": 39396,
-        "can_harvest": 12381
-      },
-      "net_inventory": {
-        "hay": 1021448192,
-        "wood": 0,
-        "carrot": 0,
-        "rice": 0,
-        "bamboo": 0,
-        "pumpkin": 0,
-        "cactus": 0,
-        "bone": 0,
-        "weird_substance": 0,
-        "gold": 0,
-        "water": 1008,
-        "fertilizer": 47,
-        "block": 0,
-        "coal": 0,
-        "iron": 0,
-        "quartz": 0,
-        "mushroom": 0,
-        "dynamite": 0,
-        "power": -1919.6129995584488,
-        "piggy": 0
-      },
-      "messages": [],
+      "backend": "csharp-native", "seed": 1, "stop_reason": "game_time_limit", "state_complete": true,
+      "game_seconds": 60, "wall_seconds": 0.8897474, "error": null,
+      "net_inventory": {"hay":1033822208,"wood":0,"carrot":0,"rice":0,"bamboo":0,"pumpkin":0,"cactus":0,"bone":0,"weird_substance":0,"gold":0,"water":1023,"fertilizer":47,"block":0,"coal":0,"iron":0,"quartz":0,"mushroom":0,"dynamite":0,"power":-1919.50166618824,"piggy":0},
       "achievement_verification": "not_recorded",
       "assembly_sha256": "7b493e17de59229c2ac2a1ffefc5609a57791ad320aa28f4472b02f6b9c0e323",
       "resources_sha256": "8c3c889c6f8c7415beee2b1c8e2fa428de20bdeb3775eddd65369032aee179d7",
-      "limits": {
-        "game_seconds": 60,
-        "wall_seconds": 9.9979635,
-        "api_calls": 5000000,
-        "nodes": 100000000
-      },
-      "report": ".codex/script-followup-20261111/reports/baseline-hay-s1/report.json",
-      "report_sha256": "1efa7a6aaacf22259e99183a98c3b81f402e5893f38761332970e0804fe3a95f",
-      "dependencies": {
-        "hay.py": "140163effef5f89042a16cdad3391584904f15fc3a68dc13efca400973bea71d",
-        "production.py": "4ff6852da2fabb529d77837fc375ade25f2f1c27d6fae962429076e26c682df4"
-      },
-      "final_drone_count": 32,
-      "positive_per_game_minute": {
-        "hay": 1021448192.0
-      },
-      "final_min_water": 0
+      "report": ".codex/functional-hay-startup-20261112/reports/snake-window-hay-s1/report.json",
+      "report_sha256": "f457c68fe352dcaefc84cb22e0c47c87634580b5b6d77f0198a6939b994e0f36",
+      "dependencies": {"hay.py":"8c6c85cd69db64985a679d9ab4412a1bf85aad9b449f92cabd40dcf191cf2bfb","production.py":"4ff6852da2fabb529d77837fc375ade25f2f1c27d6fae962429076e26c682df4"},
+      "final_drone_count": 32, "efficiency_valid": true,
+      "positive_per_game_minute": {"hay":1033822208.0},
+      "evidence_record": "functional-hay-startup-validation.json"
     },
     "carrot": {
       "backend": "csharp-native", "seed": 1, "stop_reason": "game_time_limit", "state_complete": true,
