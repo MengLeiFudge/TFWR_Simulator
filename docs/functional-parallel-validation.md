@@ -32,4 +32,4 @@
 
 分别确认idle498后持同名状态锁备份，只覆盖已有`mushroom.py`、`weird_substance.py`和`dynamite.py`；每次复制都核对冻结源、存档旧版、同条件报告与严格效率改善，其余Python文件和文件列表不变。备份及记录位于原始目录`deploy-001/`、`deploy-002/`，摘要保存在正式JSON。没有运行真实游戏。
 
-这些是同一C#模型中的对照收益，仍遵守[模拟精度与验收](../simulator/README.md#模拟精度与验收)，不替代新鲜实机精度对照或Steam成就到账记录。
+这些是同一C#模型中的对照收益，仍遵守[模拟精度与验收](../simulator/README.md#模拟精度与验收)，不替代新鲜实机精度对照或Steam成就到账记录。对两个重置榜的适用条件、实际阶段成本及迁移优先级见[重置路线核对](leaderboards/reset_startup_routes.md#第二轮功能优化对两个重置榜的作用)。

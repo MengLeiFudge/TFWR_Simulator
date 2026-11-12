@@ -1,0 +1,520 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-12T03:56:34.408685+00:00",
+  "assessment": "Source/report verification and conditional phase budgets; no new simulation or deployment.",
+  "functional_evidence": "docs/functional-parallel-validation.json",
+  "functional_evidence_sha256": "f75eb214de3c19be9195031c54c6d556605f709dcc8e227d5db4c6213415dfbc",
+  "verified_pairs": {
+    "mushroom": {
+      "source": "scripts/functional/mushroom.py",
+      "source_sha256": "e81443425c4f8fd3826ea87e93d7319082aba6d42d1b148ecd288664b5a653f3",
+      "pairs": [
+        {
+          "seed": 0,
+          "rate_change_percent": 6.518282988871227,
+          "baseline_report": ".codex/functional-parallel-20261112/reports/baseline120-mushroom-s0/report.json",
+          "baseline_report_sha256": "14c66fdb5a26b9b4bd566bd9037a542ee31e74acf930db0693ee22fcadc81376",
+          "candidate_report": ".codex/functional-parallel-20261112/reports/resident-skip120-mushroom-s0/report.json",
+          "candidate_report_sha256": "837318c1ab28ce94366e70fc5a08a08c17cf0ce25dd38545b28f0838017c833c"
+        },
+        {
+          "seed": 1,
+          "rate_change_percent": 9.691629955947146,
+          "baseline_report": ".codex/functional-parallel-20261112/reports/baseline120-mushroom-s1/report.json",
+          "baseline_report_sha256": "e12c7772f986f6caa904e7d6ec463ef67a1deb240eb05bf8b4df3617bbe25f2e",
+          "candidate_report": ".codex/functional-parallel-20261112/reports/resident-skip120-mushroom-s1/report.json",
+          "candidate_report_sha256": "e1ddf3396a4ae97e94e53eb74be4a191394c7ae27babb798ce65ee5b7451b837"
+        },
+        {
+          "seed": 2,
+          "rate_change_percent": 10.294117647058831,
+          "baseline_report": ".codex/functional-parallel-20261112/reports/baseline120-mushroom-s2/report.json",
+          "baseline_report_sha256": "64873d9c13ea1d9b85bf21fdb19b5a5a0de1f473cc4cd2f10259f6170e9c5ae0",
+          "candidate_report": ".codex/functional-parallel-20261112/reports/resident-skip120-mushroom-s2/report.json",
+          "candidate_report_sha256": "27300ff7be97f28c41f3ab2a0152f00ce11710a7caa6277f6f38b8799e15ccb9"
+        }
+      ]
+    },
+    "weird_substance": {
+      "source": "scripts/functional/weird_substance.py",
+      "source_sha256": "bce791d2f0d6cb8b9a48e8aff1bb382d40f3a191fa4d68e607f0229c08ca8c2d",
+      "pairs": [
+        {
+          "seed": 0,
+          "rate_change_percent": 81.4590890769851,
+          "baseline_report": ".codex/functional-parallel-20261112/reports/baseline-extra-weird_substance-s0/report.json",
+          "baseline_report_sha256": "e81f4f60d3a87d7d8feeab5b9bc066340d83981e0769cf01c7745ce85172e085",
+          "candidate_report": ".codex/functional-parallel-20261112/reports/split32-weird_substance-s0/report.json",
+          "candidate_report_sha256": "6a147d319d4888f35eb85b6a45fef14785fa735aaa0f2e7ffd390d6ad52da3f6"
+        },
+        {
+          "seed": 1,
+          "rate_change_percent": 84.36077782374845,
+          "baseline_report": ".codex/functional-parallel-20261112/reports/baseline-weird_substance-s1/report.json",
+          "baseline_report_sha256": "ae3ae5e33cd688b726e70b003620485ed4aa9f591d120fc2c692f942b6da3473",
+          "candidate_report": ".codex/functional-parallel-20261112/reports/split32-weird_substance-s1/report.json",
+          "candidate_report_sha256": "edf15445638a1a067b2b164ee558b0f027a628d557dbe788eb9c4646c22b327a"
+        },
+        {
+          "seed": 2,
+          "rate_change_percent": 78.60032362459546,
+          "baseline_report": ".codex/functional-parallel-20261112/reports/baseline-extra-weird_substance-s2/report.json",
+          "baseline_report_sha256": "1fbee9a7811ba86035a5220bcf9b4bb66cd29a9de7c4a175fa87af10e456efd3",
+          "candidate_report": ".codex/functional-parallel-20261112/reports/split32-weird_substance-s2/report.json",
+          "candidate_report_sha256": "28d4e305c5744670727d5aa62f660439bb9edbbd3025fc218d6067203f5eebd1"
+        }
+      ]
+    },
+    "dynamite": {
+      "source": "scripts/functional/dynamite.py",
+      "source_sha256": "b6e447d904164daeb77c05b43bb322f19896f27ffb736e1440ae196f71e0a238",
+      "pairs": [
+        {
+          "seed": 0,
+          "rate_change_percent": 1.4371908524897448,
+          "baseline_report": ".codex/functional-parallel-20261112/reports/base300k-dynamite-s0/report.json",
+          "baseline_report_sha256": "ca31ad63c3c2ce544645498d843660651bf788b3dec4ee9e72a305e8648bc786",
+          "candidate_report": ".codex/functional-parallel-20261112/reports/static-plan30k-dynamite-s0/report.json",
+          "candidate_report_sha256": "590603256904bef8f6676974fc0a98c48f7a7a5cd10c23a3bba0ceb1e2b02259"
+        },
+        {
+          "seed": 1,
+          "rate_change_percent": 1.6443438232160101,
+          "baseline_report": ".codex/functional-parallel-20261112/reports/base300k-dynamite-s1/report.json",
+          "baseline_report_sha256": "973f1c8521cd944871f43e47936c9907f5d7a467bebfb17aaee53cbfe80532c7",
+          "candidate_report": ".codex/functional-parallel-20261112/reports/static-plan30k-dynamite-s1/report.json",
+          "candidate_report_sha256": "7d27729a0b807feff2a2c00159bac6bc9d51c6ab436d599b2ed8f4d34c1415ae"
+        },
+        {
+          "seed": 2,
+          "rate_change_percent": 1.626971589234949,
+          "baseline_report": ".codex/functional-parallel-20261112/reports/base300k-dynamite-s2/report.json",
+          "baseline_report_sha256": "d440aecdd420531b6facbd7395e704cbc28b3138dc6f4b00ca0ad29ab56e6d4e",
+          "candidate_report": ".codex/functional-parallel-20261112/reports/static-plan30k-dynamite-s2/report.json",
+          "candidate_report_sha256": "b8b360d8beb325d759219e27c8731581889f2c91a8a7c691b5c1a48902999b96"
+        }
+      ]
+    }
+  },
+  "reset_evidence": "references/leaderboards/reset_persistent_20261112.json",
+  "reset_evidence_sha256": "9e7b44e388cfbe4ce81867b9d8c4d573a4b7f9e68a31d2ee16ef6792dbc8c0e5",
+  "reset_samples": [
+    {
+      "script": "lb_fastest_reset",
+      "seed": 1,
+      "report": ".codex/reset-persistent-20261112/reports/ground-immediate-s1.json",
+      "report_sha256": "b4d28b932e04dbc5711169682bbfc287bfaa93403873785df770732616f00554",
+      "game_seconds": 2745.402977508,
+      "weird_orders": 4,
+      "weird_seconds": 65.14,
+      "collect_spans": [],
+      "mushroom_after_cover_seconds": 0,
+      "mushroom_batches": 0,
+      "dynamite_dispatch_phases": 0,
+      "source_sha256": "0db1df5173f6799173ce299b849d9eb28c7f06e9768bf07209b60e9d13192ea0"
+    },
+    {
+      "script": "lb_fastest_reset",
+      "seed": 2,
+      "report": ".codex/reset-persistent-20261112/reports/ground-immediate-s2.json",
+      "report_sha256": "710bc15cbf1d6126344a5c2f30bef9cd418779caafb855e4d7419c5c0bafd466",
+      "game_seconds": 2776.970882339,
+      "weird_orders": 4,
+      "weird_seconds": 63.46,
+      "collect_spans": [],
+      "mushroom_after_cover_seconds": 0,
+      "mushroom_batches": 0,
+      "dynamite_dispatch_phases": 0,
+      "source_sha256": "0db1df5173f6799173ce299b849d9eb28c7f06e9768bf07209b60e9d13192ea0"
+    },
+    {
+      "script": "lb_fastest_reset",
+      "seed": 3,
+      "report": ".codex/reset-persistent-20261112/reports/ground-immediate-s3.json",
+      "report_sha256": "7ef47a9ada75677599f96b2176b05b2229dd0838eaacf184c8e8c36356f6a90f",
+      "game_seconds": 2732.563738629,
+      "weird_orders": 4,
+      "weird_seconds": 64.44,
+      "collect_spans": [],
+      "mushroom_after_cover_seconds": 0,
+      "mushroom_batches": 0,
+      "dynamite_dispatch_phases": 0,
+      "source_sha256": "0db1df5173f6799173ce299b849d9eb28c7f06e9768bf07209b60e9d13192ea0"
+    },
+    {
+      "script": "lb_fastest_underground_reset",
+      "seed": 1,
+      "report": ".codex/reset-persistent-20261112/reports/underground-immediate-s1.json",
+      "report_sha256": "371a9682f07611af79f79b9e0ae3a73039ca6c1f000da076ccced6dc30a1195c",
+      "game_seconds": 3055.021640671,
+      "weird_orders": 5,
+      "weird_seconds": 26.63,
+      "collect_spans": [
+        {
+          "item": "Mushroom",
+          "target_at_call": 250,
+          "began": 2354.68,
+          "ended": 2430.0,
+          "elapsed": 75.32,
+          "ending_inventory": 280
+        },
+        {
+          "item": "Mushroom",
+          "target_at_call": 100,
+          "began": 2430.04,
+          "ended": 2606.84,
+          "elapsed": 176.8,
+          "ending_inventory": 606
+        },
+        {
+          "item": "Dynamite",
+          "target_at_call": 20000,
+          "began": 2896.88,
+          "ended": 3054.99,
+          "elapsed": 158.11,
+          "ending_inventory": 22136
+        }
+      ],
+      "mushroom_after_cover_seconds": 44.92,
+      "mushroom_batches": 6,
+      "dynamite_dispatch_phases": 29,
+      "source_sha256": "a0102de981cde0adfc98e24dc6a7b80f80cbf4640b4cd98fd3832f95a0b3cee8"
+    },
+    {
+      "script": "lb_fastest_underground_reset",
+      "seed": 2,
+      "report": ".codex/reset-persistent-20261112/reports/underground-immediate-s2.json",
+      "report_sha256": "bd05f2bd73cc6dedf4bc46010cec0655bbd8c900580635aec48e131c36769f5b",
+      "game_seconds": 3111.692136266,
+      "weird_orders": 5,
+      "weird_seconds": 25.34,
+      "collect_spans": [
+        {
+          "item": "Mushroom",
+          "target_at_call": 250,
+          "began": 2361.85,
+          "ended": 2392.28,
+          "elapsed": 30.43,
+          "ending_inventory": 276
+        },
+        {
+          "item": "Mushroom",
+          "target_at_call": 100,
+          "began": 2392.32,
+          "ended": 2550.53,
+          "elapsed": 158.21,
+          "ending_inventory": 610
+        },
+        {
+          "item": "Dynamite",
+          "target_at_call": 20000,
+          "began": 2903.54,
+          "ended": 3111.66,
+          "elapsed": 208.12,
+          "ending_inventory": 20644
+        }
+      ],
+      "mushroom_after_cover_seconds": 47.27,
+      "mushroom_batches": 6,
+      "dynamite_dispatch_phases": 24,
+      "source_sha256": "a0102de981cde0adfc98e24dc6a7b80f80cbf4640b4cd98fd3832f95a0b3cee8"
+    },
+    {
+      "script": "lb_fastest_underground_reset",
+      "seed": 3,
+      "report": ".codex/reset-persistent-20261112/reports/underground-immediate-s3.json",
+      "report_sha256": "4fe2791177df05f78d3694596996dc3652b4c7ea5e379e6a4af5d54c6d12c6e7",
+      "game_seconds": 3034.70856802,
+      "weird_orders": 5,
+      "weird_seconds": 27.92,
+      "collect_spans": [
+        {
+          "item": "Mushroom",
+          "target_at_call": 250,
+          "began": 2319.07,
+          "ended": 2413.12,
+          "elapsed": 94.05,
+          "ending_inventory": 284
+        },
+        {
+          "item": "Mushroom",
+          "target_at_call": 100,
+          "began": 2413.16,
+          "ended": 2557.72,
+          "elapsed": 144.56,
+          "ending_inventory": 618
+        },
+        {
+          "item": "Dynamite",
+          "target_at_call": 20000,
+          "began": 2849.59,
+          "ended": 3034.67,
+          "elapsed": 185.08,
+          "ending_inventory": 21456
+        }
+      ],
+      "mushroom_after_cover_seconds": 44.83,
+      "mushroom_batches": 6,
+      "dynamite_dispatch_phases": 28,
+      "source_sha256": "a0102de981cde0adfc98e24dc6a7b80f80cbf4640b4cd98fd3832f95a0b3cee8"
+    }
+  ],
+  "phase_summary": {
+    "lb_fastest_reset": {
+      "weird_order_mean_seconds": 64.34666666666666,
+      "conditional_budget": {
+        "weird_substance": {
+          "affected_seconds_assumption": 64.34666666666666,
+          "rate_gain_range_percent": [
+            78.60032362459546,
+            84.36077782374845
+          ],
+          "conditional_seconds_saved": [
+            28.318363155907885,
+            29.44408737283064
+          ]
+        },
+        "mushroom": {
+          "affected_seconds_assumption": 0,
+          "rate_gain_range_percent": [
+            6.518282988871227,
+            10.294117647058831
+          ],
+          "conditional_seconds_saved": [
+            0.0,
+            0.0
+          ]
+        },
+        "dynamite": {
+          "affected_seconds_assumption": 0,
+          "rate_gain_range_percent": [
+            1.4371908524897448,
+            1.6443438232160101
+          ],
+          "conditional_seconds_saved": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "lb_fastest_underground_reset": {
+      "weird_order_mean_seconds": 26.63,
+      "mushroom_mean_seconds": 226.45666666666668,
+      "dynamite_mean_seconds": 183.77,
+      "mushroom_after_cover_mean_seconds": 45.67333333333333,
+      "mushroom_search_and_cover_mean_seconds": 180.78333333333336,
+      "conditional_budget": {
+        "weird_substance": {
+          "affected_seconds_assumption": 26.63,
+          "rate_gain_range_percent": [
+            78.60032362459546,
+            84.36077782374845
+          ],
+          "conditional_seconds_saved": [
+            11.71961268403171,
+            12.185495960502692
+          ]
+        },
+        "mushroom": {
+          "affected_seconds_assumption": 45.67333333333333,
+          "rate_gain_range_percent": [
+            6.518282988871227,
+            10.294117647058831
+          ],
+          "conditional_seconds_saved": [
+            2.794935323383086,
+            4.262844444444447
+          ]
+        },
+        "dynamite": {
+          "affected_seconds_assumption": 183.77,
+          "rate_gain_range_percent": [
+            1.4371908524897448,
+            1.6443438232160101
+          ],
+          "conditional_seconds_saved": [
+            2.603705413590501,
+            2.972925526657655
+          ]
+        }
+      }
+    }
+  },
+  "method": "Savings = affected duration * rate gain / (1 + rate gain). Gains from full-tech functional scripts are only conditional sensitivity inputs, not measured reset improvements. Stage boundaries use original quick_print timestamps rounded to 0.01 seconds.",
+  "limitations": [
+    "Reset routes currently use 8/4 maximum drones; the functional Weird change expands 16 to 32 at size32, while reset workers already use all unlocked drones.",
+    "Ordinary reset has no Mushroom or Dynamite stage. The mushroom leaderboard already has resident workers.",
+    "Mushroom search and cover time is excluded from the affected work duration; resident workers do not remove it.",
+    "Dynamite static geometry is reusable, but board facts and constraints must be rebuilt each board/phase.",
+    "No reset candidate was executed or adopted in this assessment, and no best leaderboard simulation time is changed."
+  ],
+  "model": {
+    "assembly_sha256": "7b493e17de59229c2ac2a1ffefc5609a57791ad320aa28f4472b02f6b9c0e323",
+    "resources_sha256": "8c3c889c6f8c7415beee2b1c8e2fa428de20bdeb3775eddd65369032aee179d7",
+    "original_initial_states": {
+      "fastest_reset": {
+        "width": 1,
+        "height": 1,
+        "unlocks": {
+          "auto_unlock": 1,
+          "bamboo": 0,
+          "cactus": 0,
+          "carrots": 0,
+          "coal": 0,
+          "costs": 1,
+          "debug": 1,
+          "debug_2": 1,
+          "debug_place": 0,
+          "dictionaries": 1,
+          "dinosaurs": 0,
+          "dynamite": 0,
+          "expand": 0,
+          "explosive_drill": 0,
+          "fertilizer": 0,
+          "functions": 1,
+          "grass": 1,
+          "hats": 0,
+          "import": 1,
+          "iron": 0,
+          "jump": 0,
+          "leaderboard": 0,
+          "lists": 1,
+          "loops": 1,
+          "mazes": 0,
+          "megafarm": 0,
+          "mining": 0,
+          "mushrooms": 0,
+          "operators": 1,
+          "ore_boost": 0,
+          "petrified_pumpkins": 0,
+          "plant": 0,
+          "polyculture": 0,
+          "prospecting": 0,
+          "pumpkins": 0,
+          "pyramid": 0,
+          "quartz": 0,
+          "rice": 0,
+          "senses": 1,
+          "simulation": 1,
+          "special_soils": 0,
+          "speed": 0,
+          "sunflowers": 0,
+          "the_farmers_remains": 0,
+          "timing": 1,
+          "top_hat": 0,
+          "treasure_map": 0,
+          "trees": 0,
+          "underground_leaderboard": 0,
+          "underground_senses": 0,
+          "utilities": 1,
+          "variables": 1,
+          "watering": 0
+        },
+        "items": {
+          "hay": 0,
+          "wood": 0,
+          "carrot": 0,
+          "rice": 0,
+          "bamboo": 0,
+          "pumpkin": 0,
+          "cactus": 0,
+          "bone": 0,
+          "weird_substance": 0,
+          "gold": 0,
+          "water": 0,
+          "fertilizer": 0,
+          "block": 0,
+          "coal": 0,
+          "iron": 0,
+          "quartz": 0,
+          "mushroom": 0,
+          "dynamite": 0,
+          "power": 0,
+          "piggy": 0
+        }
+      },
+      "fastest_underground_reset": {
+        "width": 1,
+        "height": 1,
+        "unlocks": {
+          "auto_unlock": 1,
+          "bamboo": 0,
+          "cactus": 0,
+          "carrots": 0,
+          "coal": 0,
+          "costs": 1,
+          "debug": 1,
+          "debug_2": 1,
+          "debug_place": 0,
+          "dictionaries": 1,
+          "dinosaurs": 0,
+          "dynamite": 0,
+          "expand": 0,
+          "explosive_drill": 0,
+          "fertilizer": 0,
+          "functions": 1,
+          "grass": 1,
+          "hats": 0,
+          "import": 1,
+          "iron": 0,
+          "jump": 0,
+          "leaderboard": 0,
+          "lists": 1,
+          "loops": 1,
+          "mazes": 0,
+          "megafarm": 0,
+          "mining": 0,
+          "mushrooms": 0,
+          "operators": 1,
+          "ore_boost": 0,
+          "petrified_pumpkins": 0,
+          "plant": 0,
+          "polyculture": 0,
+          "prospecting": 0,
+          "pumpkins": 0,
+          "pyramid": 0,
+          "quartz": 0,
+          "rice": 0,
+          "senses": 1,
+          "simulation": 1,
+          "special_soils": 0,
+          "speed": 0,
+          "sunflowers": 0,
+          "the_farmers_remains": 0,
+          "timing": 1,
+          "top_hat": 0,
+          "treasure_map": 0,
+          "trees": 0,
+          "underground_leaderboard": 0,
+          "underground_senses": 1,
+          "utilities": 1,
+          "variables": 1,
+          "watering": 0
+        },
+        "items": {
+          "hay": 0,
+          "wood": 0,
+          "carrot": 0,
+          "rice": 0,
+          "bamboo": 0,
+          "pumpkin": 0,
+          "cactus": 0,
+          "bone": 0,
+          "weird_substance": 0,
+          "gold": 0,
+          "water": 0,
+          "fertilizer": 0,
+          "block": 0,
+          "coal": 0,
+          "iron": 0,
+          "quartz": 0,
+          "mushroom": 0,
+          "dynamite": 0,
+          "power": 0,
+          "piggy": 0
+        }
+      }
+    }
+  }
+}
