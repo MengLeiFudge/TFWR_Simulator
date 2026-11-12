@@ -2101,8 +2101,8 @@
     {
       "script": "lb_fastest_reset",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869903/",
-      "retrieved_at": "2026-11-12T02:40:06.934184+00:00",
-      "total_entries": 4561,
+      "retrieved_at": "2026-11-12T06:46:10.722046+00:00",
+      "total_entries": 4564,
       "entries": [
         {
           "rank": 1,
@@ -2508,7 +2508,7 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-12T02:40:06.934214+00:00",
+        "retrieved_at": "2026-11-12T06:46:10.722095+00:00",
         "rank": 60,
         "time_ms": 3000960,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
@@ -8013,7 +8013,7 @@
     {
       "script": "lb_fastest_underground_reset",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444633/",
-      "retrieved_at": "2026-11-12T02:40:06.890089+00:00",
+      "retrieved_at": "2026-11-12T06:46:10.667798+00:00",
       "total_entries": 14,
       "entries": [
         {
@@ -8076,7 +8076,7 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-12T02:40:06.890113+00:00",
+        "retrieved_at": "2026-11-12T06:46:10.667821+00:00",
         "rank": 5,
         "time_ms": 3279570,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",

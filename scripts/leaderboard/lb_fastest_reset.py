@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得；C#原目标3seed均值2751.646秒（2026-11-12，当前策略未实机）。
+# 完整轮时间：未取得；C#原目标3seed均值2744.219秒（2026-11-12，当前策略未实机）。
 # 恐龙路径Copyright (c) 2026 enihsyou，MIT许可见enihsyou_LICENSE.txt。
 # 小迷宫沿用lb_maze的zzlg-git方案；来源与许可边界见同名策略文档。
 
@@ -384,22 +384,32 @@ def stock_worker(worker, workers, cost, deadline):
     y1 = (worker // columns + 1) * size // rows
     bounds = (x0, x1, y0, y1)
     anchors = []
+    # 本区树位蛇形排列并往返巡视，避免每轮从末端绕回起点。
     for y in range(y0, y1):
-        for x in range(x0, x1):
+        xs = range(x0, x1)
+        if (y // 2) % 2 != 0:
+            xs = range(x1 - 1, x0 - 1, -1)
+        for x in xs:
             if x % 2 == 0 and y % 2 == 0:
                 anchors.append((x, y))
     if len(anchors) == 0:
         return True
+    index = 0
+    step = 1
     for visit in range(20000):
         if affordable(cost):
             return True
         if get_time() > deadline:
             quick_print("persistent_failed", "deadline", worker, cost)
             return False
-        x, y = anchors[visit % len(anchors)]
+        x, y = anchors[index]
         go(x, y)
         if not stock_cell(cost, bounds, deadline):
             return False
+        if len(anchors) > 1:
+            if index + step < 0 or index + step >= len(anchors):
+                step = -step
+            index += step
     return affordable(cost)
 
 

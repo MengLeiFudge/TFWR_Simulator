@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得；C#原目标3seed均值3067.141秒（2026-11-12，当前策略未实机）。
+# 完整轮时间：未取得；C#原目标3seed均值3006.673秒（2026-11-12，当前策略未实机）。
 
 def lb_fastest_underground_reset():
     ur_s_step1()
@@ -1587,28 +1587,27 @@ def ur_mushroom_stock(goal):
             continue
         empty = 0
         top = get_pos_z()
+        height = 0
+        for sample in range(7):
+            if get_ground_type() != Grounds.Mushroom:
+                break
+            if not dig():
+                quick_print("mushrooms_failed", "probe", batch)
+                return
+            height += 1
+        if height < 1 or height > 6:
+            quick_print("mushrooms_failed", "height", batch, height)
+            return
         if not ur_m_dig_layer(top):
             quick_print("mushrooms_failed", "cover", batch, top)
             return
-        quick_print("mushrooms_prepared", batch, covers, top, get_time())
-        if not ur_m_move_to(0, 0):
-            return
-        ceiling = get_pos_z()
+        quick_print("mushrooms_prepared", batch, covers, top, get_time(), "height", height)
         blocks = ur_m_make_blocks()
-        layers = 0
-        while get_ground_type() == Grounds.Mushroom and num_items(Items.Mushroom) < goal:
-            result = ur_m_run_layer(blocks, ceiling)
-            if result == None:
-                quick_print("mushrooms_failed", "layer", batch, layers, ceiling)
-                return
-            if not ur_m_move_to(0, 0) or get_pos_z() != ceiling or not dig():
-                quick_print("mushrooms_failed", "sample", batch, layers)
-                return
-            pairs, digs = result
-            ceiling -= 1
-            layers += 1
-            quick_print("mushrooms_layer", batch, layers, pairs, digs + 1, get_time(), num_items(Items.Mushroom))
-        quick_print("mushrooms_batch", batch, layers, get_time(), num_items(Items.Mushroom))
+        result = ur_m_run_patch(blocks, top, max(1, height - 1), goal)
+        if result == None:
+            quick_print("mushrooms_restart", batch, get_time(), num_items(Items.Mushroom))
+            continue
+        quick_print("mushrooms_batch", batch, height, result[0], result[1], get_time(), num_items(Items.Mushroom))
     quick_print("mushrooms_failed", "batch_limit", get_time(), num_items(Items.Mushroom))
 
 
@@ -1643,7 +1642,7 @@ def ur_m_dig_columns(first_x, stride, size, target):
             while get_pos_z() > target:
                 if not dig():
                     return False
-            if get_pos_z() != target:
+            if get_pos_z() > target:
                 return False
             if not move(North):
                 return False
@@ -1672,16 +1671,17 @@ def ur_m_make_blocks():
     return blocks
 
 
-def ur_m_run_layer(blocks, ceiling):
+def ur_m_run_patch(blocks, ceiling, levels, goal):
+    # 每区只派工一次，全部工人结束后才返回或允许换田。
     handles = []
     results = []
     for k in range(1, len(blocks)):
-        handle = spawn_drone(ur_m_work_layer, blocks[k], ceiling)
+        handle = spawn_drone(ur_m_work_patch, blocks[k], ceiling, levels, goal)
         if handle == None:
-            results.append(ur_m_work_layer(blocks[k], ceiling))
+            results.append(ur_m_work_patch(blocks[k], ceiling, levels, goal))
         else:
             handles.append(handle)
-    results.append(ur_m_work_layer(blocks[0], ceiling))
+    results.append(ur_m_work_patch(blocks[0], ceiling, levels, goal))
     for handle in handles:
         results.append(wait_for(handle))
     pairs = 0
@@ -1694,11 +1694,30 @@ def ur_m_run_layer(blocks, ceiling):
     return pairs, digs
 
 
+def ur_m_work_patch(block, ceiling, levels, goal):
+    # 层末检查真实库存，已开始的配对先兑现；各区自行连续推进。
+    pairs = 0
+    digs = 0
+    for layer in range(levels):
+        if num_items(Items.Mushroom) >= goal:
+            break
+        result = ur_m_work_layer(block, ceiling - layer)
+        if result == None:
+            return None
+        pairs += result[0]
+        digs += result[1]
+        if result[2] == 0:
+            break
+    return pairs, digs
+
+
 def ur_m_work_layer(block, ceiling):
     x0, x1, y0, y1 = block
+    cache = {}
     floor = ceiling - 2
     pairs = 0
     digs = 0
+    mushrooms = 0
     for y in range(y0, y1):
         for offset in range(x1 - x0):
             x = x0 + offset
@@ -1718,10 +1737,13 @@ def ur_m_work_layer(block, ceiling):
             if x > x0 and (x != 1 or y != 0):
                 neighbors.append(3)
             z = get_pos_z()
-            if z < floor or z > ceiling:
-                return None
-            if z == ceiling:
-                count = ur_m_push_match(neighbors, floor)
+            if z < floor:
+                continue
+            mushroom = get_ground_type() == Grounds.Mushroom
+            if mushroom:
+                mushrooms += 1
+            if z >= ceiling and mushroom:
+                count = ur_m_carry_match(cache, x, y, neighbors, floor)
                 if count == None:
                     return None
                 pairs += count
@@ -1735,7 +1757,11 @@ def ur_m_work_layer(block, ceiling):
             if count == None:
                 return None
             pairs += count
-    return pairs, digs
+            ur_m_read_column(cache, x, y)
+            for i in neighbors:
+                dx, dy = ur_m_OFFSETS[i]
+                ur_m_read_column(cache, x + dx, y + dy, ur_m_DIRECTIONS[i])
+    return pairs, digs, mushrooms
 
 
 def ur_m_push_match(neighbors, floor):
@@ -1746,8 +1772,8 @@ def ur_m_push_match(neighbors, floor):
     for i in neighbors:
         direction = ur_m_DIRECTIONS[i]
         if get_ground_type(direction) == Grounds.Mushroom:
-            target = get_pos_z(direction)
-            if floor < target and target < z and measure(direction) == t:
+            goal = get_pos_z(direction)
+            if floor < goal and goal < z and measure(direction) == t:
                 if not push(direction):
                     return None
                 return 1
@@ -1768,10 +1794,11 @@ def ur_m_feed_column(neighbors, floor):
     while True:
         z = get_pos_z()
         if z < floor:
-            return None
-        if get_ground_type() != Grounds.Mushroom:
             return matched
-        t = measure()
+        mushroom = get_ground_type() == Grounds.Mushroom
+        t = -1
+        if mushroom:
+            t = measure()
         types = [-1, -1, -1, -1]
         heights = [0, 0, 0, 0]
         hit = -1
@@ -1780,7 +1807,7 @@ def ur_m_feed_column(neighbors, floor):
             if get_ground_type(direction) == Grounds.Mushroom:
                 types[i] = measure(direction)
                 heights[i] = get_pos_z(direction)
-                if z > floor and types[i] == t and heights[i] > z:
+                if mushroom and z > floor and types[i] == t and heights[i] > z:
                     hit = i
                     break
         if hit >= 0:
@@ -1788,13 +1815,16 @@ def ur_m_feed_column(neighbors, floor):
                 return None
             matched += 1
             continue
+        goal = z
+        if not mushroom:
+            goal = floor
         pair_a = -1
         pair_b = -1
         for i in neighbors:
-            if types[i] < 0 or types[i] == t or heights[i] < z + 2:
+            if types[i] < 0 or types[i] == t or heights[i] < goal + 2:
                 continue
             for j in neighbors:
-                if j > i and types[j] == types[i] and heights[j] >= z + 2:
+                if j > i and types[j] == types[i] and heights[j] >= goal + 2:
                     pair_a = i
                     pair_b = j
                     break
@@ -1802,6 +1832,16 @@ def ur_m_feed_column(neighbors, floor):
                 break
         if pair_a < 0:
             return matched
+        if not mushroom:
+            while get_pos_z() > floor:
+                if get_ground_type() == Grounds.Mushroom:
+                    return matched
+                if get_hardness() >= 10000000 or not dig():
+                    return None
+            if get_pos_z() != floor:
+                return None
+            if get_ground_type() == Grounds.Mushroom:
+                return matched
         if not ur_m_push_neighbor(pair_a):
             return None
         if not ur_m_push_neighbor(pair_b):
@@ -1830,19 +1870,161 @@ def ur_m_move_to(tx, ty):
     return True
 
 
+# 缓存仅保存本分区公开柱顶，搬运后更新全部受影响的柱。
+def ur_m_read_column(cache, x, y, direction=None):
+    if direction == None:
+        z = get_pos_z()
+        ground = get_ground_type()
+        t = -1
+        if ground == Grounds.Mushroom:
+            t = measure()
+    else:
+        z = get_pos_z(direction)
+        ground = get_ground_type(direction)
+        t = -1
+        if ground == Grounds.Mushroom:
+            t = measure(direction)
+    cache[(x, y)] = (z, t)
+
+
+def ur_m_carry_match(cache, x, y, neighbors, floor):
+    # 实测相邻低台搬运同色块；缺建材时保留其他可支付路径。
+    direct = ur_m_push_match(neighbors, floor)
+    if direct != 0:
+        return direct
+    ur_m_read_column(cache, x, y)
+    z, t = cache[(x, y)]
+    if t < 0 or z - 1 <= floor:
+        return 0
+    for i in neighbors:
+        dx, dy = ur_m_OFFSETS[i]
+        ur_m_read_column(cache, x + dx, y + dy, ur_m_DIRECTIONS[i])
+    for i in neighbors:
+        dx, dy = ur_m_OFFSETS[i]
+        mx = x + dx
+        my = y + dy
+        height = cache[(mx, my)][0]
+        if height != z - 1 and height != z - 2:
+            continue
+        for j in range(4):
+            ex, ey = ur_m_OFFSETS[j]
+            end = (mx + ex, my + ey)
+            if end not in cache:
+                continue
+            goal, color = cache[end]
+            if goal != z - 1 or color != t:
+                continue
+            if height == z - 2:
+                if num_items(Items.Block) < 1:
+                    continue
+                if not move(ur_m_DIRECTIONS[i]) or get_pos_z() != height:
+                    return None
+                if not place(Grounds.Dirt) or get_pos_z() != z - 1:
+                    return None
+                if not move(ur_m_BACKS[i]):
+                    return None
+            if not push(ur_m_DIRECTIONS[i]):
+                return None
+            ur_m_read_column(cache, x, y)
+            if not move(ur_m_DIRECTIONS[i]) or not push(ur_m_DIRECTIONS[j]):
+                return None
+            ur_m_read_column(cache, mx, my)
+            ur_m_read_column(cache, end[0], end[1], ur_m_DIRECTIONS[j])
+            if not move(ur_m_BACKS[i]):
+                return None
+            return 1
+    return ur_m_fixture_match(neighbors, floor)
+
+
+def ur_m_fixture_match(neighbors, floor):
+    # 相邻同高同色A/B借低两格的C完成B→C、A→B、B→C。
+    if get_ground_type() != Grounds.Mushroom:
+        return 0
+    z = get_pos_z()
+    if z - 2 < floor:
+        return 0
+    t = measure()
+    for i in neighbors:
+        source = ur_m_DIRECTIONS[i]
+        if get_pos_z(source) != z or get_ground_type(source) != Grounds.Mushroom or measure(source) != t:
+            continue
+        for j in neighbors:
+            if i == j or get_pos_z(ur_m_DIRECTIONS[j]) != z - 2:
+                continue
+            if not push(ur_m_DIRECTIONS[j]):
+                return None
+            if not move(source) or not push(ur_m_BACKS[i]):
+                return None
+            if not move(ur_m_BACKS[i]) or not push(ur_m_DIRECTIONS[j]):
+                return None
+            return 1
+    return 0
+
+
+ur_m_OFFSETS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 ur_m_DIRECTIONS = [North, East, South, West]
-
-
 ur_m_BACKS = [South, West, North, East]
 
 
 def ur_dynamite_stock(goal):
+    # 扫雷几何在首次采炸药时准备，后代继承只读分区；盘面事实仍逐盘重建。
+    global ur_d_WORK_LAYOUTS
+    ur_d_WORK_LAYOUTS = {}
+    def ur_d_make_near(size):
+        # 同一批工人并行建立邻接表和固定区域；缓存只含几何，不含任何盘面事实。
+        workers = min(size, max_drones())
+        handles = []
+        for group in range(1, workers):
+            handle = spawn_drone(ur_d_plan_strip, group, workers, size)
+            result = None
+            if handle == None:
+                result = ur_d_plan_strip(group, workers, size)
+            handles.append((handle, result))
+        near, first = ur_d_plan_strip(0, workers, size)
+        layouts = [first]
+        for handle, result in handles:
+            if handle != None:
+                result = wait_for(handle)
+            near = near + result[0]
+            layouts.append(result[1])
+        ur_d_WORK_LAYOUTS[(size, workers)] = layouts
+        return near
+
+
+    def ur_d_plan_strip(group, groups, size):
+        near = []
+        count = size * size
+        for cell in range(group * count // groups, (group + 1) * count // groups):
+            near.append(ur_d_neighbors(cell, size))
+        return near, ur_d_work_layout(group, groups, size)
+
+
+    def ur_d_work_layout(group, groups, size):
+        # owned保留原蛇形顺序，clue_cells只限定可读约束范围，不扩大开挖权。
+        columns = min(8, groups)
+        rows = groups // columns
+        left = (group % columns) * size // columns
+        right = (group % columns + 1) * size // columns
+        bottom = (group // columns) * size // rows
+        top = (group // columns + 1) * size // rows
+        owned = []
+        for y in range(bottom, top):
+            if (y - bottom) % 2 == 0:
+                for x in range(left, right):
+                    owned.append(x + y * size)
+            else:
+                for x in range(right - 1, left - 1, -1):
+                    owned.append(x + y * size)
+        clue_cells = []
+        for y in range(max(0, bottom - 2), min(size, top + 2)):
+            for x in range(max(0, left - 2), min(size, right + 2)):
+                clue_cells.append(x + y * size)
+        return owned, set(owned), clue_cells
+
     began = get_time()
     empty = 0
     size = get_world_size()
-    near = []
-    for cell in range(size * size):
-        near.append(ur_d_neighbors(cell, size))
+    near = ur_d_make_near(size)
     for cycle in range(512):
         if num_items(Items.Dynamite) >= goal:
             quick_print("dynamite_done", True, get_time(), num_items(Items.Dynamite))
@@ -1951,28 +2133,11 @@ def ur_d_dispatch(lo, hi, groups, known, near, size, depth):
 
 
 def ur_d_work(group, groups, known, near, size, depth):
-    columns = min(8, groups)
-    rows = groups // columns
-    left = (group % columns) * size // columns
-    right = (group % columns + 1) * size // columns
-    bottom = (group // columns) * size // rows
-    top = (group // columns + 1) * size // rows
-    owned = []
-    for y in range(bottom, top):
-        if (y - bottom) % 2 == 0:
-            for x in range(left, right):
-                owned.append(x + y * size)
-        else:
-            for x in range(right - 1, left - 1, -1):
-                owned.append(x + y * size)
+    owned, owned_set, clue_cells = ur_d_WORK_LAYOUTS[(size, groups)][group]
     clues = set()
-    # 两格边界允许本区利用相邻数字约束，不取得邻区的开挖权。
-    for y in range(max(0, bottom - 2), min(size, top + 2)):
-        for x in range(max(0, left - 2), min(size, right + 2)):
-            cell = x + y * size
-            if known[cell] >= 0 and known[cell] != UR_D_DONE:
-                clues.add(cell)
-    owned_set = set(owned)
+    for cell in clue_cells:
+        if known[cell] >= 0 and known[cell] != UR_D_DONE:
+            clues.add(cell)
     updates = {}
     for step in range(UR_D_PHASE_LIMIT):
         if not ur_d_propagate(known, clues, near, updates):
