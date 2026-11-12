@@ -3,7 +3,9 @@ from __builtins__ import *
 import production
 
 def cactus(target=-1):
-    while production.active(Items.Cactus, target):
+    if not production.active(Items.Cactus, target):
+        return
+    while True:
         cost = get_cost(Entities.Cactus)
         for item in cost:
             if num_items(item) < cost[item] * size * size:
@@ -11,8 +13,11 @@ def cactus(target=-1):
                 return
         dispatch_lines(0, max_drone_num, False)
         dispatch_lines(0, max_drone_num, True)
-        goto(0, size - 1)
+        # 全田已排好，可就地连锁收割；只有继续生产才需要回到下一批起点。
         harvest()
+        if not production.active(Items.Cactus, target):
+            return
+        goto(0, size - 1)
 
 
 def dispatch_lines(first, count, columns):
