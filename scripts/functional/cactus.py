@@ -117,23 +117,27 @@ def sort_one_way(dir="y"):
         swap_pos_last = -1
         move_to(bound_low)
         i = bound_low
+        # 每趟重新读取起点两格；前移后只测量新进入窗口的一格。
+        b = measure()
+        c = measure(forward)
         while i < bound_high - 1:
             move(forward)
             i += 1
             # sort window 3
-            a = measure(backward)
-            b = measure()
+            a = b
+            b = c
             c = measure(forward)
             if a > b:  # ty: ignore[unsupported-operator]
                 swap(backward)
-                swap_pos_last = max(swap_pos_last, i)
+                swap_pos_last = i
                 a, b = b, a
             if b > c:  # ty: ignore[unsupported-operator]
                 swap(forward)
-                swap_pos_last = max(swap_pos_last, i + 1)
+                swap_pos_last = i + 1
                 b, c = c, b
                 if a > b:  # ty: ignore[unsupported-operator]
                     swap(backward)
+                    b = a
         if swap_pos_last == -1:  # no update
             break
         bound_high = swap_pos_last - 2
@@ -144,23 +148,26 @@ def sort_one_way(dir="y"):
         swap_pos_first = size
         move_to(bound_high)
         i = bound_high
+        a = measure(backward)
+        b = measure()
         while i > bound_low + 1:
             move(backward)
             i -= 1
             # sort window 3
+            c = b
+            b = a
             a = measure(backward)
-            b = measure()
-            c = measure(forward)
             if b > c:  # ty: ignore[unsupported-operator]
                 swap(forward)
-                swap_pos_first = min(swap_pos_first, i)
+                swap_pos_first = i
                 b, c = c, b
             if a > b:  # ty: ignore[unsupported-operator]
                 swap(backward)
-                swap_pos_first = min(swap_pos_first, i - 1)
+                swap_pos_first = i - 1
                 a, b = b, a
                 if b > c:  # ty: ignore[unsupported-operator]
                     swap(forward)
+                    b = c
         if swap_pos_first == size:  # no update
             break
         bound_low = swap_pos_first + 2
