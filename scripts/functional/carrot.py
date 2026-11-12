@@ -85,7 +85,7 @@ def work_drone_task(target):
             return
 
         if get_water() < W and num_items(Items.Water) > 32:
-            use_item(Items.Water)
+            use_item(Items.Water, 4)
         while production.active(Items.Carrot, target):
             harvest()
             if not plant(Entities.Carrot):

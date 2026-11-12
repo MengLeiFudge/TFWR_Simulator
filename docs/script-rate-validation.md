@@ -1,6 +1,6 @@
 # 常规速率与特殊成就验证
 
-本轮始于2026-11-11，12日更新骨头、蘑菇、32机怪异物质与炸药，复验炸药成就依赖。用户表分别归[常规脚本](../scripts/functional/README.md#当前产出速率)与[成就脚本](../scripts/achievement/README.md#成就与运行时间)，精确数据归[script-rate-validation.json](script-rate-validation.json)。常规后续优化归[首轮持续生产记录](functional-optimization.md)、[第二轮并行优化](functional-parallel-validation.md)、[恐龙递归分区实施](functional-dinosaur-validation.md)和[蘑菇路线复用](functional-room-optimization.md)。这里按每项当前版本保存数据；此前Python模型和早期C#结果保留为历史，不混入当前速率。
+本轮始于2026-11-11，12日更新骨头、蘑菇、32机怪异物质、炸药和水稻/木材/胡萝卜/南瓜，复验炸药成就依赖。用户表分别归[常规脚本](../scripts/functional/README.md#当前产出速率)与[成就脚本](../scripts/achievement/README.md#成就与运行时间)，精确数据归[script-rate-validation.json](script-rate-validation.json)。常规后续优化归[首轮持续生产记录](functional-optimization.md)、[第二轮并行优化](functional-parallel-validation.md)、[恐龙递归分区实施](functional-dinosaur-validation.md)、[蘑菇路线复用](functional-room-optimization.md)、[水稻补水](functional-rice-water-validation.md)和[三作物补水](functional-crop-water-validation.md)。这里按每项当前版本保存数据；此前Python模型和早期C#结果保留为历史，不混入当前速率。
 
 ## 条件与口径
 
@@ -32,6 +32,8 @@
 
 蘑菇各区只派工一次、连续处理整片，普通田找层范围保持不变；后续又按片复用静态路线和邻格、层内单步蛇形移动，3万/5万目标的三个seed净速率提高1.09%～2.06%，当前120秒seed1为28544/游戏分钟。该固定窗口seed0少0.06%，限制与25份对照归[协作优化](functional-room-optimization.md)。怪异物质改为32机每机半行8棵树并往返巡视，三个seed提高78.6%～84.4%，seed1为912588800/游戏分钟。竹子两种筛选候选没有稳定改善，保留11日版本。有限目标、失败恢复和上一轮部署见[第二轮对照](functional-parallel-validation.md)。
 
+水稻、木材、胡萝卜和南瓜在原有补水位置一次使用四桶水；水稻另外把阈值改为0.75，三个地上入口保留各自阈值。连续60秒三个seed净速率分别提高1.87%～2.65%、1.61%～4.10%、3.93%～5.11%、3.46%～9.41%，有限目标也均提高并正常回收。seed1当前主要产出分别为1067520、2200643584、532234240、32374272/游戏分钟，副产物和完整净水耗保存在JSON；52份报告与24组配对见[水稻](functional-rice-water-validation.md)及[三作物](functional-crop-water-validation.md)。其他材料充足的结果不直接作为重置科技路线证据，迁入前仍计供水时点与筹料成本。
+
 恐龙采用递归矩形追果与父区域恢复，半盘后按预建回路分段遍历。本轮延迟子区域计算、复用主区域并按需读坐标，普通田三个seed完整687.892/684.089/704.021秒，相对迁入版701.114/697.525/717.664再提速1.92%～1.96%，移动调用和移动tick不变；每轮实际入库33488928 Bone，有限目标仍整轮结算。原生榜另完成三个seed，当前本地最好684.08607339秒。此前两种蘑菇扫推更慢，保持现版。版本、来源、退出检查与部署见[恐龙与扫推实施](functional-dinosaur-validation.md)。
 
 ## 成就筛选与修正
@@ -57,6 +59,6 @@ Steam中文schema共111项，分类结果为：29项专用成就对应24个入�
 
 ## 验证与交付边界
 
-所有游戏入口及实际导入模块由C#原版Tokenizer/Parser前置检查后执行。各轮常规优化均没有改动C#代码，复用未变的执行器。12日蘑菇、怪异物质、炸药LSP无错误或警告、16项hint；恐龙两个入口无错误或警告、四项未用宽度hint。静态复核截止时间、句柄回收、库存目标、材料不足、固定几何与盘面事实分离；对应报告保存当前源码/依赖哈希。炸药成就依赖更新后重跑三个seed，仍在63.40–239.73游戏秒完整解盘并回收全部子机。表格来自冻结报告，成就名称与分类保持原官方中文映射。
+所有游戏入口及实际导入模块由C#原版Tokenizer/Parser前置检查后执行。各轮常规优化均没有改动C#代码，复用未变的执行器。12日蘑菇、怪异物质、炸药LSP无错误或警告、16项hint；恐龙两个入口无错误或警告、四项未用宽度hint；四入口补水集成后ty无错误或警告，两项既有hint为水稻不可达分支和南瓜未用变量。静态复核截止时间、句柄回收、库存目标、材料不足、固定几何与盘面事实分离；对应报告保存当前源码/依赖哈希。炸药成就依赖更新后重跑三个seed，仍在63.40–239.73游戏秒完整解盘并回收全部子机。表格来自冻结报告，成就名称与分类保持原官方中文映射。
 
-各轮采用项均冻结仓库与真实存档版本、完成同条件对照后，确认idle并持同名状态锁备份，只覆盖Save0已有对应文件。恐龙只覆盖`bone_dinosaur.py`、`lb_dinosaur.py`；协作蘑菇在request506结束、quit507正常退出后核对旧版及依赖并只覆盖`mushroom.py`，公共速率与部署审计已同步。常规优化未启动真实游戏，也未新增/删除存档文件或生成入口；此处的request506是独立快速重置验证，不计成蘑菇实机证据。新成就文件仍不直接添加到Save0，临时执行按项目约束适配已有入口。部署摘要与模型边界见[首轮记录](functional-optimization.md)、[第二轮记录](functional-parallel-validation.md)、[恐龙记录](functional-dinosaur-validation.md)和[蘑菇记录](functional-room-optimization.md)。
+各轮采用项均冻结仓库与真实存档版本、完成同条件对照后，确认idle并持同名状态锁备份，只覆盖Save0已有对应文件。恐龙只覆盖`bone_dinosaur.py`、`lb_dinosaur.py`；协作蘑菇在request506结束、quit507正常退出后核对旧版及依赖并只覆盖`mushroom.py`。随后四入口补水在同一idle507下核对各自旧版，仅覆盖已有`rice.py`、`wood.py`、`carrot.py`和`pumpkin.py`，其他60份Python及文件清单不变；公共速率与部署审计已同步。常规优化未启动真实游戏，也未新增/删除存档文件或生成入口；request506是独立快速重置验证，不计成常规脚本实机证据。新成就文件仍不直接添加到Save0，临时执行按项目约束适配已有入口。部署摘要与模型边界见[首轮记录](functional-optimization.md)、[第二轮记录](functional-parallel-validation.md)、[恐龙记录](functional-dinosaur-validation.md)、[蘑菇记录](functional-room-optimization.md)和[补水部署](functional-rice-water-validation.md#验证与集成)。

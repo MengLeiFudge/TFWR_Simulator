@@ -48,8 +48,8 @@ def rice_columns(first, stride, size, deadline, target):
             if ground == Grounds.Clay:
                 if not plant(Entities.Rice):
                     return False
-                if get_water() < 0.25 and num_items(Items.Water) > 0:
-                    use_item(Items.Water)
+                if get_water() < 0.75 and num_items(Items.Water) >= 4:
+                    use_item(Items.Water, 4)
                 planted.append((x, y))
             if not move(North):
                 return False
@@ -72,8 +72,8 @@ def rice_columns(first, stride, size, deadline, target):
                 if get_ground_type() == Grounds.Clay:
                     if not plant(Entities.Rice):
                         return False
-                    if get_water() < 0.25 and num_items(Items.Water) > 0:
-                        use_item(Items.Water)
+                    if get_water() < 0.75 and num_items(Items.Water) >= 4:
+                        use_item(Items.Water, 4)
                     second.append((x, y))
     for x, y in second:
         if not production.active(Items.Rice, target):

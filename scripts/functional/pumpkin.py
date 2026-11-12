@@ -131,7 +131,7 @@ def work_drone_task(size, target):
         if can_harvest():
             return
         if get_water() < W and num_items(Items.Water) > 32:
-            use_item(Items.Water)
+            use_item(Items.Water, 4)
         if can_harvest():
             return
         unripes_in_stack.append((get_pos_x(), get_pos_y()))

@@ -4,6 +4,8 @@
 
 有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，持续生产优化见[布局复用与完整周期对照](../../docs/functional-optimization.md)，蘑菇、32机苗圃和炸药分区对照见[第二轮优化](../../docs/functional-parallel-validation.md)，蘑菇路线复用的后续对照见[协作优化](../../docs/functional-room-optimization.md)，最新恐龙递归分区及蘑菇扫推比较见[B站思路实施](../../docs/functional-dinosaur-validation.md)，地下批次见[效率记录](../../docs/underground-functional-validation.md)，铁与石英的勘探对照见[勘探记录](../../docs/underground-prospecting.md)。成就入口的筛选边界见[特殊成就目录](../achievement/README.md)。常规入口只保留生产或排行榜机制本身；能随正常流程触发的成就不在 `scripts/achievement/` 重复建文件。
 
+充足库存下的批量补水已分别用于水稻、木材、胡萝卜和南瓜，三个seed的连续窗口与有限目标配对均有收益；具体水耗、目标回收及适用边界见[水稻补水](../../docs/functional-rice-water-validation.md)和[三作物补水](../../docs/functional-crop-water-validation.md)。迁入重置榜须重新计入供水时点和实际筹料成本。
+
 ## 按库存目标补齐
 
 打开 [resources.py](resources.py)，修改文件开头的 `TARGETS`，然后运行同名入口。数值表示最终库存下限，例如：
@@ -30,19 +32,19 @@ TARGETS = {
 
 ## 当前产出速率
 
-2026-11-12更新骨头、蘑菇、怪异物质和炸药，其余保留11日同一执行器的结果。全科技、普通32×32田、seed=1、其他材料充足。速率为实际净增长÷实际游戏秒×60，包含初始化、移动、成熟和结算；只显示正增长物品，自动补给的水和肥料不计入。这里是本地观测，不是实机成绩或无限期稳态承诺。
+2026-11-12更新骨头、蘑菇、怪异物质、炸药及水稻/木材/胡萝卜/南瓜，其余保留11日同一执行器的结果。全科技、普通32×32田、seed=1、其他材料充足。速率为实际净增长÷实际游戏秒×60，包含初始化、移动、成熟和结算；只显示正增长物品，自动补给的水和肥料不计入。这里是本地观测，不是实机成绩或无限期稳态承诺。
 
 | 脚本 | 主要产出 / 游戏分钟 | 其他净产出 / 游戏分钟 | 观测游戏秒 |
 | --- | ---: | --- | ---: |
 | [hay.py](hay.py) | 干草 10.21亿 | — | 60.00 |
-| [wood.py](wood.py) | 木材 21.14亿 | 干草 1808.23万；胡萝卜 1064.55万 | 60.00 |
-| [carrot.py](carrot.py) | 胡萝卜 5.06亿 | 干草 2853.94万；木材 1.03亿 | 60.00 |
-| [pumpkin.py](pumpkin.py) | 南瓜 3129.29万 | 怪异物质 9.68万 | 60.00 |
+| [wood.py](wood.py) | 木材 22.01亿 | 干草 2044.11万；胡萝卜 1030.96万 | 60.00 |
+| [carrot.py](carrot.py) | 胡萝卜 5.32亿 | 干草 2892.54万；木材 1.85亿 | 60.00 |
+| [pumpkin.py](pumpkin.py) | 南瓜 3237.43万 | 怪异物质 8.14万 | 60.00 |
 | [cactus.py](cactus.py) | 仙人掌 3355.44万 | — | 60.00 |
 | [bone_dinosaur.py](bone_dinosaur.py) | 骨头 293.72万 | — | 684.09 |
 | [weird_substance.py](weird_substance.py) | 怪异物质 9.13亿 | 木材 9.13亿 | 60.00 |
 | [gold_maze.py](gold_maze.py) | 金币 649.93万 | 干草 1.64万 | 60.00 |
-| [rice.py](rice.py) | 水稻 104.79万 | 建材 9,456；煤 48 | 60.00 |
+| [rice.py](rice.py) | 水稻 106.75万 | 建材 10,244；煤 48 | 60.00 |
 | [bamboo.py](bamboo.py) | 竹子 1.01亿 | — | 450.00 |
 | [coal.py](coal.py) | 煤 1.53万 | 南瓜 382.31万；建材 147.66万；铁 21.30万；石英 13.99万 | 60.00 |
 | [mushroom.py](mushroom.py) | 蘑菇 2.85万 | 建材 4,447.5；煤 138；铁 432 | 120.00 |

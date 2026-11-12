@@ -98,8 +98,8 @@ def work_drone_task(target):
         if is_tree_pos(t):
             # 只在树的位置浇水
             if get_water() < W and num_items(Items.Water) > 32:
-                # 每次巡田至多补一份水，并为并发调用保留库存。
-                use_item(Items.Water)
+                # 一次补满水位，库存检查仍为并发调用保留余量。
+                use_item(Items.Water, 4)
             while production.active(Items.Wood, target):
                 harvest()
                 plant(Entities.Tree)
