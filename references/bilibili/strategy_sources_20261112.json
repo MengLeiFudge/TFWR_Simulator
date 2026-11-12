@@ -1,0 +1,619 @@
+{
+  "recorded_at": "2026-11-12T04:05:48.843971+00:00",
+  "scope": "5 first-page Bilibili searches plus related videos; not exhaustive",
+  "requested_video": "BV1Q6gP6oE15",
+  "videos": [
+    {
+      "bvid": "BV1Q6gP6oE15",
+      "url": "https://www.bilibili.com/video/BV1Q6gP6oE15/",
+      "title": "贪吃蛇问题：《编程农场》恐龙榜20思路分享",
+      "owner": {
+        "mid": 3546618190105067,
+        "name": "L老兵忘了改名字"
+      },
+      "published_at": "2026-08-14T08:27:16+00:00",
+      "retrieved_at": "2026-11-12T03:53:42.759Z",
+      "duration_seconds": 362,
+      "description": "UP主第一次尝试用Manim，花了三天，也是半AI半人工地把视频做出来了\n不得不说Manim用起来真的繁琐，但是功能也真是强大，特别适合这种需要精确位置计算的视频\n\n完整代码链接：\nhttps://github.com/lywlucas/The_Farmer_was_Replaced",
+      "description_sha256": "b1e5eeadd8d12f4c95b8ffd30e3732ea5fc96568cbb4ecf6f536f1b5a8cebb7d",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": false
+    },
+    {
+      "bvid": "BV1ig4hzcEtN",
+      "url": "https://www.bilibili.com/video/BV1ig4hzcEtN/",
+      "title": "【编程农场】高速多无人机迷宫——排行榜31",
+      "owner": {
+        "mid": 398353982,
+        "name": "显性单推隐性d"
+      },
+      "published_at": "2025-10-14T20:21:41+00:00",
+      "retrieved_at": "2026-11-12T03:53:42.766Z",
+      "duration_seconds": 56,
+      "description": "代码见专栏\n前面一分钟是怎么做到的XP",
+      "description_sha256": "7d36c9a78f9a1c717d63dc7682ea611cde577038c4fa96b1223aa7f1f3922475",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": true,
+      "comment_observations": [
+        {
+          "message": "好像被修了，12月5日的更新后宝箱移动需要200tick，而不再是瞬移。",
+          "author": "bili_17795505423"
+        },
+        {
+          "message": "利用剩下的无人机可以再快10秒",
+          "author": "显性单推隐性d"
+        },
+        {
+          "message": "更正：最快为32个无人机在16格内，每格2个。时间00:57.395。薅了群友basalt_234的代码然后把他踢到第二（[伊吹小秋_摸鱼][伊吹小秋_摸鱼][伊吹小秋_摸鱼]",
+          "author": "萌泪酱最可爱啦",
+          "replies": [
+            {
+              "message": "wow！",
+              "author": "显性单推隐性d"
+            },
+            {
+              "message": "回复 @显性单推隐性d : 快加群讨论讨论（[伊吹小秋_比心]",
+              "author": "萌泪酱最可爱啦"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "bvid": "BV15pswzkEVT",
+      "url": "https://www.bilibili.com/video/BV15pswzkEVT/",
+      "title": "【编程农场】100%混合种植？利用共享通信",
+      "owner": {
+        "mid": 381715012,
+        "name": "Ampicillin"
+      },
+      "published_at": "2025-10-19T10:11:34+00:00",
+      "retrieved_at": "2026-11-12T03:53:42.773Z",
+      "duration_seconds": 55,
+      "description": "没想到更好的方法，明天再想想",
+      "description_sha256": "861b7259e0faf6b4ce9b70441aebf3667ebb8be86be99c6f1358b27f4ffe7cbb",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": true,
+      "comment_observations": [
+        {
+          "message": "可以参考这个，在种的时候就把伴侣植物放在后置位，如果随机到伴侣植物在前置位的也重新种就好了，这样在收获时从前往后是肯定后收伴侣植物的【【编程农场】100%增产概率！多线程！混合种植！智能多种最少！~ 代码农场 The Farmer Was Replaced-哔哩哔哩】 https://b23.tv/EhVmvdB",
+          "author": "喵君w",
+          "replies": [
+            {
+              "message": "这个可以[吃瓜]",
+              "author": "只是一个普通人pwp"
+            }
+          ]
+        },
+        {
+          "message": "我觉得可以搞一个跟农场一样大的数组,然后初始值为负一,然后刚开始种植物的时候，就叫它为0阶伴生,顺便把对应数组的位置的数字改成零,然后种0阶伴生植物的伴生的话就叫做1阶伴生,再把对应位置的数组改成一,这样子延续下去,这样无论他有多少结伴生，都能存储下去,然后收货的时候先收货，0的收货了之后把对应改成负一,如果该接的所有要收货的地方都是负一的话，那就向上一节继续循环，直到收货完成",
+          "author": "只是一个普通人pwp"
+        }
+      ]
+    },
+    {
+      "bvid": "BV1H64b6XEvD",
+      "url": "https://www.bilibili.com/video/BV1H64b6XEvD/",
+      "title": "[编程农场/编程矿场] - 简单收获蘑菇",
+      "owner": {
+        "mid": 2039980786,
+        "name": "昔萤往忆"
+      },
+      "published_at": "2026-11-05T10:04:07+00:00",
+      "retrieved_at": "2026-11-12T03:53:42.781Z",
+      "duration_seconds": 136,
+      "description": "先挖一道沟，然后让无人机一直向南退蘑菇",
+      "description_sha256": "92c617141a9cdb47ea29eca4b5136f37f860abfeb6946d5c40daeeca1472b00e",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": true,
+      "comment_observations": [
+        {
+          "message": "很有启发性，感谢朋友的思路。我让他在南边和东边各挖一个沟，然后把蘑菇像你这样扫，但是方向依次是南——东——北——西，最后基本上只会剩下一层蘑菇，而且相当高效。",
+          "author": "E_M_C_P",
+          "replies": [
+            {
+              "message": "这样够用了 单纯是用来快速收集资源 升级科技树",
+              "author": "昔萤往忆"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "bvid": "BV1CJsczRErC",
+      "url": "https://www.bilibili.com/video/BV1CJsczRErC/",
+      "title": "【编程农场 】恐龙贪吃蛇，贪心汉密尔顿回路",
+      "owner": {
+        "mid": 136520,
+        "name": "不要叫我红领巾"
+      },
+      "published_at": "2025-10-19T03:12:00+00:00",
+      "retrieved_at": "2026-11-12T03:53:43.584Z",
+      "duration_seconds": 440,
+      "description": "确保起始和吃到苹果的蛇在汉密尔顿路径上，曼哈顿距离远的时候用贪心汉密尔顿回路，接近了A*计算路径。\n不是最优解，单确保安全\n修改了第二版\n去掉了A*计算路径，以及递归的贪心汉密尔顿\n改用分类更加安全点坐标处理\n代码分享抛砖引玉 \ngitee.com/wqf__dlutwqf_dlut/The-Farmer-Was-Replaced",
+      "description_sha256": "7214cee6b2aab1ed81c01614599d9e4aa396d6d7073b1f8229a744e3bbfbe980",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": false
+    },
+    {
+      "bvid": "BV1phsUzXEH9",
+      "url": "https://www.bilibili.com/video/BV1phsUzXEH9/",
+      "title": "[编程农场]多线程南瓜榜1！5:59.590  我们是冠军！",
+      "owner": {
+        "mid": 94213391,
+        "name": "latiao_jun"
+      },
+      "published_at": "2025-10-27T10:21:29+00:00",
+      "retrieved_at": "2026-11-12T03:53:43.624Z",
+      "duration_seconds": 106,
+      "description": "又经过一个周末的修改，周六有位观众说中间还能塞一块田，但是无人机不够用。尝试中间换成4块8*8的田后提升了4秒。所以把一半都换成了8*8的田，再经过了一点其他地方的优化，就提升到了现在的6分内。看现在的榜三，应该还会有更好的思路。\n感谢@亲一口芙宝  的思路援助",
+      "description_sha256": "492e0a4a17d48998616c983f2c1a7f8d3ce1ac07c575d188ed932e55c261d47f",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": false
+    },
+    {
+      "bvid": "BV1SeWrzCEtG",
+      "url": "https://www.bilibili.com/video/BV1SeWrzCEtG/",
+      "title": "【编程农场】暴力向日葵 排行#3",
+      "owner": {
+        "mid": 9732314,
+        "name": "洛凌波Official"
+      },
+      "published_at": "2025-10-17T02:57:39+00:00",
+      "retrieved_at": "2026-11-12T03:53:43.627Z",
+      "duration_seconds": 14,
+      "description": "偷自b友@Toncula  的思路并微调改进，拼尽全力战胜\n在发这个视频的瞬间从第二掉到了第三，但第二和第一差距还是很大，完全想不通第一怎么做到的\n",
+      "description_sha256": "b7ee99bac25c34325ea983b885169da7cf0d6204e939b7a553b70c32412da89f",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": false
+    },
+    {
+      "bvid": "BV1DuWbzGEG5",
+      "url": "https://www.bilibili.com/video/BV1DuWbzGEG5/",
+      "title": "【编程农场】一个使用bug实现无人机间双向通信的方法",
+      "owner": {
+        "mid": 381715012,
+        "name": "Ampicillin"
+      },
+      "published_at": "2025-10-18T14:57:12+00:00",
+      "retrieved_at": "2026-11-12T03:54:23.687Z",
+      "duration_seconds": 98,
+      "description": "看b站还没人发过，抛砖引玉一下。\nBugReport：https://discord.com/channels/988081966035402783/1089939192802443396/threads/1427606530261385337",
+      "description_sha256": "a6fa49c7f8daf70e80d84542ed0fba42f15c31341ecafc16346ff70ddc5574a9",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": false
+    },
+    {
+      "bvid": "BV1K9xZ6kEDZ",
+      "url": "https://www.bilibili.com/video/BV1K9xZ6kEDZ/",
+      "title": "[编程农场/编程矿场] - 竹子田2",
+      "owner": {
+        "mid": 2039980786,
+        "name": "昔萤往忆"
+      },
+      "published_at": "2026-11-05T01:52:54+00:00",
+      "retrieved_at": "2026-11-12T03:54:23.862Z",
+      "duration_seconds": 104,
+      "description": "优化了代码",
+      "description_sha256": "387f41ee5bb43180fe80947072e6beddf88086c84422e724ae709c6b33d29057",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": true,
+      "comment_observations": [
+        {
+          "message": "每分钟能收获多少？",
+          "author": "宁诗茗",
+          "replies": [
+            {
+              "message": "不到一百万",
+              "author": "昔萤往忆"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "bvid": "BV1ekWBzrE6t",
+      "url": "https://www.bilibili.com/video/BV1ekWBzrE6t/",
+      "title": "【编程农场】多无人机仙人掌 20.435s 10月16日排行榜第三名",
+      "owner": {
+        "mid": 5728497,
+        "name": "FlappyT"
+      },
+      "published_at": "2025-10-16T16:43:22+00:00",
+      "retrieved_at": "2026-11-12T03:54:24.245Z",
+      "duration_seconds": 120,
+      "description": "其实比较好的情况下跟榜12差不多，较差的情况比较烂",
+      "description_sha256": "9af7f90448c5b189622376df8e124f1de017aca63433b21a5fc07a1285bbf57b",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": true,
+      "comment_observations": [
+        {
+          "message": "单线程挤了半天才17s，结果还因为bug单线程榜上能用多无人机的[辣眼睛]",
+          "author": "SGKoishi",
+          "replies": [
+            {
+              "message": "芜湖，现在多线程的被清掉了，变成榜一了（",
+              "author": "SGKoishi"
+            },
+            {
+              "message": "回复 @傲娇の灵异酱 :正常种完以后排序就是20+秒（目前前10是20.275）\n种的期间也进行交换、排序时交换多几个、在更大的范围内多交换、拆了重种，四个步骤每个步骤都能省下1秒左右，在我发前面评论的时候就是四个实现了三个达到了17秒，全部实现的话目前记录是15.37\n目前榜二的16.599是利用特殊机制，完全没有进行排序交换拆除重种，全程只有移动和种植最后收获",
+              "author": "SGKoishi"
+            }
+          ]
+        },
+        {
+          "message": "开头的时候最上面一行的无人机也是从下往上走上去的，如果直接往南走穿到最上面，会不会能节省时间了。",
+          "author": "shuaibi来喽",
+          "replies": [
+            {
+              "message": "好像确实后半部分无人机往下走好一点，虽然不管怎么样最后一个无人机都是32个动作以后开始，但是前一半无人机可以提前启动。",
+              "author": "FlappyT"
+            }
+          ]
+        },
+        {
+          "message": "竟然是同序列吗，感觉要重种很多吧",
+          "author": "不死の祥云"
+        }
+      ]
+    },
+    {
+      "bvid": "BV1Gs4UzyEZ5",
+      "url": "https://www.bilibili.com/video/BV1Gs4UzyEZ5/",
+      "title": "【编程农场 】五秒一个大迷宫",
+      "owner": {
+        "mid": 357686639,
+        "name": "妙到家惹"
+      },
+      "published_at": "2025-10-13T15:40:23+00:00",
+      "retrieved_at": "2026-11-12T03:57:06.403Z",
+      "duration_seconds": 53,
+      "description": "本来想写深度优先的，但加上多机器并行后好像变成广度优先了？",
+      "description_sha256": "f947b5dbfb10e0a6b8e637d5a8a532b33c3b2e57733f9b2e7b677cb98ec16390",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": false
+    },
+    {
+      "bvid": "BV1AhWJzTEr9",
+      "url": "https://www.bilibili.com/video/BV1AhWJzTEr9/",
+      "title": "[编程农场]-32线程南瓜农场，2次遍历+队列",
+      "owner": {
+        "mid": 94213391,
+        "name": "latiao_jun"
+      },
+      "published_at": "2025-10-17T17:10:52+00:00",
+      "retrieved_at": "2026-11-12T03:57:06.936Z",
+      "duration_seconds": 77,
+      "description": "没学过编程语言+算法的小白，学习其他人的单无人机方法，改成了现在的32线程。\n每个无人机只负责他所在的Y坐标，队列为空后会销毁，主无人机也完成后，无人机=1 且 can_harvest的情况才收获，开始下一个循环。\n现在的种植方法是第一遍遍历整行 耕地+种植\n第二遍 继续遍历整行，把非成熟(还不能收获)的，补种并添加到检查列表\n第三遍 用队列的方法进行定位，前往的同时移除在队列的位置，如果还不成熟，再进行一次补种+添加列表。\n现在用的moveto算法如果移动距离超过半场，会用碰边界的方法走更短的路线。\n后面如果还要优化的话，可能得让无人机不销毁，去其他位置帮忙（万一有一行有好几个坏的这种情况，不用一个无人机来回跑）",
+      "description_sha256": "8b6e2690fce22be48ad69eec61358ab7d8795d158d2b4bc5983b0bd7ea1b2381",
+      "read_scope": "public page title, description, metadata; no full audiovisual transcript",
+      "comments_read": false
+    }
+  ],
+  "searches": [
+    {
+      "query": "编程农场 排行榜",
+      "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E6%8E%92%E8%A1%8C%E6%A6%9C",
+      "retrieved_at": "2026-11-12T04:02:19.401Z",
+      "matching_links": [
+        {
+          "title": "[编程农场]多线程南瓜榜1！5:59.590 我们是冠军！",
+          "url": "https://www.bilibili.com/video/BV1phsUzXEH9/"
+        },
+        {
+          "title": "［编程农场］没关就是开？略微加速全球排行第一()",
+          "url": "https://www.bilibili.com/video/BV15t826vEAy/"
+        },
+        {
+          "title": "【编程农场】全成就 最终总览 代码分享~ 代码农场 The Farmer Was Replaced",
+          "url": "https://www.bilibili.com/video/BV1wpWmzjEaY/"
+        },
+        {
+          "title": "【编程农场】玩游戏学Python靠谱吗",
+          "url": "https://www.bilibili.com/video/BV1ThWxzhEoq/"
+        },
+        {
+          "title": "RE：从零开始的编程农场-第二期 坐标移动代码，向日葵，南瓜，奇异物质 生产代码",
+          "url": "https://www.bilibili.com/video/BV1HrW2z5Egr/"
+        },
+        {
+          "title": "《编程农场》DLC《编程矿场》现已发布！",
+          "url": "https://www.bilibili.com/video/BV1qV4g6tEFb/"
+        },
+        {
+          "title": "编程农场恐龙化石排行榜36新手向算法，超级简单",
+          "url": "https://www.bilibili.com/video/BV1JzWdzqEf1/"
+        },
+        {
+          "title": "【编程农场】全自动！从一块地开始到解锁排行榜",
+          "url": "https://www.bilibili.com/video/BV1gV6mBnEw1/"
+        },
+        {
+          "title": "编程农场5 混合种植 浇水 施肥 奇异物质",
+          "url": "https://www.bilibili.com/video/BV1KrkiBJEiU/"
+        },
+        {
+          "title": "【编程农场】暴力向日葵 排行#3",
+          "url": "https://www.bilibili.com/video/BV1SeWrzCEtG/"
+        },
+        {
+          "title": "2025年编程农场南瓜种植世界第一 : 每秒收获55.1万南瓜",
+          "url": "https://www.bilibili.com/video/BV1h5B5B9Eo5/"
+        },
+        {
+          "title": "编程农场向日葵竞速排行榜",
+          "url": "https://www.bilibili.com/video/BV1ViWezFE21/"
+        },
+        {
+          "title": "编程农场 中间的树长得最快~",
+          "url": "https://www.bilibili.com/video/BV1AtCeB5E6j/"
+        }
+      ],
+      "snapshot_sha256": "c1db0543af6dd1ea9b5cfc5cf45c0f5cd2993bd6840c502476a38704802b5e88"
+    },
+    {
+      "query": "编程矿场 排行榜 蘑菇",
+      "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA%20%E6%8E%92%E8%A1%8C%E6%A6%9C%20%E8%98%91%E8%8F%87",
+      "retrieved_at": "2026-11-12T04:02:19.406Z",
+      "matching_links": [
+        {
+          "title": "[编程农场/编程矿场] - 简单收获蘑菇",
+          "url": "https://www.bilibili.com/video/BV1H64b6XEvD/"
+        },
+        {
+          "title": "《编程农场》DLC《编程矿场》现已发布！",
+          "url": "https://www.bilibili.com/video/BV1qV4g6tEFb/"
+        },
+        {
+          "title": "[编程农场/编程矿场] 水稻梯田",
+          "url": "https://www.bilibili.com/video/BV1vsxQ6MEfY/"
+        },
+        {
+          "title": "【编程农场/编程矿场】Deepseek V4.1-flash-1017编写的竹子收获代码。",
+          "url": "https://www.bilibili.com/video/BV1kY4i66EN5/"
+        }
+      ],
+      "snapshot_sha256": "c1db0543af6dd1ea9b5cfc5cf45c0f5cd2993bd6840c502476a38704802b5e88"
+    },
+    {
+      "query": "编程农场 恐龙 思路",
+      "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E6%81%90%E9%BE%99%20%E6%80%9D%E8%B7%AF",
+      "retrieved_at": "2026-11-12T03:53:07.788Z",
+      "matching_links": [
+        {
+          "title": "【编程农场】恐龙：我寻思这么写也能实现自动化啊",
+          "url": "https://www.bilibili.com/video/BV1F419BeERy/"
+        },
+        {
+          "title": "贪吃蛇问题：《编程农场》恐龙榜20思路分享",
+          "url": "https://www.bilibili.com/video/BV1Q6gP6oE15/"
+        },
+        {
+          "title": "编程农场恐龙化石排行榜36新手向算法，超级简单",
+          "url": "https://www.bilibili.com/video/BV1JzWdzqEf1/"
+        },
+        {
+          "title": "RE：从零开始的编程农场-第五期 贪吃蛇代码",
+          "url": "https://www.bilibili.com/video/BV1rNsez5EaR/"
+        },
+        {
+          "title": "【编程农场 】恐龙贪吃蛇，贪心汉密尔顿回路",
+          "url": "https://www.bilibili.com/video/BV1CJsczRErC/"
+        }
+      ],
+      "snapshot_sha256": "f96183942184237bee7e63f978530aeff64aec1b70ba3c1d3ffc2598e7b2bc63"
+    },
+    {
+      "query": "编程农场 迷宫 排行",
+      "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E8%BF%B7%E5%AE%AB%20%E6%8E%92%E8%A1%8C",
+      "retrieved_at": "2026-11-12T03:53:08.845Z",
+      "matching_links": [
+        {
+          "title": "RE：从零开始的编程农场-第二期 坐标移动代码，向日葵，南瓜，奇异物质 生产代码",
+          "url": "https://www.bilibili.com/video/BV1HrW2z5Egr/"
+        },
+        {
+          "title": "编程农场7 迷宫-右手法则",
+          "url": "https://www.bilibili.com/video/BV1dRkCBXECp/"
+        },
+        {
+          "title": "【编程农场】高速多无人机迷宫——排行榜31",
+          "url": "https://www.bilibili.com/video/BV1ig4hzcEtN/"
+        },
+        {
+          "title": "【编程农场】多线程迷宫~ 代码农场 The Farmer Was Replaced",
+          "url": "https://www.bilibili.com/video/BV18SW4zTE68/"
+        },
+        {
+          "title": "玉米迷宫农场模式，凭什么那么火？美国几乎每一个城郊农场，都玩玉米迷宫模式，你知道他们是如何打造和运营的么？一个视频详细分享给你！",
+          "url": "https://www.bilibili.com/video/BV1P146eUE1y/"
+        },
+        {
+          "title": "编程农场 对上期迷宫算法的补充优化",
+          "url": "https://www.bilibili.com/video/BV17BsGzGEMw/"
+        },
+        {
+          "title": "【编程农场】全成就 最终总览 代码分享~ 代码农场 The Farmer Was Replaced",
+          "url": "https://www.bilibili.com/video/BV1wpWmzjEaY/"
+        },
+        {
+          "title": "小小迷宫，拿捏！|编程农场EP7",
+          "url": "https://www.bilibili.com/video/BV1JJ4XzeE3H/"
+        },
+        {
+          "title": "【编程农场】玩游戏学Python靠谱吗",
+          "url": "https://www.bilibili.com/video/BV1ThWxzhEoq/"
+        },
+        {
+          "title": "【编程农场】 dfs+bfs搜索迷宫",
+          "url": "https://www.bilibili.com/video/BV1txEn6DEpD/"
+        },
+        {
+          "title": "低成本高回报！玉米农场爆改迷宫大作战",
+          "url": "https://www.bilibili.com/video/BV1wrsdeSE9N/"
+        },
+        {
+          "title": "编程农场:挑战用最通俗简短的代码完成迷宫大师!",
+          "url": "https://www.bilibili.com/video/BV1Hk9sBuE3L/"
+        },
+        {
+          "title": "编程农场下载 超详细免费领取STEAM正版教程",
+          "url": "https://www.bilibili.com/video/BV1epWtzyESR/"
+        },
+        {
+          "title": "【编程农场】基于快速排序的向日葵自动化",
+          "url": "https://www.bilibili.com/video/BV1SXEx6qE8e/"
+        },
+        {
+          "title": "《编程农场》DLC《编程矿场》现已发布！",
+          "url": "https://www.bilibili.com/video/BV1qV4g6tEFb/"
+        }
+      ],
+      "snapshot_sha256": "f96183942184237bee7e63f978530aeff64aec1b70ba3c1d3ffc2598e7b2bc63"
+    },
+    {
+      "query": "编程矿场",
+      "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA",
+      "retrieved_at": "2026-11-12T03:57:05.602Z",
+      "matching_links": [
+        {
+          "title": "《编程农场》DLC《编程矿场》现已发布！",
+          "url": "https://www.bilibili.com/video/BV1qV4g6tEFb/"
+        },
+        {
+          "title": "[编程农场/编程矿场] - 简单收获蘑菇",
+          "url": "https://www.bilibili.com/video/BV1H64b6XEvD/"
+        },
+        {
+          "title": "【编程农场/编程矿场】Deepseek V4.1-flash-1017编写的竹子收获代码。",
+          "url": "https://www.bilibili.com/video/BV1kY4i66EN5/"
+        },
+        {
+          "title": "[编程农场/编程矿场] 竹子田",
+          "url": "https://www.bilibili.com/video/BV1CA4g6NExG/"
+        },
+        {
+          "title": "[编程农场/编程矿场] - 竹子田2",
+          "url": "https://www.bilibili.com/video/BV1K9xZ6kEDZ/"
+        },
+        {
+          "title": "[编程农场/编程矿场] 水稻梯田",
+          "url": "https://www.bilibili.com/video/BV1vsxQ6MEfY/"
+        },
+        {
+          "title": "编程矿场",
+          "url": "https://www.bilibili.com/video/BV1DMYt6jENU/"
+        },
+        {
+          "title": "编程矿场作图",
+          "url": "https://www.bilibili.com/video/BV1Z54g6oEPb/"
+        },
+        {
+          "title": "《编程矿场》官方预告｜《编程农场》全新 DLC",
+          "url": "https://www.bilibili.com/video/BV1LAxE65EjJ/"
+        },
+        {
+          "title": "用代码挖矿还要学会玩扫雷？百万销量编程游戏《编程农场》新DLC《编程矿场》上线，史低七折",
+          "url": "https://www.bilibili.com/video/BV15WxS6cEMa/"
+        },
+        {
+          "title": "【编程农场】全成就 最终总览 代码分享~ 代码农场 The Farmer Was Replaced",
+          "url": "https://www.bilibili.com/video/BV1wpWmzjEaY/"
+        },
+        {
+          "title": "[编程农场]当你的农场解锁3D打印机后",
+          "url": "https://www.bilibili.com/video/BV1Gp4J6VEMG/"
+        },
+        {
+          "title": "【编程农场】大更新！最新DLC编程矿场即将上线，风灵修改器控制台一键修改游戏速度、资源获取倍率、增加水、黄金、仙人掌、南瓜等mod修改控制台",
+          "url": "https://www.bilibili.com/video/BV1WT4A6JEwk/"
+        },
+        {
+          "title": "编程农场",
+          "url": "https://www.bilibili.com/video/BV1f4LA6LEKn/"
+        },
+        {
+          "title": "本鱼讲课：这段代码到底在干什么｜编程农场 EP.03 彩蛋",
+          "url": "https://www.bilibili.com/video/BV1ZN4b61EU7/"
+        },
+        {
+          "title": "【编程农场】多无人机仙人掌二维排序 18.729秒 榜#10",
+          "url": "https://www.bilibili.com/video/BV1P61RBCEai/"
+        },
+        {
+          "title": "小小迷宫，拿捏！|编程农场EP7",
+          "url": "https://www.bilibili.com/video/BV1JJ4XzeE3H/"
+        }
+      ],
+      "snapshot_sha256": "8c060026d78a046b6b6e02a5a0eb49cc008a8cfe4d50aab72bc7842a5dcc9644"
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/lywlucas/The_Farmer_was_Replaced",
+    "commit": "99091a59855da87276573fe37d1bb7e3854704de",
+    "license": "MIT",
+    "copyright": "Copyright (c) [2026] [lywlucas]",
+    "retrieved_at": "2026-11-12T04:05:48.676829+00:00",
+    "files_read": {
+      "LICENSE": {
+        "git_blob": "a37f03bbede6f5f589e0d349a89ad4aa268d6f90",
+        "sha256": "5405f932b4c10e6f289ee53e2941f23adecf3b25a1947fb6717c2bfaf3e6a95e",
+        "bytes": 1069
+      },
+      "README.md": {
+        "git_blob": "d6072ddafaa0b3a6c3960ec1f92a7dc7fd583e05",
+        "sha256": "b33b3d98451c374867be9e1692270cb8d390e4611c467b5de4f38830049e1258",
+        "bytes": 878
+      },
+      "leaderboard.py": {
+        "git_blob": "d1d40b319a17db05decee049d6f87b04733ce44e",
+        "sha256": "43f0a2cb0b54929350f1aa31841d069f268c70760118b77cfe694e2c9e6c8a0d",
+        "bytes": 54
+      },
+      "move.py": {
+        "git_blob": "758130c019a9f27af8d3ed6beba67ca6f971b8ba",
+        "sha256": "725f54ec15b41d22a6f3315540fe084054ae5a002122f83b661d5aae00c83a06",
+        "bytes": 1595
+      },
+      "snaky.py": {
+        "git_blob": "b8157c4ca64f13be9f3ef04a3323711254f4bde0",
+        "sha256": "82f0e7bbaea590050518909bf563eb674637adf0e815bcc5e3c902dae865c3d8",
+        "bytes": 1563
+      },
+      "snaky2.py": {
+        "git_blob": "47146cf46606999fcb437355372e568147109bfb",
+        "sha256": "6da1a89a32d067b6738e4180e8e940a259bed9014d17c1bb06dbdea4ee62506e",
+        "bytes": 9002
+      }
+    },
+    "primary_algorithm": "snaky2.py",
+    "primary_dependencies": [],
+    "not_executed": [
+      "snaky.py",
+      "move.py",
+      "leaderboard.py"
+    ],
+    "not_downloaded": [
+      "__builtins__.py"
+    ],
+    "historical_rank_claim": "README says snaky2.py reached Dinosaur #20 in August 2026; not a current verified rank."
+  },
+  "maze_article": {
+    "url": "https://www.bilibili.com/opus/1123711015429603333",
+    "title": "编程农场-高效迷宫 - 哔哩哔哩",
+    "owner": "显性单推隐性d",
+    "published_local": "2025-10-15 04:12",
+    "retrieved_at": "2026-11-12T03:57:28.025Z",
+    "text_sha256": "57b232a79fd850383bcef555a81fe1068c84cc01845f0e185c68e61e52d763b2",
+    "read_scope": "entire public article, including the drone and main loops",
+    "license": "no explicit license found in article; source kept locally, not redistributed here"
+  },
+  "subtitle_access": {
+    "bvid": "BV1Q6gP6oE15",
+    "public_subtitles": [],
+    "need_login_subtitle": true,
+    "action": "No login or access bypass attempted; evaluated the author-provided source instead."
+  },
+  "raw_directory": ".codex/bilibili-strategies-20261112/",
+  "interpretation": "Public titles, ranks, descriptions and comments are source claims, not verified performance or current leaderboard records."
+}

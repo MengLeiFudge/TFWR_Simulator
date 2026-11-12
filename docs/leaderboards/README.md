@@ -13,7 +13,7 @@
 - 除上述索引表用途外，`lb_start.py` 不属于具体榜单的长期策略真源
 - 不需要也不应配套 `lb_start.md`
 
-当前常规和地下榜的状态统一归[排行榜进度](leaderboard_progress.md)。公开事实归`references/leaderboards/leaderboard_cache.json`，本地最好模拟及方向归本目录`leaderboard_progress.json`。每次阶段完成后更新研究JSON并离线重建，查询榜单时先联网刷新；进度、targets和来源快照均由项目内工具生成。仍超两倍的本轮备选方向、预算与淘汰结论见[非重置结构筛选](nonreset_directions.md)，各榜同名文档保留有效版本与时间依据。
+当前常规和地下榜的状态统一归[排行榜进度](leaderboard_progress.md)。公开事实归`references/leaderboards/leaderboard_cache.json`，本地最好模拟及方向归本目录`leaderboard_progress.json`。每次阶段完成后更新研究JSON并离线重建，查询榜单时先联网刷新；进度、targets和来源快照均由项目内工具生成。仍超两倍的本轮备选方向、预算与淘汰结论见[非重置结构筛选](nonreset_directions.md)，各榜同名文档保留有效版本与时间依据。外部分享的已读范围、版本和采用判断见[GitHub研究](github_strategy_research.md)与[B站研究](bilibili_strategy_research.md)。
 
 ## 排行榜状态汇报
 
