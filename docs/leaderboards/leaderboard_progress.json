@@ -108,10 +108,10 @@
     },
     "lb_fastest_reset": {
       "label": "快速重置",
-      "simulation_seconds": 2790.9915300176667,
-      "simulation_basis": "2026-11-11 C#原版重置、零库存三seed完整2798.459/2814.072/2760.444秒，均2790.991530；冻结存档均3044.263，三对均更快。八座小宫与成熟树感染供Weird，供能后Speed5、单机骨头备电600；已同步已有存档，当前源未实机。详见reset_startup_routes.md及reset_routes_20261111.json。",
+      "simulation_seconds": 2751.6458661586666,
+      "simulation_basis": "2026-11-12原版重置、零库存三seed完整2745.403/2776.971/2732.564秒，均2751.645866；六份配对中采用的三个都更快，冻结均2790.992。矩形独占、跨原料订单保留作物/伴生支撑，种子库存不侵占订单材料；已备份同步现有存档，当前源未实机。原版语法和终态通过，普通LSP22项既有Measure桩错误；详见reset_startup_routes.md及reset_persistent_20261112.json。",
       "evidence": "lb_fastest_reset.md",
-      "direction": "距#1仍+104.0%；先比较未解锁伴生的多种支撑作物布局与首笔金币支出。早双机后补原科技三seed整轮均2851.091秒未回本，P1伴生和Mazes3终点包也未胜出；不重跑同一补购协议，见reset_startup_routes.md。"
+      "direction": "距#1仍+101.2%；保场供料已采用，单机到伴生及首次双机仍为主瓶颈。继续先算前期完整投资包；三格轮收/前置Speed2、支撑缓存及新协议下的提前Poly2均未形成稳定额外收益，不做参数扫描。"
     },
     "lb_mushrooms": {
       "label": "蘑菇·多机",
@@ -206,10 +206,10 @@
     },
     "lb_fastest_underground_reset": {
       "label": "地下重置",
-      "simulation_seconds": 3182.0251032883334,
-      "simulation_basis": "2026-11-11 C#原版重置、零库存三seed完整3163.304/3250.291/3132.481秒，均3182.025103；冻结存档均3390.747，三对均更快。Iron4/Quartz3/Ore_Boost1实付，预付勘探煤并有限换图、石英只钻一根锚柱后追邻矿；已同步已有存档，当前源未实机。request497的3279.570秒仍为账号/旧版实机；详见reset_startup_routes.md及reset_routes_20261111.json。",
+      "simulation_seconds": 3067.1407816523333,
+      "simulation_basis": "2026-11-12原版重置、零库存三seed完整3055.022/3111.692/3034.709秒，均3067.140782；三个配对样本均快于冻结均3182.025。保场原料/伴生供料与实际种子工作库存，Iron4/Quartz3/Ore_Boost1及地下采收协议继续实付；已备份同步已有存档，当前源未实机。原版语法、终态和LSP通过；详见reset_startup_routes.md及reset_persistent_20261112.json。",
       "evidence": "lb_fastest_underground_reset.md",
-      "direction": "距#1仍+147.6%；先列共享田、clear与屏障，再计价保留地形的分区供应和阶段重叠。Mining7/D4合并供料三seed均3309.435秒、轻矿物链及藏宝图后买机未回本，不原样重跑；见reset_startup_routes.md。"
+      "direction": "距#1仍+138.7%；保场供料已采用，下一包继续从竹子/炸药倒推更短前缀及无人机投资时点。原低Mining、轻矿物链、藏宝图后买机和支撑缓存均未回本，先核算真实供需速度再实现。"
     }
   }
 }

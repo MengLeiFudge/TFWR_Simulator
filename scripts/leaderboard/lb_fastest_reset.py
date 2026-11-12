@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得；C#原目标3seed均值2790.992秒（2026-11-11，当前策略未实机）。
+# 完整轮时间：未取得；C#原目标3seed均值2751.646秒（2026-11-12，当前策略未实机）。
 # 恐龙路径Copyright (c) 2026 enihsyou，MIT许可见enihsyou_LICENSE.txt。
 # 小迷宫沿用lb_maze的zzlg-git方案；来源与许可边界见同名策略文档。
 
@@ -338,265 +338,167 @@ def step1():
         move(East)
     unlock(Unlocks.Carrots)
 
-def nursery_stock(item, target, weird=False):
-    if max_drones() > 1:
-        return parallel_nursery_stock(item, target, weird)
-    if num_items(item) >= target:
+def boost_stock(cost):
+    # 原料订单复用现成田；所有工人回收后才允许调用方切换机制。
+    if affordable(cost):
         return True
-    crop = Entities.Tree
-    support = Entities.Grass
-    if item == Items.Hay:
-        crop = Entities.Grass
-        support = Entities.Bush
-    elif item == Items.Carrot:
-        crop = Entities.Carrot
-        support = Entities.Bush
-        gain = 2 ** (num_unlocked(Unlocks.Carrots) - 1) * (5 * 2 ** num_unlocked(Unlocks.Polyculture))
-        count = (target - num_items(item) + gain - 1) // gain
-        seed = get_cost(Entities.Carrot)
-        reserve = count * 6 + 64
-        if not nursery_stock(Items.Hay, reserve * seed[Items.Hay]):
+    for item in cost:
+        if item not in [Items.Hay, Items.Wood, Items.Carrot, Items.Weird_Substance]:
+            quick_print("persistent_failed", "unsupported", item)
             return False
-        if not nursery_stock(Items.Wood, reserve * seed[Items.Wood]):
-            return False
+    began = get_time()
+    deadline = min(7000, began + 700)
     size = get_world_size()
-    anchors = []
-    anchor_set = set()
-    for y in range(0, min(size, 6), 2):
-        for x in range(0, min(size, 6), 2):
-            anchors.append((x, y))
-            anchor_set.add((x, y))
-    clear()
-    if support == Entities.Bush:
-        for x in range(size):
-            for y in range(size):
-                if (x, y) not in anchor_set:
-                    if not plant(Entities.Bush):
-                        return False
-                move(North)
-            move(East)
-    accepted = []
-    for _ in anchors:
-        accepted.append(False)
-    beginning = get_time()
-    initial = num_items(item)
-    produced = 0
-    rejected = 0
-    unready = 0
-    for visit in range(20000):
-        if get_time() > 7000 or get_time() > beginning + 700:
-            quick_print("directed_failed", "nursery_limit", item, get_time())
-            return False
-        index = visit % len(anchors)
-        x, y = anchors[index]
-        go(x, y)
-        if accepted[index]:
-            if can_harvest():
-                harvest()
-                accepted[index] = False
-                produced += 1
-                if num_items(item) >= target:
-                    quick_print("directed_nursery", item, beginning, get_time(), produced, rejected, unready, num_items(item) - initial)
-                    return True
-            else:
-                unready += 1
-                if get_water() < 0.5 and num_items(Items.Water) >= 2:
-                    use_item(Items.Water, 2)
-                continue
-        if crop == Entities.Carrot and get_ground_type() != Grounds.Soil:
-            till()
-        matched = False
-        for attempt in range(128):
-            if not affordable(get_cost(crop)) or not plant(crop):
-                quick_print("directed_failed", "nursery_material", item, get_time())
-                return False
-            companion = get_companion()
-            if companion == None:
-                return False
-            kind, position = companion
-            if kind == support and position not in anchor_set:
-                matched = True
-                break
-            harvest()
-            rejected += 1
-        if not matched:
-            quick_print("directed_failed", "nursery_reroll", item, get_time())
-            return False
-        if weird:
-            if num_items(Items.Fertilizer) < 1 or not use_item(Items.Fertilizer):
-                quick_print("directed_failed", "nursery_fertilizer", get_time())
-                return False
-        if get_water() < 0.5 and num_items(Items.Water) >= 2:
-            use_item(Items.Water, 2)
-        accepted[index] = True
-    quick_print("directed_failed", "nursery_visits", item, get_time())
-    return False
-
-
-def nursery_support_strip(worker, workers, size, support, deadline):
-    first = worker * size // workers
-    last = (worker + 1) * size // workers
-    for y in range(first, last):
-        for x in range(size):
-            if get_time() > deadline:
-                return False
-            if x % 2 != 0 or y % 2 != 0:
-                go(x, y)
-                if not plant(support):
-                    return False
-    return True
-
-
-def nursery_produce_strip(worker, workers, size, crop, support, item, target, weird, deadline):
-    anchors = []
-    for y in range(0, size, 2):
-        if (y // 2) % workers == worker:
-            for x in range(0, size, 2):
-                anchors.append((x, y))
-    accepted = []
-    for _ in anchors:
-        accepted.append(False)
-    if len(anchors) == 0:
-        return (True, 0, 0, 0)
-    produced = 0
-    rejected = 0
-    unready = 0
-    for visit in range(20000):
-        if num_items(item) >= target:
-            return (True, produced, rejected, unready)
-        if get_time() > deadline:
-            return (False, produced, rejected, unready)
-        index = visit % len(anchors)
-        x, y = anchors[index]
-        go(x, y)
-        if accepted[index]:
-            if can_harvest():
-                # 棋盘树互不相邻；感染成熟树供Weird，不再每次消耗一份肥料。
-                if weird and not use_item(Items.Weird_Substance, 1):
-                    return (False, produced, rejected, unready)
-                if not harvest():
-                    return (False, produced, rejected, unready)
-                accepted[index] = False
-                produced += 1
-                if num_items(item) >= target:
-                    return (True, produced, rejected, unready)
-            else:
-                unready += 1
-                if get_water() < 0.5 and num_items(Items.Water) >= 2:
-                    use_item(Items.Water, 2)
-                continue
-        if crop == Entities.Carrot and get_ground_type() != Grounds.Soil:
-            till()
-        matched = False
-        for attempt in range(128):
-            if num_items(item) >= target:
-                return (True, produced, rejected, unready)
-            if get_time() > deadline or not affordable(get_cost(crop)) or not plant(crop):
-                return (False, produced, rejected, unready)
-            companion = get_companion()
-            if companion == None:
-                return (False, produced, rejected, unready)
-            kind, position = companion
-            px, py = position
-            if kind == support and (px % 2 != 0 or py % 2 != 0):
-                matched = True
-                break
-            harvest()
-            rejected += 1
-        if not matched:
-            return (False, produced, rejected, unready)
-        if get_water() < 0.5 and num_items(Items.Water) >= 2:
-            use_item(Items.Water, 2)
-        accepted[index] = True
-    return (False, produced, rejected, unready)
-
-
-def parallel_nursery_stock(item, target, weird=False):
-    if num_items(item) >= target:
-        return True
-    beginning = get_time()
-    initial = num_items(item)
-    size = get_world_size()
-    workers = min(max_drones(), size // 2)
-    crop = Entities.Tree
-    support = Entities.Grass
-    if item == Items.Hay:
-        crop = Entities.Grass
-        support = Entities.Bush
-    elif item == Items.Carrot:
-        crop = Entities.Carrot
-        support = Entities.Bush
-        gain = 2 ** (num_unlocked(Unlocks.Carrots) - 1) * (5 * 2 ** num_unlocked(Unlocks.Polyculture))
-        count = (target - num_items(item) + gain - 1) // gain
-        seed = get_cost(Entities.Carrot)
-        reserve = count * 6 + 4 * ((size // 2) ** 2)
-        if not nursery_stock(Items.Hay, reserve * seed[Items.Hay]):
-            return False
-        if not nursery_stock(Items.Wood, reserve * seed[Items.Wood]):
-            return False
-    deadline = min(7000, get_time() + 700)
-    # 感染循环消耗Weird，首份种子已由单机苗圃真实筹齐。
-    clear()
-    if support == Entities.Bush:
-        handles = []
-        passed = True
-        for worker in range(1, workers):
-            handle = spawn_drone(nursery_support_strip, worker, workers, size, support, deadline)
-            if handle == None:
-                passed = False
-                break
-            handles.append(handle)
-        if passed:
-            passed = nursery_support_strip(0, workers, size, support, deadline)
-        for handle in handles:
-            if not wait_for(handle):
-                passed = False
-        if not passed:
-            quick_print("directed_failed", "nursery_support_workers", get_time())
-            return False
+    workers = 1
+    limit = min(size, max_drones())
+    while workers * 2 <= limit:
+        workers *= 2
     handles = []
     passed = True
-    results = []
     for worker in range(1, workers):
-        handle = spawn_drone(nursery_produce_strip, worker, workers, size, crop, support, item, target, weird, deadline)
+        handle = spawn_drone(stock_worker, worker, workers, cost, deadline)
         if handle == None:
             passed = False
             break
         handles.append(handle)
-    if passed:
-        results.append(nursery_produce_strip(0, workers, size, crop, support, item, target, weird, deadline))
+    if passed and not stock_worker(0, workers, cost, deadline):
+        passed = False
     for handle in handles:
-        results.append(wait_for(handle))
-    produced = 0
-    rejected = 0
-    unready = 0
-    for result in results:
-        if result == None:
+        if not wait_for(handle):
             passed = False
-        else:
-            if not result[0]:
-                passed = False
-            produced += result[1]
-            rejected += result[2]
-            unready += result[3]
-    # 全部工人回收后按实际库存判定，其他工人可能已完成共享订单。
-    if num_items(item) < target:
-        quick_print("directed_failed", "nursery_production_workers", item, get_time(), num_items(item), target)
-        return False
-    quick_print("directed_parallel_nursery", item, beginning, get_time(), workers, produced, rejected, unready, num_items(item) - initial)
-    return True
+    quick_print("persistent_stock", passed, began, get_time(), cost,
+                num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot),
+                num_items(Items.Weird_Substance))
+    return passed and affordable(cost)
 
 
-def boost_stock(cost, weird=False):
-    if weird:
-        return nursery_stock(Items.Weird_Substance, cost[Items.Weird_Substance], True)
-    for cycle in range(5):
+def stock_worker(worker, workers, cost, deadline):
+    size = get_world_size()
+    columns = 1
+    while columns * columns < workers:
+        columns *= 2
+    rows = workers // columns
+    x0 = (worker % columns) * size // columns
+    x1 = (worker % columns + 1) * size // columns
+    y0 = (worker // columns) * size // rows
+    y1 = (worker // columns + 1) * size // rows
+    bounds = (x0, x1, y0, y1)
+    anchors = []
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            if x % 2 == 0 and y % 2 == 0:
+                anchors.append((x, y))
+    if len(anchors) == 0:
+        return True
+    for visit in range(20000):
         if affordable(cost):
             return True
-        for item in [Items.Carrot, Items.Hay, Items.Wood]:
-            if item in cost and not nursery_stock(item, cost[item]):
-                return False
+        if get_time() > deadline:
+            quick_print("persistent_failed", "deadline", worker, cost)
+            return False
+        x, y = anchors[visit % len(anchors)]
+        go(x, y)
+        if not stock_cell(cost, bounds, deadline):
+            return False
     return affordable(cost)
+
+
+def stock_crop(cost):
+    hay, wood = stock_seed_budget(cost, 4 * max_drones() + 4)
+    if num_items(Items.Hay) < hay:
+        return Entities.Grass
+    if num_items(Items.Wood) < wood:
+        return Entities.Tree
+    if missing(cost, Items.Carrot) > 0:
+        return Entities.Carrot
+    return Entities.Tree
+
+
+def stock_cell(cost, bounds, deadline):
+    entity = get_entity_type()
+    if entity in [Entities.Grass, Entities.Bush, Entities.Tree, Entities.Carrot]:
+        if not can_harvest():
+            if get_water() < 0.5 and num_items(Items.Water) >= 2:
+                use_item(Items.Water, 2)
+            return True
+        companion = get_companion()
+        if companion != None:
+            kind, position = companion
+            if stock_companion_inside(position, bounds):
+                hay, wood = stock_seed_budget(cost, 2 * max_drones() + 2)
+                if kind != Entities.Carrot or (num_items(Items.Hay) >= hay and num_items(Items.Wood) >= wood):
+                    if not stock_support(kind, position):
+                        return False
+        if entity == Entities.Tree and missing(cost, Items.Weird_Substance) > 0:
+            if num_items(Items.Weird_Substance) > 0:
+                if not use_item(Items.Weird_Substance, 1):
+                    return False
+            elif num_items(Items.Fertilizer) > 0:
+                if not use_item(Items.Fertilizer):
+                    return False
+            else:
+                return True
+        if not harvest():
+            return False
+    elif entity != None:
+        if not harvest():
+            return False
+    if affordable(cost):
+        return True
+    crop = stock_crop(cost)
+    if crop == Entities.Grass and get_ground_type() != Grounds.Grassland:
+        till()
+    elif crop == Entities.Carrot and get_ground_type() != Grounds.Soil:
+        till()
+    for attempt in range(128):
+        if get_time() > deadline:
+            return False
+        if not affordable(get_cost(crop)) or not plant(crop):
+            quick_print("persistent_failed", "plant", crop, get_time())
+            return False
+        companion = get_companion()
+        if companion != None and stock_companion_inside(companion[1], bounds):
+            return True
+        if not harvest():
+            return False
+    quick_print("persistent_failed", "companion", get_time())
+    return False
+
+
+def stock_companion_inside(position, bounds):
+    # 支撑位不能占用本机主种植位，也不能进入其他工人的矩形。
+    x, y = position
+    x0, x1, y0, y1 = bounds
+    return x >= x0 and x < x1 and y >= y0 and y < y1 and (x % 2 != 0 or y % 2 != 0)
+
+
+def stock_seed_budget(cost, margin):
+    # 并发种子留工作余量，支撑播种不能花掉订单要求保留的Hay/Wood。
+    seed = get_cost(Entities.Carrot)
+    hay = seed[Items.Hay] * margin
+    wood = seed[Items.Wood] * margin
+    if Items.Hay in cost:
+        hay += cost[Items.Hay]
+    if Items.Wood in cost:
+        wood += cost[Items.Wood]
+    return hay, wood
+
+
+def stock_support(kind, position):
+    x, y = get_pos_x(), get_pos_y()
+    px, py = position
+    go(px, py)
+    if get_entity_type() != kind:
+        if get_entity_type() != None and not harvest():
+            return False
+        if kind == Entities.Grass and get_ground_type() != Grounds.Grassland:
+            till()
+        elif kind == Entities.Carrot and get_ground_type() != Grounds.Soil:
+            till()
+        if not affordable(get_cost(kind)) or not plant(kind):
+            return False
+    go(x, y)
+    return True
 
 
 def go(x, y):
@@ -623,7 +525,7 @@ def first_megafarm():
             return False
     if not solar_reserve():
         return False
-    if not boost_stock({Items.Weird_Substance: 1400}, True):
+    if not boost_stock({Items.Weird_Substance: 1400}):
         return False
     if not unlock(Unlocks.Mazes):
         return False
@@ -842,7 +744,7 @@ def next_megafarm():
     count = (max(0, target_gold - num_items(Items.Gold)) + gain - 1) // gain
     if count > 299:
         return False
-    if not boost_stock({Items.Weird_Substance: unit * (count + 1)}, True):
+    if not boost_stock({Items.Weird_Substance: unit * (count + 1)}):
         return False
     clear()
     if not plant(Entities.Bush) or not use_item(Items.Weird_Substance, unit):
@@ -1376,7 +1278,7 @@ def small_maze_gold(target):
     deadline = min(7000, get_time() + 800)
     # 金币/Weird比为宫边长；另付创建、到位登记和并行超收的完整储备。
     required = (max(0, target - num_items(Items.Gold)) + n - 1) // n + 8 * n * MULT * DRONES + 2 * DRONES
-    if not boost_stock({Items.Weird_Substance: required}, True):
+    if not boost_stock({Items.Weird_Substance: required}):
         return False
     clear()
     start_stock = num_items(Items.Weird_Substance)

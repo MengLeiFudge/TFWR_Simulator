@@ -1,10 +1,14 @@
 # 地下Reset（fastest_underground_reset）
 
+## 2026-11-12：保场供料已采用，本地完整51:07.141
+
+当前`ur_s_boost_stock`按矩形独占区保留主作物与伴生支撑，合并原料订单，成熟树改用1 Weird感染。Iron4、Quartz3、Ore_Boost1及原地下采收协议继续实付。三seed完整均值3067.140782秒，三个配对样本均快于冻结版本；已备份同步现有存档，当前源未实机。完整对照、关闭方向、原版语法、LSP和部署审计归[保场供料](reset_startup_routes.md#2026-11-12已采用跨原料订单保场供料)，指纹归[证据](../../references/leaderboards/reset_persistent_20261112.json)。
+
 ## 2026-11-11：完整投资包与藏宝图启动筛选
 
 本轮比较Mining6/7/8、Dynamite3/4、Bamboo3/4及高中低矿物等级，并实际执行单机6格、藏宝图筹资后买机的路线。没有候选形成优于当前真源的有效结果。完整支付、三seed对照及关闭边界归[本轮筛选结果](reset_startup_routes.md#前期与完整投资包本轮筛选结果)，指纹归[证据](../../references/leaderboards/reset_early_routes_20261111.json)。本次仅本地研究，当前执行源、存档和账号实机成绩沿用下节。
 
-## 当前已确认版本
+## 2026-11-11已确认版本（历史）
 
 2026-11-11当前本地真源采用Iron4、Quartz3和Ore_Boost1，配套勘探煤储备、有限换图及石英邻柱追采。原版零库存三seed完整均值3182.025103秒，三个配对样本均快于冻结存档，已备份同步已有目标文件；本轮未实机，账号最高仍为request497的54:39.570/#4。当前模拟距#1仍+147.6%。方向比较、投资回本、关闭的轻启动代表与静态检查归[两个重置榜的路线比较](reset_startup_routes.md)，完整指纹归[本轮证据](../../references/leaderboards/reset_routes_20261111.json)。达到一小时的历史实机版本见[一小时路线筛选](underground_reset_hour.md)；以下保留此前阶段的版本与证据。
 

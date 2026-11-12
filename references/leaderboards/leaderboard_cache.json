@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "app_id": 2060160,
-  "last_attempt_at": "2026-11-11T12:29:32.582987+00:00",
+  "last_attempt_at": "2026-11-12T02:40:06.314181+00:00",
   "boards": [
     {
       "script": "lb_cactus",
@@ -2101,8 +2101,8 @@
     {
       "script": "lb_fastest_reset",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869903/",
-      "retrieved_at": "2026-11-11T12:29:33.238243+00:00",
-      "total_entries": 4545,
+      "retrieved_at": "2026-11-12T02:40:06.934184+00:00",
+      "total_entries": 4561,
       "entries": [
         {
           "rank": 1,
@@ -2114,15 +2114,15 @@
         },
         {
           "rank": 3,
-          "time_ms": 1634863
+          "time_ms": 1625553
         },
         {
           "rank": 4,
-          "time_ms": 1668860
+          "time_ms": 1656840
         },
         {
           "rank": 5,
-          "time_ms": 1721037
+          "time_ms": 1668860
         },
         {
           "rank": 6,
@@ -2458,57 +2458,57 @@
         },
         {
           "rank": 89,
-          "time_ms": 3389127
+          "time_ms": 3386511
         },
         {
           "rank": 90,
-          "time_ms": 3405825
+          "time_ms": 3389127
         },
         {
           "rank": 91,
-          "time_ms": 3416872
+          "time_ms": 3405825
         },
         {
           "rank": 92,
-          "time_ms": 3420674
+          "time_ms": 3416872
         },
         {
           "rank": 93,
-          "time_ms": 3430924
+          "time_ms": 3420674
         },
         {
           "rank": 94,
-          "time_ms": 3439343
+          "time_ms": 3430924
         },
         {
           "rank": 95,
-          "time_ms": 3466678
+          "time_ms": 3439343
         },
         {
           "rank": 96,
-          "time_ms": 3494443
+          "time_ms": 3466678
         },
         {
           "rank": 97,
-          "time_ms": 3495708
+          "time_ms": 3494443
         },
         {
           "rank": 98,
-          "time_ms": 3499179
+          "time_ms": 3495708
         },
         {
           "rank": 99,
-          "time_ms": 3504874
+          "time_ms": 3499179
         },
         {
           "rank": 100,
-          "time_ms": 3521920
+          "time_ms": 3504874
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-11T12:29:33.238285+00:00",
+        "retrieved_at": "2026-11-12T02:40:06.934214+00:00",
         "rank": 60,
         "time_ms": 3000960,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
@@ -8013,8 +8013,8 @@
     {
       "script": "lb_fastest_underground_reset",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444633/",
-      "retrieved_at": "2026-11-11T12:29:33.106372+00:00",
-      "total_entries": 13,
+      "retrieved_at": "2026-11-12T02:40:06.890089+00:00",
+      "total_entries": 14,
       "entries": [
         {
           "rank": 1,
@@ -8022,58 +8022,62 @@
         },
         {
           "rank": 2,
-          "time_ms": 2699984
+          "time_ms": 1737370
         },
         {
           "rank": 3,
-          "time_ms": 3221892
+          "time_ms": 2699984
         },
         {
           "rank": 4,
-          "time_ms": 3279570
+          "time_ms": 3221892
         },
         {
           "rank": 5,
-          "time_ms": 4290703
+          "time_ms": 3279570
         },
         {
           "rank": 6,
-          "time_ms": 4715462
+          "time_ms": 4290703
         },
         {
           "rank": 7,
-          "time_ms": 8232697
+          "time_ms": 4715462
         },
         {
           "rank": 8,
-          "time_ms": 11100712
+          "time_ms": 8232697
         },
         {
           "rank": 9,
-          "time_ms": 12001309
+          "time_ms": 11100712
         },
         {
           "rank": 10,
-          "time_ms": 42649589
+          "time_ms": 12001309
         },
         {
           "rank": 11,
-          "time_ms": 50835054
+          "time_ms": 42649589
         },
         {
           "rank": 12,
-          "time_ms": 60280307
+          "time_ms": 50835054
         },
         {
           "rank": 13,
+          "time_ms": 60280307
+        },
+        {
+          "rank": 14,
           "time_ms": 74082603
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-11T12:29:33.106397+00:00",
-        "rank": 4,
+        "retrieved_at": "2026-11-12T02:40:06.890113+00:00",
+        "rank": 5,
         "time_ms": 3279570,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
