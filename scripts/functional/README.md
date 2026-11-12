@@ -2,7 +2,7 @@
 
 本目录的初版以**科技全解、32×32农场、32台无人机**为运行前提，持续生产对应资源。Fastest Reset类脚本仍归排行榜目录，使用各自的重置初始条件。运行与文件同名的入口即可，例如打开 `rice.py` 执行。
 
-有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，持续生产优化见[布局复用与完整周期对照](../../docs/functional-optimization.md)，最新蘑菇、32机苗圃和炸药分区对照见[第二轮优化](../../docs/functional-parallel-validation.md)，地下批次见[效率记录](../../docs/underground-functional-validation.md)，铁与石英的勘探对照见[勘探记录](../../docs/underground-prospecting.md)。成就入口的筛选边界见[特殊成就目录](../achievement/README.md)。常规入口只保留生产或排行榜机制本身；能随正常流程触发的成就不在 `scripts/achievement/` 重复建文件。
+有现成功能脚本时迁入原算法；没有时优先使用已验证的多机排行榜实现。之后按实际普通地形与持续入口做本地效率对照，采用确有收益的结构。效率与存档替换遵守[游戏脚本准入](../../docs/script-validation.md)；初版来源见[历史功能记录](../../docs/functional-validation.md)，持续生产优化见[布局复用与完整周期对照](../../docs/functional-optimization.md)，蘑菇、32机苗圃和炸药分区对照见[第二轮优化](../../docs/functional-parallel-validation.md)，最新恐龙递归分区及蘑菇扫推比较见[B站思路实施](../../docs/functional-dinosaur-validation.md)，地下批次见[效率记录](../../docs/underground-functional-validation.md)，铁与石英的勘探对照见[勘探记录](../../docs/underground-prospecting.md)。成就入口的筛选边界见[特殊成就目录](../achievement/README.md)。常规入口只保留生产或排行榜机制本身；能随正常流程触发的成就不在 `scripts/achievement/` 重复建文件。
 
 ## 按库存目标补齐
 
@@ -30,7 +30,7 @@ TARGETS = {
 
 ## 当前产出速率
 
-2026-11-12更新蘑菇、怪异物质和炸药，其余保留11日同一执行器的结果。全科技、普通32×32田、seed=1、其他材料充足。速率为实际净增长÷实际游戏秒×60，包含初始化、移动、成熟和结算；只显示正增长物品，自动补给的水和肥料不计入。这里是短程本地观测，不是实机成绩或无限期稳态承诺。
+2026-11-12更新骨头、蘑菇、怪异物质和炸药，其余保留11日同一执行器的结果。全科技、普通32×32田、seed=1、其他材料充足。速率为实际净增长÷实际游戏秒×60，包含初始化、移动、成熟和结算；只显示正增长物品，自动补给的水和肥料不计入。这里是本地观测，不是实机成绩或无限期稳态承诺。
 
 | 脚本 | 主要产出 / 游戏分钟 | 其他净产出 / 游戏分钟 | 观测游戏秒 |
 | --- | ---: | --- | ---: |
@@ -39,7 +39,7 @@ TARGETS = {
 | [carrot.py](carrot.py) | 胡萝卜 5.06亿 | 干草 2853.94万；木材 1.03亿 | 60.00 |
 | [pumpkin.py](pumpkin.py) | 南瓜 3129.29万 | 怪异物质 9.68万 | 60.00 |
 | [cactus.py](cactus.py) | 仙人掌 3355.44万 | — | 60.00 |
-| [bone_dinosaur.py](bone_dinosaur.py) | 骨头 259.14万 | — | 775.38 |
+| [bone_dinosaur.py](bone_dinosaur.py) | 骨头 288.07万 | — | 697.52 |
 | [weird_substance.py](weird_substance.py) | 怪异物质 9.13亿 | 木材 9.13亿 | 60.00 |
 | [gold_maze.py](gold_maze.py) | 金币 649.93万 | 干草 1.64万 | 60.00 |
 | [rice.py](rice.py) | 水稻 104.79万 | 建材 9,456；煤 48 | 60.00 |
@@ -55,7 +55,7 @@ TARGETS = {
 | [power_sunflower.py](power_sunflower.py) | 能量 3.41万 | 干草 16.38万；怪异物质 148 | 60.00 |
 | [pumpkin_petrified.py](pumpkin_petrified.py) | 南瓜 382.31万 | 建材 147.66万；煤 1.53万；铁 21.30万；石英 13.99万 | 60.00 |
 
-竹子观察450游戏秒，覆盖500M批次后保留竹桩的阶段；首60秒仍受筛选成本影响，不能套用该长期平均值。蘑菇观察120游戏秒，包含完整采集片；相同窗口三个seed提高6.5%～10.3%。炸药的完整两盘对照提高1.4%～1.6%，首分钟因结算时点变化很小，仍按实际入库显示。金字塔以增加5000能量的完整周期取样，实际运行127.35游戏秒。恐龙按完整一轮入库3348.89万骨头折算，实际耗时10.76墙钟秒；其余入口观察60游戏秒。本轮优化每例限10墙钟秒，不为凑窗口延长预算。详细版本、数量及三seed对照见[最新优化](../../docs/functional-parallel-validation.md)、[上一轮记录](../../docs/functional-optimization.md)、[验证汇总](../../docs/script-rate-validation.md)和[数据](../../docs/script-rate-validation.json)。
+竹子观察450游戏秒，覆盖500M批次后保留竹桩的阶段；首60秒仍受筛选成本影响，不能套用该长期平均值。蘑菇观察120游戏秒，包含完整采集片；相同窗口三个seed提高6.5%～10.3%。炸药的完整两盘对照提高1.4%～1.6%，首分钟因结算时点变化很小，仍按实际入库显示。金字塔以增加5000能量的完整周期取样，实际运行127.35游戏秒。恐龙按完整一轮入库3348.89万骨头折算，seed1为697.52游戏秒、最终源码复验19.26墙钟秒；三个seed速率均提高11.2%～18.2%。恐龙在运行前按完整周期设每例30墙钟秒上限，其余本轮候选仍为10秒，不在预算结束后延长补跑。详细版本、数量及对照见[恐龙与扫推](../../docs/functional-dinosaur-validation.md)、[第二轮优化](../../docs/functional-parallel-validation.md)、[上一轮记录](../../docs/functional-optimization.md)、[验证汇总](../../docs/script-rate-validation.md)和[数据](../../docs/script-rate-validation.json)。
 
 ## 脚本清单
 
@@ -66,7 +66,7 @@ TARGETS = {
 | 胡萝卜 | [carrot.py](carrot.py) | `lb_carrots.py`，区域动态伴生请求 |
 | 南瓜 | [pumpkin.py](pumpkin.py) | `lb_pumpkins.py`，16个双机区域及成熟队列 |
 | 仙人掌 | [cactus.py](cactus.py) | `lb_cactus.py`，树形派发、铺田预交换和三格窗口排序 |
-| 恐龙产骨头 | [bone_dinosaur.py](bone_dinosaur.py) | `lb_dinosaur.py`，贪心前缀、安全桥接和后段捷径 |
+| 恐龙产骨头 | [bone_dinosaur.py](bone_dinosaur.py) | lywlucas `snaky2.py`递归矩形追果、退出恢复父区域，后半预建回路；与`lb_dinosaur.py`共用同一已验证结构 |
 | 迷宫产金币 | [gold_maze.py](gold_maze.py) | `lb_maze.py`，32座独立小迷宫及增量路由 |
 | 向日葵产能量 | [power_sunflower.py](power_sunflower.py) | `lb_sunflowers.py`，16组双机分瓣收获与同步 |
 | 水稻 | [rice.py](rice.py) | `lb_rice.py`两层粘土清单流水及补水，实际收割后下挖、全部回收后换田 |
@@ -90,7 +90,7 @@ TARGETS = {
 
 常规入口沿用对应成熟功能或多机排行榜算法，按普通地形、库存目标和持续生产调整。煤、铁、石英、石化南瓜共用连续深钻；建材保留60秒净增窗口。怪异物质保留合格树并用满32机，竹子跨批次复用竹桩，金字塔迁入并行探边与维修，向日葵按整波退出；蘑菇各区连续处理整片，炸药缓存固定分区几何。
 
-这些结构均有本地对照，最新收益和失败候选归[第二轮优化](../../docs/functional-parallel-validation.md)，此前结果归[持续生产记录](../../docs/functional-optimization.md)。竹子本轮两种筛选改法没有取得稳定优势，保留现版。蘑菇保留普通田原有找层和换田范围，只迁入已取得稳定收益的常驻工人结构。
+这些结构均有本地对照，恐龙的递归区域新版已在普通田和原生排行榜场景分别完成三个seed，保留有限目标与真实换帽结算。收益见[恐龙完整周期](../../docs/functional-dinosaur-validation.md)与[第二轮优化](../../docs/functional-parallel-validation.md)，此前结果归[持续生产记录](../../docs/functional-optimization.md)。竹子两种筛选改法没有取得稳定优势。蘑菇保留普通田原有找层和换田范围，已采用常驻工人；B站描述启发的两种四向扫推实现都明显更慢，未替换现版。
 
 ## 运行与依赖
 
@@ -100,7 +100,7 @@ TARGETS = {
 - 金字塔只同时修一座，底层就绪后再补高层，主机在中心放最后顶块。爆破钻头只用于远离塔区的浅覆盖层，接近塔区前换回采矿帽；结果须以实际模拟记录为准。
 - `block.py`依赖同目录 `production.py`；煤、铁、石英和石化南瓜还依赖 `mining.py`。爆破钻单机独占，每次消耗一份炸药；库存调度按对应 `DYNAMITE_RESERVE` 准备2000份。建材入口记录实际不超过60游戏秒的Block净增窗口。运行时不导入 `lb_*.py`。
 
-MIT来源的木材、胡萝卜、南瓜和恐龙脚本保留作者声明及 [enihsyou_LICENSE.txt](enihsyou_LICENSE.txt)。迷宫上游来源和本地使用边界见[迷宫策略文档](../../docs/leaderboards/lb_maze.md)。
+MIT来源的木材、胡萝卜和南瓜脚本保留作者声明及 [enihsyou_LICENSE.txt](enihsyou_LICENSE.txt)。恐龙来自lywlucas的固定commit，保留版权及 [lywlucas_LICENSE.txt](lywlucas_LICENSE.txt)，具体适配和完整对照见[实施记录](../../docs/functional-dinosaur-validation.md)。迷宫上游来源和本地使用边界见[迷宫策略文档](../../docs/leaderboards/lb_maze.md)。
 
 ## 本地效率对照
 

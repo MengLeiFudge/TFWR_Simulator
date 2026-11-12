@@ -6,6 +6,6 @@
 
 [lb_start.py](lb_start.py) 是仓库内的历史成绩索引。部署时，`game_control/tools/sync_leaderboard_scripts.py` 从指定的目标脚本生成存档内的 `lb_start.py`，两者职责不同。默认只同步目标脚本与派生入口，部署方法见 [游戏控制](../../game_control/README.md)。
 
-外部代码的来源、commit 和适用规则记录在对应策略文档中；`enihsyou_LICENSE.txt` 随相关脚本保留。
+外部代码的来源、commit和适用规则记录在对应策略文档中；[enihsyou_LICENSE.txt](enihsyou_LICENSE.txt)与恐龙来源的[lywlucas_LICENSE.txt](lywlucas_LICENSE.txt)随相关脚本保留。
 
 全科技下持续生产资源的普通脚本见 [功能脚本约定](../functional/README.md)。它们优先迁入成熟功能或多机榜算法，遵守[本地效率与替换准入](../../docs/script-validation.md)。

@@ -1,245 +1,360 @@
 from __builtins__ import *
-# 完整轮时间：13:29.907（2026-11-03，build26385848，官方完整9轮，request253）。
-# Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
-# 来源：enihsyou/The-Farmer-Was-Replaced，blob 0a257bbd27f0520464f5efe3baefe74c7d4f7168。
+# 完整轮时间：本版本尚未取得实机完整统计；仅有本地模拟对照。
+# Copyright (c) [2026] [lywlucas]; MIT许可见lywlucas_LICENSE.txt。
+# 来源：https://github.com/lywlucas/The_Farmer_was_Replaced/tree/99091a59855da87276573fe37d1bb7e3854704de
+
 
 def lb_dinosaur():
-    clear()
-    change_hat(Hats.Dinosaur_Hat)
-    state = greedy_prefix()
-    if state != None:
-        cycle_loop(state[0], state[1], state[2])
-    change_hat(Hats.Brown_Hat)
-
-def greedy_prefix():
-    global tracked_body
-    global tracked_apples
-    global tracked_target
-    tracked_body = []
-    tracked_apples = 0
-    tracked_target = (0, 0)
-    for _ in range(50000):
-        if tracked_apples >= 10:
-            break
-        if not chase_step():
-            quick_print("bridge_failed", "prefix", tracked_apples)
-            return None
-    quick_print("bridge_prefix", tracked_apples, get_time(), get_pos_x(), get_pos_y())
-    for attempt in range(400):
-        if not clear_west_column():
-            break
-        if len(tracked_body) > 31:
-            break
-        if get_entity_type() != Entities.Apple:
-            path = west_bridge_path()
-            if path != None:
-                for direction in path:
-                    if not tracked_move(direction):
-                        quick_print("bridge_failed", "path", get_time())
-                        return None
-                safe = get_pos_x() == 0 and get_pos_y() == 31
-                for x, y in tracked_body:
-                    if not x:
-                        safe = False
-                if safe:
-                    for _ in range(31):
-                        if not tracked_move(South):
-                            quick_print("bridge_failed", "west_column", get_time())
-                            return None
-                    for x, y in tracked_body:
-                        if x:
-                            safe = False
-                    if len(tracked_body) > 31:
-                        safe = False
-                    if safe:
-                        quick_print("safe_handoff", tracked_apples, len(tracked_body), get_time(), get_pos_x(), get_pos_y())
-                        return tracked_apples, tracked_target[0], tracked_target[1]
-                    break
-        if not chase_step():
-            break
-    quick_print("bridge_failed", "no_safe_handoff", tracked_apples, get_time(), (get_pos_x(), get_pos_y()), tracked_target, tracked_body[:3], tracked_body[-3:])
-    return None
+    before = num_items(Items.Bone)
+    began = get_time()
+    production_cycle()
+    gain = num_items(Items.Bone) - before
+    expected = (farm_size * farm_size - 1) ** 2 * 2 ** max(0, num_unlocked(Unlocks.Dinosaurs) - 1)
+    quick_print("dinosaur_cycle", gain, get_time() - began)
+    if gain < expected:
+        quick_print("dinosaur_failed", "incomplete_cycle", gain, expected)
 
 
-def clear_west_column():
-    # 先把头与整段身体移到x>0，之后桥接路线才不会留下西列旧身体。
-    for step in range(128):
-        clear = get_pos_x() > 0
-        for x, y in tracked_body:
-            if not x:
-                clear = False
-        if clear:
-            return True
-        x, y = get_pos_x(), get_pos_y()
-        moved = False
-        for dx, dy, direction in [(1, 0, East), (0, 1, North), (0, -1, South)]:
-            q = (x + dx, y + dy)
-            if q == tracked_target or q[0] > 31 or q[1] < 0 or q[1] > 31:
-                continue
-            if tracked_move(direction):
-                moved = True
-                break
-        if not moved or len(tracked_body) > 31:
-            return False
-    return False
+REVERSE = {East: West, West: East, North: South, South: North}
+farm_size = 32
+cycle_deadline = 0
 
 
-def tracked_move(direction):
-    global tracked_apples
-    global tracked_target
-    old = (get_pos_x(), get_pos_y())
-    eating = get_entity_type() == Entities.Apple
-    if eating:
-        target = measure()
-    if not move(direction):
-        return False
-    tracked_body.append(old)
-    if eating:
-        tracked_apples += 1
-        tracked_target = target
+# 主回路编号只用本轮固定田尺寸，避免每次坐标换算重新读取世界。
+def cycle_index(x, y):
+    n = farm_size
+    if x == 0:
+        return n - y
+    elif y % 2 == 0:
+        return n + (n - 1) * y + x
     else:
-        tracked_body.pop(0)
+        return n + (n - 1) * y + n - x
+
+
+# 判断目标是否仍在区域的前方，左右转向随区域旋转。
+def in_region(location, area, upper=False, can_equal=True):
+    size = farm_size
+    main_area = ((1, size - 1), size - 1, West, North)
+    (x_n, y_n), width, dir, up = area
+    x, y = location
+    a, b = (get_pos_x(), get_pos_y())
+    if area == main_area:
+        if upper == False:
+            return x != 0
+        else:
+            return size < cycle_index(a, b) <= cycle_index(x, y)
+    if upper == True:
+        flg = False
+        if in_region((a, b), area) == False:
+            return False
+        if up == East:
+            if a > x:
+                return False
+            elif a == x:
+                if can_equal == False:
+                    return False
+                else:
+                    flg = True
+        elif up == West:
+            if a < x:
+                return False
+            elif a == x:
+                if can_equal == False:
+                    return False
+                else:
+                    flg = True
+        elif up == North:
+            if b > y:
+                return False
+            elif b == y:
+                if can_equal == False:
+                    return False
+                else:
+                    flg = True
+        elif b < y:
+            return False
+        elif b == y:
+            if can_equal == False:
+                return False
+            else:
+                flg = True
+        if flg != False:
+            d = region_step(area, (a, b))
+            if a > x:
+                if d != West:
+                    return False
+            elif a < x:
+                if d != East:
+                    return False
+            elif b > y:
+                if d != South:
+                    return False
+            elif b < y:
+                if d != North:
+                    return False
+    if dir == East:
+        if x <= x_n - width or x > x_n:
+            return False
+    elif dir == West:
+        if x < x_n or x >= x_n + width:
+            return False
+    elif dir == North:
+        if y > y_n or y <= y_n - width:
+            return False
+    elif y < y_n or y >= y_n + width:
+        return False
+    if up == North:
+        if y > y_n:
+            return False
+    elif up == West:
+        if x < x_n:
+            return False
+    elif up == South:
+        if y < y_n:
+            return False
+    elif x > x_n:
+        return False
     return True
 
 
-def chase_step():
-    x, y = get_pos_x(), get_pos_y()
-    wx, wy = tracked_target
-    if x < wx and tracked_move(East):
-        return True
-    if x > wx and tracked_move(West):
-        return True
-    if y < wy and tracked_move(North):
-        return True
-    if y > wy and tracked_move(South):
-        return True
-    return tracked_move(North) or tracked_move(East) or tracked_move(South) or tracked_move(West)
+# 返回区域蛇形方向；给出模拟坐标时只计算，不移动。
+def region_step(area, simulating=None):
+    (x_n, y_n), width, dir, up = area
+    if simulating == None:
+        x, y = (get_pos_x(), get_pos_y())
+        if in_region((x, y), area) == False:
+            return None
+    else:
+        x, y = simulating
+    if dir == East or dir == West:
+        up_dist = abs(y - y_n)
+        hor_dist = abs(x - x_n)
+    else:
+        up_dist = abs(x - x_n)
+        hor_dist = abs(y - y_n)
+    new_dir = dir
+    if up_dist % 2 == 0:
+        if hor_dist == 0 and up_dist != 0:
+            new_dir = up
+        else:
+            pass
+    elif hor_dist == width - 1:
+        new_dir = up
+    else:
+        new_dir = REVERSE[dir]
+    if simulating == None:
+        move(new_dir)
+    return new_dir
 
 
-def west_bridge_path():
-    start = (get_pos_x(), get_pos_y())
-    goal = (0, 31)
-    release = {}
-    for i in range(len(tracked_body)):
-        release[tracked_body[i]] = i + 1
-    previous = {start: None}
-    depth = {start: 0}
-    queue = [start]
-    head = 0
-    while head < len(queue) and goal not in previous:
-        x, y = queue[head]
-        head += 1
-        for dx, dy, direction in [(0, 1, North), (1, 0, East), (0, -1, South), (-1, 0, West)]:
-            q = (x + dx, y + dy)
-            if q[0] < 0 or q[0] > 31 or q[1] < 0 or q[1] > 31:
-                continue
-            if q[0] == 0 and q != goal:
-                continue
-            if q == goal and (x, y) != (1, 31):
-                continue
-            if (q == tracked_target and q != goal) or q in previous:
-                continue
-            step = depth[(x, y)] + 1
-            # 比释放时刻严格晚一拍，不依赖当前尾格的canMoveTo动画标志。
-            if q in release and step <= release[q]:
-                continue
-            previous[q] = ((x, y), direction)
-            depth[q] = step
-            queue.append(q)
-    if goal not in previous:
+# 在当前安全矩形内沿剪枝路线到目标，返回最后转折点；超时交回上层。
+def reach_in_region(target, area):
+    a, b = target
+    (x_n, y_n), width, dir, up = area
+    break_point = None
+    x, y = (get_pos_x(), get_pos_y())
+    if in_region((x, y), area) == False:
         return None
-    reverse = []
-    p = goal
-    while p != start:
-        p, direction = previous[p]
-        reverse.append(direction)
-    path = []
-    for i in range(len(reverse) - 1, -1, -1):
-        path.append(reverse[i])
-    return path
-
-def cycle_loop(snake, wx, wy):
-    # 参照这个地址来实现
-    # https://www.reddit.com/r/TheFarmerWasReplaced/comments/1o90hxs/my_sna_i_mean_dinosaur_algorithm/
-    s = get_world_size()
-    m = s - 1
-    l = s * s // 2  # 苹果观测次数阈值；直段可能经过苹果，因此不等于精确尾长。
-
-    dir = East
-    while True:
-        x, y = get_pos_x(), get_pos_y()
-        if get_entity_type() == Entities.Apple:
-            snake += 1
-            wx, wy = measure()  # ty: ignore
-
-        # 后期优先填满成对列间的空隙，缩小苹果可生成的区域。
-        if snake > l:
-            if y == 0 and can_move(North) and x % 2 == 1:
-                for _ in range(m - 1):  # 避开最北的一行
-                    # 碰尾只结束这段直走，下一轮仍按当前位置选路。
-                    if not move(North):
-                        break
+    if in_region(target, area, True, True) == False:
+        reach_in_region((x_n, y_n), area)
+        region_step(area)
+        return None
+    while get_time() < cycle_deadline:
+        x, y = (get_pos_x(), get_pos_y())
+        if x == a and y == b:
+            if break_point == None:
+                break_point = (a, b)
+            return break_point
+        if dir == East or dir == West:
+            if x == a:
+                break_point = (x, y)
+                for _ in range(abs(y - b)):
+                    move(up)
                 continue
-
-        # 访问中心区域的果子
-        if x != 0 and x != m:  # 不在左右两侧
-            if (x == wx or x + 1 == wx) and x % 2 == 1:
-                if can_move(North) and wy > y and wy != m:  # 向北可以到达苹果
-                    for _ in range(wy - y):
+            temp = region_step(area, (x, y))
+            if temp == East:
+                if x > a:
+                    move(up)
+                else:
+                    for _ in range(a - x):
+                        move(East)
+            elif temp == West:
+                if x < a:
+                    move(up)
+                else:
+                    for _ in range(x - a):
+                        move(West)
+            else:
+                move(temp)
+        else:
+            if y == b:
+                break_point = (x, y)
+                for _ in range(abs(x - a)):
+                    move(up)
+                continue
+            temp = region_step(area, (x, y))
+            if temp == North:
+                if y > b:
+                    move(up)
+                else:
+                    for _ in range(b - y):
                         move(North)
-                    continue
-            if (x == wx or x - 1 == wx) and x % 2 == 0:
-                if can_move(South) and y > wy and wy != 0:  # 向南可以前往苹果
-                    for _ in range(y - wy):
+            elif temp == South:
+                if y < b:
+                    move(up)
+                else:
+                    for _ in range(y - b):
                         move(South)
-                    continue
+            else:
+                move(temp)
+    return None
 
-        # 围着操场逆时针转圈
+
+# 按区域出口恢复父区域路线，避免任意短路破坏身体形状。
+def leave_region(area):
+    (x_n, y_n), width, dir, up = area
+    x, y = (get_pos_x(), get_pos_y())
+    if in_region((x, y), area) == False:
+        return True
+    if up == North or up == South:
+        if y != y_n:
+            move(up)
+        for _ in range(abs(x - x_n) + 1):
+            move(dir)
+    else:
+        if x != x_n:
+            move(up)
+        for _ in range(abs(y - y_n) + 1):
+            move(dir)
+
+
+# 沿当前矩形吃果，递归进入可恢复子区域，返回新目标与观测计数。
+def collect_in_region(target, area, cnt):
+    if get_time() >= cycle_deadline:
+        return (target, cnt)
+    (x_n, y_n), width, dir, up = area
+    a, b = target
+    x, y = (get_pos_x(), get_pos_y())
+    if in_region((x, y), area) == False:
+        return (target, cnt)
+    if a == 0:
+        reach_in_region((x_n, y_n), area)
+        region_step(area)
+        return (target, cnt)
+    last_break = reach_in_region(target, area)
+    if last_break == None:
+        return (target, cnt)
+    cnt += 1
+    x, y = (get_pos_x(), get_pos_y())
+    x_b, y_b = last_break
+    x_g, y_g = (x, y)
+    x_f, y_f = (x, y)
+    if up == North or up == South:
+        warn = abs(y - y_n)
+        n_width = abs(y - y_b)
         if dir == East:
-            if y != 0 and can_move(South):
-                while move(South) and get_entity_type() != Entities.Apple:
-                    continue  # 回归边线
-                continue
-            if x == m:
-                dir = North  # 在边界转向, 下面直接 move 节约一个循环
-            if not (move(dir) or move(North)):  # 碰到边界或尾巴，向有空间的方向前进
-                break
-            continue
-        if dir == West:
-            if y == m and can_move(dir) and x > wx + 1:
-                for _ in range(x - wx - 1 - 1):  # 考虑到奇偶性，多减 1
-                    move(dir)  # 快速移过最北边, 因为那是回程的线
-            if y != m and can_move(North):
-                while move(North) and get_entity_type() != Entities.Apple:
-                    continue  # 回归边线
-                continue
-            if x == 0:
-                dir = South  # 在边界转向
-            if not (move(dir) or move(South)):  # 碰到边界或尾巴，向有空间的方向前进
-                break
-            continue
-        if dir == South:
-            if x != 0 and can_move(West):
-                move(West)  # 回归边线
-                continue
-            if x == 0 and y != 0:
-                while move(dir) and get_entity_type() != Entities.Apple:
-                    continue  # 边界上走直线，避免循环顶层大 while
-                if not (can_move(dir) or can_move(East)):
-                    break  # 碰到尾巴
-            dir = East  # 在边界转向
-            continue
+            x_f = x_n - width + 1
+            x_g = x_n
+        else:
+            x_f = x_n + width - 1
+            x_g = x_n
+    else:
+        warn = abs(x - x_n)
+        n_width = abs(x - x_b)
         if dir == North:
-            if x != m and can_move(East):
-                move(East)  # 回归边线
+            y_f = y_n - width + 1
+            y_g = y_n
+        else:
+            y_f = y_n + width - 1
+            y_g = y_n
+    area_ins = ((x_g, y_g), n_width - 1, up, dir)
+    area_out = ((x_f, y_f), n_width - 1, up, REVERSE[dir])
+    if x == a and y == b:
+        newt = measure()
+    else:
+        return (target, cnt)
+    if in_region(newt, area, True) == True:
+        newt, cnt = collect_in_region(newt, area, cnt)
+    elif warn != 0 and in_region(newt, area_ins, True, False) == True:
+        move(dir)
+        newt, cnt = collect_in_region(newt, area_ins, cnt)
+        newt, cnt = collect_in_region(newt, area, cnt)
+    elif warn != 0 and in_region(newt, area_out, True, False) == True:
+        move(REVERSE[dir])
+        newt, cnt = collect_in_region(newt, area_out, cnt)
+        newt, cnt = collect_in_region(newt, area, cnt)
+    if width < farm_size - 1:
+        leave_region(area)
+    elif cnt <= y * 2 + 1:
+        leave_region(area)
+    else:
+        reach_in_region((x_n, y_n), area)
+        region_step(area)
+    return (newt, cnt)
+
+
+# 一轮前半采用递归区域，后半按预建主回路填满；退出时换帽真实结算。
+def production_cycle():
+    global farm_size
+    global cycle_deadline
+    clear()
+    size = get_world_size()
+    farm_size = size
+    cycle_deadline = get_time() + 1200
+    A = size ** 2
+    turn_point = A // 2
+    main_area = ((1, size - 1), size - 1, West, North)
+    main_move = {}
+    for xi in range(size):
+        for yi in range(size):
+            i = cycle_index(xi, yi)
+            if i < size:
+                main_move[i] = South
+            elif i == size:
+                main_move[i] = East
+            else:
+                i = i % A
+                main_move[i] = region_step(main_area, (xi, yi))
+    change_hat(Hats.Dinosaur_Hat)
+    cnt = 1
+    next_x, next_y = measure()  # ty: ignore[not-iterable]  此处位于Apple上，measure返回下一苹果坐标。
+    next_id = cycle_index(next_x, next_y)
+    while get_time() < cycle_deadline:
+        x, y = (get_pos_x(), get_pos_y())
+        id = cycle_index(x, y)
+        if id == next_id:
+            cnt += 1
+            next_x, next_y = measure()  # ty: ignore[not-iterable]  此处位于Apple上，measure返回下一苹果坐标。
+            next_id = cycle_index(next_x, next_y)
+        if cnt >= turn_point:
+            quick_print('dinosaur_finish', cnt, get_time())
+            while move(main_move[id % A]):
+                id += 1
+            break
+        ccnt = cnt - size + cnt // size
+        if id < ccnt:
+            if id < next_id <= ccnt:
+                l = next_id - id
+                for _ in range(l):
+                    move(main_move[id])
+                    id += 1
                 continue
-            if x == m and y != m:
-                while move(dir) and get_entity_type() != Entities.Apple:
-                    continue  # 边界上走直线，避免循环顶层大 while
-                if not can_move(dir) and not can_move(West):
-                    break  # 碰到尾巴
-            dir = West  # 在边界转向
+            else:
+                l = ccnt - id
+                for _ in range(l):
+                    move(main_move[id])
+                    id += 1
+                continue
+        elif x == 0:
+            move(main_move[id])
             continue
+        else:
+            next_target, new_cnt = collect_in_region((next_x, next_y), main_area, cnt)
+            next_x, next_y = next_target
+            next_id = cycle_index(next_x, next_y)
+            cnt = new_cnt
+    change_hat(Hats.Brown_Hat)
+    return
 
 
 if __name__ == "__main__":

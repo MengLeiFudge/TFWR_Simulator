@@ -3,10 +3,10 @@
   "boards": {
     "lb_dinosaur": {
       "label": "恐龙",
-      "simulation_seconds": 775.38042549,
-      "simulation_basis": "既有完整目标记录；原始精度、版本与模型范围见对应证据。",
+      "simulation_seconds": 697.52252925,
+      "simulation_basis": "2026-11-12原生恐龙榜、无覆盖，递归矩形追果与父区域恢复三seed完整701.11135647/697.52252925/717.66190431秒，每轮真实入库33488928 Bone、仅主机且goal_reached；最终字节版又完成seed1。普通田对应速率提高11.2%～18.2%。已持锁idle498备份同步两个已有恐龙入口，语法通过，LSP零错误/警告；本版未实机，旧成绩不归入当前源码。证据functional-dinosaur-validation.json。",
       "evidence": "lb_dinosaur.md",
-      "direction": "重做中期蛇身形状，保留连续自由通道并证明逐果恢复；先压缩256–769尾的477秒主段。"
+      "direction": "递归矩形分区已采用，距#1仍+121.5%；继续比较安全自由区结构、递归中段移动与恢复父区域的费用，以及后半回路转入条件，避免只做旧阈值枚举。"
     },
     "lb_cactus_single": {
       "label": "仙人掌·单机",
