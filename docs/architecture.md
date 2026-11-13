@@ -8,7 +8,7 @@
 | `game_control/` | 本机路径、脚本部署、模组请求、结果采集、公开数据工具 | [游戏控制](../game_control/README.md) |
 | `game_mod/` | 游戏内请求状态机、脚本运行、窗口准备、成绩日志与退出 | [模组](../game_mod/README.md) |
 | `scripts/functional/` | 全科技下持续生产资源，复用成熟功能与多机算法 | [运行约定](../scripts/functional/README.md) |
-| `scripts/leaderboard/` | 对应榜单初始条件下的最快已确认策略 | [脚本约定](../scripts/leaderboard/README.md) |
+| `scripts/leaderboard/` | 对应榜单初始条件下的当前最好可执行策略，已接入者由母版生成 | [脚本约定](../scripts/leaderboard/README.md) |
 | `scripts/achievement/` | 全科技下完成一次成就任务后退出 | [成就脚本](../scripts/achievement/README.md) |
 | `references/` | 反编译／资源／解锁来源、公开缓存、外部来源与各榜历史代码 | [参考资料](../references/README.md) |
 | `docs/` | 六份核心文档、30份单榜策略、共用方法与进度 | [文档索引](README.md) |
@@ -25,7 +25,9 @@
 
 功能脚本不导入排行榜文件，来源、许可、材料和地图前提见[功能脚本](../scripts/functional/README.md)。全部入口满足[脚本准入](script-validation.md)，算法、实际窗口和完整周期结论归[速率与成就](script-rate-validation.md)。初版不扩低科技，模拟器仍可配置科技供重置及指定场景。现有自动同步只处理排行榜，功能部署也须遵守已有存档边界。
 
-旧正式实现与未采用候选归`references/leaderboard_history/<lb_xxx>/`，`manifest.json`维护源码、原实验路径及提交映射。归档位于类型检查和部署扫描之外；同名单榜文档只保留当前策略、淘汰表、版本演进和下一步四节。公开缓存目录仅两份数据／快照，原始实验回执留`.codex/`，正式目录不新增阶段或日期过程文档。
+接入固定生成的脚本，以`scripts/templates/leaderboard/`或`scripts/templates/functional/`中的可读母版作为人工策略源，正式转换规则归`simulator/optimizer/`，母版旁同名`*.codegen.json`保存当前选中参数及生成链指纹。母版、规则、配方及当前最好生成物一起入Git；可执行路径、游戏导入及部署入口保持现有结构，只手改母版及规则。未接入者直接维护现有脚本，目录按实际接入创建。完整步骤与重建要求归[母版与固定代码生成](leaderboards/interpreter_cost_notes.md#母版与固定代码生成)。
+
+旧正式实现与未采用候选归`references/leaderboard_history/<lb_xxx>/`，`manifest.json`维护源码、原实验路径及提交映射。可从母版／转换器Git版本及参数复现的临时变体只保留淘汰结论，避免重复归档展开大文件；旧正式可执行版仍归档。归档不参与类型检查或部署扫描。同名单榜文档只保留当前策略、淘汰表、版本演进和下一步四节。公开缓存目录仅两份数据／快照，原始实验回执留`.codex/`，正式目录不新增阶段或日期过程文档。
 
 ## 命名迁移
 

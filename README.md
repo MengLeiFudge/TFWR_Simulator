@@ -12,7 +12,7 @@
 | [game_control/](game_control/README.md) | 路径配置、脚本部署、请求控制、结果采集和公开排行榜缓存 |
 | [game_mod/](game_mod/README.md) | BepInEx 模组，接收指令并在游戏内运行脚本 |
 | [scripts/functional/](scripts/functional/README.md) | 全科技下持续生产资源，优先沿用已有功能脚本和成熟多机排行榜算法 |
-| [scripts/leaderboard/](scripts/leaderboard/README.md) | `lb_*.py` 排行榜脚本真源 |
+| [scripts/leaderboard/](scripts/leaderboard/README.md) | 当前可部署的`lb_*.py`排行榜实现；接入生成后在母版修改策略 |
 | [scripts/achievement/](scripts/achievement/README.md) | 全科技下的一次性成就脚本 |
 | [references/](references/README.md) | 游戏源码、资源与科技快照、公开缓存，以及30榜历史／淘汰代码库 |
 | [docs/](docs/README.md) | 六份核心文档、共用研究方法、30份单榜策略与进度总表 |
@@ -65,6 +65,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
    ```
 
    限制样本数、移动数和命令时间。模型比较的是动作成本、完成率或命中率，不能把动作下界直接写成真实成绩。
+   策略基线正确稳定后，按[母版与固定代码生成](docs/leaderboards/interpreter_cost_notes.md#母版与固定代码生成)检查实际源码费用，生成少量变体并同条件择优。已接入脚本的母版、生成器和选中配方入Git，可执行目录只放最好一版；未接入者继续在现有路径维护。
 3. 按[脚本验证与替换准入](docs/script-validation.md)准备脚本。排行榜进入实机满足任一条件：用户明确授权该实机任务；或有效模拟预估时间≤当前公开#1的2倍，且严格快于当前账号公开最高记录。模拟可采用有依据的短程预估，不要求完整跑完目标。随后部署单个目标脚本及派生入口；具体证据与缺失口径见[共用策略说明](docs/leaderboards/README.md#固定效率闭环)：
 
    ```bash
@@ -80,7 +81,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
    ```
 
    `estimated_total_game_seconds`是本轮预计总游戏时间；`eta_game_seconds`是预计剩余时间。用前者对照#1目标和当前账号记录；它仍是预测。库存线性增长时才能按库存估算，Cactus/Dinosaur等批量结算前可能长期0%，须看阶段进度和完整生产周期。Fastest Reset按阶段预算推算，不套资源比例。
-5. 将当前策略、淘汰原因、历史版本和后续方向写入同名`.md`的四节模板；[仙人掌](docs/leaderboards/lb_cactus.md)可作示例。`.py`只放当前最快实现，旧正式版及淘汰代码归[历史库](references/leaderboard_history/)，通过`manifest.json`查原实验路径和提交。原始报告留`.codex/`，不在正式目录新建阶段过程MD／JSON。
+5. 将当前策略、淘汰原因、历史版本和后续方向写入同名`.md`的四节模板；[仙人掌](docs/leaderboards/lb_cactus.md)可作示例。可执行目录每脚本只放当前最好版本；已接入固定生成者另保留可读母版、规则和当前配方。旧正式版及有价值的淘汰代码归[历史库](references/leaderboard_history/)，通过`manifest.json`查原实验路径和提交。原始报告留`.codex/`，不在正式目录新建阶段过程MD／JSON。
 
 `--request-only` 只投递请求，默认拒绝覆盖活动请求；明确替换须加 `--replace`，终态须先回收；它不负责持续监测或自动回收终态。长流程使用它时必须自行监看日志、按请求 ID 停止和确认终态，接口见 [协调器说明](game_control/README.md)。常规等待命令会在超时或中断时请求停止当前任务。
 
