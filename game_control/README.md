@@ -177,10 +177,10 @@ py.exe -X utf8 game_control/tools/refresh_leaderboard_cache.py --steam --script 
 
 - [公开事实缓存](../references/leaderboards/leaderboard_cache.json)：30榜来源、实际UTC查询时间、总人数、连续前N名以及账号核对记录。兼容读取旧16榜缓存；缺榜保持缺失。
 - [本地研究状态](../docs/leaderboards/leaderboard_progress.json)：每榜名称、`simulation_seconds`、`simulation_basis`、`evidence`及`direction`。已有更快有效模拟即更新，不要求完成整个原目标；批量机制须先兑现完整周期。时间保留报告原精度，具体观察窗口、源版本及范围归对应策略文档。
-- [排行榜进度](../docs/leaderboards/leaderboard_progress.md)：由上述两份JSON生成八列总表，按距#1倍率排序，历史正式统计归各榜同名文档。
+- [排行榜进度](../docs/leaderboards/leaderboard_progress.md)：由上述两份JSON生成七列总表，按距#1倍率排序，历史正式统计归各榜同名文档。
 - [公开快照](../references/leaderboards/status_snapshot.md)：逐榜来源、原查询时间、账号核对时间及最近刷新错误。
 
-报告固定展示“排行榜、#1、#3、#10、实机、模拟、比例、改进方向”。实机取账号公开最高并附排名，#3／#10缺失时显示末名时间及排名，比例按实机／模拟较快值相对#1计算。来源日期和刷新错误集中在公开快照，规则见[状态汇报](../docs/leaderboards/README.md#排行榜状态汇报)。仓库`lb_start.py`只记历史正式复跑，不参与当前账号或模拟列生成。
+报告固定展示“排行榜、实机、模拟、#1、#3、#10、改进方向”。实机取账号公开最高并附排名；#1／#3／#10时间后各附`(min(有效实机,有效模拟)/该名次时间-1)×100%`，正数表示我们更慢，负数表示我们更快，无可比实机和模拟时只显示公开时间。#3／#10缺失时显示末名时间及排名，并按该末名时间计算百分比。来源日期和刷新错误集中在公开快照，规则见[状态汇报](../docs/leaderboards/README.md#排行榜状态汇报)。仓库`lb_start.py`只记历史正式复跑，不参与当前账号或模拟列生成。
 
 更新研究JSON后运行`--offline`，重建进度和快照两份Markdown，保留原查询日期。联网仅替换校验成功的榜，失败保留旧数据及原日期并在来源说明；任一公开或账号查询失败退出码1。两份JSON可离线重建报告；`--cache`、`--local-progress`、`--progress`、`--snapshot`分别指定路径。公开缓存目录不放实验回执，批次原始报告留`.codex/`。
 

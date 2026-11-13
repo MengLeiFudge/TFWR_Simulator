@@ -11,7 +11,7 @@
 | [block-mining.md](block-mining.md) | 深钻、爆破掉落、建材窗口和铁／石英勘探机制 |
 | [wsl-file-read.md](wsl-file-read.md) | Windows挂载盘短读、64KB边界和整文件完整性检查 |
 
-[leaderboards/](leaderboards/README.md)保存30份单榜四节文档、三阶段计划、解释器费用、GitHub／B站来源研究，以及进度MD／研究JSON。状态统一为八列：排行榜、#1、#3、#10、实机、模拟、比例、改进方向。当前总表见[排行榜进度](leaderboards/leaderboard_progress.md)，来源日期及账号查询状态见[公开快照](../references/leaderboards/status_snapshot.md)。
+[leaderboards/](leaderboards/README.md)保存30份单榜四节文档、三阶段计划、解释器费用、GitHub／B站来源研究，以及进度MD／研究JSON。状态统一为七列：排行榜、实机、模拟、#1、#3、#10、改进方向；各公开名次时间后附实机与模拟较快值相对该名次的差距百分比。当前总表见[排行榜进度](leaderboards/leaderboard_progress.md)，来源日期及账号查询状态见[公开快照](../references/leaderboards/status_snapshot.md)。
 
 当前实现归[scripts/leaderboard](../scripts/leaderboard/README.md)，历史和淘汰代码归[references/leaderboard_history](../references/leaderboard_history/)，每榜文档记录原因并链接源码；`manifest.json`提供原实验路径及Git提交映射。公开缓存目录只保存缓存JSON与快照MD。
 

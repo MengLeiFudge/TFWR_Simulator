@@ -324,23 +324,35 @@ def format_account(account: AccountSnapshot) -> str:
     return "未核实"
 
 
-def checkpoint(board: BoardSnapshot | None, rank: int) -> str:
+def checkpoint(board: BoardSnapshot | None, rank: int, best_seconds: float | None = None) -> str:
     if board is None or not board.entries:
         return "未取得"
     if rank <= len(board.entries):
-        return format_time(board.entries[rank - 1].time_ms)
-    if rank > board.total_entries:
-        last = board.entries[-1]
-        return f"{format_time(last.time_ms)}（#{last.rank}，末名）"
-    return "未缓存"
+        entry = board.entries[rank - 1]
+        suffix = ""
+    elif rank > board.total_entries:
+        entry = board.entries[-1]
+        suffix = f"（#{entry.rank}，末名）"
+    else:
+        return "未缓存"
+    label = format_time(entry.time_ms)
+    if best_seconds is not None:
+        label += f"（{(best_seconds * 1000 / entry.time_ms - 1) * 100:+.1f}%）"
+    return label + suffix
+
+
+def best_time(board: BoardSnapshot | None, result: LocalProgress) -> float | None:
+    values = [result.simulation_seconds] if result.simulation_seconds is not None else []
+    if board is not None and board.account.time_ms is not None:
+        values.append(board.account.time_ms / 1000)
+    return min(values) if values else None
 
 
 def relative_time(board: BoardSnapshot | None, result: LocalProgress) -> float | None:
     if board is None or not board.entries:
         return None
-    values = [value for value in (result.simulation_seconds,
-              board.account.time_ms / 1000 if board.account.time_ms is not None else None) if value is not None]
-    return min(values) * 1000 / board.entries[0].time_ms if values else None
+    seconds = best_time(board, result)
+    return seconds * 1000 / board.entries[0].time_ms if seconds is not None else None
 
 
 def cell(text: str) -> str:
@@ -355,28 +367,28 @@ def render_report(boards: dict[str, BoardSnapshot], results: dict[str, LocalProg
                   refreshed: set[str], output: Path, title: str, offline: bool,
                   local_path: Path = LEADERBOARD_LOCAL_PROGRESS_PATH,
                   snapshot_path: Path = LEADERBOARD_SNAPSHOT_PATH) -> str:
-    """从公开缓存与研究状态生成八列进度表；门槛判断使用原始精度。"""
+    """从公开缓存与研究状态生成七列进度表；门槛判断使用原始精度。"""
     dates = sorted(datetime.fromisoformat(board.retrieved_at).astimezone(timezone.utc).isoformat() for board in boards.values())
     ratios = {script: relative_time(boards.get(script), result) for script, result in results.items()}
     reached = sum(ratio is not None and ratio <= 2 for script, ratio in ratios.items() if script not in RESET_BOARDS)
     mode = "公开缓存离线重建" if offline else f"本次联网刷新 {len(refreshed)}/30 榜"
     date_note = f"公开数据 UTC 范围：`{dates[0]}` 至 `{dates[-1]}`。" if dates else "尚无有效公开数据。"
     lines = [f"# {title}", "", f"{mode}。{date_note}每榜查询时间与账号核对见[公开快照]({document_link(snapshot_path, output)})。", "",
-             "时间为游戏时间 `分钟:秒.毫秒`。`实机` 为当前账号公开最高记录及排名，`模拟` 为本地最佳有效预估，`比例` 为 `(min(实机,模拟)/#1-1)×100%`；名次不足时显示末名。", "",
+             "时间为游戏时间 `分钟:秒.毫秒`。`实机` 为当前账号公开最高记录及排名，`模拟` 为本地最佳有效预估。#1、#3、#10 时间后的百分比为 `(min(实机,模拟)/该名次时间-1)×100%`，正数表示我们更慢，负数表示我们更快；名次不足时按显示的末名时间计算，无可比实机和模拟时只显示公开时间。", "",
              f"28 个非重置榜中 {reached} 榜在 2×#1 以内；执行顺序见[三阶段计划]({document_link(LEADERBOARD_DOCS_ROOT / 'strategy_review.md', output)}#三阶段计划)，本地模拟与研究方向编辑入口为[研究状态 JSON]({document_link(local_path, output)})。", ""]
     for underground, heading in ((False, "常规排行榜"), (True, "地下排行榜")):
-        lines.extend([f"## {heading}", "", "| 排行榜 | #1 | #3 | #10 | 实机 | 模拟 | 比例 | 改进方向 |",
-                      "| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |"])
+        lines.extend([f"## {heading}", "", "| 排行榜 | 实机 | 模拟 | #1 | #3 | #10 | 改进方向 |",
+                      "| --- | ---: | ---: | ---: | ---: | ---: | --- |"])
         scripts = [script for script in BOARD_IDS if (BOARD_IDS[script] >= 21000000) == underground]
         scripts.sort(key=lambda script: (script in RESET_BOARDS, -(ratios[script] or -1), script))
         for script in scripts:
             board, result = boards.get(script), results[script]
-            ratio = ratios[script]
+            best_seconds = best_time(board, result)
             simulation = format_time(round(result.simulation_seconds * 1000)) if result.simulation_seconds is not None else "未取得"
             name = f"[{cell(result.label)}]({document_link(LEADERBOARD_DOCS_ROOT / (script + '.md'), output)})"
-            lines.append("| " + " | ".join((name, checkpoint(board, 1), checkpoint(board, 3), checkpoint(board, 10),
-                         format_account(board.account) if board else "未核实", simulation,
-                         f"{(ratio - 1) * 100:+.1f}%" if ratio is not None else "未取得", cell(result.direction))) + " |")
+            lines.append("| " + " | ".join((name, format_account(board.account) if board else "未核实", simulation,
+                         checkpoint(board, 1, best_seconds), checkpoint(board, 3, best_seconds),
+                         checkpoint(board, 10, best_seconds), cell(result.direction))) + " |")
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
@@ -422,7 +434,7 @@ def write_atomic(path: Path, text: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="刷新TFWR常规及地下30榜，核对账号并同步八列进度文档。")
+    parser = argparse.ArgumentParser(description="刷新TFWR常规及地下30榜，核对账号并同步七列进度文档。")
     parser.add_argument("--script", action="append", choices=tuple(BOARD_IDS), help="仅刷新指定榜，可重复；默认全部30榜。")
     parser.add_argument("--limit", type=int, default=100, help="每榜前N名，默认100，范围1..1000。")
     parser.add_argument("--offline", action="store_true", help="不联网，使用事实缓存及研究状态重建进度与公开快照。")

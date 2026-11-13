@@ -55,7 +55,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
    python3 game_control/tools/refresh_leaderboard_cache.py --offline
    ```
 
-   默认每榜前100名；统一生成“排行榜、#1、#3、#10、实机、模拟、比例、改进方向”八列，实机为账号最高并附排名。公开事实与本地研究状态分别保存JSON，生成进度总表及公开快照两份Markdown，保留各榜原抓取时间。命令及代理设置见[排行榜缓存](game_control/README.md#排行榜缓存)。
+   默认每榜前100名；统一生成“排行榜、实机、模拟、#1、#3、#10、改进方向”七列，实机为账号最高并附排名，#1／#3／#10时间后各附实机与模拟较快值相对该名次的差距百分比。公开事实与本地研究状态分别保存JSON，生成进度总表及公开快照两份Markdown，保留各榜原抓取时间。命令及代理设置见[排行榜缓存](game_control/README.md#排行榜缓存)。
 2. 先用 [本地模型](simulator/README.md) 筛选，例如：
 
    ```bash
