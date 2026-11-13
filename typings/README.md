@@ -1,6 +1,6 @@
 # 游戏脚本类型检查
 
-仓库根目录的 [ty.toml](../ty.toml) 将本目录加入模块搜索路径。`scripts/functional` 和 `scripts/leaderboard` 的 `from __builtins__ import *` 因此使用 [__builtins__.pyi](__builtins__.pyi)，无需连接真实存档。该文件只供编辑器和静态检查使用。
+仓库根目录的 [ty.toml](../ty.toml) 将本目录加入模块搜索路径。`scripts/functional`、`scripts/leaderboard` 及 `scripts/templates` 母版中的 `from __builtins__ import *` 因此使用 [__builtins__.pyi](__builtins__.pyi)，无需连接真实存档。该文件只供编辑器和静态检查使用。
 
 从仓库根目录执行：
 
@@ -9,6 +9,8 @@ ty check scripts/functional typings
 ```
 
 ty LSP使用同一份游戏配置。历史代码库已在`ty.toml`的`src.exclude`显式排除；默认检查和部署都不将归档当当前入口。诊断关注错误和警告，可选返回近似及未用变量仍可能有提示；静态检查不替代原版语法、本地模拟或实机。
+
+创建母版后，从仓库根目录执行`ty check scripts/templates`检查母版。母版与执行版使用相同的游戏声明和规则；配置中的`overrides.include`只决定规则覆盖，不限制默认扫描范围。
 
 普通Python控制工具不使用游戏内置声明。根目录的游戏桩会把`str`等当函数而影响宿主注解检查；需要核对`game_control`时，使用不带游戏桩的独立CPython工作区检查同源包副本，核对副本与实际源码逐字节一致，再报告LSP结果。不要修改宿主类型来迎合游戏声明。
 
@@ -23,6 +25,6 @@ ty LSP使用同一份游戏配置。历史代码库已在`ty.toml`的`src.exclud
 ## 游戏语言的静态边界
 
 - `measure()` 保留整数、整数坐标和字符串的联合类型。检查器无法根据当前农田状态收窄结果时，只在已核实实体或地面的调用位置使用带错误码的 `ty: ignore`，并说明状态前提。更换该位置的实体、地面或返回值用途时，必须重新核对前提与抑制范围。
-- 游戏的 `global` 沿父作用域寻找绑定。配置只在两个游戏脚本目录关闭Python模块绑定的 `unresolved-global` 告警；未定义名称、未知属性和参数类型等检查保持启用。
+- 游戏的 `global` 沿父作用域寻找绑定。配置仅对功能执行版、排行榜执行版及`scripts/templates/**`母版关闭Python模块绑定的 `unresolved-global` 告警；未定义名称、未知属性和参数类型等检查保持启用。
 - 沿用模板对部分可选返回省略 `None` 的近似，包括 `measure`、`get_companion`、`spawn_drone`、实体查询和部分勘探接口。它们在游戏中仍可能返回 `None`，不能依据编辑器的不可达提示删除失败处理。
 - `.pyi` 中的现代Python类型语法只由检查器读取。游戏脚本继续遵守游戏语言规则，不为类型检查添加运行时 `typing` 导入、断言或转换调用。
