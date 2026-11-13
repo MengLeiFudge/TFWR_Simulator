@@ -904,10 +904,10 @@ public class CallNode : Node
 		{
 			throw new ExecuteException(CodeUtilities.LocalizeAndFormat("error_name_not_defined", func.functionName));
 		}
-		SimulationMonitor.Current?.Begin(state, func.functionName, parameters);
+		SimulationMonitor.Current?.Begin(state, func.functionName, parameters, execution.sim);
 		double ops = func.binding(parameters, execution.sim, execution, state.DroneId);
 		if (state.currentSideEffect == SideEffect.None) SimulationMonitor.Current?.Complete(state, execution.sim, ops);
-		if (CheckIncrementOpCount(state, execution, ops))
+		if (CheckIncrementOpCount(state, execution, ops, apiCall: true))
 		{
 			yield return 0.0;
 		}
@@ -1870,7 +1870,7 @@ public abstract class Node
 
 	protected void ErrorsAndBreakpoints(ProgramState state, Execution execution, int depth)
 	{
-		SimulationMonitor.Current?.CheckNode();
+		SimulationMonitor.Current?.CheckNode(this, state);
 		if (depth > 1100)
 		{
 			execution.sim.UnlockAchievement("STACK_OVERFLOW");
@@ -1897,8 +1897,9 @@ public abstract class Node
 		state.CurrentExecutingNode = this;
 	}
 
-	public bool CheckIncrementOpCount(ProgramState state, Execution execution, double ops)
+	public bool CheckIncrementOpCount(ProgramState state, Execution execution, double ops, bool apiCall = false)
 	{
+		SimulationMonitor.Current?.Charge(this, state, ops, apiCall);
 		state.OpCount += ops;
 		if (!(state.OpCount >= state.TargetOpCount) && !state.hitBreakpoint && !state.hitStoppingPoint)
 		{

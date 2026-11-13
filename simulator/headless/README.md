@@ -70,6 +70,29 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 - `--trace` 输出JSONL，记录内置调用的参数、应用时间和结果；`wait_for` 在子机完成时记录实际返回值。轨迹增加本地开销，不增加游戏tick。多seed自动生成带seed后缀的文件。
 - `achievement_verification=not_recorded`：资源或脚本条件不等于Steam已解锁。
 
+## 源码费用报告
+
+添加`--hot-spots costs.json`，按模块路径、源码行、调用路径和无人机机位ID输出实际费用：
+
+```bash
+dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderboard/lb_cactus_single.py --leaderboard cactus_single --seed 1 --seconds 60 --wall-seconds 10 --hot-spots costs.json --json report.json
+```
+
+默认不采集。多seed会生成`costs.seed-<seed>.json`，与主报告中的seed及`hot_spots`路径对应；主报告保存场景、程序集和资源依据，费用文件保存依赖源码哈希，两者一起保留。输出不能覆盖脚本、场景、报告或轨迹，不与`--syntax-only`合用。采集会增加墙钟开销，不额外收游戏tick。
+
+| 费用字段 | 口径 |
+| --- | --- |
+| `hot_spots[].interpreter_nodes` | 原版AST执行观察次数，不等于收费tick |
+| `hot_spots[].interpreter_ticks` | 该行实际调用解释器扣费方法的独占费用，不重复累加到调用者 |
+| `hot_spots[].api_calls`、`completed_api_calls` | 内置函数发起／完成次数；包含`range`、`get_time`等，不只包括游戏动作 |
+| `hot_spots[].api_ticks` | 内置函数实际完成费用，与解释器费用分开；与主报告API账单对照 |
+| `hot_spots[].call_path` | 模块名及函数名组成的调用路径；`<module>`表示模块初始化 |
+| `drones[].wait_for_latency_game_seconds` | 该机位从发起`wait_for`到取得返回值的世界时延，含调度等待 |
+
+`hot_spots`默认按解释器实际费用降序排列。同一源码行在不同机位或调用路径下分列；机位ID复用时合并累计。`pending_api_calls`、`state_complete`和`execution_finished`标明观测边界，窗口停止不等于完整任务账单。
+
+总耗时始终取原版调度器推进的`game_seconds`／`nanoseconds`；机位费用与等待可能重叠，不求和推算世界时间。当前报告没有完整的Idle归因或关键路径图。2026-11-13单机仙人掌三seed的统计关闭／开启及修改前后时间、库存、状态和输出完全一致，8组既有实机归档重放通过；多机仙人掌seed1两次均34.75345086秒、覆盖32机位，API和节点计数对账一致，`wait_for`累计43.39909728秒。以上是定向本地证据，不代表新实机验收。转换流程与边界见[计费及代码生成](../../docs/leaderboards/interpreter_cost_notes.md#母版与固定代码生成)。
+
 ## 结构与来源
 
 | 文件 | 职责 |
@@ -78,7 +101,7 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 | `UnityValues.cs`、`HeadlessHost.cs`、`HostUtilities.cs` | 无界面值类型、资源/日志/脚本宿主，隔离显示依赖 |
 | `AssetLoader.cs`、`data/assets.json` | 202个原版资源，恢复对象引用、字段及OnEnable/Start生命周期 |
 | `SimulationScenario.cs` | 科技、库存和原版排行榜场景 |
-| `SimulationWorker.cs`、`SimulationMonitor.cs` | 执行、预算、进度、状态与轨迹 |
+| `SimulationWorker.cs`、`SimulationMonitor.cs`、`ExecutionProfile.cs` | 执行、预算、进度、轨迹与可选源码实际费用 |
 | `SimulationOptions.cs`、`SimulationSupervisor.cs`、`SimulatorCli.cs` | CLI、独立进程并行、硬超时及JSON报告 |
 | `import_native.py`、`export_assets.py` | 开发时生成源码和资源，模拟运行时不调用 |
 | `fixtures/`、`verify.py` | 归档实机脚本与观测重放，不启动真实游戏 |

@@ -19,6 +19,7 @@ public sealed class SimulationOptions
     public string? Save { get; private set; }
     public string? Output { get; private set; }
     public string? Trace { get; private set; }
+    public string? HotSpots { get; private set; }
     public Dictionary<string, double> Items { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, int> Unlocks { get; } = new(StringComparer.OrdinalIgnoreCase);
     public static string Help => """
@@ -38,6 +39,7 @@ public sealed class SimulationOptions
           --max-nodes 50000000     原版AST节点执行上限
           --syntax-only           仅检查入口及全部导入模块的游戏语法
           --trace trace.jsonl     记录API应用时刻、参数、返回值与tick
+          --hot-spots costs.json  源码行级实际费用与分机账单，不改变游戏计时
           --json report.json      写报告（别名 --output）
         """;
 
@@ -74,6 +76,7 @@ public sealed class SimulationOptions
                 case "--save": result.Save = Path.GetFullPath(value); break;
                 case "--json": result.Output = Path.GetFullPath(value); break;
                 case "--trace": result.Trace = Path.GetFullPath(value); break;
+                case "--hot-spots": result.HotSpots = Path.GetFullPath(value); break;
                 case "--item":
                     var item = Pair(value);
                     if (!result.Items.TryAdd(SimulationScenario.Normalize(item.name), Double(item.value)))
@@ -96,11 +99,12 @@ public sealed class SimulationOptions
             throw new ArgumentException("Invalid seed or simulation budget");
         if (result.Save != null && result.Preset != null) throw new ArgumentException("Use save or preset, not both");
         var inputs = new[] { result.Script, result.Scenario, result.Save }.Where(p => p != null).ToArray();
-        var outputs = new[] { result.Output, result.Trace }.Where(p => p != null).ToArray();
+        var outputs = new[] { result.Output, result.Trace, result.HotSpots }.Where(p => p != null).ToArray();
         if (outputs.Any(p => string.Equals(Path.GetExtension(p), ".py", StringComparison.OrdinalIgnoreCase)))
-            throw new ArgumentException("Report and trace paths cannot name Python source files");
+            throw new ArgumentException("Report, trace and hot-spot paths cannot name Python source files");
         if (outputs.Distinct(StringComparer.OrdinalIgnoreCase).Count() != outputs.Length || outputs.Any(p => inputs.Contains(p, StringComparer.OrdinalIgnoreCase)))
-            throw new ArgumentException("Input, trace and report paths must be different");
+            throw new ArgumentException("Input and diagnostic output paths must be different");
+        if (result.SyntaxOnly && result.HotSpots != null) throw new ArgumentException("Hot spots require script execution, not syntax-only mode");
         return result;
     }
 
@@ -112,12 +116,14 @@ public sealed class SimulationOptions
             ("--seconds",GameSeconds.ToString("R",CultureInfo.InvariantCulture)), ("--max-api-calls",MaxCalls.ToString()),
             ("--max-nodes",MaxNodes.ToString()), ("--size",Size.ToString()), ("--preset",Preset),
             ("--scenario",Scenario), ("--leaderboard",Leaderboard), ("--save",Save),
-            ("--trace",Trace == null ? null : Seeds.Length == 1 ? Trace : Path.Combine(Path.GetDirectoryName(Trace)!, $"{Path.GetFileNameWithoutExtension(Trace)}.seed-{seed}{Path.GetExtension(Trace)}")) })
+            ("--trace",SeedOutput(Trace, seed)), ("--hot-spots",SeedOutput(HotSpots, seed)) })
             if (pair.value != null) { yield return pair.name; yield return pair.value; }
         foreach (var item in Items) { yield return "--item"; yield return $"{item.Key}={item.Value.ToString("R",CultureInfo.InvariantCulture)}"; }
         foreach (var unlock in Unlocks) { yield return "--unlock"; yield return $"{unlock.Key}={unlock.Value}"; }
         if (SyntaxOnly) yield return "--syntax-only";
     }
+    private string? SeedOutput(string? path, int seed) => path == null || Seeds.Length == 1 ? path
+        : Path.Combine(Path.GetDirectoryName(path)!, $"{Path.GetFileNameWithoutExtension(path)}.seed-{seed}{Path.GetExtension(path)}");
     private static int Int(string value) => int.Parse(value, CultureInfo.InvariantCulture);
     private static double Double(string value) => double.Parse(value, CultureInfo.InvariantCulture);
     private static (string name, string value) Pair(string text)

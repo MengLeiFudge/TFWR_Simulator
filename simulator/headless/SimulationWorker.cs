@@ -14,15 +14,15 @@ public static class SimulationWorker
         AssetLoader.Load(dataPath);
         var workspace = MainSim.Inst.workspace;
         Node syntax = workspace.Load(options.Script);
-        if (options.Output != null && workspace.SourceHashes.ContainsKey(options.Output) || options.Trace != null && workspace.SourceHashes.ContainsKey(options.Trace))
-            throw new ArgumentException("Report/trace cannot overwrite a source module");
+        if (new[] { options.Output, options.Trace, options.HotSpots }.Any(path => path != null && workspace.SourceHashes.ContainsKey(path)))
+            throw new ArgumentException("Diagnostic outputs cannot overwrite a source module");
         if (options.SyntaxOnly)
             return JsonSerializer.SerializeToNode(new { backend = "csharp-native", stop_reason = "syntax_valid", script = options.Script,
                 dependencies = workspace.SourceHashes, wall_seconds = watch.Elapsed.TotalSeconds, error = (string?)null })!.AsObject();
         var scenario = SimulationScenario.Load(options.Scenario, options.Preset, options.Leaderboard, options.Save, options.Items, options.Unlocks);
         double[] initial = (double[])scenario.Items.items.Clone();
         var runner = new HeadlessRunner();
-        using var monitor = new SimulationMonitor(watch, options.WallSeconds, options.MaxCalls, options.MaxNodes, options.Trace);
+        using var monitor = new SimulationMonitor(watch, options.WallSeconds, options.MaxCalls, options.MaxNodes, options.Trace, options.HotSpots);
         SimulationMonitor.Current = monitor;
         var sim = scenario.Create(runner, options.Seed, options.Size);
         var farm = sim.farm;
@@ -61,6 +61,7 @@ public static class SimulationWorker
         var inventory = ResourceManager.GetAllItems().ToDictionary(x => x.itemName, x => farm.Items.items[x.itemId]);
         var net = ResourceManager.GetAllItems().ToDictionary(x => x.itemName, x => farm.Items.items[x.itemId] - initial[x.itemId]);
         var grid = farm.grid;
+        monitor.WriteProfile(sim, stateComplete, workspace.SourceHashes);
         var report = new
         {
             schema_version = 1, backend = "csharp-native", kind = "local_prediction",
@@ -85,6 +86,7 @@ public static class SimulationWorker
             game_seconds = sim.CurrentTime.Seconds, nanoseconds = sim.CurrentTime.nanoseconds,
             wall_seconds = watch.Elapsed.TotalSeconds, steps, interpreter_nodes = monitor.NodeCount,
             api_calls = monitor.Calls, api_ticks = monitor.ApiTicks, total_calls = monitor.CallCount,
+            hot_spots = options.HotSpots,
             inventory, net_inventory = net,
             efficiency = new
             {
