@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：2507.696秒（2026-11-12，实机完整3轮）；C#原目标3seed均值2479.106秒。
+# 完整轮时间：2507.696秒（2026-11-12，实机完整3轮）；C#原目标3seed均值2471.034秒（2026-11-15，当前版未实机）。
 # 恐龙路径Copyright (c) [2026] [lywlucas]，MIT许可见lywlucas_LICENSE.txt。
 # 小迷宫沿用lb_maze的zzlg-git方案；来源与许可边界见同名策略文档。
 
@@ -182,18 +182,30 @@ def solar_reserve():
             buckets[measure()].append((x, y))
             move(North)
         move(East)
+    remaining = size * size
+    rolls = 0
     for petals in range(15, 6, -1):
         for x, y in buckets[petals]:
-            for _ in range((x - get_pos_x()) % size):
-                move(East)
-            for _ in range((y - get_pos_y()) % size):
-                move(North)
+            go(x, y)
             while not can_harvest():
                 if get_time() > 7000:
                     return False
                 if get_water() < 0.5 and num_items(Items.Water) > 0:
                     use_item(Items.Water)
             harvest()
+            remaining -= 1
+            # 仅用现有种子少量滚动补低瓣；不抬高未收花的最大瓣数。
+            if remaining >= 10 and petals > 7 and rolls < size:
+                for _ in range(16):
+                    if num_items(Items.Carrot) < 1 or not plant(Entities.Sunflower):
+                        break
+                    next_petals = measure()
+                    if next_petals < petals:  # ty: ignore[unsupported-operator]  已种向日葵，measure只返回整数花瓣数。
+                        buckets[next_petals].append((x, y))  # ty: ignore[invalid-argument-type]
+                        remaining += 1
+                        rolls += 1
+                        break
+                    harvest()
     quick_print("directed_solar", get_time(), num_items(Items.Power))
     return True
 

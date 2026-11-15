@@ -5137,6 +5137,39 @@
           "time_tag": "口径见单榜正文，不从档名推断整轮成绩",
           "source_codex": ".codex/functional-reset-transfer-20261112/candidates/bamboo-retained-stumps.py",
           "explicitly_cited": true
+        },
+        {
+          "file": "20261115_rejected_reset_deep_rice.py",
+          "path": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_deep_rice.py",
+          "date": "20261115",
+          "time_tag": "三seed整轮均3028.405526312秒，对2991.607494878秒，未采用",
+          "source_codex": ".codex/gemini-reset-maze-20261115/rice/deep_rice.py",
+          "sha256": "79539b198dd039ee2ddf7c14fb3224895de6da91a9193a4baea562ffca95a158",
+          "base_commit": "5f34716",
+          "module_entry": "reset_rice_stock",
+          "explicitly_cited": true
+        },
+        {
+          "file": "20261115_rejected_reset_closed_bamboo_full.py",
+          "path": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_full.py",
+          "date": "20261115",
+          "time_tag": "全筛耗尽实际Rice，目标未达成，不是完成时间",
+          "source_codex": ".codex/gemini-reset-maze-20261115/bamboo-late/closed_bamboo.py",
+          "sha256": "41bd8fabd90b2d86a524cf7ae06cee5090d7c6419141c5672efc41236f3b8c0f",
+          "base_commit": "5f34716",
+          "module_entry": "reset_bamboo_stock",
+          "explicitly_cited": true
+        },
+        {
+          "file": "20261115_rejected_reset_closed_bamboo_first.py",
+          "path": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_first.py",
+          "date": "20261115",
+          "time_tag": "三seed整轮均3045.906270510秒，对2991.607494878秒，未采用",
+          "source_codex": ".codex/gemini-reset-maze-20261115/bamboo-first/closed_bamboo.py",
+          "sha256": "32a4dc28fd796aeaec9c37f9eef94d509bff7b074b2f172c5be172ca5e7178f1",
+          "base_commit": "5f34716",
+          "module_entry": "reset_bamboo_stock",
+          "explicitly_cited": true
         }
       ]
     }
@@ -5780,7 +5813,10 @@
     ".codex/reset-five-directions-20261112/claude/balance/power450.py": "references/leaderboard_history/lb_fastest_underground_reset/20261112_rejected_followup_power450.py",
     ".codex/reset-five-directions-20261112/claude/balance/power-late300.py": "references/leaderboard_history/lb_fastest_underground_reset/20261112_rejected_followup_power-late300.py",
     ".codex/reset-functional-followup-20261112/sources/mushroom-route.py": "references/leaderboard_history/lb_fastest_underground_reset/20261112_rejected_followup_mushroom-route.py",
-    ".codex/functional-reset-transfer-20261112/candidates/bamboo-retained-stumps.py": "references/leaderboard_history/lb_fastest_underground_reset/20261112_rejected_followup_bamboo-retained-stumps.py"
+    ".codex/functional-reset-transfer-20261112/candidates/bamboo-retained-stumps.py": "references/leaderboard_history/lb_fastest_underground_reset/20261112_rejected_followup_bamboo-retained-stumps.py",
+    ".codex/gemini-reset-maze-20261115/rice/deep_rice.py": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_deep_rice.py",
+    ".codex/gemini-reset-maze-20261115/bamboo-late/closed_bamboo.py": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_full.py",
+    ".codex/gemini-reset-maze-20261115/bamboo-first/closed_bamboo.py": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_first.py"
   },
   "commit_to_archive": {
     "lb_cactus:c36eb254": "scripts/leaderboard/lb_cactus.py",

@@ -2,9 +2,9 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_fastest_underground_reset.py](../../scripts/leaderboard/lb_fastest_underground_reset.py)。公开账号最高 **54:39.570（#5）**；已有最好本地模拟 **50:26.822**。
+当前脚本：[lb_fastest_underground_reset.py](../../scripts/leaderboard/lb_fastest_underground_reset.py)。公开账号最高 **54:39.570（#6）**；已有最好本地模拟 **50:26.822**。
 
-公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444633/)，榜单抓取时间 `2026-11-12T15:58:46.356414+00:00`，账号查询时间 `2026-11-12T15:58:46.356442+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
+公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444633/)，榜单抓取时间 `2026-11-15T14:58:46.039467+00:00`，账号查询时间 `2026-11-15T14:58:46.039493+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 
 从原版1×1零库存发展到供电、伴生与4机，再按真实get_cost支付矿业链。跨订单保场供料，Iron4、Quartz3、Ore_Boost1、Mining8、Dynamite4、Bamboo4；煤方向追铁，石英用付费最近距离选孔并追可见邻矿。蘑菇分区工人常驻、扫雷邻接和几何并行初始化，数字/约束每盘重建；最终12格田筹200k Bamboo及20k Dynamite并实付解锁。
 
@@ -31,6 +31,14 @@ Block8633～11928多来自矿采/蘑菇/扫雷联产，末Rice约4150及Pumpkin1
 | 常规蘑菇按片路线复用迁入 | 八seed3052.779018秒，对3034.092696秒，仅3/8更快 | 全科技局部收益不等于低科技整轮收益；只缓存或其他派发仍开放 | [20261112_rejected_followup_mushroom-route.py](../../references/leaderboard_history/lb_fastest_underground_reset/20261112_rejected_followup_mushroom-route.py) |
 | 竹子完整功能版迁入 | 末段20万组件三seed87.543秒，对现源63.877秒 | 500M重派收益不在该目标触发，筛种和升降增加成本 | [20261112_rejected_followup_bamboo-retained-stumps.py](../../references/leaderboard_history/lb_fastest_underground_reset/20261112_rejected_followup_bamboo-retained-stumps.py) |
 | 早Special_Soils、Treasure_Map3、Petrified_Pumpkins4 | 历史晚土组合六seed10172.228秒，其他代表更慢 | 局部2倍增产不足以抵偿整链投资/访问，历史结果不能套到当前路线 | [归档入口](../../references/leaderboard_history/lb_fastest_underground_reset/)（原记录未标独立源） |
+| 稻米同田连续找Clay、三趟种收 | 2026-11-15共同seed1/2/3完整均3028.405526312秒，对父版2991.607494878秒，慢36.798秒 | 普通地层的深挖、成熟、塌方和供料全部计入；专用稻米榜的收益不能直接迁移，关闭这一实现 | [深挖模块](../../references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_deep_rice.py)，原报告`under-rice-seed*.json` |
+| 竹子每机单井闭环、首花及次花全筛 | 早期200目标seed1耗尽Rice、Bamboo0；仅末段启用仍在126605/200000时耗尽Rice | 旧6112米储备不能支付140株完整花节筛选；禁止补虚拟种子或将提前退出当完成 | [全筛模块](../../references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_full.py)，原报告`under-bamboo[-late]-seed1.json` |
+| 竹子闭环仅筛首花、保留竹桩 | 共同三seed完整均3045.906270510秒，对2991.607494878秒，慢54.299秒 | 能完成目标；省去二次筛选后整轮仍无改善，不替换现源 | [首花模块](../../references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_first.py)，原报告`under-bamboo-first-seed*.json` |
+| 后期供电复用四机分瓣生产、达标免收余档 | 共同三seed完整均3028.261093838秒，对2991.607494878秒，慢36.654秒 | 补电局部缩短但整轮未改善；真实Carrot、水、成熟及后续生产均计入，未实现统一时钟 | 从`5f34716`重建：`ur_s_parallel_solar_reserve(size,target=0)`每瓣前检查目标；`ur_power_stock`保留实际筹种和clear，后接该调用，替代原串行种收；原源`under-power/lb_fastest_underground_reset.py` |
+
+本批原源、完整报告和指纹索引留`.codex/gemini-reset-maze-20261115/results.json`。稻米和竹子模块重建时分别复制为`deep_rice.py`、`closed_bamboo.py`，取`5f34716`入口，在末尾main之前静态导入`reset_rice_stock`或`reset_bamboo_stock`，以同名`ur_rice_stock`或`ur_bamboo_stock`返回其结果。末段竹子代表将原`ur_bamboo_stock`改名`ur_bamboo_stock_original`，新入口对goal<10000沿用原版，其余调用模块；`ur_need`的实际稻米预算保持不变。归档及原路径/SHA256映射见[manifest](../../references/leaderboard_history/manifest.json)。
+
+所有完整比较均为原版零库存重置场景、同一seed、原目标，每例15墙钟秒，最多两进程；三个新整轮代表均正常完成、目标达成、状态完整、效率有效并回收全部工人。因初筛均值已退步，没有选择性扩seed或与旧八seed均值混比，也没有撤回八seed3026.821846秒的有效旧候选。这里只关闭已测的低科技组合，不否定同田、闭环或并行供电的全部构造。
 
 ## 历史正式版本演进
 
@@ -59,5 +67,6 @@ Block8633～11928多来自矿采/蘑菇/扫雷联产，末Rice约4150及Pumpkin1
 
 - 优先压缩地上启动与矿物投资链。按资源到货时点、速率和主依赖比较保场混合获取与阶段重叠，clear前必须回收所有写者。
 - 保留3026.821846秒完整八seed候选和其波动；原cap80版seed7失败，与加容错版本区分，旧前三seed2938.444秒不再充作当前均值。
+- 新藏宝图坍塌隧道筹金尚未在重置初始科技下完成对照；先计入Mining/Treasure_Map解锁和实际小目标，不能用全科技榜22.6%的组件改善代替整轮收益。共享支撑和统一时钟也仍是待验证的不同构造。
 
 新方向按[共用策略选择流程](README.md#策略选择与淘汰)记录机制、预算、置信度和停止条件；新结果写回本页及研究状态JSON。
