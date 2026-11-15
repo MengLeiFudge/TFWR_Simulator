@@ -615,5 +615,1061 @@
     "action": "No login or access bypass attempted; evaluated the author-provided source instead."
   },
   "raw_directory": ".codex/bilibili-strategies-20261112/",
-  "interpretation": "Public titles, ranks, descriptions and comments are source claims, not verified performance or current leaderboard records."
+  "interpretation": "Public titles, ranks, descriptions and comments are source claims, not verified performance or current leaderboard records.",
+  "latest_research": {
+    "recorded_at": "2026-11-15T07:38:14.211218+00:00",
+    "requested_video": "BV17f4qzQEGV",
+    "scope": {
+      "distinct_queries": 21,
+      "successful_query_pages": 46,
+      "discovered_relevant_titles": 194,
+      "video_metadata_records_read": 20,
+      "not_exhaustive": true
+    },
+    "missed_source_audit": {
+      "previous_queries": [
+        "编程农场 排行榜",
+        "编程矿场 排行榜 蘑菇",
+        "编程农场 恐龙 思路",
+        "编程农场 迷宫 排行",
+        "编程矿场"
+      ],
+      "previous_pages": "first page only",
+      "requested_video_in_previous_selected_videos": false,
+      "unfollowed_reference": {
+        "bvid": "BV1phsUzXEH9",
+        "previous_description_acknowledges": "亲一口芙宝"
+      },
+      "conclusion": "previous search omitted a dedicated pumpkin query and did not trace the acknowledged author to the original video"
+    },
+    "searches": [
+      {
+        "query": "编程农场 南瓜",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E5%8D%97%E7%93%9C&order=pubdate",
+        "retrieved_at": "2026-11-15T07:14:12.779Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 快速重置",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E5%BF%AB%E9%80%9F%E9%87%8D%E7%BD%AE",
+        "retrieved_at": "2026-11-15T07:06:48.304Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 向日葵",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E5%90%91%E6%97%A5%E8%91%B5&order=pubdate",
+        "retrieved_at": "2026-11-15T07:18:21.355Z",
+        "visible_video_links": 12
+      },
+      {
+        "query": "亲一口芙宝 编程农场",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E4%BA%B2%E4%B8%80%E5%8F%A3%E8%8A%99%E5%AE%9D+%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:14:28.375Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 恐龙",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E6%81%90%E9%BE%99",
+        "retrieved_at": "2026-11-15T07:04:17.119Z",
+        "visible_video_links": 40
+      },
+      {
+        "query": "编程农场 向日葵",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E5%90%91%E6%97%A5%E8%91%B5&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:04:18.711Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 胡萝卜",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E8%83%A1%E8%90%9D%E5%8D%9C",
+        "retrieved_at": "2026-11-15T07:06:44.310Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 仙人掌",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E4%BB%99%E4%BA%BA%E6%8E%8C",
+        "retrieved_at": "2026-11-15T07:04:09.010Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 快速重置",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E5%BF%AB%E9%80%9F%E9%87%8D%E7%BD%AE&order=pubdate",
+        "retrieved_at": "2026-11-15T07:18:22.629Z",
+        "visible_video_links": 1
+      },
+      {
+        "query": "编程农场 恐龙",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E6%81%90%E9%BE%99&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:04:20.438Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 快速重置",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E5%BF%AB%E9%80%9F%E9%87%8D%E7%BD%AE&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:06:50.043Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 向日葵",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E5%90%91%E6%97%A5%E8%91%B5",
+        "retrieved_at": "2026-11-15T07:04:15.733Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 木头",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E6%9C%A8%E5%A4%B4&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:03:01.017Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程矿场 石英",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA+%E7%9F%B3%E8%8B%B1&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:10:28.298Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 采矿",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E9%87%87%E7%9F%BF&order=pubdate",
+        "retrieved_at": "2026-11-15T07:19:39.542Z",
+        "visible_video_links": 6
+      },
+      {
+        "query": "编程农场 仙人掌",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E4%BB%99%E4%BA%BA%E6%8E%8C&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:04:12.626Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 迷宫",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E8%BF%B7%E5%AE%AB&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:04:14.350Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程矿场",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:10:12.505Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 木头",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E6%9C%A8%E5%A4%B4&order=pubdate",
+        "retrieved_at": "2026-11-15T07:18:19.912Z",
+        "visible_video_links": 4
+      },
+      {
+        "query": "编程农场 南瓜",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E5%8D%97%E7%93%9C",
+        "retrieved_at": "2026-11-15T07:02:56.291Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程矿场 炸药",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA%20%E7%82%B8%E8%8D%AF",
+        "retrieved_at": "2026-11-15T07:14:16.267Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 混合种植",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E6%B7%B7%E5%90%88%E7%A7%8D%E6%A4%8D",
+        "retrieved_at": "2026-11-15T07:10:14.906Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 迷宫",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E8%BF%B7%E5%AE%AB&order=pubdate",
+        "retrieved_at": "2026-11-15T07:17:06.568Z",
+        "visible_video_links": 43
+      },
+      {
+        "query": "编程农场 速通",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E9%80%9F%E9%80%9A",
+        "retrieved_at": "2026-11-15T07:09:56.502Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 混合种植",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E6%B7%B7%E5%90%88%E7%A7%8D%E6%A4%8D&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:10:18.823Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 速通",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E9%80%9F%E9%80%9A&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:10:10.659Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 木头",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E6%9C%A8%E5%A4%B4",
+        "retrieved_at": "2026-11-15T07:02:59.387Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 干草",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E5%B9%B2%E8%8D%89&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:06:41.763Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 干草",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E5%B9%B2%E8%8D%89",
+        "retrieved_at": "2026-11-15T07:06:39.117Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 恐龙",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E6%81%90%E9%BE%99&order=pubdate",
+        "retrieved_at": "2026-11-15T07:17:08.128Z",
+        "visible_video_links": 10
+      },
+      {
+        "query": "编程矿场 炸药",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA+%E7%82%B8%E8%8D%AF&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:14:20.233Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 南瓜",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E5%8D%97%E7%93%9C&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:02:58.085Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程矿场 蘑菇",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA%20%E8%98%91%E8%8F%87",
+        "retrieved_at": "2026-11-15T07:14:22.463Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 石英",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E7%9F%B3%E8%8B%B1&order=pubdate",
+        "retrieved_at": "2026-11-15T07:19:38.065Z",
+        "visible_video_links": 6
+      },
+      {
+        "query": "编程矿场 金字塔",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA+%E9%87%91%E5%AD%97%E5%A1%94&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:10:25.174Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 竹子",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E7%AB%B9%E5%AD%90&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:10:20.599Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程农场 仙人掌",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E4%BB%99%E4%BA%BA%E6%8E%8C&order=pubdate",
+        "retrieved_at": "2026-11-15T07:17:09.912Z",
+        "visible_video_links": 31
+      },
+      {
+        "query": "编程矿场",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA",
+        "retrieved_at": "2026-11-15T07:09:58.056Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程矿场",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA&order=pubdate",
+        "retrieved_at": "2026-11-15T07:14:17.539Z",
+        "visible_video_links": 16
+      },
+      {
+        "query": "编程农场 迷宫",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E8%BF%B7%E5%AE%AB",
+        "retrieved_at": "2026-11-15T07:04:10.904Z",
+        "visible_video_links": 40
+      },
+      {
+        "query": "编程农场 排行榜",
+        "order": "pubdate",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E6%8E%92%E8%A1%8C%E6%A6%9C&order=pubdate",
+        "retrieved_at": "2026-11-15T07:19:40.820Z",
+        "visible_video_links": 14
+      },
+      {
+        "query": "编程矿场 金字塔",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA%20%E9%87%91%E5%AD%97%E5%A1%94",
+        "retrieved_at": "2026-11-15T07:10:23.118Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "亲一口芙宝 编程农场",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E4%BA%B2%E4%B8%80%E5%8F%A3%E8%8A%99%E5%AE%9D%20%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA",
+        "retrieved_at": "2026-11-15T07:14:26.539Z",
+        "visible_video_links": 39
+      },
+      {
+        "query": "编程农场 胡萝卜",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA+%E8%83%A1%E8%90%9D%E5%8D%9C&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:06:46.943Z",
+        "visible_video_links": 42
+      },
+      {
+        "query": "编程矿场 蘑菇",
+        "order": "totalrank",
+        "page": 2,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E7%9F%BF%E5%9C%BA+%E8%98%91%E8%8F%87&page=2&o=30",
+        "retrieved_at": "2026-11-15T07:14:25.112Z",
+        "visible_video_links": 43
+      },
+      {
+        "query": "编程农场 竹子",
+        "order": "totalrank",
+        "page": 1,
+        "url": "https://search.bilibili.com/all?keyword=%E7%BC%96%E7%A8%8B%E5%86%9C%E5%9C%BA%20%E7%AB%B9%E5%AD%90",
+        "retrieved_at": "2026-11-15T07:10:16.243Z",
+        "visible_video_links": 39
+      }
+    ],
+    "videos": [
+      {
+        "bvid": "BV17f4qzQEGV",
+        "url": "https://www.bilibili.com/video/BV17f4qzQEGV/",
+        "title": "【编程农场】无人机种大南瓜 喜提榜1",
+        "owner": {
+          "mid": 13979676,
+          "name": "亲一口芙宝"
+        },
+        "published_at": "2025-10-15T14:01:33+00:00",
+        "retrieved_at": "2026-11-15T06:51:52.545Z",
+        "duration_seconds": 311,
+        "description": "这个方法改进自32无人机单列种大南瓜法，改为种许多6x6小南瓜，效率倍增。\n\n如果每架无人机只种一列南瓜，那么问题将非常简单：从最南端出发一路向北种植，并将每一个南瓜标记为烂南瓜，之后向北一步回到起点。这时候起点的南瓜已经熟了，依次遍历烂南瓜列表，如果南瓜是好的则移除，如果南瓜是烂的则重新种，直到没有烂南瓜。32列同时种大南瓜耗时大概10-12分钟，可以排到50-60名。\n\n1.种大南瓜有个缺点是所有南瓜必须等烂南瓜被完全去除才能收获，因此白白浪费了时间，改为16个子区域收小南瓜会提升许多速度，例如16个8x8、16个7x7、16个6x6\n\n2.但是16个8x8有个缺点，不同子区域的南瓜会连起来影响相邻区域，而不会生成我们预想中的8x8南瓜，处理这个问题比较棘手\n\n3.一个更重要的点是南瓜大于6x6后单块地不会有额外的收益，实际种下来的收获速度是一样的，相反还会因为占地过大而消耗更多的水\n\n4.根据2和3，完全可以采用16块6x6的地块种植南瓜来达到高速收益，我们可以给每块地分配2个无人机\n\n5.这里我就简单的给每个无人机分配了3x6的地块，每个地块的处理方式和单列种植相同，只是路径折叠成了2维，并且烂南瓜寻路采用x、y的最短路径而不必沿着种植路径走\n\n6.我的右无人机是使用左无人机生成的，因此只要生成16架左无人机就搞定了16个区块\n\n7.无人机的初始位置放在中间会有轻微的性能提升，因为第一次遍历完烂南瓜后到子区域的每个位置都很近\n\n8.水资源不够每一块地的0.9消耗，但是我们可以把最后几个烂南瓜浇水到0.9，提升一点收获速度，总时间可以提升一分钟左右\n\n9.在无人机的每一步移动都检测一次南瓜数是否达标，达标了直接退出循环，比收获之后再检测可以更快一些\n\n祝各位南瓜收获愉快ヾ(*´∀ ˋ*)ﾉ",
+        "description_sha256": "7672105bbf4cd349d18c8f2c8d9d5805c165148e632f2177550720348b02be86",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/provided-video.json",
+        "raw_sha256": "152696f2e181a355e944dfc121212016bbd9e3e284a9b7c509795e45c2b1508a"
+      },
+      {
+        "bvid": "BV13XmVB3EGE",
+        "url": "https://www.bilibili.com/video/BV13XmVB3EGE/",
+        "title": "【编程农场】16对无人机分片种南瓜，榜单第五",
+        "owner": {
+          "mid": 177515472,
+          "name": "Re世界第一可爱"
+        },
+        "published_at": "2025-12-12T00:00:00+00:00",
+        "retrieved_at": "2026-11-15T07:06:45.206Z",
+        "duration_seconds": 102,
+        "description": "欢迎查看简介\n两个无人机负责一个6*6，呦西，接下来就是优化肥料了\n代码import了别的文件，需要的话加群发压缩包（写代码是最快乐的）",
+        "description_sha256": "bbd1df5a2af03686b1c11981b11601af82504692392372846610ffe6d5b8e39d",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV13XmVB3EGE.json",
+        "raw_sha256": "0622ea8df7dbd72aec189dd73d9d280d4ef0720fb7e8b434154791f11e1c623b"
+      },
+      {
+        "bvid": "BV17ssKzoEXT",
+        "url": "https://www.bilibili.com/video/BV17ssKzoEXT/",
+        "title": "编程农场-种树木头6分钟百亿思路",
+        "owner": {
+          "mid": 12153382,
+          "name": "茵蒂克丝ちゃん"
+        },
+        "published_at": "2025-10-20T04:00:00+00:00",
+        "retrieved_at": "2026-11-15T07:10:13.376Z",
+        "duration_seconds": 176,
+        "description": "bgm: 旅人はワルツを踊る - 未来古代楽団",
+        "description_sha256": "82953c63e76abe30f304874732445070bf4c6910daf55b00383f336d900852ee",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV17ssKzoEXT.json",
+        "raw_sha256": "224b86424cce7ddc21326220b6d7ffb4761cb0ce6c5d46254cd0514c119aa29f"
+      },
+      {
+        "bvid": "BV1FBWJzaEg6",
+        "url": "https://www.bilibili.com/video/BV1FBWJzaEg6/",
+        "title": "【编程农场】100%增产概率！多线程！混合种植！智能多种最少！~ 代码农场 The Farmer Was Replaced",
+        "owner": {
+          "mid": 473280763,
+          "name": "PinkYuDeer"
+        },
+        "published_at": "2025-10-17T16:01:40+00:00",
+        "retrieved_at": "2026-11-15T07:14:23.379Z",
+        "duration_seconds": 261,
+        "description": "",
+        "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1FBWJzaEg6.json",
+        "raw_sha256": "cc07650cd8e24f7b66fc45476b67e9b22a0f6411a17a2421e5d1ef7016a98ce6"
+      },
+      {
+        "bvid": "BV1Fys8zwEC8",
+        "url": "https://www.bilibili.com/video/BV1Fys8zwEC8/",
+        "title": "[编程农场]榜二 6:11.541 南瓜排行榜思路分享  10月22日 不完全涉及源码内容",
+        "owner": {
+          "mid": 94213391,
+          "name": "latiao_jun"
+        },
+        "published_at": "2025-10-22T08:00:39+00:00",
+        "retrieved_at": "2026-11-15T07:15:37.394Z",
+        "duration_seconds": 236,
+        "description": "视频不会完全展示程序，只是对思路进行一个分享。\n现在这个田的布置顺序尽可能的减少了无人机的移动范围。\nBV17f4qzQEGV 16块6*6南瓜种植视频。参考了无人机布置方案以及路线\nBV17u4gz3E4J 用队列的方式储存需要补种的南瓜坐标。对视频的队列方案增加了前面2遍的遍历种植，使耗时变得更短了。",
+        "description_sha256": "b2aeda92ee005d235117022b2f2f750dac4a2abcb20101abb10cd2f9318a3a5c",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1Fys8zwEC8.json",
+        "raw_sha256": "71e4e94d4f5d3a70fbea4536ced836057c7b36b446183525161453d4decf7772"
+      },
+      {
+        "bvid": "BV1L246ztE7p",
+        "url": "https://www.bilibili.com/video/BV1L246ztE7p/",
+        "title": "【编程农场】16并行8*8小迷宫，产量每分钟一百万",
+        "owner": {
+          "mid": 357686639,
+          "name": "妙到家惹"
+        },
+        "published_at": "2025-10-15T16:13:46+00:00",
+        "retrieved_at": "2026-11-15T07:19:36.365Z",
+        "duration_seconds": 79,
+        "description": "为每个迷宫分配一个左手扶墙无人机和右手扶墙无人机",
+        "description_sha256": "55549c3625a0825afb52ae1ea86c1630d276468807aa85ef23e86838c825e5de",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1L246ztE7p.json",
+        "raw_sha256": "6b0a11a54cf03f549dbd8a8f72e9db8aeb016586d59f0cba155079bcc098cf38"
+      },
+      {
+        "bvid": "BV1P61RBCEai",
+        "url": "https://www.bilibili.com/video/BV1P61RBCEai/",
+        "title": "【编程农场】多无人机仙人掌二维排序 18.729秒 榜#10",
+        "owner": {
+          "mid": 497200545,
+          "name": "不死の祥云"
+        },
+        "published_at": "2025-11-09T03:00:00+00:00",
+        "retrieved_at": "2026-11-15T07:14:21.111Z",
+        "duration_seconds": 106,
+        "description": "走格子，是zzz\n\n参考了BV1ekWBzrE6t的同序列法跳过竖向排列",
+        "description_sha256": "46b28e667f722f8ee0a28630ae8c19cfe986d3bcb3087b712772bd6cfa40ee04",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1P61RBCEai.json",
+        "raw_sha256": "4cd2a3851f7d5f9253038e39b2595e7c8e8eaed27b68e8b5aa3dedb36cad53ab"
+      },
+      {
+        "bvid": "BV1PqWY68Ege",
+        "url": "https://www.bilibili.com/video/BV1PqWY68Ege/",
+        "title": "编程农场 可能是最符合直觉的恐龙",
+        "owner": {
+          "mid": 31949159,
+          "name": "苌楚重工"
+        },
+        "published_at": "2026-11-12T23:52:19+00:00",
+        "retrieved_at": "2026-11-15T07:19:36.414Z",
+        "duration_seconds": 361,
+        "description": "哭",
+        "description_sha256": "32f573b748b711c30ce9d57e0e5728aa9755c4c53ca844df23e7348146d5a819",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1PqWY68Ege.json",
+        "raw_sha256": "d4693d8dc988c5578d05051f90a93cc4ca2d8bd8f420fa2b4257d28312c88d8c"
+      },
+      {
+        "bvid": "BV1REaa6wEvv",
+        "url": "https://www.bilibili.com/video/BV1REaa6wEvv/",
+        "title": "【编程农场】合成大南瓜世界第五 5:57.770",
+        "owner": {
+          "mid": 519102348,
+          "name": "撒碱空中差可拟"
+        },
+        "published_at": "2026-09-27T14:49:56+00:00",
+        "retrieved_at": "2026-11-15T07:06:42.892Z",
+        "duration_seconds": 79,
+        "description": "浇水调参调了半天比pid还难调，但用坏南瓜数组长度分层浇水的效果还是不错的\n发现先生成右无人机再收获，每轮可以再省约100tick（如果假设左右无人机效率一样），100轮下来就是两三秒级别的提升，这个点别人似乎都没做？\n最后跑的程序进行了循环展开和常量表达式替换操作，会比较长，不过每轮也只减少2tick左右。其他各种常数优化还没加。\n南瓜在192M的时候才开始频繁检测南瓜是否到200M和退出，使得return用途代码耗tick减少很多\n其他在评论区补充\n\n如果上面哪一条对你有用，不妨点个赞喵！",
+        "description_sha256": "db62b43738d83e684f6ca93f1cf9ff7858c349de2626aa1354f39ce65dbd9613",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1REaa6wEvv.json",
+        "raw_sha256": "a899ca9572083ef661afddb55d86d0c0a7910e040368677166257484f8a3ea33"
+      },
+      {
+        "bvid": "BV1TekFBEEWy",
+        "url": "https://www.bilibili.com/video/BV1TekFBEEWy/",
+        "title": "[编程农场] 多线程南瓜sub5:55.818 运行展示",
+        "owner": {
+          "mid": 94213391,
+          "name": "latiao_jun"
+        },
+        "published_at": "2026-01-15T13:14:41+00:00",
+        "retrieved_at": "2026-11-15T07:15:34.757Z",
+        "duration_seconds": 53,
+        "description": "明天和意外，永远都不知道谁先来，上个视频发完出去跨年看烟花，完了凌晨还堵车下雨。\nso又找到能优化的地方了(其实也是期末没事做)\n1.先前的程序有个程序放在了IF外，导致缺少执行条件，改上去就快了2秒，提升到了57秒。\n2.把遍历的路径判定方式进行了修改，减少了一大部分的中途计算量\n(其实就是打表，游戏内的文本处理好像不大行，文本量大了之后老卡了)\n3.又把第三轮列表中的赋值方式修改为了for x,y in list，用for的方式进行复制不需要消耗tick，原来的append还至少需要一个tick进行赋值操作，再加上移除，又多一个tick。",
+        "description_sha256": "735685c8c98028ea42ee2dae0dcee5431790ba3d33911618af28c2277229f50e",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1TekFBEEWy.json",
+        "raw_sha256": "cc54954ee3769a98e2faf110c292877c94d8b62390b6a8e9a380ff7d98575bf5"
+      },
+      {
+        "bvid": "BV1VLWJ6MEH1",
+        "url": "https://www.bilibili.com/video/BV1VLWJ6MEH1/",
+        "title": "编程农场 可能是运行最快的恐龙",
+        "owner": {
+          "mid": 31949159,
+          "name": "苌楚重工"
+        },
+        "published_at": "2026-11-08T12:36:40+00:00",
+        "retrieved_at": "2026-11-15T07:10:17.064Z",
+        "duration_seconds": 355,
+        "description": "除了 无限循环 和 执行每一步用了2个 while 之外没用递归或循环\n启发策略，和地图宽度也没太大关系，收益拉满\n一圈跑挺快，能吃2~4个",
+        "description_sha256": "360e93830686e06f6e0fcb47fa1ca70aee23c18c7f4b2356304804a7df2875ab",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1VLWJ6MEH1.json",
+        "raw_sha256": "5cc408f330df23c14abf7d1b10fbeb26843455275ca7b41c2d8b523cd4725467"
+      },
+      {
+        "bvid": "BV1gV6mBnEw1",
+        "url": "https://www.bilibili.com/video/BV1gV6mBnEw1/",
+        "title": "【编程农场】全自动！从一块地开始到解锁排行榜",
+        "owner": {
+          "mid": 3493282730478344,
+          "name": "妈诶"
+        },
+        "published_at": "2026-01-10T10:29:19+00:00",
+        "retrieved_at": "2026-11-15T07:10:21.418Z",
+        "duration_seconds": 1878,
+        "description": "源码已开源：https://github.com/Cliencer/The-Farmer-Was-Replaced-Auto\n还有许多可以改进的地方，欢迎大佬star提交PR",
+        "description_sha256": "9faa6ffff2d715ef38fe3e2059acbec4c12b2e040f3f9d82cd1afb27d65412da",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1gV6mBnEw1.json",
+        "raw_sha256": "cf49a87e2e81e9c11c360b4a0bbe2828101417d152c65472e476eb88ade2a4c5"
+      },
+      {
+        "bvid": "BV1h5B5B9Eo5",
+        "url": "https://www.bilibili.com/video/BV1h5B5B9Eo5/",
+        "title": "2025年编程农场南瓜种植世界第一 : 每秒收获55.1万南瓜",
+        "owner": {
+          "mid": 356024335,
+          "name": "不会文科的小旺柴"
+        },
+        "published_at": "2025-12-24T09:44:41+00:00",
+        "retrieved_at": "2026-11-15T07:06:37.170Z",
+        "duration_seconds": 365,
+        "description": "",
+        "description_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1h5B5B9Eo5.json",
+        "raw_sha256": "a0028222eb9f34db815ddfc6ba73bad5d7ea79db219fbea057fae8326c033267"
+      },
+      {
+        "bvid": "BV1izqsBWEEr",
+        "url": "https://www.bilibili.com/video/BV1izqsBWEEr/",
+        "title": "没有算法全是调参，向日葵全球榜7【编程农场】",
+        "owner": {
+          "mid": 365869,
+          "name": "MRL___"
+        },
+        "published_at": "2025-12-15T13:39:17+00:00",
+        "retrieved_at": "2026-11-15T07:19:36.293Z",
+        "duration_seconds": 56,
+        "description": "月初更新修复了共享引用，害我大部分时间都花在摸索调整各种同步方案上\n有些不稳定、有些响应慢、有些空占一格，在一通试错之后选了个最不坏的\n按序收菜吃8倍加成，金币作同步信号，左半种大花右半种小花以压缩收菜路程\n开局种棵感染伴生树获得204k奇异物质，每个阶段完成后用1x1迷宫产出金币，需要空占一格\n==\n规划收菜路径时，求遍历n个目标点的最短路径是经典的旅商问题\n一般是NP难的，但以行为单位分治的一维情形有O（n）的特解（易证最短路径中方向变化不超过一次）\n==\n要是这游戏加个跨线程通信会有趣不少，很多有想象力的方案也能够实现\n像向日葵这种需要获知全局状态才能决定收割目标的任务，禁止直接通信解题像是带着镣铐跳舞",
+        "description_sha256": "58cdf03d51acc1d5389e61ef0a8695f86cf839c5fb34b1100eeba1cc9d212cbd",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1izqsBWEEr.json",
+        "raw_sha256": "243da89152568d8ba1e412c705f2f0deedda9edebc31e8415d66a7b5bef2f95d"
+      },
+      {
+        "bvid": "BV1phsUzXEH9",
+        "url": "https://www.bilibili.com/video/BV1phsUzXEH9/",
+        "title": "[编程农场]多线程南瓜榜1！5:59.590  我们是冠军！",
+        "owner": {
+          "mid": 94213391,
+          "name": "latiao_jun"
+        },
+        "published_at": "2025-10-27T10:21:29+00:00",
+        "retrieved_at": "2026-11-15T07:14:14.706Z",
+        "duration_seconds": 106,
+        "description": "又经过一个周末的修改，周六有位观众说中间还能塞一块田，但是无人机不够用。尝试中间换成4块8*8的田后提升了4秒。所以把一半都换成了8*8的田，再经过了一点其他地方的优化，就提升到了现在的6分内。看现在的榜三，应该还会有更好的思路。\n感谢@亲一口芙宝  的思路援助",
+        "description_sha256": "492e0a4a17d48998616c983f2c1a7f8d3ce1ac07c575d188ed932e55c261d47f",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1phsUzXEH9.json",
+        "raw_sha256": "7fda68ea707dee84fed9eb8362fe541dea448be56f205de511c21bbe00a4f426"
+      },
+      {
+        "bvid": "BV1q6rYBbEXn",
+        "url": "https://www.bilibili.com/video/BV1q6rYBbEXn/",
+        "title": "编程农场-1分钟内收获2亿胡萝卜和干草成就完成思路优化",
+        "owner": {
+          "mid": 272949546,
+          "name": "雨中谣"
+        },
+        "published_at": "2026-01-12T11:42:50+00:00",
+        "retrieved_at": "2026-11-15T07:14:18.459Z",
+        "duration_seconds": 261,
+        "description": "针对第一版本无人机等待时间过长进行了优化，有更好的思路欢迎交流",
+        "description_sha256": "024167c4754d0f9f1238914a1a0b8673c2586556fa358685611ae7d1cfaef828",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1q6rYBbEXn.json",
+        "raw_sha256": "94df11769a8a147c5f6222e1329fd27b6cec963c6b7f7ba6a53e3df711335396"
+      },
+      {
+        "bvid": "BV1t6idBFEBS",
+        "url": "https://www.bilibili.com/video/BV1t6idBFEBS/",
+        "title": "[编程农场] 多线程南瓜 新世界第一 5:57.942",
+        "owner": {
+          "mid": 13587332,
+          "name": "_yww"
+        },
+        "published_at": "2026-01-08T14:58:52+00:00",
+        "retrieved_at": "2026-11-15T07:06:40.014Z",
+        "duration_seconds": 204,
+        "description": "刷了一天终于刷到 sub 5:58 了。感觉还有一秒的优化空间\n\n每次种南瓜时少一个 tick 能让总成绩提升约 0.2s\n能优化的部分包括：\n用了 4 块 8*8 和 12 块 7*7 的田，这样土地利用率比较高\n每架无人机飞的路径\n开局可以先种近处的田，因为产出速度随着时间单调上升\n开局可以从每块田的角落开始种南瓜，不需要飞到中间再开始种（预计还能再快 0.2s）\n因为没有 C++ 中的编译器帮你做 O2 优化，自己加了各种编译原理/高性能计算课上学的常数优化（循环展开、公共表达式提取等）\n浇水/施肥的逻辑",
+        "description_sha256": "b74b89aa9960429f2688732579179293c7965a87a4c6b7bde13a1b325c747cce",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1t6idBFEBS.json",
+        "raw_sha256": "04be4eee0e01c1cd9381e88ab508a29bc8b7678fc1b25d7e06e876ebdc13d0b2"
+      },
+      {
+        "bvid": "BV1vJ13BMEw5",
+        "url": "https://www.bilibili.com/video/BV1vJ13BMEw5/",
+        "title": "【编程农场】多无人机南瓜第一名，附带代码展示，已开源",
+        "owner": {
+          "mid": 1934731,
+          "name": "Nicoの工坊"
+        },
+        "published_at": "2025-10-31T21:42:19+00:00",
+        "retrieved_at": "2026-11-15T07:15:35.663Z",
+        "duration_seconds": 371,
+        "description": "总算冲到第一了，共享内存和布局参考的其他B友，全程有借助AI辅助部分实现和思路，结尾有代码展示，Github搜索The-Farmer-Was-Replaced-AI-Code\n跑了几遍懒得微调了，总的应该还有优化空间，等被挤下来再研究。",
+        "description_sha256": "39399cea18107fb06545c96c2a77e67ce6a374fccd938dc06144126540565980",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1vJ13BMEw5.json",
+        "raw_sha256": "2f0f29f5224fa0d9c101d2490d58b516e69cfe755873c526331056e1148dcf84"
+      },
+      {
+        "bvid": "BV1wVmtBNEZe",
+        "url": "https://www.bilibili.com/video/BV1wVmtBNEZe/",
+        "title": "不动脑子，种树全球榜5【编程农场】",
+        "owner": {
+          "mid": 365869,
+          "name": "MRL___"
+        },
+        "published_at": "2025-12-10T13:23:31+00:00",
+        "retrieved_at": "2026-11-15T07:19:36.328Z",
+        "duration_seconds": 28,
+        "description": "树木无须等待成熟即可重植刷新伴生需求，基本思路就是不断重植刷出伴生加成\n棋盘格交替种植树跟干草，每次重植伴生坐标命中干草格子概率为1/2，伴生类型命中干草概率为1/3\n期望倍率为16000%/6=2667%，伴生加成过于数值美\n程序也很简单，每个线程负责一行，判断一下坐标再暴力循环就完事了\n同样的思路用在萝卜、干草上效果也还行（排行#11、#22）",
+        "description_sha256": "cf743fc0eb797ab55354e29138a3b8ff9573e0b9aba9b656e3a0b74d1a9acd63",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1wVmtBNEZe.json",
+        "raw_sha256": "370248343a6ced2d2038525cc4a6be399be7cf5bc59b3ceb7d18fb96727bcf49"
+      },
+      {
+        "bvid": "BV1x5muBQE54",
+        "url": "https://www.bilibili.com/video/BV1x5muBQE54/",
+        "title": "【编程农场】32线程-不销毁无人机-合成大南瓜",
+        "owner": {
+          "mid": 177515472,
+          "name": "Re世界第一可爱"
+        },
+        "published_at": "2025-12-11T12:23:43+00:00",
+        "retrieved_at": "2026-11-15T07:15:36.624Z",
+        "duration_seconds": 190,
+        "description": "欢迎查看简介\n32线程种植32*32南瓜，虽然效率低，但好看啊（\n代码import了别的文件，需要的话加群发压缩包（没效率只能观赏用）",
+        "description_sha256": "80bf43dedc616bfedb84a36636734e7eca461ddc9857913bf1d177a9bc0a6e14",
+        "read_scope": "public title, description and metadata; no full audiovisual transcript",
+        "raw_file": ".codex/bilibili-research-20261113/video-BV1x5muBQE54.json",
+        "raw_sha256": "2414c7a50386e95d335f41ed8083f134a306effee2247acaeeb7235e5b9ffb1e"
+      }
+    ],
+    "comments": [
+      {
+        "bvid": "BV17f4qzQEGV",
+        "retrieved_at": "2026-11-15T06:58:12.140Z",
+        "endpoint": null,
+        "read_scope": "first public hot-comment page and included replies; not all comments",
+        "selected_strategy_comments": [
+          {
+            "rpid": 277740564609,
+            "author": "亲一口芙宝",
+            "message": "这个方法改进自32无人机单列种大南瓜法，改为种许多6x6小南瓜，效率倍增。\n\n如果每架无人机只种一列南瓜，那么问题将非常简单：从最南端出发一路向北种植，并将每一个南瓜标记为烂南瓜，之后向北一步回到起点。这时候起点的南瓜已经熟了，依次遍历烂南瓜列表，如果南瓜是好的则移除，如果南瓜是烂的则重新种，直到没有烂南瓜。32列同时种大南瓜耗时大概10-12分钟，可以排到50-60名。\n\n1.种大南瓜有个缺点是所有南瓜必须等烂南瓜被完全去除才能收获，因此白白浪费了时间，改为16个子区域收小南瓜会提升许多速度，例如16个8x8、16个7x7、16个6x6\n\n2.但是16个8x8有个缺点，不同子区域的南瓜会连起来影响相邻区域，而不会生成我们预想中的8x8南瓜，处理这个问题比较棘手\n\n3.一个更重要的点是南瓜大于6x6后单块地不会有额外的收益，实际种下来的收获速度是一样的，相反还会因为占地过大而消耗更多的水\n\n4.根据2和3，完全可以采用16块6x6的地块种植南瓜来达到高速收益，我们可以给每块地分配2个无人机\n\n5.这里我就简单的给每个无人机分配了3x6的地块，每个地块的处理方式和单列种植相同，只是路径折叠成了2维，并且烂南瓜寻路采用x、y的最短路径而不必沿着种植路径走\n\n6.我的右无人机是使用左无人机生成的，因此只要生成16架左无人机就搞定了16个区块\n\n7.无人机的初始位置放在中间会有轻微的性能提升，因为第一次遍历完烂南瓜后到子区域的每个位置都很近\n\n8.水资源不够每一块地的0.9消耗，但是我们可以把最后几个烂南瓜浇水到0.9，提升一点收获速度，总时间可以提升一分钟左右\n\n9.在无人机的每一步移动都检测一次南瓜数是否达标，达标了直接退出循环，比收获之后再检测可以更快一些\n\n祝各位南瓜收获愉快ヾ(*´∀ ˋ*)ﾉ",
+            "replies": []
+          },
+          {
+            "rpid": 279327072272,
+            "author": "Toncula",
+            "message": "原来是种小南瓜吗我超，另外合理使用肥料是可以提高不少效率的，由于地的平均含水量函数大约是逻辑回归，循环会越来越快，所以我目前的做法是在每次循环的时候记录一下上次循环的时间，循环中时间超过上次循环时间的一个比例就开始狂施肥，绝对能快不少",
+            "replies": [
+              {
+                "author": "亲一口芙宝",
+                "message": "我循环检测一轮之后就只走到下一个烂南瓜之间的最短路径了，没有严格走循环哈哈，如果要做更合理水检测的话确实还能更快，我现在水完全就是不够用[蛆音娘_吐血]"
+              },
+              {
+                "author": "Toncula",
+                "message": "回复 @亲一口芙宝 :确实，种大南瓜有一个独特的优势，就是南瓜measure()的神秘数字对同一个南瓜是一样的，正常来说没啥用但是种大南瓜就可以通过x=0和x=31数字相同来判断南瓜种好了。\n\n另外种大南瓜面积大相当于南瓜成长速度相对快了"
+              },
+              {
+                "author": "Toncula",
+                "message": "所以理论上7*7应该更快"
+              }
+            ]
+          }
+        ],
+        "raw_file": ".codex/bilibili-research-20261113/provided-comments.json",
+        "raw_sha256": "dfdd2133ea2a922b1f18333b3e7a4d2a5b810af5a8826c5ffa7f77f8f9ee77f9"
+      },
+      {
+        "bvid": "BV1P61RBCEai",
+        "retrieved_at": "2026-11-15T07:33:40.415Z",
+        "endpoint": "https://api.bilibili.com/x/v2/reply?type=1&oid=115515947223938&sort=2&pn=1&ps=20",
+        "read_scope": "first public hot-comment page and included replies; not all comments",
+        "selected_strategy_comments": [
+          {
+            "rpid": 287862725072,
+            "author": "冬涉川-_-",
+            "message": "这个方法现在是不是用不了了？我重新种植仙人掌，但是measure的值不变",
+            "replies": [
+              {
+                "rpid": 287896757440,
+                "author": "不死の祥云",
+                "message": "是的，现在提前收获不能改变measure值了。还有很多也改了，榜单也重置了"
+              }
+            ]
+          }
+        ],
+        "raw_file": ".codex/bilibili-research-20261113/comments-BV1P61RBCEai.json",
+        "raw_sha256": "0cd6ab22582be39af11fa2ab5398c14d33c0f820903aeb4a1866e782ecd05ca9"
+      },
+      {
+        "bvid": "BV1REaa6wEvv",
+        "retrieved_at": "2026-11-15T07:17:04.662Z",
+        "endpoint": "https://api.bilibili.com/x/v2/reply?type=1&oid=117343539693441&sort=2&pn=1&ps=20",
+        "read_scope": "first public hot-comment page and included replies; not all comments",
+        "selected_strategy_comments": [
+          {
+            "rpid": 318831531232,
+            "author": "撒碱空中差可拟",
+            "message": "南瓜被种下后，20%概率变成坏南瓜，只能重新种。a*a的好南瓜矩形会联通形成大南瓜，收获可得a*a*min(6,a）个南瓜，所以最优策略是去除所有坏南瓜后收获大南瓜。目前我发现了以下优化点：\n[秋绘动态表情包_易碎品]1. 用了坏南瓜数组长度来分层浇水。尽可能不浪费“浇水”这个动作，少一次浇水就赚200tick。可以发现3min后水桶就剩余上百上千了，能省则省，就是调参有点折磨，而且目前的参数一定不是最优\n[Akie秋绘E见钟情动态_欧皇出金]2. 用了分层判断数量。南瓜在192M的时候才进入开始频繁检测南瓜是否到200M和退出的代码块，使得return用途代码耗tick减少很多\n[Akie秋绘E见钟情动态_晚上早]3. 通过wait_for/has_finished来给左（主）无人机单向共享信息通信\n[秋绘动态表情包_前排吃瓜]4. 每轮结束，若左无人机先生成右无人机再收获，相对于先收获再生成右无人机，每轮可以省高达100tick（假设左右无人机效率一样），100轮下来就是两三秒级别的提升\n[秋绘动态表情包_为I发电]5. 7*7南瓜田是无法走回路的，其中一侧无人机遍历操作必定会重复经过格子，改用6*6或8*8格子可以避免，若将4个7*7格子换成8*8应该能再提几秒\n[秋绘动态表情包_人见人I]6. 最后跑的程序进行了循环展开和常量表达式替换操作，不过每轮也只减少2tick左右。其他各种常数优化还没加。比如队列长度用zero tick count维护的话每轮能减少十几tick\n\n如果上面哪一条对你有用，不妨点个赞喵[秋绘动态表情包_谢谢]",
+            "replies": [
+              {
+                "rpid": 319071380640,
+                "author": "撒碱空中差可拟",
+                "message": "回复 @---x-_-x--- :我的看法，种南瓜的格子总数越多越好，也就是7*7 8*8混合应该是最优的\n[NANATSUKAZE表情包_融化]其中用合理的密布可以挤出12个7*7的田配4个8*8的田，一共844格就是最多的"
+              }
+            ]
+          }
+        ],
+        "raw_file": ".codex/bilibili-research-20261113/comments-BV1REaa6wEvv.json",
+        "raw_sha256": "904ea0e334d84fa00c512daa27a553a8f0a1b34b289f19ed19aa57583e298018"
+      },
+      {
+        "bvid": "BV1TekFBEEWy",
+        "retrieved_at": "2026-11-15T07:17:10.199Z",
+        "endpoint": "https://api.bilibili.com/x/v2/reply?type=1&oid=115899289833766&sort=2&pn=1&ps=20",
+        "read_scope": "first public hot-comment page and included replies; not all comments",
+        "selected_strategy_comments": [],
+        "raw_file": ".codex/bilibili-research-20261113/comments-BV1TekFBEEWy.json",
+        "raw_sha256": "25034d478ebba5f2e88e442c37039f888cae526b260f180632f56d82e83977d1"
+      },
+      {
+        "bvid": "BV1h5B5B9Eo5",
+        "retrieved_at": "2026-11-15T07:17:08.445Z",
+        "endpoint": "https://api.bilibili.com/x/v2/reply?type=1&oid=115773880272615&sort=2&pn=1&ps=20",
+        "read_scope": "first public hot-comment page and included replies; not all comments",
+        "selected_strategy_comments": [
+          {
+            "rpid": 286673674992,
+            "author": "不会文科的小旺柴",
+            "message": "相比于之前b站上公开的思路的更新的自己开发的多的新思路\n\n1,为什么之前b站上有sub6以内的但是现在6:02又变成世界第一了?\n因为,在12-05修复了共享内存的bug,以至于南瓜的核心双无人机交互部分不能使用无销毁交互模式,所以时间必然会变慢(似乎之前有个5:54的成绩,我感觉他的代码修改之后应该仍然可以破6分的成绩,但是大佬似乎没兴趣更改())\n\n2,7*7的南瓜田必然有一边会出现路径重复(染色法可以证明),但是最后效率仍然会比6*6多一点点,所以加入了两个7*7的南瓜田\n\n3,寻路算法时间复杂性区分: 代码将寻路代码分成了高复杂性和低复杂性两种,减少逻辑判断次数(实际上可以用python的字典减少更多,但是破现有的世界纪录暂且不需要这步,所以没做())\n\n差不多就这几点是自己想的,其它都是一些基础的数学建模的思路和b站上现有思路的复刻[doge_金箍]",
+            "replies": [
+              {
+                "rpid": 287052676832,
+                "author": "不会文科的小旺柴",
+                "message": "回复 @latiao_jun :对的[吃瓜]"
+              }
+            ]
+          }
+        ],
+        "raw_file": ".codex/bilibili-research-20261113/comments-BV1h5B5B9Eo5.json",
+        "raw_sha256": "b0c2c74e223455f5b8a04fecf618dee9ae168319ac9a57a9eab098448fe4c13d"
+      },
+      {
+        "bvid": "BV1izqsBWEEr",
+        "retrieved_at": "2026-11-15T07:33:40.820Z",
+        "endpoint": "https://api.bilibili.com/x/v2/reply?type=1&oid=115723850617979&sort=2&pn=1&ps=20",
+        "read_scope": "first public hot-comment page and included replies; not all comments",
+        "selected_strategy_comments": [
+          {
+            "rpid": 283661801937,
+            "author": "MRL___",
+            "message": "改进了一下浇水施肥小细节，又抠下来几秒爬到了榜6（3:41.608）\n感觉这套方案也快到头了，想再有大提升可能得放弃以行为单位的（简单）分治",
+            "replies": []
+          }
+        ],
+        "raw_file": ".codex/bilibili-research-20261113/comments-BV1izqsBWEEr.json",
+        "raw_sha256": "ca20e60ae6e988ab031f01f76d61a2324b51072bfb9e417d3ed490337d04710d"
+      },
+      {
+        "bvid": "BV1t6idBFEBS",
+        "retrieved_at": "2026-11-15T07:17:06.906Z",
+        "endpoint": "https://api.bilibili.com/x/v2/reply?type=1&oid=115860064699669&sort=2&pn=1&ps=20",
+        "read_scope": "first public hot-comment page and included replies; not all comments",
+        "selected_strategy_comments": [],
+        "raw_file": ".codex/bilibili-research-20261113/comments-BV1t6idBFEBS.json",
+        "raw_sha256": "8e67c41aeaa8c0708c84d113b26f75aa91b0b3c3224a1b2b2de34f136f3888f1"
+      },
+      {
+        "bvid": "BV1vJ13BMEw5",
+        "retrieved_at": "2026-11-15T07:33:41.433Z",
+        "endpoint": "https://api.bilibili.com/x/v2/reply?type=1&oid=115470933953729&sort=2&pn=1&ps=20",
+        "read_scope": "first public hot-comment page and included replies; not all comments",
+        "selected_strategy_comments": [],
+        "raw_file": ".codex/bilibili-research-20261113/comments-BV1vJ13BMEw5.json",
+        "raw_sha256": "a636a9cc7ee3cb6db157cb455c49fe450f5fef3c1c82e5a01ed45ea7294f9151"
+      },
+      {
+        "bvid": "BV1wVmtBNEZe",
+        "retrieved_at": "2026-11-15T07:33:41.096Z",
+        "endpoint": "https://api.bilibili.com/x/v2/reply?type=1&oid=115695480282442&sort=2&pn=1&ps=20",
+        "read_scope": "first public hot-comment page and included replies; not all comments",
+        "selected_strategy_comments": [],
+        "raw_file": ".codex/bilibili-research-20261113/comments-BV1wVmtBNEZe.json",
+        "raw_sha256": "e14863091096c875648f7cdef99d9f5394cd73527788886d002017954be33038"
+      }
+    ],
+    "repositories": [
+      {
+        "name": "nql1314/The-Farmer-Was-Replaced-AI-Code",
+        "commit": "688325db004607563e59535a15ce94fad092ff9f",
+        "license": "no LICENSE in inspected tree; not executed or redistributed",
+        "retrieved_files": [
+          {
+            "path": "docs/DRONE_SHARED_MEMORY_DISCOVERY.md",
+            "url": "https://raw.githubusercontent.com/nql1314/The-Farmer-Was-Replaced-AI-Code/688325db004607563e59535a15ce94fad092ff9f/docs/DRONE_SHARED_MEMORY_DISCOVERY.md",
+            "sha256": "202915ff2beb7b7bd1ddda49298a9ddabc70017d8d05959776109adf3a7b73b3",
+            "bytes": 10975
+          },
+          {
+            "path": "docs/PUMPKIN_V6_LAYOUT.md",
+            "url": "https://raw.githubusercontent.com/nql1314/The-Farmer-Was-Replaced-AI-Code/688325db004607563e59535a15ce94fad092ff9f/docs/PUMPKIN_V6_LAYOUT.md",
+            "sha256": "41d7a61b3a8ccdf4ce0a354e35792c0ee118b94bd3c44bdd3043241d5787c577",
+            "bytes": 7006
+          },
+          {
+            "path": "docs/FINAL_ROUND_OPTIMIZATION.md",
+            "url": "https://raw.githubusercontent.com/nql1314/The-Farmer-Was-Replaced-AI-Code/688325db004607563e59535a15ce94fad092ff9f/docs/FINAL_ROUND_OPTIMIZATION.md",
+            "sha256": "a4f6cb65dfb9270fbe0461919928b8980889bdd00150ce07577e8e6f3923beaa",
+            "bytes": 10628
+          },
+          {
+            "path": "rank/pumpkin_v6.py",
+            "url": "https://raw.githubusercontent.com/nql1314/The-Farmer-Was-Replaced-AI-Code/688325db004607563e59535a15ce94fad092ff9f/rank/pumpkin_v6.py",
+            "sha256": "27c85c9c79f341a694040c5cb081891b70d16ca022768efc114511cedb39bbef",
+            "bytes": 22403
+          }
+        ],
+        "read_scope": {
+          "docs/DRONE_SHARED_MEMORY_DISCOVERY.md": "core mechanism lines 1-109",
+          "docs/PUMPKIN_V6_LAYOUT.md": "lines 1-200; documentation coordinates differ from source",
+          "rank/pumpkin_v6.py": "module tables and complete create_shared function, lines 1-66",
+          "docs/FINAL_ROUND_OPTIMIZATION.md": "retrieved only, not reviewed"
+        },
+        "decision": "shared wait_for object aliasing is not adopted; only the isolated layout was independently represented and locally screened"
+      },
+      {
+        "name": "Cliencer/The-Farmer-Was-Replaced-Auto",
+        "source_video": "BV1gV6mBnEw1",
+        "retrieved_at": "2026-11-15T07:38:14.215578+00:00",
+        "access": "GitHub repository metadata and commits endpoints both returned HTTP 404; source not obtained, not executed"
+      }
+    ],
+    "local_screen_rebuild": {
+      "base_commit": "d30b5f596a556fb6c8ad499b7c6f6a5713b6ddd2",
+      "base_path": "scripts/leaderboard/lb_pumpkins.py",
+      "base_sha256_lf": "50c7c18b948fb4a8765de061dab644aaa18f4cf4d76e09c03cf85796dd2ccf2f",
+      "rebuild": "Use LF text. Apply each exact replacement once in order; require one match and verify output SHA256. Candidate time comments are included. Upstream shared-reference code is not executed.",
+      "variants": [
+        {
+          "name": "uniform6",
+          "sha256_lf": "2a4485a2efdfaa045bd0cb678d9a04b32b9926fd37595df26b0ed477836cf1c6",
+          "replacements": [
+            {
+              "before": "# 完整轮时间：6:14.128（2026-11-03，build26385848，官方完整20轮，request259）。\n",
+              "after": "# 完整轮时间：本地候选，尚无本版完整实机成绩。\n"
+            },
+            {
+              "before": "JOBS = [((3, 3), 7), ((11, 0), 8), ((20, 0), 8), ((28, 0), 6), ((3, 8), 8), ((12, 12), 7), ((19, 19), 7), ((19, 9), 6), ((11, 17), 6), ((27, 16), 8), ((28, 11), 7), ((3, 17), 8), ((2, 26), 6), ((11, 24), 8), ((20, 24), 8), ((28, 26), 6)]\n",
+              "after": "JOBS = [((2, 0), 6), ((10, 0), 6), ((18, 0), 6), ((26, 0), 6), ((2, 8), 6), ((10, 8), 6), ((18, 8), 6), ((26, 8), 6), ((2, 16), 6), ((10, 16), 6), ((18, 16), 6), ((26, 16), 6), ((2, 24), 6), ((10, 24), 6), ((18, 24), 6), ((26, 24), 6)]\n"
+            }
+          ]
+        },
+        {
+          "name": "tail_water",
+          "sha256_lf": "5d90cab0f4468b78e785a3a612f42cfa41b22994594a160a6352e5935c6ae6ed",
+          "replacements": [
+            {
+              "before": "# 完整轮时间：6:14.128（2026-11-03，build26385848，官方完整20轮，request259）。\n",
+              "after": "# 完整轮时间：本地候选，尚无本版完整实机成绩。\n"
+            },
+            {
+              "before": "    def check_pumpkin():\n",
+              "after": "    def check_pumpkin(repair=False):\n"
+            },
+            {
+              "before": "        if get_water() < W and num_items(Items.Water) > 32:\n",
+              "after": "        water_target = W\n        if repair and len(unripes_in_stack) + len(unripes_out_stack) < 3:\n            water_target = 0.9\n        if get_water() < water_target and num_items(Items.Water) > 32:\n"
+            },
+            {
+              "before": "            check_pumpkin()\n",
+              "after": "            check_pumpkin(True)\n"
+            }
+          ]
+        },
+        {
+          "name": "adaptive_fertilizer",
+          "sha256_lf": "f57bb0c690086edb34ed9dfd50252a6c5b26b4c3d4a04e0948ce9ccbf4501741",
+          "replacements": [
+            {
+              "before": "# 完整轮时间：6:14.128（2026-11-03，build26385848，官方完整20轮，request259）。\n",
+              "after": "# 完整轮时间：本地候选，尚无本版完整实机成绩。\n"
+            },
+            {
+              "before": "    start = (get_pos_x(), get_pos_y())\n",
+              "after": "    start = (get_pos_x(), get_pos_y())\n    fertilize_after = B\n"
+            },
+            {
+              "before": "        if get_time() - start_time > B and num_items(Items.Fertilizer) > 32:\n",
+              "after": "        if get_time() - start_time > fertilize_after and num_items(Items.Fertilizer) > 32:\n"
+            },
+            {
+              "before": "        while_round()\n",
+              "after": "        while_round()\n        fertilize_after = 0.5 * (get_time() - start_time)\n"
+            }
+          ]
+        },
+        {
+          "name": "pass_queue",
+          "sha256_lf": "841175dc88473a17b94f724493a695564fbd0368fcefa1a94ab83d28eb318f7e",
+          "replacements": [
+            {
+              "before": "# 完整轮时间：6:14.128（2026-11-03，build26385848，官方完整20轮，request259）。\n",
+              "after": "# 完整轮时间：本地候选，尚无本版完整实机成绩。\n"
+            },
+            {
+              "before": "    # 两栈保持先入先出，避免逐次从列表头部搬移元素。\n",
+              "after": "    # 按轮遍历待办，未成熟坐标写入新列表，保持FIFO顺序。\n"
+            },
+            {
+              "before": "    unripes_out_stack = []\n\n    def dequeue():\n        if not unripes_out_stack:\n            while unripes_in_stack:\n                unripes_out_stack.append(unripes_in_stack.pop())\n        return unripes_out_stack.pop()\n",
+              "after": ""
+            },
+            {
+              "before": "        while unripes_in_stack or unripes_out_stack:\n            last_d = move_to_without_last_move(dequeue())\n            if last_d:\n                # 移动之前就能判断是否成熟\n                merged = measure()\n                if merged != None and merged == measure(last_d):\n                    continue\n                move(last_d)\n            check_pumpkin()\n",
+              "after": "        global unripes_in_stack\n        while unripes_in_stack:\n            pending = unripes_in_stack\n            unripes_in_stack = []\n            for pos in pending:\n                last_d = move_to_without_last_move(pos)\n                if last_d:\n                    merged = measure()\n                    if merged != None and merged == measure(last_d):\n                        continue\n                    move(last_d)\n                check_pumpkin()\n"
+            },
+            {
+              "before": "        unripes_out_stack = []\n",
+              "after": ""
+            }
+          ]
+        },
+        {
+          "name": "layout844",
+          "sha256_lf": "c2740ba4fb3d4e7584ce86c066a722dde27b3f134e0be656ab83dc81354c8a12",
+          "replacements": [
+            {
+              "before": "# 完整轮时间：6:14.128（2026-11-03，build26385848，官方完整20轮，request259）。\n",
+              "after": "# 完整轮时间：本地候选，尚无本版完整实机成绩。\n"
+            },
+            {
+              "before": "JOBS = [((3, 3), 7), ((11, 0), 8), ((20, 0), 8), ((28, 0), 6), ((3, 8), 8), ((12, 12), 7), ((19, 19), 7), ((19, 9), 6), ((11, 17), 6), ((27, 16), 8), ((28, 11), 7), ((3, 17), 8), ((2, 26), 6), ((11, 24), 8), ((20, 24), 8), ((28, 26), 6)]\n",
+              "after": "JOBS = [((3, 3), 7), ((11, 3), 7), ((19, 3), 7), ((3, 11), 7), ((3, 19), 7), ((28, 12), 7), ((20, 28), 7), ((28, 28), 7), ((20, 20), 7), ((28, 20), 7), ((12, 28), 7), ((11, 11), 7), ((11, 16), 8), ((19, 8), 8), ((27, 0), 8), ((3, 24), 8)]\n"
+            }
+          ]
+        }
+      ]
+    },
+    "reading_limits": [
+      "video duration is not a leaderboard time",
+      "no full audiovisual transcript acquired",
+      "author rankings and times are historical claims, not current public standings",
+      "an early empty DOM was recorded as a failed capture and corrected before counting coverage",
+      "mineral query had a failed first-page navigation; alternative query and latest-order records do not establish that no videos exist"
+    ],
+    "raw_directory": ".codex/bilibili-research-20261113",
+    "analysis": "docs/leaderboards/bilibili_strategy_research.md",
+    "local_screen_analysis": "docs/leaderboards/lb_pumpkins.md"
+  }
 }
