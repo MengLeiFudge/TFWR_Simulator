@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "app_id": 2060160,
-  "last_attempt_at": "2026-11-15T10:09:43.428514+00:00",
+  "last_attempt_at": "2026-11-15T14:16:51.115585+00:00",
   "boards": [
     {
       "script": "lb_cactus",
@@ -2520,8 +2520,8 @@
     {
       "script": "lb_hay",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869890/",
-      "retrieved_at": "2026-11-15T10:09:44.340029+00:00",
-      "total_entries": 1752,
+      "retrieved_at": "2026-11-15T14:16:51.901326+00:00",
+      "total_entries": 1755,
       "entries": [
         {
           "rank": 1,
@@ -2927,7 +2927,7 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-15T10:09:44.340060+00:00",
+        "retrieved_at": "2026-11-15T14:16:51.901352+00:00",
         "rank": 82,
         "time_ms": 111991,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
@@ -2939,8 +2939,8 @@
     {
       "script": "lb_hay_single",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/17827401/",
-      "retrieved_at": "2026-11-10T06:15:43.808084+00:00",
-      "total_entries": 1710,
+      "retrieved_at": "2026-11-15T14:16:51.897519+00:00",
+      "total_entries": 1759,
       "entries": [
         {
           "rank": 1,
@@ -2956,398 +2956,398 @@
         },
         {
           "rank": 4,
-          "time_ms": 167474
+          "time_ms": 166509
         },
         {
           "rank": 5,
-          "time_ms": 167614
+          "time_ms": 167474
         },
         {
           "rank": 6,
-          "time_ms": 167919
+          "time_ms": 167614
         },
         {
           "rank": 7,
-          "time_ms": 168260
+          "time_ms": 167919
         },
         {
           "rank": 8,
-          "time_ms": 168337
+          "time_ms": 168260
         },
         {
           "rank": 9,
-          "time_ms": 168581
+          "time_ms": 168337
         },
         {
           "rank": 10,
-          "time_ms": 168591
+          "time_ms": 168471
         },
         {
           "rank": 11,
-          "time_ms": 168680
+          "time_ms": 168581
         },
         {
           "rank": 12,
-          "time_ms": 168725
+          "time_ms": 168591
         },
         {
           "rank": 13,
-          "time_ms": 168969
+          "time_ms": 168680
         },
         {
           "rank": 14,
-          "time_ms": 169118
+          "time_ms": 168725
         },
         {
           "rank": 15,
-          "time_ms": 169179
+          "time_ms": 168965
         },
         {
           "rank": 16,
-          "time_ms": 169188
+          "time_ms": 168969
         },
         {
           "rank": 17,
-          "time_ms": 169202
+          "time_ms": 169118
         },
         {
           "rank": 18,
-          "time_ms": 169290
+          "time_ms": 169179
         },
         {
           "rank": 19,
-          "time_ms": 169318
+          "time_ms": 169188
         },
         {
           "rank": 20,
-          "time_ms": 169332
+          "time_ms": 169202
         },
         {
           "rank": 21,
-          "time_ms": 169370
+          "time_ms": 169318
         },
         {
           "rank": 22,
-          "time_ms": 169389
+          "time_ms": 169332
         },
         {
           "rank": 23,
-          "time_ms": 169395
+          "time_ms": 169370
         },
         {
           "rank": 24,
-          "time_ms": 169445
+          "time_ms": 169389
         },
         {
           "rank": 25,
-          "time_ms": 169519
+          "time_ms": 169395
         },
         {
           "rank": 26,
-          "time_ms": 169589
+          "time_ms": 169445
         },
         {
           "rank": 27,
-          "time_ms": 169638
+          "time_ms": 169519
         },
         {
           "rank": 28,
-          "time_ms": 169781
+          "time_ms": 169589
         },
         {
           "rank": 29,
-          "time_ms": 169809
+          "time_ms": 169638
         },
         {
           "rank": 30,
-          "time_ms": 169883
+          "time_ms": 169690
         },
         {
           "rank": 31,
-          "time_ms": 169927
+          "time_ms": 169781
         },
         {
           "rank": 32,
-          "time_ms": 169981
+          "time_ms": 169809
         },
         {
           "rank": 33,
-          "time_ms": 170022
+          "time_ms": 169883
         },
         {
           "rank": 34,
-          "time_ms": 170050
+          "time_ms": 169927
         },
         {
           "rank": 35,
-          "time_ms": 170098
+          "time_ms": 169981
         },
         {
           "rank": 36,
-          "time_ms": 170115
+          "time_ms": 170022
         },
         {
           "rank": 37,
-          "time_ms": 170227
+          "time_ms": 170050
         },
         {
           "rank": 38,
-          "time_ms": 170274
+          "time_ms": 170098
         },
         {
           "rank": 39,
-          "time_ms": 170338
+          "time_ms": 170115
         },
         {
           "rank": 40,
-          "time_ms": 170338
+          "time_ms": 170227
         },
         {
           "rank": 41,
-          "time_ms": 170419
+          "time_ms": 170274
         },
         {
           "rank": 42,
-          "time_ms": 170419
+          "time_ms": 170338
         },
         {
           "rank": 43,
-          "time_ms": 170445
+          "time_ms": 170338
         },
         {
           "rank": 44,
-          "time_ms": 170451
+          "time_ms": 170419
         },
         {
           "rank": 45,
-          "time_ms": 170461
+          "time_ms": 170419
         },
         {
           "rank": 46,
-          "time_ms": 170476
+          "time_ms": 170445
         },
         {
           "rank": 47,
-          "time_ms": 170489
+          "time_ms": 170451
         },
         {
           "rank": 48,
-          "time_ms": 170510
+          "time_ms": 170461
         },
         {
           "rank": 49,
-          "time_ms": 170555
+          "time_ms": 170476
         },
         {
           "rank": 50,
-          "time_ms": 170588
+          "time_ms": 170489
         },
         {
           "rank": 51,
-          "time_ms": 170621
+          "time_ms": 170510
         },
         {
           "rank": 52,
-          "time_ms": 170706
+          "time_ms": 170553
         },
         {
           "rank": 53,
-          "time_ms": 170874
+          "time_ms": 170555
         },
         {
           "rank": 54,
-          "time_ms": 170902
+          "time_ms": 170588
         },
         {
           "rank": 55,
-          "time_ms": 170914
+          "time_ms": 170621
         },
         {
           "rank": 56,
-          "time_ms": 170918
+          "time_ms": 170706
         },
         {
           "rank": 57,
-          "time_ms": 170942
+          "time_ms": 170874
         },
         {
           "rank": 58,
-          "time_ms": 170959
+          "time_ms": 170902
         },
         {
           "rank": 59,
-          "time_ms": 171004
+          "time_ms": 170908
         },
         {
           "rank": 60,
-          "time_ms": 171013
+          "time_ms": 170914
         },
         {
           "rank": 61,
-          "time_ms": 171058
+          "time_ms": 170918
         },
         {
           "rank": 62,
-          "time_ms": 171083
+          "time_ms": 170942
         },
         {
           "rank": 63,
-          "time_ms": 171207
+          "time_ms": 170959
         },
         {
           "rank": 64,
-          "time_ms": 171208
+          "time_ms": 171004
         },
         {
           "rank": 65,
-          "time_ms": 171237
+          "time_ms": 171058
         },
         {
           "rank": 66,
-          "time_ms": 171240
+          "time_ms": 171083
         },
         {
           "rank": 67,
-          "time_ms": 171260
+          "time_ms": 171207
         },
         {
           "rank": 68,
-          "time_ms": 171310
+          "time_ms": 171208
         },
         {
           "rank": 69,
-          "time_ms": 171321
+          "time_ms": 171237
         },
         {
           "rank": 70,
-          "time_ms": 171343
+          "time_ms": 171240
         },
         {
           "rank": 71,
-          "time_ms": 171363
+          "time_ms": 171260
         },
         {
           "rank": 72,
-          "time_ms": 171468
+          "time_ms": 171310
         },
         {
           "rank": 73,
-          "time_ms": 171535
+          "time_ms": 171321
         },
         {
           "rank": 74,
-          "time_ms": 171582
+          "time_ms": 171343
         },
         {
           "rank": 75,
-          "time_ms": 171675
+          "time_ms": 171363
         },
         {
           "rank": 76,
-          "time_ms": 171691
+          "time_ms": 171468
         },
         {
           "rank": 77,
-          "time_ms": 171843
+          "time_ms": 171535
         },
         {
           "rank": 78,
-          "time_ms": 171964
+          "time_ms": 171582
         },
         {
           "rank": 79,
-          "time_ms": 171993
+          "time_ms": 171675
         },
         {
           "rank": 80,
-          "time_ms": 171998
+          "time_ms": 171691
         },
         {
           "rank": 81,
-          "time_ms": 172137
+          "time_ms": 171843
         },
         {
           "rank": 82,
-          "time_ms": 172171
+          "time_ms": 171964
         },
         {
           "rank": 83,
-          "time_ms": 172253
+          "time_ms": 171993
         },
         {
           "rank": 84,
-          "time_ms": 172365
+          "time_ms": 171998
         },
         {
           "rank": 85,
-          "time_ms": 172427
+          "time_ms": 172137
         },
         {
           "rank": 86,
-          "time_ms": 172460
+          "time_ms": 172171
         },
         {
           "rank": 87,
-          "time_ms": 172511
+          "time_ms": 172253
         },
         {
           "rank": 88,
-          "time_ms": 172538
+          "time_ms": 172365
         },
         {
           "rank": 89,
-          "time_ms": 172854
+          "time_ms": 172427
         },
         {
           "rank": 90,
-          "time_ms": 172881
+          "time_ms": 172460
         },
         {
           "rank": 91,
-          "time_ms": 173081
+          "time_ms": 172511
         },
         {
           "rank": 92,
-          "time_ms": 173158
+          "time_ms": 172538
         },
         {
           "rank": 93,
-          "time_ms": 173188
+          "time_ms": 172854
         },
         {
           "rank": 94,
-          "time_ms": 173306
+          "time_ms": 172881
         },
         {
           "rank": 95,
-          "time_ms": 173453
+          "time_ms": 173081
         },
         {
           "rank": 96,
-          "time_ms": 174061
+          "time_ms": 173091
         },
         {
           "rank": 97,
-          "time_ms": 174107
+          "time_ms": 173158
         },
         {
           "rank": 98,
-          "time_ms": 174196
+          "time_ms": 173188
         },
         {
           "rank": 99,
-          "time_ms": 174324
+          "time_ms": 173282
         },
         {
           "rank": 100,
-          "time_ms": 174528
+          "time_ms": 173306
         }
       ],
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-10T06:15:43.808116+00:00",
-        "rank": 80,
+        "retrieved_at": "2026-11-15T14:16:51.897550+00:00",
+        "rank": 84,
         "time_ms": 171998,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
@@ -6928,7 +6928,7 @@
     {
       "script": "lb_rice",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444638/",
-      "retrieved_at": "2026-11-15T10:09:43.882063+00:00",
+      "retrieved_at": "2026-11-15T14:16:51.817284+00:00",
       "total_entries": 47,
       "entries": [
         {
@@ -7123,7 +7123,7 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-15T10:09:43.882083+00:00",
+        "retrieved_at": "2026-11-15T14:16:51.817314+00:00",
         "rank": 11,
         "time_ms": 140721,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",

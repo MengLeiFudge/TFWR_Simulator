@@ -4,20 +4,19 @@ from __builtins__ import *
 
 def lb_hay():
     clear()
-    handles = []
-    for owner in range(1, 32):
-        handles.append(spawn_drone(hay_prepare, owner))
-    success = hay_prepare(0)
-    for handle in handles:
-        if not wait_for(handle):
-            success = False
-    if not success:
-        quick_print("hay_failed", "support")
+    hay_launch(0, 32)
+
+
+def hay_launch(lo, hi):
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        spawn_drone(hay_launch, mid, hi)
+        hi = mid
+    if not hay_prepare(lo):
+        quick_print("hay_failed", "support", lo)
+        clear()
         return
-    # 共享支撑全部准备完毕后再生产，避免尚未铺好的邻区令伴生失配。
-    for owner in range(1, 32):
-        spawn_drone(hay_pair, owner)
-    hay_pair(0)
+    hay_pair(lo)
 
 
 def hay_prepare(owner):

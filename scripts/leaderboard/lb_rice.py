@@ -59,6 +59,11 @@ def rice_worker(single):
                 rice_water(single)
                 move(direction)
         prepared = False
+        # 按全田每行4096米估末带缺口，留四行余量；实际达标仍逐次确认。
+        replant = 32
+        remaining = goal - num_items(Items.Rice) - 131072
+        if remaining < 131072:
+            replant = min(32, max(0, remaining // 4096 + 4))
         #@unroll
         for step in range(32):
             direction = North
@@ -66,7 +71,7 @@ def rice_worker(single):
                 if num_items(Items.Rice) >= goal:
                     clear()
                     return
-                if get_ground_type() == Grounds.Dry_Rice_Terrace:
+                if step < replant and get_ground_type() == Grounds.Dry_Rice_Terrace:
                     dig()
                     plant(Entities.Rice)
                     rice_water(single)
