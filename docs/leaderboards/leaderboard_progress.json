@@ -87,10 +87,10 @@
     },
     "lb_pumpkins": {
       "label": "南瓜·多机",
-      "simulation_seconds": 373.17,
-      "simulation_basis": "修正模型后的seed1完整373.169717730秒，与同seed原生simulate纳秒一致；2026-11-03 request259正式20轮均374.127700秒。",
+      "simulation_seconds": 370.32196473,
+      "simulation_basis": "原版2亿目标、seed1完整370.32196473秒（826格加画面路径代表，三seed有正有负，未迁入）；现行采用826格几何单改，seed0/1/123完整372.18847752/371.74617045/371.47736232秒，均快于原824格基线。新版仅本地；账号实机仍为旧版request259。",
       "evidence": "lb_pumpkins.md",
-      "direction": "比较分区和修补调度，减少死株长尾及最慢区等待。"
+      "direction": "按画面采用826格混合布局，三seed整轮省0.50～1.89秒；继续核对分层水肥、配套路径、收割前派机及近终点退出。"
     },
     "lb_hay": {
       "label": "干草·多机",
