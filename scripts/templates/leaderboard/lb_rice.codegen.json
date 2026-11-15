@@ -1,0 +1,17 @@
+{
+  "template": "scripts/templates/leaderboard/lb_rice.py",
+  "output": "scripts/leaderboard/lb_rice.py",
+  "transforms": {
+    "unroll": false
+  },
+  "fingerprints": {
+    "template_sha256": "8f0a5f33b80cc6a785228895c294c56cdcc72a8065f6516443e70b1cb21a82f7",
+    "generator_sha256": "f7209e1df4f142052ab435319ba68930bb73bc23df34dd1d0c7f216315a84ccb",
+    "output_sha256": "dcc9c636632f1947927903a58da6ca03296f5cc2b42afc2a2a4d33aa75580513"
+  },
+  "command": [
+    "python3",
+    "simulator/optimizer/generate.py",
+    "scripts/templates/leaderboard/lb_rice.codegen.json"
+  ]
+}

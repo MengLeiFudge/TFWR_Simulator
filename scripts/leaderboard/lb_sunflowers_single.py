@@ -1,190 +1,425 @@
 from __builtins__ import *
-# 完整轮时间：4:55.371（2026-11-09，build26462009，官方完整25轮，request452）。
-# Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
-# 来源：enihsyou/The-Farmer-Was-Replaced，blob 209990a4977f011e0f8e7861530cf3045c6a3a2f。
+# 完整轮时间：本生成版本尚无完整实机成绩。
+# 生成自：scripts/templates/leaderboard/lb_sunflowers_single.py
+# 生成配置：scripts/templates/leaderboard/lb_sunflowers_single.codegen.json
+# 修改策略请编辑母版并重新生成，勿直接修改本文件。
+
 
 def lb_sunflowers_single():
-    global s
-    global m
-    global FULL_GROUND
-    global sunflower_dict
-    set_world_size(8)
     clear()
-    s = get_world_size()
-    m = s - 1
-    FULL_GROUND = s * s
-    sunflower_dict = {}
-    for petals in range(7, 16):
-        sunflower_dict[petals] = []
-    traverse_topdown_no_if(plant_a_sunflower_first)
-    for _ in range(23):
-        trip_round()
-    while num_items(Items.Power) < 10000:
-        last_trip_round()
-
-# 固定8格世界，差值-7..7均可直接索引；负下标对应反向距离。
-WRAP_DISTANCE = [0, 1, 2, 3, 4, 3, 2, 1]
-
-W = 0.72
-MAX_PETALS = 15
-MIN_PETALS = 7
-MIN_PETALS_S1 = 6
-OCTUPLE_BASE = 10
-OCTUPLE_BASE_S1 = 9
-
-
-def traverse_topdown_no_if(fn):
-    for i in range(0, s, 2):
-        for j in range(m):
-            fn()
-            move(North)
-        fn()
-        move(East)
-        for j in range(m):
-            fn()
-            move(South)
-        fn()
-        move(East)
-
-
-def move_to(pos):
-    cx, cy = get_pos_x(), get_pos_y()
-    tx, ty = pos
-
-    dx_east = (tx - cx) % s
-    dx_west = s - dx_east
-    if dx_east < dx_west:
-        for _ in range(dx_east):
+    buckets = {}
+    ready = {}
+    for value in range(7, 16):
+        buckets[value] = []
+    count = 0
+    for cycle in range(128):
+        for x in range(8):
+            for y in range(8):
+                if get_entity_type() != Entities.Sunflower:
+                    if get_ground_type() != Grounds.Soil:
+                        till()
+                    value, mature_at = sunflower_seed(x * 8 + y >= 46)
+                    position = get_pos_y() * 16 + get_pos_x()
+                    buckets[value].append(position)
+                    ready[position] = mature_at
+                    count += 1
+                if cycle == 0 and count >= 10 and num_items(Items.Power) == 0:
+                    if sunflower_boot(buckets, ready):
+                        count -= 1
+                if y < 7:
+                    if x % 2:
+                        move(South)
+                    else:
+                        move(North)
             move(East)
-    else:
-        for _ in range(dx_west):
-            move(West)
-
-    dy_north = (ty - cy) % s
-    dy_south = s - dy_north
-    if dy_north < dy_south:
-        for _ in range(dy_north):
-            move(North)
-    else:
-        for _ in range(dy_south):
-            move(South)
-
-
-def plant_a_sunflower_first():
-    till()
-    plant(Entities.Sunflower)
-    x = get_pos_x()
-    sunflower_dict[measure()].append((x, get_pos_y()))
-    if x >= m:
-        # 首轮只浇最后一列；前面的植株利用后续动作时间生长。
-        while get_water() < W and num_items(Items.Water) > 0:
-            use_item(Items.Water)
-
-
-def plant_a_sunflower():
-    # plant 会在已有植物上 return False
-    if plant(Entities.Sunflower):
-        v = measure()
-        sunflower_dict[v].append((get_pos_x(), get_pos_y()))
-        if v <= 10:  # ty: ignore
-            # 较低花瓣利用先收高花瓣的时间生长，收割前仍检查成熟。
-            return
-        while get_water() < W and num_items(Items.Water) > 0:
-            use_item(Items.Water)
-
-
-def nearest_expect_current(positions):
-    # 按实际环绕距离选点；保留当前点最后处理的成熟协议。
-    min_pos = None
-    min_dis = 9999
-    x, y = get_pos_x(), get_pos_y()
-    for pos in positions:
-        mx, my = pos
-        dis = WRAP_DISTANCE[mx - x] + WRAP_DISTANCE[my - y]
-        if dis == 0:
-            continue
-        if dis < min_dis:
-            min_dis = dis
-            min_pos = pos
-    return min_pos
-
-
-def trip_round():
-    sunflower_count = FULL_GROUND  # 肯定种满了，直接赋值
-    for petal in range(MAX_PETALS, MIN_PETALS_S1, -1):
-        # 为了维持场上至少 10 株，最多采集这么多
-        max_can_harvest = sunflower_count - OCTUPLE_BASE_S1
-        tocheck, unripes = sunflower_dict[petal], []
-        this_petal_harvest = min(max_can_harvest, len(tocheck))
-        for _ in range(this_petal_harvest):
-            while True:
-                if not tocheck:
-                    tocheck, unripes = unripes, []
-                # assert tocheck is not empty
-                nearest = nearest_expect_current(tocheck)
-                if nearest == None:
-                    # 说明当前位置就是最后一个点
-                    while not mature():
-                        continue
-                    harvest()
-                    tocheck.pop()
-                    break  # while loop
-                else:
-                    # 尝试采集，否则检查下一个
-                    move_to(nearest)
-                    if mature():
-                        harvest()
-                        tocheck.remove(nearest)
-                        break  # while loop
-                    else:
-                        tocheck.remove(nearest)
-                        unripes.append(nearest)
-        sunflower_dict[petal] = tocheck + unripes
-        sunflower_count -= max(0, this_petal_harvest)
-    # 场面上应该剩余 9 株向日葵，开始种植新的
-    traverse_topdown_no_if(plant_a_sunflower)
-
-
-def last_trip_round():
-    sunflower_count = FULL_GROUND
-    for petal in range(MAX_PETALS, MIN_PETALS_S1, -1):
-        max_can_harvest = sunflower_count - OCTUPLE_BASE_S1
-        tocheck, unripes = sunflower_dict[petal], []
-        this_petal_harvest = min(max_can_harvest, len(tocheck))
-        for _ in range(this_petal_harvest):
-            while True:
-                if not tocheck:
-                    tocheck, unripes = unripes, []
-                nearest = nearest_expect_current(tocheck)
-                if nearest == None:
-                    while not mature():
-                        continue
-                    harvest()
-                    tocheck.pop()
-                    break
-                else:
-                    move_to(nearest)
-                    if mature():
-                        harvest()
-                        tocheck.remove(nearest)
-                        break
-                    else:
-                        tocheck.remove(nearest)
-                        unripes.append(nearest)
-            if num_items(Items.Power) > 10000:
+        level = 15
+        while level >= 7 and count >= 10:
+            positions = buckets[level]
+            if not positions:
+                level -= 1
+                continue
+            index = sunflower_pick(positions, ready, level >= 11)
+            position = positions[index]
+            positions[index] = positions[-1]
+            positions.pop()
+            sunflower_move(position)
+            if not can_harvest():
+                sunflower_water(1)
+                while not can_harvest():
+                    pass
+            harvest()
+            count -= 1
+            if num_items(Items.Power) >= 10005:
+                clear()
                 return
-        sunflower_dict[petal] = tocheck + unripes
-        sunflower_count -= max(0, this_petal_harvest)
-    traverse_topdown_no_if(plant_a_sunflower)
+            if level >= 12:
+                remaining = level
+                while remaining >= 12 and not buckets[remaining]:
+                    remaining -= 1
+                if remaining >= 12:
+                    # 新苗必须低于场上最高瓣，重抽的苗本身是最高瓣，保持奖励状态。
+                    plant(Entities.Sunflower)
+                    value = measure()
+                    while value >= remaining:  # ty: ignore[unsupported-operator] # Sunflower的measure返回瓣数。
+                        harvest()
+                        plant(Entities.Sunflower)
+                        value = measure()
+                    threshold = 0.5
+                    if value == remaining - 1:
+                        threshold = 0.85
+                    water = sunflower_water(threshold)
+                    ready[position] = get_time() + 8.4 / (1 + 4 * water)
+                    buckets[value].append(position)  # ty: ignore[invalid-argument-type]
+                    count += 1
+        quick_print("sunflower_cycle", cycle, get_time(), num_items(Items.Power))
 
 
-def mature():
+def sunflower_boot(buckets, ready):
+    level = 15
+    while level > 7 and not buckets[level]:
+        level -= 1
+    if not buckets[level]:
+        return False
+    positions = buckets[level]
+    index = sunflower_pick(positions, ready, True)
+    position = positions[index]
+    if ready[position] > get_time():
+        return False
+    origin = get_pos_y() * 16 + get_pos_x()
+    if SUN_DISTANCE[position - origin + 119] > 3:
+        return False
+    sunflower_move(position)
     if can_harvest():
+        harvest()
+        positions[index] = positions[-1]
+        positions.pop()
+        sunflower_move(origin)
         return True
-    if num_items(Items.Fertilizer) > 0:
-        use_item(Items.Fertilizer)
-        return can_harvest()
+    sunflower_move(origin)
     return False
+
+
+def sunflower_seed(late):
+    plant(Entities.Sunflower)
+    value = measure()
+    while late and value == 15:
+        harvest()
+        plant(Entities.Sunflower)
+        value = measure()
+    water = sunflower_water(0.5)
+    return value, get_time() + 8.4 / (1 + 4 * water)
+
+
+def sunflower_water(threshold):
+    water = get_water()
+    if water < threshold:
+        amount = (1 - water) * 4 // 1
+        if water + amount * 0.25 < 1:
+            amount += 1
+        amount = min(amount, num_items(Items.Water) // 1)
+        if amount > 0 and use_item(Items.Water, amount):  # ty: ignore[invalid-argument-type] # 向上取整后的游戏Number。
+            water = min(1, water + amount * 0.25)
+    return water
+
+
+def sunflower_pick(positions, ready, prefer_mature):
+    current = get_pos_y() * 16 + get_pos_x() - 119
+    now = get_time()
+    nearest = 0
+    nearest_cost = 99
+    mature = None
+    mature_cost = 99
+    for i in range(len(positions)):
+        position = positions[i]
+        cost = SUN_DISTANCE[position - current]
+        if not prefer_mature and cost <= 1:
+            return i
+        if cost < mature_cost and prefer_mature:
+            if ready[position] <= now:
+                if cost <= 1:
+                    return i
+                mature = i
+                mature_cost = cost
+        if cost < nearest_cost:
+            nearest = i
+            nearest_cost = cost
+    if mature != None:
+        return mature
+    return nearest
+
+
+def sunflower_move(position):
+    current = get_pos_y() * 16 + get_pos_x()
+    for direction in SUN_PATHS[position - current + 119]:
+        move(direction)
+
+
+def sunflower_tables():
+    # 母版可直接执行；固定生成器只替换下面标记处的初始化，避免游戏内重建。
+    distances = []
+    paths = []
+    for delta in range(-119, 120):
+        dx = (delta + 7) % 16 - 7
+        dy = (delta - dx) // 16
+        route = []
+        if abs(dx) >= 8 or abs(dy) >= 8:
+            distances.append(99)
+            paths.append(route)
+            continue
+        for count, positive, negative in [(dx % 8, East, West), (dy % 8, North, South)]:
+            direction = positive
+            if count > 4:
+                count = 8 - count
+                direction = negative
+            for _ in range(count):
+                route.append(direction)
+        distances.append(len(route))
+        paths.append(route)
+    return distances, paths
+
+
+SUN_DISTANCE = [2, 3, 4, 5, 4, 3, 2, 1, 2, 3, 4, 5, 4, 3, 2, 99, 3, 4, 5, 6, 5, 4, 3, 2, 3, 4, 5, 6, 5, 4, 3, 99, 4, 5, 6, 7, 6, 5, 4, 3, 4, 5, 6, 7, 6, 5, 4, 99, 5, 6, 7, 8, 7, 6, 5, 4, 5, 6, 7, 8, 7, 6, 5, 99, 4, 5, 6, 7, 6, 5, 4, 3, 4, 5, 6, 7, 6, 5, 4, 99, 3, 4, 5, 6, 5, 4, 3, 2, 3, 4, 5, 6, 5, 4, 3, 99, 2, 3, 4, 5, 4, 3, 2, 1, 2, 3, 4, 5, 4, 3, 2, 99, 1, 2, 3, 4, 3, 2, 1, 0, 1, 2, 3, 4, 3, 2, 1, 99, 2, 3, 4, 5, 4, 3, 2, 1, 2, 3, 4, 5, 4, 3, 2, 99, 3, 4, 5, 6, 5, 4, 3, 2, 3, 4, 5, 6, 5, 4, 3, 99, 4, 5, 6, 7, 6, 5, 4, 3, 4, 5, 6, 7, 6, 5, 4, 99, 5, 6, 7, 8, 7, 6, 5, 4, 5, 6, 7, 8, 7, 6, 5, 99, 4, 5, 6, 7, 6, 5, 4, 3, 4, 5, 6, 7, 6, 5, 4, 99, 3, 4, 5, 6, 5, 4, 3, 2, 3, 4, 5, 6, 5, 4, 3, 99, 2, 3, 4, 5, 4, 3, 2, 1, 2, 3, 4, 5, 4, 3, 2]
+SUN_PATHS = [
+    [East, North],
+    [East, East, North],
+    [East, East, East, North],
+    [East, East, East, East, North],
+    [West, West, West, North],
+    [West, West, North],
+    [West, North],
+    [North],
+    [East, North],
+    [East, East, North],
+    [East, East, East, North],
+    [East, East, East, East, North],
+    [West, West, West, North],
+    [West, West, North],
+    [West, North],
+    [],
+    [East, North, North],
+    [East, East, North, North],
+    [East, East, East, North, North],
+    [East, East, East, East, North, North],
+    [West, West, West, North, North],
+    [West, West, North, North],
+    [West, North, North],
+    [North, North],
+    [East, North, North],
+    [East, East, North, North],
+    [East, East, East, North, North],
+    [East, East, East, East, North, North],
+    [West, West, West, North, North],
+    [West, West, North, North],
+    [West, North, North],
+    [],
+    [East, North, North, North],
+    [East, East, North, North, North],
+    [East, East, East, North, North, North],
+    [East, East, East, East, North, North, North],
+    [West, West, West, North, North, North],
+    [West, West, North, North, North],
+    [West, North, North, North],
+    [North, North, North],
+    [East, North, North, North],
+    [East, East, North, North, North],
+    [East, East, East, North, North, North],
+    [East, East, East, East, North, North, North],
+    [West, West, West, North, North, North],
+    [West, West, North, North, North],
+    [West, North, North, North],
+    [],
+    [East, North, North, North, North],
+    [East, East, North, North, North, North],
+    [East, East, East, North, North, North, North],
+    [East, East, East, East, North, North, North, North],
+    [West, West, West, North, North, North, North],
+    [West, West, North, North, North, North],
+    [West, North, North, North, North],
+    [North, North, North, North],
+    [East, North, North, North, North],
+    [East, East, North, North, North, North],
+    [East, East, East, North, North, North, North],
+    [East, East, East, East, North, North, North, North],
+    [West, West, West, North, North, North, North],
+    [West, West, North, North, North, North],
+    [West, North, North, North, North],
+    [],
+    [East, South, South, South],
+    [East, East, South, South, South],
+    [East, East, East, South, South, South],
+    [East, East, East, East, South, South, South],
+    [West, West, West, South, South, South],
+    [West, West, South, South, South],
+    [West, South, South, South],
+    [South, South, South],
+    [East, South, South, South],
+    [East, East, South, South, South],
+    [East, East, East, South, South, South],
+    [East, East, East, East, South, South, South],
+    [West, West, West, South, South, South],
+    [West, West, South, South, South],
+    [West, South, South, South],
+    [],
+    [East, South, South],
+    [East, East, South, South],
+    [East, East, East, South, South],
+    [East, East, East, East, South, South],
+    [West, West, West, South, South],
+    [West, West, South, South],
+    [West, South, South],
+    [South, South],
+    [East, South, South],
+    [East, East, South, South],
+    [East, East, East, South, South],
+    [East, East, East, East, South, South],
+    [West, West, West, South, South],
+    [West, West, South, South],
+    [West, South, South],
+    [],
+    [East, South],
+    [East, East, South],
+    [East, East, East, South],
+    [East, East, East, East, South],
+    [West, West, West, South],
+    [West, West, South],
+    [West, South],
+    [South],
+    [East, South],
+    [East, East, South],
+    [East, East, East, South],
+    [East, East, East, East, South],
+    [West, West, West, South],
+    [West, West, South],
+    [West, South],
+    [],
+    [East],
+    [East, East],
+    [East, East, East],
+    [East, East, East, East],
+    [West, West, West],
+    [West, West],
+    [West],
+    [],
+    [East],
+    [East, East],
+    [East, East, East],
+    [East, East, East, East],
+    [West, West, West],
+    [West, West],
+    [West],
+    [],
+    [East, North],
+    [East, East, North],
+    [East, East, East, North],
+    [East, East, East, East, North],
+    [West, West, West, North],
+    [West, West, North],
+    [West, North],
+    [North],
+    [East, North],
+    [East, East, North],
+    [East, East, East, North],
+    [East, East, East, East, North],
+    [West, West, West, North],
+    [West, West, North],
+    [West, North],
+    [],
+    [East, North, North],
+    [East, East, North, North],
+    [East, East, East, North, North],
+    [East, East, East, East, North, North],
+    [West, West, West, North, North],
+    [West, West, North, North],
+    [West, North, North],
+    [North, North],
+    [East, North, North],
+    [East, East, North, North],
+    [East, East, East, North, North],
+    [East, East, East, East, North, North],
+    [West, West, West, North, North],
+    [West, West, North, North],
+    [West, North, North],
+    [],
+    [East, North, North, North],
+    [East, East, North, North, North],
+    [East, East, East, North, North, North],
+    [East, East, East, East, North, North, North],
+    [West, West, West, North, North, North],
+    [West, West, North, North, North],
+    [West, North, North, North],
+    [North, North, North],
+    [East, North, North, North],
+    [East, East, North, North, North],
+    [East, East, East, North, North, North],
+    [East, East, East, East, North, North, North],
+    [West, West, West, North, North, North],
+    [West, West, North, North, North],
+    [West, North, North, North],
+    [],
+    [East, North, North, North, North],
+    [East, East, North, North, North, North],
+    [East, East, East, North, North, North, North],
+    [East, East, East, East, North, North, North, North],
+    [West, West, West, North, North, North, North],
+    [West, West, North, North, North, North],
+    [West, North, North, North, North],
+    [North, North, North, North],
+    [East, North, North, North, North],
+    [East, East, North, North, North, North],
+    [East, East, East, North, North, North, North],
+    [East, East, East, East, North, North, North, North],
+    [West, West, West, North, North, North, North],
+    [West, West, North, North, North, North],
+    [West, North, North, North, North],
+    [],
+    [East, South, South, South],
+    [East, East, South, South, South],
+    [East, East, East, South, South, South],
+    [East, East, East, East, South, South, South],
+    [West, West, West, South, South, South],
+    [West, West, South, South, South],
+    [West, South, South, South],
+    [South, South, South],
+    [East, South, South, South],
+    [East, East, South, South, South],
+    [East, East, East, South, South, South],
+    [East, East, East, East, South, South, South],
+    [West, West, West, South, South, South],
+    [West, West, South, South, South],
+    [West, South, South, South],
+    [],
+    [East, South, South],
+    [East, East, South, South],
+    [East, East, East, South, South],
+    [East, East, East, East, South, South],
+    [West, West, West, South, South],
+    [West, West, South, South],
+    [West, South, South],
+    [South, South],
+    [East, South, South],
+    [East, East, South, South],
+    [East, East, East, South, South],
+    [East, East, East, East, South, South],
+    [West, West, West, South, South],
+    [West, West, South, South],
+    [West, South, South],
+    [],
+    [East, South],
+    [East, East, South],
+    [East, East, East, South],
+    [East, East, East, East, South],
+    [West, West, West, South],
+    [West, West, South],
+    [West, South],
+    [South],
+    [East, South],
+    [East, East, South],
+    [East, East, East, South],
+    [East, East, East, East, South],
+    [West, West, West, South],
+    [West, West, South],
+    [West, South],
+]
 
 
 if __name__ == "__main__":

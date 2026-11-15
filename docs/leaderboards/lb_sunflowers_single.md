@@ -2,13 +2,23 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_sunflowers_single.py](../../scripts/leaderboard/lb_sunflowers_single.py)。公开账号最高 **4:55.371（#10）**；已有最好本地模拟 **4:54.007**。
+当前脚本：[lb_sunflowers_single.py](../../scripts/leaderboard/lb_sunflowers_single.py)，人工维护[母版](../../scripts/templates/leaderboard/lb_sunflowers_single.py)及[配方](../../scripts/templates/leaderboard/lb_sunflowers_single.codegen.json)。公开账号最高 **4:55.371（#11）**；本版三seed原目标完整模拟均值 **4:32.152**，尚无新版实机。
 
-公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17827413/)，榜单抓取时间 `2026-11-10T06:15:47.825548+00:00`，账号查询时间 `2026-11-10T06:15:47.825577+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
+公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17827413/)，榜单抓取时间`2026-11-15T10:09:43.888996+00:00`，账号查询时间`2026-11-15T10:09:43.889025+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)。
 
-8×8按花瓣降序分桶巡收，延后未熟位置，使用真实可用水肥并在施肥后重新检查成熟。自然保留最低九株，使最后生产花仍满足至少十株的8倍条件；整批不提前重种高瓣。选择同瓣目标使用与移动一致的8格环绕距离查表。来源enihsyou，MIT。
+8×8按瓣数分桶，场上剩余最高瓣至少12时，收割处立即补种低于当前最高瓣的新苗，让成熟与后续收割重叠；首轮尾部避免15瓣晚苗拖慢，附近最高瓣成熟时先取得启动能量。桶元素用尾部交换删除，选点兼顾环绕距离和预计成熟，实际仍以`can_harvest()`确认。位置编码为`16*y+x`，距离与路径固定生成；低于十株时重填。本轮参考公开机制独立实现，早期enihsyou／MIT版本保留在历史记录。
 
-当前模型seed1完整294.007406975秒；2026-11-09 request452正式25轮均295.370520秒，显示295.371秒。修正前模型293.356868255秒已撤回。
+2026-11-15，冻结`fa567eb`基线，原版10k Power目标，seed0/1/123完整对照：
+
+| seed | 基线／秒 | 本版／秒 |
+| --- | ---: | ---: |
+| 0 | 294.691196906 | 274.942144541 |
+| 1 | 294.007406975 | 271.259655322 |
+| 123 | 294.255639064 | 270.254542906 |
+
+均值294.318080982→272.152114256秒，用时减少7.53%。每例15墙钟秒，全部正常结束、目标达成、状态完整，母版和产物均经原版Parser执行。费用报告定位到旧二维动态距离计算43895t、成熟选择60959t及反复距离表构造10288t；整数相对位置表消除重复几何计算后，未预生成母版三seed280.691306791/273.444023412/272.665249746秒，预生成再省5.749/2.184/2.411秒。成熟与随机调用随初始化时间变化，不能把全部差异说成相同动作下的纯tick差。
+
+报告、费用与源码指纹留`.codex/gemini-directions-20261115/`：`sun-single-base`、`sun-single-v2-costs.json`、`sun-tables-mother-final`（seed0/123）、`sun-single-tables-template`（seed1）及`final-sunflowers_single`。生成及逐字节核对见[工具说明](../../simulator/optimizer/README.md)，固定来源见[来源记录](github_strategy_research.md#gemini交接的公开机制)。旧版request452正式均295.370520秒仍是公开成绩来源。
 
 ## 淘汰与未采用方案
 
@@ -17,7 +27,8 @@
 | 全局最大值高频sweep或max-only/高瓣跳收 | 历史阈值候选约27～28分钟，慢于盲收10:23 | 收获密度崩溃，查询和等稀疏高瓣过贵；旧惩罚链解释已撤回 | [旧版合集](../../references/leaderboard_history/lb_sunflowers_single/)（多方向见版本表） |
 | 固定九株7瓣永久支撑 | 正式338.927秒，后自然九株333.201秒 | 重抽支撑和固定生产位较贵，后由自然分桶方案替代 | [旧版合集](../../references/leaderboard_history/lb_sunflowers_single/)（多方向见版本表） |
 | 只缩田到6×6 | 独立筛选见归档 | 减少移动同时减少有效生产格，须连同成熟与种收密度比较 | [20261024_rejected_size6.py](../../references/leaderboard_history/lb_sunflowers_single/20261024_rejected_size6.py) |
-| 普通曼哈顿选花 | seed1 305.075783秒；环绕选点300.820286秒、查表更快 | 选点距离与真实环绕移动不一致，已由当前查表替代 | [20261028_rejected_wrap_choice.py](../../references/leaderboard_history/lb_sunflowers_single/20261028_rejected_wrap_choice.py) |
+| 普通曼哈顿选花 | seed1 305.075783秒；环绕选点300.820286秒、查表更快 | 选点距离与真实环绕移动不一致，后由环绕查表替代 | [20261028_rejected_wrap_choice.py](../../references/leaderboard_history/lb_sunflowers_single/20261028_rejected_wrap_choice.py) |
+| 直接滚动补种首代表 | seed1 294.617935504秒，对同批294.007406975秒，退步 | 补种本身不足以回本；后续加入晚苗筛选、启动供电、按瓣补水与整数几何才获益 | 本轮`sunflower-rolling`；重建时从当前母版撤去首轮晚15瓣重抽、启动收割、次高瓣0.85水位并恢复动态二维距离 |
 
 ## 历史正式版本演进
 
@@ -37,6 +48,6 @@
 
 ## 下一步优化方向
 
-- 比较分批布局与成熟回访，保持每次实际最大瓣、至少十株及净Power收益；避免恢复已失败的跳过低瓣政策。
+- 较低瓣滚动补种、尾部删除和预生成环绕表均已采用。下一步只比较达标前少填剩余空格、按瓣选择成熟检查等有明确费用依据的改动；收益把握中等，预选seed0/1/123和每例15墙钟秒，仍须完整10k目标。新增高瓣不得破坏当前最大瓣条件，少移动不能代替净Power兑现。
 
 新方向按[共用策略选择流程](README.md#策略选择与淘汰)记录机制、预算、置信度和停止条件；新结果写回本页及研究状态JSON。

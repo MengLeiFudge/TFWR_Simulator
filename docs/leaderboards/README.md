@@ -74,13 +74,13 @@ python3 game_control/tools/refresh_leaderboard_cache.py --offline
 
 | 机制 | 可复用结论与边界 | 单榜记录 |
 | --- | --- | --- |
-| Rice | 成功收首株后再挖干梯田、种下一Clay，使第二层成长重叠；专用场每柱只有两层，干地面不证明已收获 | [多机](lb_rice.md)、[单机](lb_rice_single.md) |
-| Bamboo | 筛统一5/9花节后保桩批量切收；切花高度浇水会重置飞行高度。空道与空中心是布局选择，须核覆盖及负载 | [多机](lb_bamboo.md)、[单机](lb_bamboo_single.md) |
+| Rice | 每个Clay带有两层；成功收首株后再挖干梯田种第二株，可重叠成长。两茬后仍可在同片继续找下一个Clay带，不必clear。下挖须避开未收植株的坍塌范围，干地面不证明已收获 | [多机](lb_rice.md)、[单机](lb_rice_single.md) |
+| Bamboo | 首花筛为5，二花可在生产巡回中继续筛；合格树桩跨批保留，按最低水位及实际高度安排三趟。切花高度浇水会重置飞行高度，须在低位补水或恢复高度 | [多机](lb_bamboo.md)、[单机](lb_bamboo_single.md) |
 | Mushrooms | 共同高度带、采样柱与失配材料利用率共同约束；不能只比少移动，普通田与专用场找层范围分开 | [多机](lb_mushrooms.md)、[单机](lb_mushrooms_single.md) |
 | Ores | 多机相邻沟网借邻柱降低覆土成本；单机付费勘探须实筹煤铁，最近距离可能来自不同矿，几何只是选孔依据 | [多机](lb_ores.md)、[单机](lb_ores_single.md)、[勘探机制](../block-mining.md#铁与石英勘探) |
 | Dynamite | 覆盖层按实际开格推迟准备；零扩张不自动公开邻格雷层数字。固定几何可复用，盘面事实每盘重建，安全证明不等于已挖开 | [多机](lb_dynamite.md)、[单机](lb_dynamite_single.md) |
 | Pyramids | 同时只修一塔，保留原沙，几何定高、清理后按八邻支撑维修；主机提前中心并最后补尖，实际缺口与人为挖空分开 | [多机](lb_pyramids.md)、[单机](lb_pyramids_single.md) |
-| Treasure Map | 记录三维坐标最后出口可合法去环；索引递增、保留下降，不离开公开有效通路、不破坏未来块 | [藏宝图](lb_treasure_map.md) |
+| Treasure Map | 同片坍塌隧道与逐层最近下降点BFS已获完整目标改善；只走公开有效三维通路，正常兑现宝藏。旧最后出口仍可合法去环，但其同片负例不否定新的路径组合 | [藏宝图](lb_treasure_map.md) |
 | Underground Reset | 科技、真实地层周期和副产物联合计价；普通地形产出不能直接当专用榜吞吐，特殊土仅加成种在其上的对应作物 | [地下Reset](lb_fastest_underground_reset.md) |
 
 ## 外部候选 `.py` 评估流程

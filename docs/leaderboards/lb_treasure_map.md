@@ -2,23 +2,24 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_treasure_map.py](../../scripts/leaderboard/lb_treasure_map.py)。公开账号最高 **0:38.151（#9）**；已有最好本地模拟 **0:37.948**。
+当前脚本：[lb_treasure_map.py](../../scripts/leaderboard/lb_treasure_map.py)。公开账号最高 **0:38.151（#13）**；本版五seed原目标完整模拟均值 **0:28.539**，尚无新版实机。
 
-公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21469574/)，榜单抓取时间 `2026-11-11T09:12:53.809850+00:00`，账号查询时间 `2026-11-11T09:12:53.809850+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
+公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21469574/)，榜单抓取时间 `2026-11-15T10:01:04.971764+00:00`，账号查询时间 `2026-11-15T10:01:04.971792+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)。
 
-8格世界逐图重生；先找Basalt取得地图位置，读取公开路径。按三维坐标保留最后出口，沿无环有效通路走到终点，保留每次下降；原路径索引严格递增，激活后不clear、不离开合法通路或破坏未来块。找图、解析与正常奖励全部计入115k Gold目标。
+8格世界只在开局clear，连续向下找图。Basalt横移通过中间柱的一次dig触发坍塌降低下一柱；激活地图后把公开字符串解析成三维整数格集合，每层BFS寻找最近的合法下降点，只走公开有效通路、正常兑现宝藏。此版不使用随机数相位预测。
 
-三seed完整34.58439639/42.40435905/36.85601439秒，均37.94825661秒；候选request421正式189轮38.151秒，真源request432正式189轮38.185497354秒。公开账号保留38.151秒。
+2026-11-15，基线`fa567eb`，原版115k Gold目标，seed0/1/123/2/42：基线39.77389125/34.58439639/28.41119217/42.40435905/39.27578139秒，现版29.61202212/25.35471369/28.52543151/32.02569855/27.177111秒；均值36.88992405→28.538995374秒（用时减少22.64%）。seed123慢0.114秒，其余四例快9.23～12.10秒，完整保留。每例15墙钟秒，全部正常结束、目标达成、状态完整，原版Parser执行通过。最终源码报告及指纹：`.codex/gemini-directions-20261115/{treasure-base,final-treasure_map}-seed*.json`，固定来源与许可见[来源记录](github_strategy_research.md#gemini交接的公开机制)。
 
 ## 淘汰与未采用方案
 
 | 尝试方案 | 实测／模拟表现 | 原因与适用范围 | 参考代码 |
 | --- | --- | --- | --- |
 | 完整执行原路线，只做方向查表 | 三seed289.540321秒；正式274.988秒 | 减少分支只有小收益，没有消除大量合法回环 | [旧版合集](../../references/leaderboard_history/lb_treasure_map/)（多方向见版本表） |
-| 同片继续找图、4/6格世界 | 同片三seed42.629秒，4/6格首seed57.566/40.381秒 | 找图与重生摊销不如8格逐图重生 | [20261107_rejected_last_exit_size4.py](../../references/leaderboard_history/lb_treasure_map/20261107_rejected_last_exit_size4.py) |
+| 旧最后出口配同片找图、4/6格世界 | 旧同片三seed42.629秒，4/6格首seed57.566/40.381秒 | 该路径组合下找图与重生摊销不如8格逐图重生；不否定同片隧道配最近下降点的新组合 | [20261107_rejected_last_exit_size4.py](../../references/leaderboard_history/lb_treasure_map/20261107_rejected_last_exit_size4.py) |
 | 按原字符串长度筛图 | 三seed41.912秒且波动更大 | 原串长度不能代表去环后必要动作和净奖励 | [20261107_rejected_last_exit_select1000.py](../../references/leaderboard_history/lb_treasure_map/20261107_rejected_last_exit_select1000.py) |
-| 逐层BFS | 首seed35.123秒，少移动但规划更贵 | 单seed费用不优于当前同seed34.584秒 | [20261107_rejected_layer_bfs_reset8.py](../../references/leaderboard_history/lb_treasure_map/20261107_rejected_layer_bfs_reset8.py) |
+| 旧逐层BFS配逐图重生 | 首seed35.123秒，对当时同seed34.584秒 | 该初始化和路径组合的规划费用未回本，不代表所有BFS组合无效 | [20261107_rejected_layer_bfs_reset8.py](../../references/leaderboard_history/lb_treasure_map/20261107_rejected_layer_bfs_reset8.py) |
 | 栈式一次去环 | 后续完整对照未改善 | 解析维护也计费，不能仅因渐近复杂度更低就采用 | [20261110_rejected_stack.py](../../references/leaderboard_history/lb_treasure_map/20261110_rejected_stack.py) |
+| 同片坍塌隧道配旧最后出口 | seed0/1/123为47.10331611/35.99247033/38.50063290秒，均慢于同批基线 | 只改找图并不足够，须连同最近下降点路径一起比较；旧同片负例不能否定新组合 | `fa567eb`旧入口去掉轮间clear，并使用现源`treasure_tunnel`；原报告留本轮`.codex/` |
 
 ## 历史正式版本演进
 
@@ -31,6 +32,6 @@
 
 ## 下一步优化方向
 
-- 按找图、解析、必要动作与奖励的联合费用选图；先比较一次解析的数据结构，避免重复原串长度筛选。
+- 同片坍塌隧道与最近下降点BFS已验证并采用。下一步按找图、解析、必要动作与实际奖励的联合费用选下一井位，先比较一次解析的数据结构，避免重复原串长度筛选；收益把握中等。保持原版115k目标、预选seed0/1/123并保留额外seed结果，每例15墙钟秒。随机数相位预测需单独核实合法性、边界和真实收益，不与普通路径改善混算。
 
 新方向按[共用策略选择流程](README.md#策略选择与淘汰)记录机制、预算、置信度和停止条件；新结果写回本页及研究状态JSON。

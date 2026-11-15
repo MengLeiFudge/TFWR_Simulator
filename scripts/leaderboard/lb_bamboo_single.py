@@ -1,125 +1,131 @@
 from __builtins__ import *
-# 完整轮时间：4:28.226（2026-11-09，build26462009，官方完整27轮，request469）。
+# 完整轮时间：本版尚无完整实机成绩；本地完整目标对照见同名单榜文档。
+
 
 def lb_bamboo_single():
     clear()
-    bamboo_batch(0, get_world_size(), 25000000, 0.7, 1.5)
-
-
-def bamboo_batch(y0, rows, goal, water_level, interval):
-    size = get_world_size()
-    hover(18)
-    for _ in range(y0):
-        move(North)
-    selected = []
-    for _ in range(rows):
-        flags = []
-        for x in range(size - 1):
-            flags.append(False)
-        selected.append(flags)
-    left = rows * (size - 1)
-    laps = 0
-    # 花节随树桩保留；首两节统一为5和9后可以整片使用同一切割高度。
-    while left > 0:
-        hover(4)
-        for row in range(rows):
-            for x in range(size - 1):
-                move(East)
-                if not selected[row][x]:
-                    seeded = False
-                    if get_entity_type() != Entities.Bamboo:
-                        if get_ground_type() != Grounds.Soil:
-                            till()
-                        if not bamboo_seed():
-                            return False
-                        seeded = True
-                    elif measure() == 8:
-                        selected[row][x] = True
-                        left -= 1
-                    elif measure() != 4:
-                        harvest()
-                        if not bamboo_seed():
-                            return False
-                        seeded = True
-                    watered = bamboo_water(water_level)
-                    if seeded or watered:
-                        hover(4)
-            move(East)
-            if row + 1 < rows:
-                move(North)
-        bamboo_return(rows, size)
-        laps += 1
-        if laps % 4 == 0:
-            quick_print("bamboo_select", y0, left, get_time())
-        if laps > 100:
-            quick_print("bamboo_failed", "selection", y0, left)
-            return False
-    hover(1)
-    last = get_time()
-    bamboo_sweep(rows, water_level)
-    quick_print("bamboo_selected", y0, get_time(), num_items(Items.Bamboo))
-    cycles = 0
-    while num_items(Items.Bamboo) < goal:
-        for height in [4, 8, 1]:
-            # 按每趟起点计时，上一趟巡回本身也计入生长间隔。
-            while get_time() < last + interval:
-                do_a_flip()
-            last = get_time()
-            hover(height)
-            if height == 1:
-                bamboo_sweep(rows, water_level)
-            else:
-                bamboo_sweep(rows, -1)
-        cycles += 1
-        if cycles % 4 == 0:
-            quick_print("bamboo_batch", y0, cycles, get_time(), num_items(Items.Bamboo))
-        if get_time() > 3600:
-            quick_print("bamboo_failed", "deadline", y0)
-            return False
-    quick_print("bamboo_done", y0, get_time(), num_items(Items.Bamboo))
-    return True
-
+    # 8×6闭环除起点外种47株，升降只在起点进行。
+    points = []
+    for x in range(8):
+        points.append((x, 0))
+    for y in range(1, 6):
+        for step in range(7):
+            x = step + 1
+            if y % 2:
+                x = 7 - step
+            points.append((x, y))
+    for y in range(5, 0, -1):
+        points.append((0, y))
+    directions = []
+    for i in range(len(points)):
+        x, y = points[i]
+        nx, ny = points[(i + 1) % len(points)]
+        direction = South
+        if nx > x:
+            direction = East
+        elif nx < x:
+            direction = West
+        elif ny > y:
+            direction = North
+        directions.append(direction)
+    bamboo_cycle(directions, 25000000, True)
 
 def bamboo_seed():
-    for _ in range(256):
-        if not plant(Entities.Bamboo):
-            return False
-        if measure() == 4:
-            return True
+    plant(Entities.Bamboo)
+    while measure() != 4:
         harvest()
-    return False
+        plant(Entities.Bamboo)
 
 
-def bamboo_water(level):
-    if get_water() < level:
-        amount = 4
-        if level < 0.5:
+def bamboo_water(target, threshold):
+    level = get_water()
+    if level < threshold:
+        amount = (target - level) * 4 // 1
+        if amount < 1:
             amount = 1
-        if num_items(Items.Water) >= amount:
-            return use_item(Items.Water, amount)
-    return False
+        amount = min(amount, num_items(Items.Water) // 1)
+        if amount > 0 and use_item(Items.Water, amount):  # ty: ignore[invalid-argument-type] # 整数桶数使用游戏Number。
+            level += amount * 0.25
+    return level
 
 
-def bamboo_sweep(rows, water_level):
-    size = get_world_size()
-    for row in range(rows):
-        for x in range(size - 1):
-            move(East)
-            # 仅在切回高度1时浇水，避免供水把切花阶段的飞行高度重置。
-            if water_level > 0:
-                bamboo_water(water_level)
-        move(East)
-        if row + 1 < rows:
-            move(North)
-    bamboo_return(rows, size)
+def bamboo_wait(began, growth, water, sweep):
+    target = began + growth / (1 + 4 * water) + 0.05 - sweep
+    while get_time() < target:
+        pass
 
 
-def bamboo_return(rows, size):
-    if rows == size:
-        move(North)
-    else:
-        for _ in range(rows - 1):
-            move(South)
+def bamboo_cycle(directions, goal, single):
+    inner = len(directions) - 1
+    route = directions[:inner]
+    last = directions[-1]
+    lowest = 1
+    bad = []
+    for direction in route:
+        move(direction)
+        if get_ground_type() != Grounds.Soil:
+            till()
+        bamboo_seed()
+        fill = 0.5
+        if single:
+            fill = 1
+        lowest = min(lowest, bamboo_water(fill, fill))
+        bad.append(False)
+    move(last)
+    began = get_time()
+    growth = 4
+    sweep = inner * 0.031
+    for cycle in range(512):
+        bamboo_wait(began, growth, lowest, sweep)
+        hover(4)
+        for i in range(inner):
+            move(route[i])
+            next_flower = measure()
+            if next_flower != 8 and next_flower != 4:
+                if single:
+                    # 留到收割趟再换苗，先兑现本轮已经长出的竹子。
+                    bad[i] = True
+                else:
+                    harvest()
+                    bamboo_seed()
+                    hover(4)
+        move(last)
+        began = get_time()
+        bamboo_wait(began, 4, lowest, sweep)
+        hover(8)
+        growth = 3
+        for direction in route:
+            move(direction)
+            growth = max(growth, measure() - 8)  # ty: ignore[unsupported-operator] # Bamboo的measure返回花节高度。
+        growth = min(growth, 5)
+        move(last)
+        began = get_time()
+        bamboo_wait(began, growth, lowest, sweep)
+        hover(1)
+        target = min(0.8, lowest / 0.97 + 0.1)
+        threshold = target
+        if single:
+            target = 1
+            threshold = 0.5
+        new_lowest = 1
+        growth = 3
+        for i in range(inner):
+            move(route[i])
+            if num_items(Items.Bamboo) >= goal:
+                quick_print("bamboo_done", cycle, get_time(), num_items(Items.Bamboo))
+                clear()
+                return
+            if bad[i]:
+                harvest()
+                bamboo_seed()
+                bad[i] = False
+                growth = 4
+            new_lowest = min(new_lowest, bamboo_water(target, threshold))
+        move(last)
+        began = get_time()
+        lowest = new_lowest * 0.97
+        if cycle % 8 == 0:
+            quick_print("bamboo_cycle", cycle, get_time(), num_items(Items.Bamboo))
 
 
 if __name__ == "__main__":

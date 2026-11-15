@@ -1,144 +1,128 @@
 from __builtins__ import *
-# 完整轮时间：1:52.014（2026-11-03，build26385848，官方完整65轮，request255）。
+# 完整轮时间：本版尚无完整实机成绩；本地完整目标对照见同名单榜文档。
+
 
 def lb_hay():
-    set_world_size(FIELD_SIZE)
-    pair_count = 0
-    for base_y in PAIR_BASE_YS:
-        for base_x in PAIR_BASE_XS:
-            if pair_count >= ACTIVE_PAIR_COUNT:
-                return
-            pair_count = pair_count + 1
-            if pair_count < ACTIVE_PAIR_COUNT:
-                worker = spawn_drone(start_pair_at, base_x, base_y)
-                if worker == None:
-                    quick_print("lb_hay stopped: dispatch failed", pair_count)
-                    clear()
-                    return
-            else:
-                start_pair_at(base_x, base_y)
-
-FIELD_SIZE = 32
-GOAL_HAY = 2000000000
-ACTIVE_PAIR_COUNT = 32
-PAIR_BASE_XS = (1, 5, 9, 13, 17, 21, 25, 29)
-PAIR_BASE_YS = (1, 9, 17, 25)
-PAIR_SUPPORT_OFFSETS = (
-    (0, -3), (-1, -2), (0, -2), (1, -2),
-    (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
-    (-3, 0), (-2, 0), (-1, 0), (1, 0), (2, 0), (3, 0),
-    (-3, 1), (-2, 1), (-1, 1), (1, 1), (2, 1), (3, 1),
-    (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2),
-    (-1, 3), (0, 3), (1, 3),
-    (0, 4),
-)
+    clear()
+    handles = []
+    for owner in range(1, 32):
+        handles.append(spawn_drone(hay_prepare, owner))
+    success = hay_prepare(0)
+    for handle in handles:
+        if not wait_for(handle):
+            success = False
+    if not success:
+        quick_print("hay_failed", "support")
+        return
+    # 共享支撑全部准备完毕后再生产，避免尚未铺好的邻区令伴生失配。
+    for owner in range(1, 32):
+        spawn_drone(hay_pair, owner)
+    hay_pair(0)
 
 
-def start_pair_at(base_x, base_y):
-    goto(base_x, base_y)
-    companion_pair_thread()
+def hay_prepare(owner):
+    for position in HAY_ROUTES[owner]:
+        hay_move(position)
+        if not plant(Entities.Bush):
+            return False
+    return True
 
 
-def goto(tx, ty):
-    size = get_world_size()
-    half = size // 2
-    x = get_pos_x()
-    y = get_pos_y()
-    dx = (tx - x) % size
-    if dx <= half:
-        for _ in range(dx):
-            move(East)
-    else:
-        for _ in range(size - dx):
-            move(West)
-    dy = (ty - y) % size
-    if dy <= half:
-        for _ in range(dy):
-            move(North)
-    else:
-        for _ in range(size - dy):
-            move(South)
-
-def companion_pair_thread():
-    base_x = get_pos_x()
-    base_y = get_pos_y()
-    north_y = (base_y + 1) % FIELD_SIZE
-    base_pos = (base_x, base_y)
-    north_pos = (base_x, north_y)
-    init_pair_support(base_x, base_y)
-    run_pair_cycle(base_pos, north_pos)
-
-
-def init_pair_support(base_x, base_y):
-    # 分散单元间距为 x=4 / y=8；每个单元只初始化自身可能用到的伴生支撑区。
-    for dx, dy in PAIR_SUPPORT_OFFSETS:
-        x = (base_x + dx) % FIELD_SIZE
-        y = (base_y + dy) % FIELD_SIZE
-        goto(x, y)
-        entity = get_entity_type()
-        if entity != Entities.Bush:
-            if entity != None:
-                harvest()
-            plant(Entities.Bush)
-
-    goto(base_x, base_y)
-    plant(Entities.Grass)
-    move(North)
-    plant(Entities.Grass)
-    move(South)
-
-
-def run_pair_cycle(base_pos, north_pos):
+def hay_pair(owner):
+    first, second = HAY_PAIRS[owner]
+    hay_move(first)
     harvest()
-    water_pair_slot()
-    roll_bush_companion(north_pos)
-    move(North)
-
+    hay_water()
+    hay_roll(second)
+    move(East)
     harvest()
-    water_pair_slot()
-    roll_bush_companion(base_pos)
-    move(South)
-
-    while num_items(Items.Hay) < GOAL_HAY:
-        harvest_ready_grass()
-        if num_items(Items.Hay) >= GOAL_HAY:
-            break
-        roll_bush_companion(north_pos)
-        move(North)
-
-        harvest_ready_grass()
-        if num_items(Items.Hay) >= GOAL_HAY:
-            break
-        roll_bush_companion(base_pos)
-        move(South)
-
-    if base_pos == (PAIR_BASE_XS[0], PAIR_BASE_YS[0]):
-        quick_print("lb_hay done hay=", num_items(Items.Hay), " time=", get_time())
-
-
-def harvest_ready_grass():
-    if not can_harvest():
-        water_pair_slot()
-    harvest()
+    hay_water()
+    hay_roll(first)
+    move(West)
+    while True:
+        if not can_harvest():
+            hay_water()
+        harvest()
+        if num_items(Items.Hay) >= 2000000000:
+            clear()
+            return
+        hay_roll(second)
+        move(East)
+        if not can_harvest():
+            hay_water()
+        harvest()
+        if num_items(Items.Hay) >= 2000000000:
+            clear()
+            return
+        hay_roll(first)
+        move(West)
 
 
-def water_pair_slot():
-    # 32 线程会同时抢水；只在仍有库存时补水，避免无水时反复调用。
-    water = num_items(Items.Water)
-    if water > 2:
+def hay_roll(other):
+    while True:
+        kind, position = get_companion()
+        if kind == Entities.Bush and position != other:
+            return
+        harvest()
+
+
+def hay_water():
+    stock = num_items(Items.Water)
+    if stock > 2:
         use_item(Items.Water, 3)
-    elif water > 1:
+    elif stock > 1:
         use_item(Items.Water, 2)
-    elif water > 0:
+    elif stock > 0:
         use_item(Items.Water)
 
 
-def roll_bush_companion(blocked_pos):
-    while True:
-        companion_entity, companion_pos = get_companion()
-        if companion_entity == Entities.Bush and companion_pos != blocked_pos:
-            break
-        harvest()
+def hay_move(position):
+    x, y = position
+    for target, current, positive, negative in [(x, get_pos_x(), East, West), (y, get_pos_y(), North, South)]:
+        count = (target - current) % 32
+        direction = positive
+        if count > 16:
+            count = 32 - count
+            direction = negative
+        for _ in range(count):
+            move(direction)
+
+
+HAY_PAIRS = [((0, 0), (1, 0)), ((29, 30), (30, 30)), ((29, 2), (30, 2)), ((0, 28), (1, 28)), ((0, 4), (1, 4)), ((26, 0), (27, 0)), ((3, 30), (4, 30)), ((3, 2), (4, 2)), ((6, 0), (7, 0)), ((29, 26), (30, 26)), ((29, 6), (30, 6)), ((0, 24), (1, 24)), ((0, 8), (1, 8)), ((26, 28), (27, 28)), ((26, 4), (27, 4)), ((3, 26), (4, 26)), ((3, 6), (4, 6)), ((23, 30), (24, 30)), ((23, 2), (24, 2)), ((6, 28), (7, 28)), ((6, 4), (7, 4)), ((20, 0), (21, 0)), ((9, 30), (10, 30)), ((9, 2), (10, 2)), ((12, 0), (13, 0)), ((29, 22), (30, 22)), ((29, 10), (30, 10)), ((0, 20), (1, 20)), ((0, 12), (1, 12)), ((26, 24), (27, 24)), ((26, 8), (27, 8)), ((3, 22), (4, 22))]
+HAY_ROUTES = [
+    [(0, 1), (0, 2), (1, 2), (1, 1), (2, 1), (2, 0), (2, 31), (1, 31), (0, 31), (0, 30), (1, 30), (31, 31), (31, 0), (30, 0), (31, 1), (3, 0)],
+    [(29, 0), (29, 31), (28, 31), (28, 30), (27, 30), (28, 29), (29, 29), (29, 28), (30, 28), (30, 29), (31, 29), (31, 30), (30, 31)],
+    [(30, 1), (29, 1), (28, 1), (28, 2), (27, 2), (28, 3), (29, 3), (29, 4), (30, 4), (30, 3), (31, 3), (31, 2)],
+    [(0, 29), (1, 29), (1, 27), (0, 27), (0, 26), (1, 26), (2, 27), (2, 28), (3, 28), (31, 28), (31, 27)],
+    [(0, 3), (1, 3), (1, 5), (0, 5), (0, 6), (1, 6), (2, 5), (2, 4), (3, 4), (31, 4), (31, 5)],
+    [(28, 0), (27, 1), (26, 1), (25, 1), (25, 0), (24, 0), (25, 31), (26, 31), (26, 30), (27, 31), (26, 2)],
+    [(2, 30), (2, 29), (3, 29), (4, 29), (4, 28), (5, 29), (5, 30), (5, 31), (4, 31), (3, 31), (4, 0), (6, 30)],
+    [(2, 2), (2, 3), (3, 3), (4, 3), (4, 4), (5, 3), (5, 2), (5, 1), (4, 1), (3, 1), (6, 2)],
+    [(5, 0), (6, 1), (7, 1), (7, 2), (8, 1), (8, 0), (8, 31), (7, 31), (6, 31), (7, 30), (9, 0)],
+    [(30, 27), (29, 27), (28, 27), (28, 26), (27, 26), (28, 25), (29, 25), (29, 24), (30, 24), (30, 25), (31, 25), (31, 26)],
+    [(30, 5), (29, 5), (28, 5), (28, 6), (27, 6), (28, 7), (29, 7), (29, 8), (30, 8), (30, 7), (31, 7), (31, 6)],
+    [(0, 25), (1, 25), (2, 25), (2, 24), (2, 23), (1, 23), (0, 23), (0, 22), (1, 22), (31, 23), (31, 24), (3, 24)],
+    [(0, 7), (1, 7), (2, 7), (2, 8), (2, 9), (1, 9), (0, 9), (0, 10), (1, 10), (2, 10), (3, 9), (3, 8), (31, 8), (31, 9)],
+    [(27, 29), (26, 29), (25, 29), (25, 28), (24, 28), (24, 27), (25, 27), (25, 26), (26, 26), (26, 27), (27, 27), (28, 28)],
+    [(27, 3), (26, 3), (25, 3), (25, 4), (24, 4), (24, 5), (25, 5), (25, 6), (26, 6), (26, 5), (27, 5), (28, 4)],
+    [(2, 26), (3, 25), (4, 25), (4, 24), (5, 24), (5, 25), (5, 26), (5, 27), (4, 27), (3, 27), (6, 26), (6, 25)],
+    [(2, 6), (3, 5), (4, 5), (5, 5), (5, 6), (5, 7), (4, 7), (3, 7), (4, 8), (4, 9), (5, 8), (6, 7), (6, 6)],
+    [(23, 0), (23, 31), (22, 31), (22, 30), (21, 30), (21, 29), (22, 29), (22, 28), (23, 28), (23, 27), (23, 29), (24, 29), (24, 31), (25, 30)],
+    [(24, 1), (23, 1), (22, 1), (22, 2), (21, 2), (21, 3), (22, 3), (22, 4), (23, 4), (23, 3), (24, 3), (25, 2), (23, 5)],
+    [(5, 28), (6, 27), (7, 27), (7, 26), (7, 25), (8, 26), (8, 27), (8, 28), (8, 29), (7, 29), (6, 29), (9, 28), (9, 27)],
+    [(5, 4), (6, 3), (7, 3), (8, 3), (8, 4), (8, 5), (7, 5), (6, 5), (7, 6), (7, 7), (8, 6), (9, 5), (9, 4)],
+    [(22, 0), (21, 1), (20, 1), (19, 1), (18, 1), (18, 0), (17, 0), (18, 31), (19, 31), (19, 0), (19, 2), (20, 2), (20, 3), (20, 31), (20, 30), (19, 30), (20, 29), (21, 31)],
+    [(8, 30), (9, 29), (10, 29), (10, 28), (10, 27), (11, 28), (11, 29), (11, 30), (11, 31), (10, 31), (9, 31), (10, 0), (12, 30), (12, 29)],
+    [(8, 2), (9, 1), (10, 1), (11, 1), (11, 2), (11, 3), (10, 3), (9, 3), (10, 4), (10, 5), (11, 4), (12, 3), (12, 2)],
+    [(11, 0), (12, 1), (13, 1), (13, 2), (13, 3), (14, 2), (14, 1), (14, 0), (14, 31), (13, 31), (12, 31), (13, 30), (13, 29), (14, 30), (15, 31), (15, 0), (15, 1), (16, 0)],
+    [(30, 23), (29, 23), (28, 23), (28, 22), (27, 22), (27, 21), (28, 21), (28, 20), (29, 20), (29, 19), (30, 19), (30, 20), (30, 21), (29, 21), (31, 21), (31, 22)],
+    [(30, 9), (29, 9), (28, 9), (28, 10), (27, 10), (27, 11), (28, 11), (28, 12), (29, 12), (29, 11), (30, 11), (30, 12), (30, 13), (29, 13), (31, 11), (31, 10)],
+    [(0, 21), (1, 21), (1, 19), (0, 19), (0, 18), (0, 17), (1, 17), (1, 18), (2, 18), (2, 19), (2, 20), (3, 20), (3, 19), (31, 19), (31, 18), (31, 20)],
+    [(0, 11), (1, 11), (2, 11), (2, 12), (2, 13), (1, 13), (0, 13), (0, 14), (0, 15), (1, 15), (1, 14), (2, 14), (3, 13), (3, 12), (3, 11), (4, 12), (31, 12), (31, 13), (31, 14)],
+    [(27, 25), (26, 25), (25, 25), (24, 25), (24, 24), (23, 24), (24, 23), (25, 23), (25, 22), (26, 22), (26, 21), (26, 23), (27, 23), (28, 24), (25, 24)],
+    [(27, 7), (26, 7), (25, 7), (24, 7), (24, 8), (23, 8), (24, 9), (25, 9), (25, 8), (25, 10), (26, 10), (26, 9), (27, 9), (28, 8), (26, 11)],
+    [(2, 22), (2, 21), (3, 21), (4, 21), (4, 20), (4, 19), (5, 20), (5, 21), (5, 22), (5, 23), (4, 23), (3, 23), (6, 23), (6, 22), (6, 21), (7, 22)],
+]
 
 
 if __name__ == "__main__":

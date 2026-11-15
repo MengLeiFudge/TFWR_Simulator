@@ -1,116 +1,147 @@
 from __builtins__ import *
-# 完整轮时间：2:20.721（2026-11-09，build26462009，官方完整52轮，request478）。
+# 完整轮时间：本生成版本尚无完整实机成绩。
+# 生成自：scripts/templates/leaderboard/lb_rice.py
+# 生成配置：scripts/templates/leaderboard/lb_rice.codegen.json
+# 修改策略请编辑母版并重新生成，勿直接修改本文件。
+
 
 def lb_rice():
-    size = get_world_size()
-    workers = min(size, max_drones())
-    deadline = get_time() + 3600
-    for batch in range(128):
-        if num_items(Items.Rice) >= 2000000:
-            quick_print("rice_done", True, batch, get_time(), num_items(Items.Rice))
-            return
-        # 上一批所有句柄已回收，clear不会取消仍在工作的子机。
-        clear()
-        handles = []
-        local = True
-        for column in range(1, workers):
-            handle = spawn_drone(rice_columns, column, workers, size, 2000000, deadline)
-            if handle == None:
-                local = False
-                break
-            handles.append(handle)
-        if not rice_columns(0, workers, size, 2000000, deadline):
-            local = False
-        for handle in handles:
-            if not wait_for(handle):
-                local = False
-        quick_print("rice_batch", batch, local, get_time(), num_items(Items.Rice))
-        if not local:
-            quick_print("rice_failed", "batch", batch)
-            return
-    quick_print("rice_failed", "batch_limit", get_time(), num_items(Items.Rice))
+    clear()
+    rice_launch(0, 32)
 
 
-def rice_columns(first, stride, size, goal, deadline):
-    # 每柱唯一写者；先铺首层，再让第二层成熟与首层余下收割重叠。
-    planted = []
-    for x in range(first, size, stride):
-        if not rice_move_to(x, 0, size):
-            return False
-        for y in range(size):
-            if num_items(Items.Rice) >= goal:
-                return True
-            ground = get_ground_type()
-            digs = 0
-            while ground != Grounds.Clay and ground != Grounds.Rock and digs < 128:
-                if get_time() > deadline or not dig():
-                    return False
-                ground = get_ground_type()
-                digs += 1
-            if ground == Grounds.Clay:
-                if not plant(Entities.Rice):
-                    return False
-                if get_water() < 0.25 and num_items(Items.Water) > 0:
-                    use_item(Items.Water)
-                planted.append((x, y))
-            if not move(North):
-                return False
-    second = []
-    for x, y in planted:
-        if num_items(Items.Rice) >= goal:
-            return True
-        if not rice_move_to(x, y, size):
-            return False
-        while get_entity_type() == Entities.Rice and not can_harvest():
-            if get_time() > deadline:
-                return False
-            do_a_flip()
-        if get_entity_type() == Entities.Rice:
-            # 干梯田可能仍承载成熟株；只有harvest成功后才下挖。
-            if not harvest():
-                return False
-            if num_items(Items.Rice) < goal and get_ground_type() == Grounds.Dry_Rice_Terrace:
-                if get_time() > deadline or not dig():
-                    return False
-                if get_ground_type() == Grounds.Clay:
-                    if not plant(Entities.Rice):
-                        return False
-                    if get_water() < 0.25 and num_items(Items.Water) > 0:
-                        use_item(Items.Water)
-                    second.append((x, y))
-    for x, y in second:
-        if num_items(Items.Rice) >= goal:
-            return True
-        if not rice_move_to(x, y, size):
-            return False
-        while get_entity_type() == Entities.Rice and not can_harvest():
-            if get_time() > deadline:
-                return False
-            do_a_flip()
-        if get_entity_type() == Entities.Rice and not harvest():
-            return False
-    return True
-
-
-def rice_move_to(tx, ty, size):
-    # 常规帽子可跨高度移动；每次到柱后重新读取地层，不缓存塌方前深度。
-    dx = (tx - get_pos_x()) % size
+def rice_launch(lo, hi):
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        spawn_drone(rice_launch, mid, hi)
+        hi = mid
     direction = East
-    if dx > size // 2:
+    steps = lo
+    if steps > 16:
+        steps = 32 - steps
         direction = West
-        dx = size - dx
-    for _ in range(dx):
-        if not move(direction):
+    for _ in range(steps):
+        move(direction)
+    rice_worker(False)
+
+def rice_worker(single):
+    directions = []
+    if single:
+        for x in range(8):
+            direction = North
+            if x % 2:
+                direction = South
+            for _ in range(7):
+                directions.append(direction)
+            directions.append(East)
+    else:
+        for _ in range(32):
+            directions.append(North)
+    goal = 2000000
+    if single:
+        goal = 100000
+    prepared = False
+    for band in range(128):
+        # 每个Clay带有两茬；不重生世界，下一带利用已挖深度与坍塌。
+        if not prepared:
+            #@unroll
+            for step in range(32):
+                direction = North
+                for _ in range(128):
+                    if get_ground_type() == Grounds.Clay:
+                        break
+                    if not dig():
+                        quick_print("rice_failed", "clay", band)
+                        return
+                if not plant(Entities.Rice):
+                    quick_print("rice_failed", "plant", band)
+                    return
+                rice_water(single)
+                move(direction)
+        prepared = False
+        #@unroll
+        for step in range(32):
+            direction = North
+            if rice_harvest():
+                if num_items(Items.Rice) >= goal:
+                    clear()
+                    return
+                if get_ground_type() == Grounds.Dry_Rice_Terrace:
+                    dig()
+                    plant(Entities.Rice)
+                    rice_water(single)
+            move(direction)
+        if band < 2:
+            for direction in directions[:18]:
+                rice_harvest()
+                move(direction)
+            for _ in range(14):
+                move(North)
+            if not rice_sow_segment(6):
+                return
+            for _ in range(12):
+                move(North)
+            for direction in directions[18:]:
+                rice_harvest()
+                move(direction)
+            for _ in range(6):
+                move(North)
+            if not rice_sow_segment(26):
+                return
+            prepared = True
+        else:
+            #@unroll
+            for step in range(32):
+                direction = North
+                rice_harvest()
+                if num_items(Items.Rice) >= goal:
+                    clear()
+                    return
+                move(direction)
+        quick_print("rice_band", band, get_pos_z(), get_time(), num_items(Items.Rice))
+
+
+def rice_sow_segment(count):
+    for _ in range(count):
+        while get_ground_type() != Grounds.Clay:
+            if not dig():
+                return False
+        if not plant(Entities.Rice):
             return False
-    dy = (ty - get_pos_y()) % size
-    direction = North
-    if dy > size // 2:
-        direction = South
-        dy = size - dy
-    for _ in range(dy):
-        if not move(direction):
-            return False
+        rice_water(False)
+        move(North)
     return True
+
+
+def rice_harvest():
+    if get_entity_type() != Entities.Rice:
+        return False
+    if not can_harvest():
+        if get_water() < 0.25 and num_items(Items.Water) >= 1:
+            use_item(Items.Water)
+        while get_entity_type() == Entities.Rice and not can_harvest():
+            for _ in range(16):
+                pass
+    if get_entity_type() == Entities.Rice:
+        return harvest()
+    return False
+
+
+def rice_water(single):
+    water = get_water()
+    if single:
+        if water < 0.15:
+            amount = (1 - water) * 4 // 1
+            if water + amount * 0.25 < 1:
+                amount += 1
+            amount = min(amount, num_items(Items.Water) // 1)
+            if amount > 0:
+                use_item(Items.Water, amount)  # ty: ignore[invalid-argument-type] # 向上取整后的游戏Number。
+    elif water < 0.25:
+        if num_items(Items.Water) > 100:
+            use_item(Items.Water, 2)
+        elif water < 0.1 and num_items(Items.Water) >= 1:
+            use_item(Items.Water)
 
 
 if __name__ == "__main__":

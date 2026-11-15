@@ -1,98 +1,123 @@
 from __builtins__ import *
-# 完整轮时间：38.186秒（构建26462009，189轮官方完整统计；请求432）。
+# 完整轮时间：本版尚无实机成绩；原版目标本地对照见同名策略文档。
 
 
 def lb_treasure_map():
     clear()
-    size = get_world_size()
-    offsets = {"N": size, "E": 1, "S": -size, "W": -1, "D": size * size}
-    directions = {"N": North, "E": East, "S": South, "W": West}
-    deadline = get_time() + 7200
-    for cycle in range(256):
+    treasure_move(3, 3)
+    shifts = {"E": 1, "W": -1, "N": 10, "S": -10, "D": 100}
+    for cycle in range(64):
         if num_items(Items.Gold) >= 115000:
-            quick_print("treasure_map_done", True, get_time(), num_items(Items.Gold))
+            quick_print("treasure_map_done", get_time(), num_items(Items.Gold))
             return
-        clear()
         for _ in range(256):
             if get_ground_type() == Grounds.Basalt:
                 break
-            if get_time() > deadline or get_hardness() >= 10000000 or not dig():
-                quick_print("treasure_map_failed", "find_basalt", cycle)
+            if not dig():
+                quick_print("treasure_map_failed", "basalt", cycle)
                 return
-        if get_ground_type() != Grounds.Basalt:
-            quick_print("treasure_map_failed", "basalt_limit", cycle)
-            return
-        location = measure()
-        if location == None or not treasure_map_move_to(location[0], location[1]):
-            quick_print("treasure_map_failed", "map_location", cycle)
+        target = measure()
+        if target == None or not treasure_tunnel(target[0], target[1]):  # ty: ignore[not-subscriptable] Basalt测量返回坐标元组。
+            quick_print("treasure_map_failed", "tunnel", cycle)
             return
         for _ in range(32):
             if get_ground_type() == Grounds.Treasure_Map:
                 break
-            if get_time() > deadline or not dig():
-                quick_print("treasure_map_failed", "find_map", cycle)
+            if not dig():
                 return
-        if get_ground_type() != Grounds.Treasure_Map:
-            quick_print("treasure_map_failed", "map_limit", cycle)
-            return
         path = measure()
         if path == None:
-            quick_print("treasure_map_failed", "path", cycle)
             return
-        began = get_time()
-        start = get_pos_x() + size * get_pos_y()
+        start = get_pos_y() * 10 + get_pos_x()
         point = start
-        exits = {}
-        # 地图不穿边；每层以size²分隔，同一坐标只保留原串最后一次离开的方向。
-        for step in path:
-            exits[point] = step
-            point += offsets[step]
+        cells = {start}
+        for step in path:  # ty: ignore[not-iterable] Treasure_Map测量返回方向字符串。
+            point += shifts[step]  # ty: ignore[invalid-argument-type] 方向字符串逐字符解析。
+            cells.add(point)
         goal = point
-        point = start
-        planned = get_time()
-        steps = 0
-        # 每次跟随最后出口，原串中的最后出现索引严格增加，故不会产生新环。
-        while point != goal:
-            if get_time() > deadline:
-                quick_print("treasure_map_failed", "deadline", cycle)
-                return
-            step = exits[point]
-            if step == "D":
-                ok = dig()
-            else:
-                ok = move(directions[step])
-            if not ok:
-                quick_print("treasure_map_failed", "action", cycle, step)
-                return
-            point += offsets[step]
-            steps += 1
-        if get_entity_type() != Entities.Underground_Treasure or not harvest():
-            quick_print("treasure_map_failed", "treasure", cycle, get_pos_x(), get_pos_y(), get_pos_z())
+        if not dig():
             return
-        quick_print("treasure_map_cycle", cycle, len(path), steps, began, planned, get_time(), num_items(Items.Gold))
-    quick_print("treasure_map_failed", "cycle_limit", get_time(), num_items(Items.Gold))
+        point = start + 100
+        while point != goal:
+            if point + 100 not in cells:
+                point = treasure_exit(cells, point)
+                if point == None:
+                    return
+            if not dig():
+                return
+            point += 100
+        if get_entity_type() != Entities.Underground_Treasure or not harvest():
+            quick_print("treasure_map_failed", "reward", cycle)
+            return
+        quick_print("treasure_map_cycle", cycle, get_time(), num_items(Items.Gold))
 
 
-def treasure_map_move_to(tx, ty):
-    # 仅用于读图前定位；已激活地图内只能沿公开路径的有效坐标移动。
-    size = get_world_size()
-    dx = (tx - get_pos_x()) % size
-    direction = East
-    if dx > size // 2:
-        direction = West
-        dx = size - dx
-    for _ in range(dx):
-        if not move(direction):
-            return False
-    dy = (ty - get_pos_y()) % size
-    direction = North
-    if dy > size // 2:
-        direction = South
-        dy = size - dy
-    for _ in range(dy):
-        if not move(direction):
-            return False
+def treasure_exit(cells, start):
+    # 只在公开路径的同一层搜索；下挖仍要求上下两个格子都在路径上。
+    queue = [start]
+    previous = {start: start}
+    head = 0
+    found = None
+    while head < len(queue) and found == None:
+        point = queue[head]
+        head += 1
+        for offset in [1, -1, 10, -10]:
+            neighbor = point + offset
+            if neighbor in cells and neighbor not in previous:
+                previous[neighbor] = point
+                if neighbor + 100 in cells:
+                    found = neighbor
+                    break
+                queue.append(neighbor)
+    if found == None:
+        quick_print("treasure_map_failed", "exit", start)
+        return None
+    directions = {1: East, -1: West, 10: North, -10: South}
+    route = []
+    point = found
+    while point != start:
+        parent = previous[point]
+        route.append(directions[point - parent])
+        point = parent
+    for i in range(len(route) - 1, -1, -1):
+        if not move(route[i]):
+            return None
+    return found
+
+
+def treasure_tunnel(tx, ty):
+    # Basalt横移时只清除中间柱，借坍塌降低下一柱；末柱交给找图循环。
+    dx = tx - get_pos_x()
+    dy = ty - get_pos_y()
+    horizontal = East
+    if dx < 0:
+        dx = -dx
+        horizontal = West
+    vertical = North
+    if dy < 0:
+        dy = -dy
+        vertical = South
+    left = dx + dy
+    for direction, count in [(horizontal, dx), (vertical, dy)]:
+        for _ in range(count):
+            if not move(direction):
+                return False
+            left -= 1
+            if left and not dig():
+                return False
     return True
+
+
+def treasure_move(tx, ty):
+    size = get_world_size()
+    for target, current, positive, negative in [(tx, get_pos_x(), East, West), (ty, get_pos_y(), North, South)]:
+        count = (target - current) % size
+        direction = positive
+        if count > size // 2:
+            direction = negative
+            count = size - count
+        for _ in range(count):
+            move(direction)
 
 
 if __name__ == "__main__":

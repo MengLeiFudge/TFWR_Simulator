@@ -3,6 +3,12 @@
 ###############################################################################
 * text=auto
 
+# 固定生成链使用LF，避免Windows检出改变已记录的源码与产物指纹。
+/scripts/templates/** text eol=lf
+/simulator/optimizer/** text eol=lf
+/scripts/leaderboard/lb_rice.py text eol=lf
+/scripts/leaderboard/lb_sunflowers_single.py text eol=lf
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #

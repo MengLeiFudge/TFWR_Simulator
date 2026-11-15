@@ -1,0 +1,20 @@
+{
+  "template": "scripts/templates/leaderboard/lb_sunflowers_single.py",
+  "output": "scripts/leaderboard/lb_sunflowers_single.py",
+  "transforms": {
+    "wrap_paths": {
+      "size": 8,
+      "stride": 16
+    }
+  },
+  "fingerprints": {
+    "template_sha256": "d2aa0a41cee854457147cb7e706b34e30c810d4505a25bd48c17b42decd812d5",
+    "generator_sha256": "f7209e1df4f142052ab435319ba68930bb73bc23df34dd1d0c7f216315a84ccb",
+    "output_sha256": "c87eb8214ab6c9c71144ed91dfd48043f88825f4eb86eeab9ac678c9d196b473"
+  },
+  "command": [
+    "python3",
+    "simulator/optimizer/generate.py",
+    "scripts/templates/leaderboard/lb_sunflowers_single.codegen.json"
+  ]
+}
