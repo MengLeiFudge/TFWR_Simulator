@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：4:37.057（7200游戏秒场均会话26轮，标准误1.53秒，seed1-26；尚无本版实机）。
+# 完整轮时间：4:29.880（7200游戏秒场均会话27轮，标准误1.50秒，seed1-27；尚无本版实机）。
 
 def lb_mushrooms():
     began = get_time()
@@ -162,6 +162,7 @@ def work_layer(block, ceiling, cells):
         if mushroom:
             mushrooms += 1
             t = measure()
+        pairs_before = pairs
         if z >= ceiling and mushroom:
             count = carry_match(cache, x, y, neighbors, floor, z, t)
             if count == None:
@@ -177,6 +178,9 @@ def work_layer(block, ceiling, cells):
                     return None
                 digs += 1
         before = pairs + digs
+        if z >= ceiling and mushroom and pairs > pairs_before:
+            read_column(cache, x, y)
+            continue
         count = feed_column(neighbors, floor, z, mushroom, t)
         if count == None:
             quick_print("mushrooms_abort", "feed", block, x, y, z, get_pos_z())
