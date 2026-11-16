@@ -73,7 +73,7 @@ python3 game_control/tools/run_real_game_script.py --status-only
    python3 game_control/tools/run_real_game_script.py --target-script lb_start --request-timeout 60
    ```
 
-   默认在至少两轮且最近两轮差异不超过 10% 后停止，适合方向筛选。确认接近候选谁更快时增加轮数；`--max-leaderboard-runs 0` 允许完整统计，另设足够的请求超时。完整统计累计约 **7200 游戏秒**，不是固定等待现实两小时。
+   默认在至少两轮且最近两轮差异不超过 10% 后停止，适合方向筛选——**但这只比较快慢，不会提交成绩**。游戏把成绩攒成一次完整统计：累计约 **7200 游戏秒**才结算，上传的是该场各轮**均值**，且要求本场结束时本轮成功；所以短样本不改变公开记录，失败一轮整场作废。确认要上传时用 `--max-leaderboard-runs 0` 跑完一场完整统计（另设足够的请求超时），现实耗时取决于加速与计算负载，不是固定等两小时。
 4. 运行中查看资源百分比和预测，首轮结束后看完成轮均值：
 
    ```bash
