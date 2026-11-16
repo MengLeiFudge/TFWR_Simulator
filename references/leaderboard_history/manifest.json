@@ -4823,6 +4823,15 @@
           "commit": "5f25fe9a",
           "time_tag": "50m06.673s",
           "message": "优化：迁入重置榜常驻采集与分区复用"
+        },
+        {
+          "file": "20261117_v18_sim_45m24.105s_8e6be61.py",
+          "path": "references/leaderboard_history/lb_fastest_underground_reset/20261117_v18_sim_45m24.105s_8e6be61.py",
+          "date": "2026-11-17",
+          "time_tag": "改前视频开局；原3轮2724.105秒，本轮7轮2739.853秒，新增seed8失败，21轮均值无效",
+          "sha256": "bde65f63adaca05144b8ca5f55c7510df9271cdfdfba7ba18f5ee42bd8e84bc8",
+          "commit": "8e6be61",
+          "message": "复现视频开局混种路径并重排双重置科技投资"
         }
       ],
       "rejected": [
@@ -5242,6 +5251,26 @@
           "sha256": "32a4dc28fd796aeaec9c37f9eef94d509bff7b074b2f172c5be172ca5e7178f1",
           "base_commit": "5f34716",
           "module_entry": "reset_bamboo_stock",
+          "explicitly_cited": true
+        },
+        {
+          "file": "20261117_rejected_early12_eight_poly2_maze2.py",
+          "path": "references/leaderboard_history/lb_fastest_underground_reset/20261117_rejected_early12_eight_poly2_maze2.py",
+          "date": "20261117",
+          "time_tag": "seed1原目标2947.285501秒，真实D1筹10000Bone买Poly2并付Mazes2，慢于2812.473612秒基线",
+          "sha256": "17a8b3ed5b300049c9955269e05f42d70ea9dc7f93aff3bae599a82c8a975e6d",
+          "source_codex": ".codex/reset-under-combinations-20261117/early12-eight-poly2/lb_fastest_underground_reset.py",
+          "base_commit": "8e6be61",
+          "explicitly_cited": true
+        },
+        {
+          "file": "20261117_rejected_small_maze_rice4_seed8_failure.py",
+          "path": "references/leaderboard_history/lb_fastest_underground_reset/20261117_rejected_small_maze_rice4_seed8_failure.py",
+          "date": "20261117",
+          "time_tag": "初7轮2587.129552秒；预定21轮seed8扫雷8扑空未达原目标，整组无效，不采用",
+          "sha256": "add08a14c396b52cda7eb726e3316ff22aca8f1adc2b2a7102a7f885837ee7a0",
+          "source_codex": ".codex/reset-under-combinations-20261117/four-small-rice4/lb_fastest_underground_reset.py",
+          "base_commit": "8e6be61",
           "explicitly_cited": true
         }
       ]
@@ -5902,7 +5931,10 @@
     ".codex/functional-reset-transfer-20261112/candidates/bamboo-retained-stumps.py": "references/leaderboard_history/lb_fastest_underground_reset/20261112_rejected_followup_bamboo-retained-stumps.py",
     ".codex/gemini-reset-maze-20261115/rice/deep_rice.py": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_deep_rice.py",
     ".codex/gemini-reset-maze-20261115/bamboo-late/closed_bamboo.py": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_full.py",
-    ".codex/gemini-reset-maze-20261115/bamboo-first/closed_bamboo.py": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_first.py"
+    ".codex/gemini-reset-maze-20261115/bamboo-first/closed_bamboo.py": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_first.py",
+    ".codex/reset-under-combinations-20261117/baseline/lb_fastest_underground_reset.py": "references/leaderboard_history/lb_fastest_underground_reset/20261117_v18_sim_45m24.105s_8e6be61.py",
+    ".codex/reset-under-combinations-20261117/early12-eight-poly2/lb_fastest_underground_reset.py": "references/leaderboard_history/lb_fastest_underground_reset/20261117_rejected_early12_eight_poly2_maze2.py",
+    ".codex/reset-under-combinations-20261117/four-small-rice4/lb_fastest_underground_reset.py": "references/leaderboard_history/lb_fastest_underground_reset/20261117_rejected_small_maze_rice4_seed8_failure.py"
   },
   "commit_to_archive": {
     "lb_fastest_reset:3973de2": "references/leaderboard_history/lb_fastest_reset/20261116_v30_sim_41m24.599s_3973de2.py",
@@ -6249,6 +6281,7 @@
     "lb_fastest_underground_reset:05212f0a": "references/leaderboard_history/lb_fastest_underground_reset/20261111_v13_54m39.570s_05212f0a.py",
     "lb_fastest_underground_reset:8ec59b43": "references/leaderboard_history/lb_fastest_underground_reset/20261111_v14_53m02.025s_8ec59b43.py",
     "lb_fastest_underground_reset:425a5024": "references/leaderboard_history/lb_fastest_underground_reset/20261112_v15_51m07.141s_425a5024.py",
-    "lb_fastest_underground_reset:5f25fe9a": "references/leaderboard_history/lb_fastest_underground_reset/20261112_v16_50m06.673s_5f25fe9a.py"
+    "lb_fastest_underground_reset:5f25fe9a": "references/leaderboard_history/lb_fastest_underground_reset/20261112_v16_50m06.673s_5f25fe9a.py",
+    "lb_fastest_underground_reset:8e6be61": "references/leaderboard_history/lb_fastest_underground_reset/20261117_v18_sim_45m24.105s_8e6be61.py"
   }
 }
