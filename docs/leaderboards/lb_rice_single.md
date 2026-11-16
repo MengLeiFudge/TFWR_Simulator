@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_rice_single.py](../../scripts/leaderboard/lb_rice_single.py)。公开账号最高 **2:45.682（#11）**；本版三seed原目标完整模拟均值 **2:28.263**，尚无新版实机。
+当前脚本：[lb_rice_single.py](../../scripts/leaderboard/lb_rice_single.py)。公开账号最高 **2:28.522（#7）**，来自2026-11-16 request538 的49轮完整统计均值（最好2:27.220／最差2:30.103）；本版三seed原目标完整模拟均值 **2:28.263**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444639/)，榜单抓取时间`2026-11-15T10:09:43.870889+00:00`，账号查询时间`2026-11-15T10:09:43.870916+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)。
 

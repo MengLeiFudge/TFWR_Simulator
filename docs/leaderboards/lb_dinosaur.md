@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_dinosaur.py](../../scripts/leaderboard/lb_dinosaur.py)。公开账号最高 **13:20.066（#83）**；已有最好本地模拟 **11:24.086**。当前公开 #1 **4:53.223**，差距 **+133.3%**。
+当前脚本：[lb_dinosaur.py](../../scripts/leaderboard/lb_dinosaur.py)。公开账号最高 **11:34.941（#24）**，来自2026-11-16 request551 的11轮完整统计均值（最好11:11.902／最差11:59.899）；同批 request537、548 均因单轮 `incomplete_cycle` 超时失败导致整场统计作废，两次会话共浪费12个完整轮。已有最好本地模拟 **11:24.086**。当前公开 #1 **4:53.223**，差距 **+133.3%**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17869889/)，榜单抓取时间 `2026-11-16T02:15:42.567596+00:00`，账号查询时间 `2026-11-16T02:15:42.567626+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 

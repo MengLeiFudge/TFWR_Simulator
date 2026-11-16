@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_sunflowers.py](../../scripts/leaderboard/lb_sunflowers.py)。公开账号最高 **3:25.817（#9）**；本版三seed原目标完整模拟均值 **2:32.828**，尚无新版实机。
+当前脚本：[lb_sunflowers.py](../../scripts/leaderboard/lb_sunflowers.py)。公开账号最高 **2:33.030（#3）**，来自2026-11-16 request533 的48轮完整统计均值（最好2:32.353／最差2:33.594）；本版三seed原目标完整模拟均值 **2:32.828**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17869894/)，榜单抓取时间`2026-11-15T10:09:43.881623+00:00`，账号查询时间`2026-11-15T10:09:43.881657+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)。
 

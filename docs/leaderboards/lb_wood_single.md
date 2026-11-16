@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_wood_single.py](../../scripts/leaderboard/lb_wood_single.py)。公开账号最高 **5:20.571（#28）**；已有最好本地模拟 **5:13.238**。
+当前脚本：[lb_wood_single.py](../../scripts/leaderboard/lb_wood_single.py)。公开账号最高 **5:20.571（#31）**；2026-11-16 request518 三run均5:23.269，慢于账号记录，公开成绩未变。已有最好本地模拟 **5:13.238**（仅seed1，游戏内实际seed更慢）。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17827415/)，榜单抓取时间 `2026-11-10T06:15:50.052203+00:00`，账号查询时间 `2026-11-10T06:15:50.052237+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 

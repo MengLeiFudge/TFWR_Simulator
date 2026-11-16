@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_maze.py](../../scripts/leaderboard/lb_maze.py)。公开账号最高 **1:26.965（#12）**；已有最好本地模拟 **1:24.744**。
+当前脚本：[lb_maze.py](../../scripts/leaderboard/lb_maze.py)。公开账号最高 **1:26.965（#14）**；已有最好本地模拟 **1:24.744**。2026-11-16 刷新时公开 #1 已由0:42.777缩到 **0:29.894**，差距扩大到 **+183.5%**，原有宫数/机数权衡需按新目标重算。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17869891/)，榜单抓取时间 `2026-11-15T14:58:45.796127+00:00`，账号查询时间 `2026-11-15T14:58:45.796160+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 

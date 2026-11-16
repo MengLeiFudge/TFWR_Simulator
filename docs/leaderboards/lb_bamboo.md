@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_bamboo.py](../../scripts/leaderboard/lb_bamboo.py)。公开账号最高 **5:19.845（#11）**；本版三seed原目标完整模拟均值 **3:49.753**，尚无新版实机。
+当前脚本：[lb_bamboo.py](../../scripts/leaderboard/lb_bamboo.py)。公开账号最高 **3:50.962（#7）**，来自2026-11-16 request535 的32轮完整统计均值（最好3:47.780／最差3:53.775）；本版三seed原目标完整模拟均值 **3:49.753**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21488263/)，榜单抓取时间 `2026-11-15T10:01:06.171727+00:00`，账号查询时间 `2026-11-15T10:01:06.171777+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)。
 

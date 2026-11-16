@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_mushrooms_single.py](../../scripts/leaderboard/lb_mushrooms_single.py)。公开账号最高 **13:32.194（#6）**；当前本地模拟 **12:38.542（原30k目标三seed完整均值）**，距当前 #1 **4:22.952（+188.5%）**。
+当前脚本：[lb_mushrooms_single.py](../../scripts/leaderboard/lb_mushrooms_single.py)。公开账号最高 **12:37.850（#6）**，来自2026-11-16 request540 的10轮完整统计均值（最好12:02.373／最差13:04.472）；当前本地模拟 **12:38.542（原30k目标三seed完整均值）**，距当前 #1 **4:22.952（+188.5%）**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444535/)，榜单抓取时间 `2026-11-16T02:16:07.559763+00:00`，账号查询时间 `2026-11-16T02:16:07.559792+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 

@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_pyramids_single.py](../../scripts/leaderboard/lb_pyramids_single.py)。公开账号最高 **17:54.147（#5）**；已有最好本地模拟 **17:52.629**。
+当前脚本：[lb_pyramids_single.py](../../scripts/leaderboard/lb_pyramids_single.py)。公开账号最高 **17:51.530（#6）**，来自2026-11-16 request546 的7轮完整统计均值（最好17:42.699／最差18:04.198）；已有最好本地模拟 **17:52.629**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21488443/)，榜单抓取时间 `2026-11-11T09:12:52.089424+00:00`，账号查询时间 `2026-11-11T09:12:52.089424+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 

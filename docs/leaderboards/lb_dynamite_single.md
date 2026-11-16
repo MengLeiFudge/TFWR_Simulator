@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_dynamite_single.py](../../scripts/leaderboard/lb_dynamite_single.py)。公开账号最高 **4:21.802（#8）**；已有最好本地模拟 **4:18.986**。
+当前脚本：[lb_dynamite_single.py](../../scripts/leaderboard/lb_dynamite_single.py)。公开账号最高 **4:20.318（#9）**，来自2026-11-16 request541 的28轮完整统计均值（最好4:05.695／最差4:51.014）；已有最好本地模拟 **4:18.986**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444632/)，榜单抓取时间 `2026-11-11T09:12:48.693513+00:00`，账号查询时间 `2026-11-11T09:12:48.693513+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 

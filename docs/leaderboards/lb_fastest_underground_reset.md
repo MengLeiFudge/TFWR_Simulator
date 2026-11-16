@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_fastest_underground_reset.py](../../scripts/leaderboard/lb_fastest_underground_reset.py)。公开账号最高 **54:39.570（#6）**；已有最好本地模拟 **50:26.822**。
+当前脚本：[lb_fastest_underground_reset.py](../../scripts/leaderboard/lb_fastest_underground_reset.py)。公开账号最高 **51:58.780（#5）**，来自2026-11-16 request550 的3轮完整统计均值（最好49:42.891／最差55:21.952）；同批 request542 首轮因 `mushrooms_failed eight_search_misses` 失败而整场作废。已有最好本地模拟 **50:26.822**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444633/)，榜单抓取时间 `2026-11-15T14:58:46.039467+00:00`，账号查询时间 `2026-11-15T14:58:46.039493+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 

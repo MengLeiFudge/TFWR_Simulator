@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_treasure_map.py](../../scripts/leaderboard/lb_treasure_map.py)。公开账号最高 **0:38.151（#13）**；本版五seed原目标完整模拟均值 **0:28.539**，尚无新版实机。
+当前脚本：[lb_treasure_map.py](../../scripts/leaderboard/lb_treasure_map.py)。公开账号最高 **0:26.892（#9）**，来自2026-11-16 request532 的268轮完整统计均值（最好0:19.690／最差0:34.774）；本版五seed原目标完整模拟均值 **0:28.539**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21469574/)，榜单抓取时间 `2026-11-15T10:01:04.971764+00:00`，账号查询时间 `2026-11-15T10:01:04.971792+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)。
 

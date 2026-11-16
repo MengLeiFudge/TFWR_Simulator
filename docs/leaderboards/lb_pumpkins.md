@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_pumpkins.py](../../scripts/leaderboard/lb_pumpkins.py)。公开账号最高 **6:14.128（#27）**；已有最好本地模拟 **6:10.322**，来自下方未采用的路径组合。现行826格执行版三seed完整目标最好 **6:11.477**。
+当前脚本：[lb_pumpkins.py](../../scripts/leaderboard/lb_pumpkins.py)。公开账号最高 **6:11.733（#23）**，来自2026-11-16 request549 的20轮完整统计均值（最好6:10.232／最差6:13.574）；已有最好本地模拟 **6:10.322**，来自下方未采用的路径组合。现行826格执行版三seed完整目标最好 **6:11.477**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17869892/)，榜单抓取时间 `2026-11-15T06:53:56.455467+00:00`，账号查询时间 `2026-11-15T06:53:56.455503+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 

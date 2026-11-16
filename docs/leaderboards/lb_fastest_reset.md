@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_fastest_reset.py](../../scripts/leaderboard/lb_fastest_reset.py)。公开账号最高 **41:47.696（#35）**；已有最好本地模拟 **41:11.034**。
+当前脚本：[lb_fastest_reset.py](../../scripts/leaderboard/lb_fastest_reset.py)。公开账号最高 **41:47.696（#35）**；2026-11-16 request528 首轮41:41.503 后，第二轮 `directed_failed bone_incomplete_cycle` 中断使整场统计作废、未能上传。已有最好本地模拟 **41:11.034**。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17869903/)，榜单抓取时间 `2026-11-15T14:58:45.856608+00:00`，账号查询时间 `2026-11-15T14:58:45.856644+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 
