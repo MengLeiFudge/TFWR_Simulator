@@ -33,11 +33,6 @@ def lb_mushrooms_single():
         quick_print("mushrooms_selected", batch, height, get_time())
         if height != 6:
             continue
-        if not dig_layer(top):
-            quick_print("mushrooms_failed", "cover", batch)
-            return
-        if not move_to(0, 0):
-            return
         levels = max(1, height - 1)
         quick_print("mushrooms_probe", batch, height, levels, get_time())
         handles = []
@@ -60,10 +55,22 @@ def lb_mushrooms_single():
 
 
 def work_patch(block, top, levels):
+    x0, x1, y0, y1 = block
+    for y in range(y0, y1):
+        for offset in range(x1 - x0):
+            x = x0 + offset
+            if (y - y0) % 2 != 0:
+                x = x1 - 1 - offset
+            if not move_to(x, y):
+                return False
+            while get_pos_z() > top:
+                if not dig():
+                    return False
+    cells = patch_cells(block)
     for layer in range(levels):
         if num_items(Items.Mushroom) >= 30000:
             return True
-        result = work_layer(block, top - layer)
+        result = work_layer(block, top - layer, cells)
         if result == None:
             return False
         if result[2] == 0:
@@ -71,44 +78,37 @@ def work_patch(block, top, levels):
     return True
 
 
-# 每台无人机负责一列；无人机不足时按列步长分担，整层完成后才返回。
-def dig_layer(target):
-    size = get_world_size()
-    workers = min(size, max_drones())
-    handles = []
-    ok = True
-    for x in range(workers - 1):
-        if not move_to(x, 0):
-            ok = False
-            break
-        handle = spawn_drone(dig_columns, x, workers, size, target)
-        if handle == None:
-            if not dig_columns(x, workers, size, target):
-                ok = False
-        else:
-            handles.append(handle)
-    if ok and not dig_columns(workers - 1, workers, size, target):
-        ok = False
-    for handle in handles:
-        if not wait_for(handle):
-            ok = False
-    return ok
-
-
-# 只挖仍高于蘑菇顶面的覆盖层；探柱产生的低柱保留实际高度。
-def dig_columns(first_x, stride, size, target):
-    for x in range(first_x, size, stride):
-        if not move_to(x, 0):
-            return False
-        for y in range(size):
-            while get_pos_z() > target:
-                if not dig():
-                    return False
-            if get_pos_z() > target:
-                return False
-            if not move(North):
-                return False
-    return True
+# 路线和邻格只建立一次；匹配动作返回原格后，下一格直接走一步。
+def patch_cells(block):
+    x0, x1, y0, y1 = block
+    cells = []
+    previous_x = -1
+    for y in range(y0, y1):
+        for offset in range(x1 - x0):
+            x = x0 + offset
+            if (y - y0) % 2 != 0:
+                x = x1 - 1 - offset
+            if x == 0 and y == 0:
+                continue
+            neighbors = []
+            if y + 1 < y1:
+                neighbors.append(0)
+            if x + 1 < x1:
+                neighbors.append(1)
+            if y > y0 and (x != 0 or y != 1):
+                neighbors.append(2)
+            if x > x0 and (x != 1 or y != 0):
+                neighbors.append(3)
+            direction = None
+            if previous_x >= 0:
+                direction = North
+                if x > previous_x:
+                    direction = East
+                elif x < previous_x:
+                    direction = West
+            cells.append((x, y, neighbors, direction))
+            previous_x = x
+    return cells
 
 
 # 主机只创建少量矩形边界，逐格坐标和邻格交给各子机就地计算。
@@ -136,57 +136,44 @@ def make_blocks():
 
 # 蛇形遍历本分区，直接或中转配对后再挖掘，必要时接收邻柱。
 # 各工人独立推进本分区；以实际柱顶处理塌方后的高度变化。
-def work_layer(block, ceiling):
-    x0, x1, y0, y1 = block
+def work_layer(block, ceiling, cells):
     cache = {}
     floor = ceiling - 6
     pairs = 0
     digs = 0
     mushrooms = 0
-    for y in range(y0, y1):
-        for offset in range(x1 - x0):
-            x = x0 + offset
-            if (y - y0) % 2 != 0:
-                x = x1 - 1 - offset
-            if x == 0 and y == 0:
-                continue
+    for x, y, neighbors, direction in cells:
+        if direction == None:
             if not move_to(x, y):
                 return None
-            neighbors = []
-            if y + 1 < y1:
-                neighbors.append(0)
-            if x + 1 < x1:
-                neighbors.append(1)
-            if y > y0 and (x != 0 or y != 1):
-                neighbors.append(2)
-            if x > x0 and (x != 1 or y != 0):
-                neighbors.append(3)
-            z = get_pos_z()
-            if z < floor:
-                continue
-            # 已公开柱可能高于上次计划高度；仍以当前柱顶处理。
-            mushroom = get_ground_type() == Grounds.Mushroom
-            if mushroom:
-                mushrooms += 1
-            if z >= ceiling and mushroom:
-                count = carry_match(cache, x, y, neighbors, floor)
-                if count == None:
-                    return None
-                pairs += count
-                if count == 0:
-                    if get_hardness() >= 10000000 or not dig():
-                        return None
-                    digs += 1
-            cache["ready"] = False
-            count = feed_column(neighbors, floor, cache, x, y)
+        elif not move(direction):
+            return None
+        z = get_pos_z()
+        if z < floor:
+            continue
+        # 已公开柱可能高于上次计划高度；仍以当前柱顶处理。
+        mushroom = get_ground_type() == Grounds.Mushroom
+        if mushroom:
+            mushrooms += 1
+        if z >= ceiling and mushroom:
+            count = carry_match(cache, x, y, neighbors, floor)
             if count == None:
                 return None
             pairs += count
-            if not cache["ready"]:
-                read_column(cache, x, y)
-                for i in neighbors:
-                    dx, dy = OFFSETS[i]
-                    read_column(cache, x + dx, y + dy, DIRECTIONS[i])
+            if count == 0:
+                if get_hardness() >= 10000000 or not dig():
+                    return None
+                digs += 1
+        cache["ready"] = False
+        count = feed_column(neighbors, floor, cache, x, y)
+        if count == None:
+            return None
+        pairs += count
+        if not cache["ready"]:
+            read_column(cache, x, y)
+            for i in neighbors:
+                dx, dy = OFFSETS[i]
+                read_column(cache, x + dx, y + dy, DIRECTIONS[i])
     return pairs, digs, mushrooms
 
 

@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：本地三seed均值21:14.446（2026-11-11）；上版实机22:43.254（request482）。
+# 完整轮时间：本版尚未实机；本地已结算塔周期的外推及旧完整统计见同名策略文档。
 
 
 def lb_pyramids():
@@ -246,34 +246,57 @@ def pyramid_clean_fill(x, bounds, _layer):
 
 
 def pyramid_missing(bounds):
-    # 清理结束后再采样；观测合并为三列，施工任务仍按原列独占。
-    handles = []
-    results = []
-    for lo in range(bounds[0], bounds[1] + 1, 3):
-        handle = spawn_drone(pyramid_missing_strip, lo, bounds)
-        if handle == None:
-            results.append(pyramid_missing_strip(lo, bounds))
-        else:
-            handles.append(handle)
-    for handle in handles:
-        results.append(wait_for(handle))
+    # 清理全部结束后稳定采样，二维分块缩短最慢工人的巡回。
+    x0, x1, y0, y1, floor = bounds
+    length = x1 - x0 + 1
+    gx = (length + 2) // 3
+    gy = min(3, max(1, (max_drones() - 1) // gx))
+    jobs = []
+    for lo in range(x0, x1 + 1, 3):
+        for row in range(gy):
+            jobs.append((lo, min(lo + 2, x1), y0 + row * length // gy, y0 + (row + 1) * length // gy))
+    handle = spawn_drone(pyramid_scan_group, jobs, 0, len(jobs), bounds)
+    if handle == None:
+        return None
+    results = wait_for(handle)
+    if results == None:
+        return None
     columns = []
-    for result in results:
-        if result == None:
-            return None
-        for holes in result:
-            columns.append(holes)
+    for _ in range(length):
+        columns.append([])
+    for lo, strip in results:
+        for i in range(len(strip)):
+            for hole in strip[i]:
+                columns[lo - x0 + i].append(hole)
     return columns
 
 
-def pyramid_missing_strip(lo, bounds):
+def pyramid_scan_group(jobs, lo, hi, bounds):
+    if hi - lo == 1:
+        result = pyramid_scan_tile(jobs[lo], bounds)
+        if result == None:
+            return None
+        return [result]
+    middle = (lo + hi) // 2
+    handle = spawn_drone(pyramid_scan_group, jobs, middle, hi, bounds)
+    left = pyramid_scan_group(jobs, lo, middle, bounds)
+    if handle == None:
+        right = pyramid_scan_group(jobs, middle, hi, bounds)
+    else:
+        right = wait_for(handle)
+    if left == None or right == None:
+        return None
+    return left + right
+
+
+def pyramid_scan_tile(job, bounds):
+    lo, hi, first, last = job
     x0, x1, y0, y1, floor = bounds
-    hi = min(lo + 2, x1)
     cx = min(lo + 1, hi)
     columns = []
     for x in range(lo, hi + 1):
         columns.append([])
-    for y in range(y0, y1 + 1):
+    for y in range(first, last):
         if not pyramid_move_to(cx, y):
             return None
         for x in range(lo, hi + 1):
@@ -288,7 +311,7 @@ def pyramid_missing_strip(lo, bounds):
                 return None
             if z < target:
                 columns[x - lo].append((x, y, z, target))
-    return columns
+    return lo, columns
 
 
 def pyramid_repair(columns, bounds, height):

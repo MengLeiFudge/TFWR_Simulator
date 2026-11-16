@@ -2,13 +2,15 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_mushrooms_single.py](../../scripts/leaderboard/lb_mushrooms_single.py)。公开账号最高 **13:32.194（#5）**；已有最好本地模拟 **13:11.829**。
+当前脚本：[lb_mushrooms_single.py](../../scripts/leaderboard/lb_mushrooms_single.py)。公开账号最高 **13:32.194（#6）**；当前本地模拟 **12:38.542（原30k目标三seed完整均值）**，距当前 #1 **4:22.952（+188.5%）**。
 
-公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444535/)，榜单抓取时间 `2026-11-11T09:12:45.338412+00:00`，账号查询时间 `2026-11-11T09:12:45.338412+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
+公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444535/)，榜单抓取时间 `2026-11-16T02:16:07.559763+00:00`，账号查询时间 `2026-11-16T02:16:07.559792+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 
-8×8六层场筛选，公开三格高度带和重力中转；只按实际颜色与高度作同色配对，遇非M接收柱不为固定同高关系额外下挖。顺次处理分区与层，保留采样柱，失败先收口再换场，目标30k Mushroom。
+8×8六层场筛选，公开高度和重力中转；只按实际颜色与高度同色配对，遇非M接收柱不为固定同高关系额外下挖。采用分区工人自己揭盖及一次预建蛇行路线／邻格表，层内下一格直接move；保留单机ceiling−6搜索下界、原颜色缓存及feed结果复用。目标仍30k Mushroom，所有选场和初始化计时。
 
-六层筛选三seed完整786.94773480/813.40401861/775.13565042秒，均791.82913461秒；seed2比同条件旧版慢4.255秒。旧版request473正式9轮812.194222222秒。
+2026-11-16最终生产源seed0/1/123完整771.89777172/754.46442045/749.26373211秒，均758.54197476秒；同条件0102d33原版805.17072024/786.94773480/781.11148725秒，均791.07664743秒，分别缩短4.13%/4.13%/4.08%。逐seed最终产量30848/30016/30064完全相同，六例均正常完成原目标、无覆盖初始条件、仅余主机；原版Parser执行通过，每例15墙钟秒预算，最长不足2秒。
+
+原始回执和冻结指纹见 `.codex/five-structures-20261115/mushroom-single-final-seed{0,1,123}.json` 及 `lb_mushrooms_single-paired-base-seed{0,1,123}.json`。旧seed1/2/3完整均791.82913461秒属于不同seed组合，不与本轮均值冒充同一配对；request473正式9轮812.194222222秒仍为历史实机。
 
 ## 淘汰与未采用方案
 
@@ -21,6 +23,7 @@
 | 黑白格源接收/4格小田 | 完整2890.594/959.772秒 | 额外空巡和97次换片的准备抵消局部缩短 | [20261108_rejected_mushroom_small_world_v1.py](../../references/leaderboard_history/lb_mushrooms_single/20261108_rejected_mushroom_small_world_v1.py) |
 | 十字自动揭盖/空接收柱 | 十字三seed828.444/843.154秒；空接收正式1344.643秒对1335.308秒 | 少挖损失配对机会，后者本地小收益未在正式样本确认 | [20261106_rejected_empty_receiver_26462009.py](../../references/leaderboard_history/lb_mushrooms_single/20261106_rejected_empty_receiver_26462009.py) |
 | 固定局部模板 | 完整953.632644秒 | 配对动作和供料利用率均未支持较小预算 | [20261109_rejected_mushroom_local_templates_v1.py](../../references/leaderboard_history/lb_mushrooms_single/20261109_rejected_mushroom_local_templates_v1.py) |
+| 两趟扫描，先配对后削峰 | seed1首个完整场2352/81.11秒，对原版2240/54.92秒；合并局部揭盖80.73秒 | 材料保留增加112，重复巡视多约26秒，净速率更差，不采用 | 从 `0102d33:scripts/leaderboard/lb_mushrooms_single.py` 的work_layer增加外层两趟循环，仅第二趟执行 `count == 0` 的dig；多机同构[代表](../../references/leaderboard_history/lb_mushrooms/20261116_rejected_retain_first_pass.py) |
 
 ## 历史正式版本演进
 
@@ -31,9 +34,11 @@
 | 2026-11-06 | 1335.308秒（构建26462009，6轮官方完整统计；请求349）。 | 补齐其余十个地下榜的正式实机基线 | [20261106_v01_22m15.308s_22bf18ce.py](../../references/leaderboard_history/lb_mushrooms_single/20261106_v01_22m15.308s_22bf18ce.py) |
 | 2026-11-06 | 1164.739秒（构建26462009，7轮官方完整统计；请求378）。 | 蘑菇单机三格高度带完成整轮复验 | [20261106_v02_19m24.739s_af973d71.py](../../references/leaderboard_history/lb_mushrooms_single/20261106_v02_19m24.739s_af973d71.py) |
 | 2026-11-09 | 13:32.194（2026-11-09，build26462009，官方完整9轮，request473）。 | 补齐蘑菇失败恢复并记录十二榜实机成绩 | [20261109_v03_13m32.194s_45bb4345.py](../../references/leaderboard_history/lb_mushrooms_single/20261109_v03_13m32.194s_45bb4345.py) |
+| 2026-11-15 | 旧seed1/2/3完整均791.82913461秒。 | 六层筛选、feed结果缓存；本轮替换前的冻结实现 | [20261115_baseline_0102d33.py](../../references/leaderboard_history/lb_mushrooms_single/20261115_baseline_0102d33.py) |
 
 ## 下一步优化方向
 
-- 与多机共用配对逻辑的优化先核算每对真实动作与解释器，再完整30k目标确认；两榜只共用机制结论，不按机器数直接缩放成绩。
+- 当前仍+188.5%；优先研究每对实际动作更少的配对结构，保留失配块不能以增加全田空巡为代价。本轮两趟代表已否定，不无界调整同一方案。
+- 固定路线及邻格表已采用；继续压缩读数前须列清push、dig、塌方的失效范围。与多机只共用机制结论，不按机器数缩放成绩，单机仍用完整30k目标验收。
 
 新方向按[共用策略选择流程](README.md#策略选择与淘汰)记录机制、预算、置信度和停止条件；新结果写回本页及研究状态JSON。

@@ -907,6 +907,16 @@
           "time_tag": "未记录",
           "source_codex": ".codex/nonreset-100-20261109/dinosaur-side-entry-v1/lb_dinosaur.py",
           "explicitly_cited": false
+        },
+        {
+          "file": "20261116_rejected_tail_shortcuts.py",
+          "path": "references/leaderboard_history/lb_dinosaur/20261116_rejected_tail_shortcuts.py",
+          "date": "20261116",
+          "time_tag": "1200.05秒仅697实体；15545888 Bone，未达目标",
+          "source_codex": ".codex/five-structures-20261115/dinosaur-shortcuts/lb_dinosaur.py",
+          "base_commit": "0102d33",
+          "sha256": "836686208d7807eda51d69e8b31348d1a5ef317b8c476acdb093ca9e0bd5c39a",
+          "explicitly_cited": true
         }
       ]
     },
@@ -3269,6 +3279,15 @@
           "commit": "bb379e4b",
           "time_tag": "5m14.194s",
           "message": "修复：补齐蘑菇失败恢复并记录十二榜实机成绩"
+        },
+        {
+          "file": "20261115_baseline_0102d33.py",
+          "path": "references/leaderboard_history/lb_mushrooms/20261115_baseline_0102d33.py",
+          "date": "2026-11-15",
+          "commit": "0102d33",
+          "time_tag": "九个完整场次外推299.947553105秒",
+          "message": "本轮替换前的六层筛选与逐层配对实现",
+          "sha256": "e0bf5bde6b43feddb889c6d53c59e5cf9d278a0a9e0335a1dd8b5f3d2214fc5b"
         }
       ],
       "rejected": [
@@ -3551,6 +3570,16 @@
           "time_tag": "局部诊断，非完整目标成绩",
           "source_codex": ".codex/mush-new-20261113/lb_mush_lean6.py",
           "explicitly_cited": true
+        },
+        {
+          "file": "20261116_rejected_retain_first_pass.py",
+          "path": "references/leaderboard_history/lb_mushrooms/20261116_rejected_retain_first_pass.py",
+          "date": "20261116",
+          "time_tag": "前两完整场62432/100.78秒，对原版58624/68.60秒",
+          "source_codex": ".codex/five-structures-20261115/lb_mushrooms-retain/lb_mushrooms.py",
+          "base_commit": "0102d33",
+          "sha256": "f2bf0f606ad3718337ca02682c7e50ce83f0120f278167c7841fd899de3c67c6",
+          "explicitly_cited": true
         }
       ]
     },
@@ -3579,6 +3608,15 @@
           "commit": "45bb4345",
           "time_tag": "13m32.194s",
           "message": "修复：补齐蘑菇失败恢复并记录十二榜实机成绩"
+        },
+        {
+          "file": "20261115_baseline_0102d33.py",
+          "path": "references/leaderboard_history/lb_mushrooms_single/20261115_baseline_0102d33.py",
+          "date": "2026-11-15",
+          "commit": "0102d33",
+          "time_tag": "旧三seed完整均791.82913461秒",
+          "message": "本轮替换前的六层筛选与feed结果缓存实现",
+          "sha256": "1cbdac92b955d0a3be29c5a6315840e1728ef00eba8b6661ac56b729acea11e9"
         }
       ],
       "rejected": [
@@ -4075,6 +4113,16 @@
           "time_tag": "未记录",
           "source_codex": ".codex/dynamite-leaderboard-optimization/regional.py",
           "explicitly_cited": false
+        },
+        {
+          "file": "20261116_rejected_public_persistent.py",
+          "path": "references/leaderboard_history/lb_dynamite/20261116_rejected_public_persistent.py",
+          "date": "20261116",
+          "time_tag": "相同首盘318880，71.92秒对32.89秒",
+          "source_codex": ".codex/five-structures-20261115/dynamite-persistent/lb_dynamite.py",
+          "base_commit": "0102d33",
+          "sha256": "5d6f956529f44c59e003c0208149c6932c2111715034aa7722821739c6d256c3",
+          "explicitly_cited": true
         }
       ]
     },
@@ -4261,6 +4309,15 @@
           "commit": "feca66ac",
           "time_tag": "22m18.123s",
           "message": "优化：迁入地下功能与榜单的高效结构并固化模拟证据"
+        },
+        {
+          "file": "20261115_baseline_0102d33.py",
+          "path": "references/leaderboard_history/lb_pyramids/20261115_baseline_0102d33.py",
+          "date": "2026-11-15",
+          "commit": "0102d33",
+          "time_tag": "完整三seed均1274.445765901秒",
+          "message": "本轮替换前的整列稳定采样与临时补沙实现",
+          "sha256": "7f223848a4fab9f54d3271c3f417b73fc1f843a2aebc7f28380657012e268ded"
         }
       ],
       "rejected": [
@@ -4439,6 +4496,16 @@
           "time_tag": "未记录",
           "source_codex": ".codex/underground-efficiency-20261108/candidates/pyramid-center/lb_pyramids.py",
           "explicitly_cited": false
+        },
+        {
+          "file": "20261116_rejected_height_closure.py",
+          "path": "references/leaderboard_history/lb_pyramids/20261116_rejected_height_closure.py",
+          "date": "20261116",
+          "time_tag": "正确四邻闭包计算约4.3秒/塔，未改善",
+          "source_codex": ".codex/five-structures-20261115/pyramid-closure4/lb_pyramids.py",
+          "base_commit": "0102d33",
+          "sha256": "900aa341be28793b1b2b2317baeaaa7663bb571d0039fb8c30d0eaa55039519a",
+          "explicitly_cited": true
         }
       ]
     },
@@ -5175,6 +5242,13 @@
     }
   },
   "codex_to_archive": {
+    ".codex/five-structures-20261115/pyramid-closure4/lb_pyramids.py": "references/leaderboard_history/lb_pyramids/20261116_rejected_height_closure.py",
+    ".codex/five-structures-20261115/dinosaur-shortcuts/lb_dinosaur.py": "references/leaderboard_history/lb_dinosaur/20261116_rejected_tail_shortcuts.py",
+    ".codex/five-structures-20261115/lb_mushrooms-retain/lb_mushrooms.py": "references/leaderboard_history/lb_mushrooms/20261116_rejected_retain_first_pass.py",
+    ".codex/five-structures-20261115/dynamite-persistent/lb_dynamite.py": "references/leaderboard_history/lb_dynamite/20261116_rejected_public_persistent.py",
+    ".codex/five-structures-20261115/baseline/lb_pyramids.py": "references/leaderboard_history/lb_pyramids/20261115_baseline_0102d33.py",
+    ".codex/five-structures-20261115/baseline/lb_mushrooms.py": "references/leaderboard_history/lb_mushrooms/20261115_baseline_0102d33.py",
+    ".codex/five-structures-20261115/baseline/lb_mushrooms_single.py": "references/leaderboard_history/lb_mushrooms_single/20261115_baseline_0102d33.py",
     ".codex/leaderboard-astra/cactus-structural/capture_board.py": "references/leaderboard_history/lb_cactus/20261025_rejected_structural_capture_board.py",
     ".codex/leaderboard-sol/reset/cactus-parallel-component/lb_reset_cactus_supply.py": "references/leaderboard_history/lb_cactus/20261025_rejected_reset_parallel_component_reset_supply.py",
     ".codex/leaderboard-astra/real-remaining-20261026/lb_cactus/lb_cactus.py": "references/leaderboard_history/lb_cactus/20260531_v03_37.265s_0224fb21.py",
@@ -5819,6 +5893,9 @@
     ".codex/gemini-reset-maze-20261115/bamboo-first/closed_bamboo.py": "references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_first.py"
   },
   "commit_to_archive": {
+    "lb_pyramids:0102d33": "references/leaderboard_history/lb_pyramids/20261115_baseline_0102d33.py",
+    "lb_mushrooms:0102d33": "references/leaderboard_history/lb_mushrooms/20261115_baseline_0102d33.py",
+    "lb_mushrooms_single:0102d33": "references/leaderboard_history/lb_mushrooms_single/20261115_baseline_0102d33.py",
     "lb_cactus:c36eb254": "scripts/leaderboard/lb_cactus.py",
     "lb_cactus:d8541c9f": "scripts/leaderboard/lb_cactus.py",
     "lb_cactus:d30b5f59": "scripts/leaderboard/lb_cactus.py",
