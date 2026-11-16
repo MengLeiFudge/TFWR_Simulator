@@ -34,7 +34,7 @@ public sealed class SimulationOptions
           --seed 1                单个随机种子
           --seeds 1,2,3 --jobs 3   独立进程并行，共享墙钟预算
           --seconds 30            游戏时间上限（别名 --game-seconds）
-          --wall-seconds 10       墙钟上限，最大75秒（别名 --timeout）
+          --wall-seconds 10       墙钟上限，最大600秒（别名 --timeout）
           --max-api-calls 2000000 内置函数调用上限
           --max-nodes 50000000     原版AST节点执行上限
           --syntax-only           仅检查入口及全部导入模块的游戏语法
@@ -95,7 +95,7 @@ public sealed class SimulationOptions
         if (result.Seeds.Length > 100 || result.Seeds.Distinct().Count() != result.Seeds.Length || result.Seeds.Any(s => s < 0)
             || result.Jobs < 1 || result.Jobs > 64 || result.MaxCalls < 1 || result.MaxNodes < 1 || result.Size is < 0 or > 32
             || !double.IsFinite(result.GameSeconds) || result.GameSeconds <= 0 || result.GameSeconds > 86400
-            || !double.IsFinite(result.WallSeconds) || result.WallSeconds <= 0 || result.WallSeconds > 75)
+            || !double.IsFinite(result.WallSeconds) || result.WallSeconds <= 0 || result.WallSeconds > 600)
             throw new ArgumentException("Invalid seed or simulation budget");
         if (result.Save != null && result.Preset != null) throw new ArgumentException("Use save or preset, not both");
         var inputs = new[] { result.Script, result.Scenario, result.Save }.Where(p => p != null).ToArray();

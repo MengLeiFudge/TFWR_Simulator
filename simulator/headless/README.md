@@ -24,7 +24,19 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderboard/lb_mushrooms_single.py --leaderboard mushrooms_single --seconds 30 --wall-seconds 10
 ```
 
-`--help` 显示完整参数。默认窗口为30游戏秒、10墙钟秒、200万次内置调用和5000万个解释器节点。墙钟上限最多75秒，不随seed数相乘；优先从短窗口开始。父进程给报告回收保留最多1秒宽限，超过后终止自己的工作进程并报告 `hard_timeout`。每约2墙钟秒输出进度到stderr；stdout只输出JSON。
+`--help` 显示完整参数。默认窗口为30游戏秒、10墙钟秒、200万次内置调用和5000万个解释器节点。墙钟上限最多600秒，不随seed数相乘；优先从短窗口开始，只有单轮本身很长（重置榜）才抬高。父进程给报告回收保留最多1秒宽限，超过后终止自己的工作进程并报告 `hard_timeout`。每约2墙钟秒输出进度到stderr；stdout只输出JSON。
+
+## 会话口径（与公开榜完整统计对齐）
+
+公开榜只认游戏内满约7200秒（2小时）的完整统计会话成绩：会话内每轮从同一初始条件重新开始，上传分数是各轮时间的**均值**，且只在最后一轮成功时生效。本地因此统一用 [session.py](session.py) 跑满同样预算再比较，不拿单seed单轮数字当对照成绩：
+
+```bash
+python3 simulator/headless/session.py scripts/leaderboard/lb_maze.py --leaderboard maze --session-seconds 7200 --jobs 20 --output .codex/session-maze.json
+```
+
+工具按批启动独立工作进程（`--jobs` 并行）累计各轮游戏时间，到预算即停；均分只算达成目标（`stop_reason=finished`）的轮，任一轮未达成目标就按 `StopLeaderboardRun` 规则判整场无效并立即停止。报告给出轮数、累计游戏秒、均值、标准差、标准误、最小／最大值和逐轮明细。
+
+本机20核实测：迷宫每批20轮墙钟约7秒，满7200游戏秒的会话（84轮）约30秒、均分86.466秒±0.143（标准误）；快速重置单轮约2485游戏秒，4轮并行约9秒；地下蘑菇单机单轮约760游戏秒，12轮约4秒。全场均口径对任何榜都只是几十秒的计算预算，单seed单轮只保留作方向筛选。
 
 `--preset max` 为基础游戏满科技，`all` 包含地下DLC，`reset` 为重置初始条件。满科技默认只有Pumpkin和Power各10亿，其余库存为0；具体实验应明确提供材料。`--scenario` 接受 `preset/items/unlocks/goal/leaderboard`；命令行 `--item`、`--unlock` 最后覆盖。`--save` 只读导入科技和库存，不恢复存档地形或运行状态；同一科技的多条等级记录取最高级。排行榜、preset与save作为初始条件来源不能混用，这也适用于场景JSON中的preset。
 
