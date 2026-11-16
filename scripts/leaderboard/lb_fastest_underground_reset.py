@@ -1,17 +1,10 @@
 from __builtins__ import *
-# 完整轮时间：未取得；C#原目标8seed均值3034.093秒（2026-11-12，末段按需供能与扫雷层边界版未实机）。
+# 完整轮时间：未取得；C#原目标7200秒会话3轮均值2724.105秒（2026-11-16，当前版未实机）。
 
 def lb_fastest_underground_reset():
-    ur_s_step1()
-    for technology in [Unlocks.Speed, Unlocks.Expand, Unlocks.Trees, Unlocks.Speed,
-                       Unlocks.Grass, Unlocks.Trees, Unlocks.Grass, Unlocks.Carrots,
-                       Unlocks.Expand, Unlocks.Watering, Unlocks.Fertilizer, Unlocks.Sunflowers]:
-        if not ur_s_buy(technology):
-            return
-    if not ur_s_solar_reserve():
+    if not ur_s_step1():
         return
-    for technology in [Unlocks.Trees, Unlocks.Grass, Unlocks.Carrots,
-                       Unlocks.Pumpkins, Unlocks.Speed, Unlocks.Pumpkins, Unlocks.Polyculture]:
+    for technology in [Unlocks.Fertilizer, Unlocks.Speed, Unlocks.Watering, Unlocks.Pumpkins, Unlocks.Pumpkins, Unlocks.Polyculture]:
         if not ur_s_buy(technology):
             return
     if not ur_s_first_megafarm():
@@ -62,6 +55,124 @@ def lb_fastest_underground_reset():
                 return
             quick_print("underground_reset_upgrade", tech, num_unlocked(tech), get_time())
     quick_print("underground_reset_done", num_unlocked(Unlocks.Underground_Leaderboard) > 0, get_time())
+
+
+def ur_opening_cell(crop):
+    entity = get_entity_type()
+    if entity != None and can_harvest():
+        harvest()
+        entity = None
+    if entity != None and entity != Entities.Grass:
+        return True
+    if crop == Entities.Grass:
+        if get_ground_type() != Grounds.Grassland:
+            till()
+        return True
+    if crop == Entities.Carrot:
+        if not ur_s_affordable(get_cost(Entities.Carrot)):
+            return True
+        if get_ground_type() != Grounds.Soil:
+            till()
+    return plant(crop)
+
+
+def ur_opening_stock(cost):
+    size = get_world_size()
+    if size == 3:
+        path = [(0, 0), (0, 1), (1, 1), (1, 2), (1, 0), (2, 0), (2, 1), (2, 2), (0, 2)]
+    else:
+        path = []
+        for x in range(size):
+            for y in range(size):
+                path.append((x, y))
+    for cycle in range(1500):
+        if ur_s_affordable(cost):
+            return True
+        if get_time() > 7000:
+            return False
+        for x, y in path:
+            ur_s_go(x, y)
+            crop = Entities.Grass
+            if size == 3:
+                if num_unlocked(Unlocks.Carrots) == 0:
+                    if x > 0:
+                        crop = Entities.Bush
+                elif (x, y) in [(1, 0), (1, 1), (2, 2)]:
+                    crop = Entities.Carrot
+                elif (x, y) not in [(0, 0), (0, 1)]:
+                    crop = Entities.Bush
+            elif size == 6:
+                if (x + y) % 2 == 1:
+                    crop = Entities.Tree
+                elif num_unlocked(Unlocks.Carrots) < 3:
+                    if x % 3 == 0:
+                        crop = Entities.Carrot
+                elif x % 3 != 0:
+                    crop = Entities.Carrot
+            elif (x + y) % 2 == 0:
+                crop = Entities.Tree
+            elif (x, y) not in [(size - 1, 1), (size - 1, 2)]:
+                crop = Entities.Carrot
+            if not ur_opening_cell(crop):
+                return False
+            if ur_s_affordable(cost):
+                return True
+        if ur_s_missing(cost, Items.Hay) > 0:
+            x = 0
+            first = 0
+            if size > 3:
+                x = size - 1
+                first = 1
+            ur_s_go(x, first)
+            until = get_time() + 4
+            while get_time() < until:
+                for y in [first, first + 1]:
+                    ur_s_go(x, y)
+                    if not ur_opening_cell(Entities.Grass):
+                        return False
+                    if ur_s_affordable(cost):
+                        return True
+    return False
+
+
+def ur_opening_buy(technology):
+    if not ur_opening_stock(get_cost(technology)) or not unlock(technology):
+        return False
+    quick_print("directed_upgrade", technology, num_unlocked(technology), get_time())
+    return True
+
+
+def ur_s_step1():
+    while num_items(Items.Hay) < 30:
+        if can_harvest():
+            harvest()
+    if not unlock(Unlocks.Expand):
+        return False
+    while num_items(Items.Hay) < 50:
+        if can_harvest():
+            harvest()
+        move(North)
+    if not unlock(Unlocks.Plant):
+        return False
+    while num_unlocked(Unlocks.Speed) == 0 or num_items(Items.Wood) < 20:
+        crop = Entities.Grass
+        if get_pos_y() == 1 or (num_unlocked(Unlocks.Speed) > 0 and get_pos_y() == 0):
+            crop = Entities.Bush
+        if not ur_opening_cell(crop):
+            return False
+        if num_unlocked(Unlocks.Speed) == 0 and num_items(Items.Hay) >= 20:
+            if not unlock(Unlocks.Speed):
+                return False
+        move(North)
+    if not unlock(Unlocks.Expand):
+        return False
+    for technology in [Unlocks.Speed, Unlocks.Carrots, Unlocks.Grass, Unlocks.Trees, Unlocks.Trees,
+                       Unlocks.Expand, Unlocks.Carrots, Unlocks.Speed, Unlocks.Watering,
+                       Unlocks.Expand, Unlocks.Watering, Unlocks.Carrots, Unlocks.Grass, Unlocks.Sunflowers]:
+        if not ur_opening_buy(technology):
+            return False
+    quick_print("opening_first_solar", get_time(), num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot))
+    return ur_s_solar_reserve()
 
 
 def ur_s_affordable(cost):
@@ -315,61 +426,6 @@ def ur_s_parallel_solar_reserve(size):
             return False
     quick_print("directed_parallel_solar", get_time(), workers, get_time() - started, num_items(Items.Power))
     return True
-
-
-def ur_s_step1():
-    # 速度1 20草
-    while num_items(Items.Hay) < 20:
-        harvest()
-    unlock(Unlocks.Speed)
-
-    # 扩张1 30草 1x1->1*3
-    while num_items(Items.Hay) < 30:
-        while not can_harvest():
-            pass
-        harvest()
-    unlock(Unlocks.Expand)
-
-    # 种植 50草
-    while num_items(Items.Hay) < 50:
-        while not can_harvest():
-            pass
-        harvest()
-    unlock(Unlocks.Plant)
-
-    # 扩张2 20木 1x3->3*3
-    plant(Entities.Bush)
-    move(North)
-    plant(Entities.Bush)
-    move(North)
-    plant(Entities.Bush)
-    move(North)
-    while num_items(Items.Wood) < 20:
-        while not can_harvest():
-            pass
-        harvest()
-        plant(Entities.Bush)
-        move(North)
-    unlock(Unlocks.Expand)
-
-    # 胡萝卜 50木
-    while num_items(Items.Wood) < 50:
-        while not can_harvest():
-            pass
-        harvest()
-        plant(Entities.Bush)
-        move(North)
-        while not can_harvest():
-            pass
-        harvest()
-        plant(Entities.Bush)
-        move(North)
-        while not can_harvest():
-            pass
-        harvest()
-        plant(Entities.Bush)
-        move(East)
-    unlock(Unlocks.Carrots)
 
 
 def ur_s_boost_stock(cost):

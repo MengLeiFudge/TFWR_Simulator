@@ -1,31 +1,110 @@
 from __builtins__ import *
-# 完整轮时间：2507.696秒（2026-11-12，实机完整3轮）；C#原目标3seed均值2471.034秒（2026-11-15，当前版未实机）。
+# 完整轮时间：未取得；C#原目标7200秒会话4轮均值2084.124秒（2026-11-16，当前版未实机）。
 # 恐龙路径Copyright (c) [2026] [lywlucas]，MIT许可见lywlucas_LICENSE.txt。
 # 小迷宫沿用lb_maze的zzlg-git方案；来源与许可边界见同名策略文档。
 
 
 def lb_fastest_reset():
-    step1()
-    # 扩4格后实付Speed3，供能后再付Speed4/5及伴生。
-    for technology in [Unlocks.Speed, Unlocks.Trees, Unlocks.Expand, Unlocks.Speed,
-                       Unlocks.Grass, Unlocks.Trees, Unlocks.Carrots,
-                       Unlocks.Expand, Unlocks.Watering,
-                       Unlocks.Grass, Unlocks.Trees, Unlocks.Grass,
-                       Unlocks.Carrots, Unlocks.Fertilizer, Unlocks.Sunflowers]:
-        if not buy(technology):
-            return
-    if not solar_reserve():
+    if not step1():
         return
-    for technology in [Unlocks.Speed, Unlocks.Speed, Unlocks.Pumpkins,
-                       Unlocks.Pumpkins, Unlocks.Polyculture]:
+    for technology in [Unlocks.Fertilizer, Unlocks.Speed, Unlocks.Watering, Unlocks.Pumpkins, Unlocks.Pumpkins, Unlocks.Polyculture]:
         if not buy(technology):
             return
-    quick_print("directed", "polyculture", get_time(), num_items(Items.Power),
-                num_items(Items.Fertilizer), num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot))
-    if not first_megafarm() or not eight_drones():
+    quick_print("directed", "polyculture", get_time(), num_items(Items.Power))
+    if not first_megafarm():
+        return
+    for technology in [Unlocks.Trees, Unlocks.Grass]:
+        if not buy(technology):
+            return
+    if not eight_drones():
         return
     if staged_supply() and finish_gold():
         finish_bones()
+
+
+def opening_cell(crop):
+    entity = get_entity_type()
+    if entity != None and can_harvest():
+        harvest()
+        entity = None
+    if entity != None and entity != Entities.Grass:
+        return True
+    if crop == Entities.Grass:
+        if get_ground_type() != Grounds.Grassland:
+            till()
+        return True
+    if crop == Entities.Carrot:
+        if not affordable(get_cost(Entities.Carrot)):
+            return True
+        if get_ground_type() != Grounds.Soil:
+            till()
+    return plant(crop)
+
+
+def opening_stock(cost):
+    size = get_world_size()
+    if size == 3:
+        path = [(0, 0), (0, 1), (1, 1), (1, 2), (1, 0), (2, 0), (2, 1), (2, 2), (0, 2)]
+    else:
+        path = []
+        for x in range(size):
+            for y in range(size):
+                path.append((x, y))
+    for cycle in range(1500):
+        if affordable(cost):
+            return True
+        if get_time() > 7000:
+            return False
+        for x, y in path:
+            go(x, y)
+            crop = Entities.Grass
+            if size == 3:
+                if num_unlocked(Unlocks.Carrots) == 0:
+                    if x > 0:
+                        crop = Entities.Bush
+                elif (x, y) in [(1, 0), (1, 1), (2, 2)]:
+                    crop = Entities.Carrot
+                elif (x, y) not in [(0, 0), (0, 1)]:
+                    crop = Entities.Bush
+            elif size == 6:
+                if (x + y) % 2 == 1:
+                    crop = Entities.Tree
+                elif num_unlocked(Unlocks.Carrots) < 3:
+                    if x % 3 == 0:
+                        crop = Entities.Carrot
+                elif x % 3 != 0:
+                    crop = Entities.Carrot
+            elif (x + y) % 2 == 0:
+                crop = Entities.Tree
+            elif (x, y) not in [(size - 1, 1), (size - 1, 2)]:
+                crop = Entities.Carrot
+            if not opening_cell(crop):
+                return False
+            if affordable(cost):
+                return True
+        if missing(cost, Items.Hay) > 0:
+            x = 0
+            first = 0
+            if size > 3:
+                x = size - 1
+                first = 1
+            go(x, first)
+            until = get_time() + 4
+            while get_time() < until:
+                for y in [first, first + 1]:
+                    go(x, y)
+                    if not opening_cell(Entities.Grass):
+                        return False
+                    if affordable(cost):
+                        return True
+    return False
+
+
+def opening_buy(technology):
+    if not opening_stock(get_cost(technology)) or not unlock(technology):
+        return False
+    quick_print("directed_upgrade", technology, num_unlocked(technology), get_time())
+    return True
 
 
 def affordable(cost):
@@ -58,9 +137,9 @@ def tick_cell(cost):
         if num_unlocked(Unlocks.Trees) > 0:
             if (get_pos_x() + get_pos_y()) % 2 == 0:
                 desired = Entities.Tree
-        elif hay == 0:
+        elif (get_pos_x() + get_pos_y()) % 2 == 0:
             desired = Entities.Bush
-    if desired == Entities.Grass and hay == 0 and carrot > 0:
+    if desired == Entities.Grass and carrot > 0:
         if affordable(get_cost(Entities.Carrot)):
             desired = Entities.Carrot
         elif num_items(Items.Wood) < get_cost(Entities.Carrot)[Items.Wood]:
@@ -69,6 +148,8 @@ def tick_cell(cost):
                     desired = Entities.Tree
             else:
                 desired = Entities.Bush
+    if get_pos_x() == 0 and get_pos_y() < 2:
+        desired = Entities.Grass
     if desired == Entities.Grass:
         if get_ground_type() != Grounds.Grassland:
             till()
@@ -84,24 +165,48 @@ def tick_cell(cost):
 def basic(cost):
     if num_unlocked(Unlocks.Polyculture) > 0:
         return boost_stock(cost)
-    passes = 0
-    while not affordable(cost):
-        if get_time() > 7000 or passes >= 1500:
-            quick_print("directed_failed", "basic_limit", get_time(), cost)
+    for passes in range(1500):
+        if affordable(cost):
+            return True
+        if get_time() > 7000:
             return False
+        if num_unlocked(Unlocks.Sunflowers) > 0 and num_items(Items.Power) < 20 and num_items(Items.Carrot) >= get_world_size() * get_world_size():
+            if not solar_reserve():
+                return False
+        plan = {}
+        for item in cost:
+            plan[item] = cost[item]
         size = get_world_size()
+        carrot_goal = size * size * 2 ** (num_unlocked(Unlocks.Carrots) - 1)
+        plan[Items.Carrot] = max(carrot_goal, missing(cost, Items.Carrot) + num_items(Items.Carrot))
+        seeds = max(0, plan[Items.Carrot] - num_items(Items.Carrot))
+        yield_count = 2 ** (num_unlocked(Unlocks.Carrots) - 1)
+        seeds = (seeds + yield_count - 1) // yield_count
+        price = get_cost(Entities.Carrot)
+        for item in price:
+            required = price[item] * seeds
+            if item in cost:
+                required += cost[item]
+            plan[item] = required
         for x in range(size):
             for y in range(size):
-                if not tick_cell(cost):
+                if not tick_cell(plan):
                     return False
                 if affordable(cost):
                     return True
                 move(North)
             move(East)
-        passes += 1
-        if passes % 40 == 0:
-            quick_print("directed_progress", get_time(), cost, num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot))
-    return True
+        if Items.Hay in plan and num_items(Items.Hay) < plan[Items.Hay]:
+            go(0, 0)
+            until = get_time() + 1
+            while get_time() < until and num_items(Items.Hay) < plan[Items.Hay]:
+                for direction in [North, South]:
+                    if not tick_cell(plan):
+                        return False
+                    if affordable(cost):
+                        return True
+                    move(direction)
+    return False
 
 
 def origin():
@@ -300,58 +405,37 @@ def parallel_solar_reserve(size, target=0):
 
 
 def step1():
-    # 速度1 20草
-    while num_items(Items.Hay) < 20:
-        harvest()
-    unlock(Unlocks.Speed)
-
-    # 扩张1 30草 1x1->1*3
-    while num_items(Items.Hay) < 30:
-        while not can_harvest():
-            pass
-        harvest()
-    unlock(Unlocks.Expand)
-
-    # 种植 50草
+    while num_items(Items.Hay) < 80:
+        if can_harvest():
+            harvest()
+    if not unlock(Unlocks.Expand):
+        return False
     while num_items(Items.Hay) < 50:
-        while not can_harvest():
-            pass
-        harvest()
-    unlock(Unlocks.Plant)
+        if can_harvest():
+            harvest()
+        move(North)
+    if not unlock(Unlocks.Plant):
+        return False
+    while num_unlocked(Unlocks.Speed) == 0 or num_items(Items.Wood) < 20:
+        crop = Entities.Grass
+        if get_pos_y() == 1 or (num_unlocked(Unlocks.Speed) > 0 and get_pos_y() == 0):
+            crop = Entities.Bush
+        if not opening_cell(crop):
+            return False
+        if num_unlocked(Unlocks.Speed) == 0 and num_items(Items.Hay) >= 20:
+            if not unlock(Unlocks.Speed):
+                return False
+        move(North)
+    if not unlock(Unlocks.Expand):
+        return False
+    for technology in [Unlocks.Speed, Unlocks.Carrots, Unlocks.Grass, Unlocks.Trees, Unlocks.Trees,
+                       Unlocks.Expand, Unlocks.Carrots, Unlocks.Speed, Unlocks.Watering,
+                       Unlocks.Expand, Unlocks.Watering, Unlocks.Carrots, Unlocks.Grass, Unlocks.Sunflowers]:
+        if not opening_buy(technology):
+            return False
+    quick_print("opening_first_solar", get_time(), num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot))
+    return solar_reserve()
 
-    # 扩张2 20木 1x3->3*3
-    plant(Entities.Bush)
-    move(North)
-    plant(Entities.Bush)
-    move(North)
-    plant(Entities.Bush)
-    move(North)
-    while num_items(Items.Wood) < 20:
-        while not can_harvest():
-            pass
-        harvest()
-        plant(Entities.Bush)
-        move(North)
-    unlock(Unlocks.Expand)
-
-    # 胡萝卜 50木
-    while num_items(Items.Wood) < 50:
-        while not can_harvest():
-            pass
-        harvest()
-        plant(Entities.Bush)
-        move(North)
-        while not can_harvest():
-            pass
-        harvest()
-        plant(Entities.Bush)
-        move(North)
-        while not can_harvest():
-            pass
-        harvest()
-        plant(Entities.Bush)
-        move(East)
-    unlock(Unlocks.Carrots)
 
 def boost_stock(cost):
     # 原料订单复用现成田；所有工人回收后才允许调用方切换机制。
@@ -790,7 +874,9 @@ def eight_drones():
     if not solar_reserve():
         return False
     # 先用一田C1实付Maze2，再筹32000 Gold；不提前读取下一宝藏。
-    if not buy(Unlocks.Cactus) or not buy(Unlocks.Mazes):
+    if not buy(Unlocks.Cactus):
+        return False
+    if not early_companion_upgrade() or not buy(Unlocks.Mazes):
         return False
     quick_print("early_maze2", get_time(), num_items(Items.Cactus), num_items(Items.Power))
     return next_megafarm()
@@ -875,52 +961,106 @@ def ensure_power(target):
     return True
 
 
-def staged_supply():
-    # 提高每单位肥料的Weird兑现；费用全部走满当前伴生的生产。
-    for technology in [Unlocks.Trees, Unlocks.Trees, Unlocks.Watering,
-                       Unlocks.Watering, Unlocks.Watering, Unlocks.Watering]:
-        if not buy(technology):
+def early_companion_upgrade():
+    size = get_world_size()
+    if not cactus_stock(14000 + size * size * 8):
+        return False
+    while num_unlocked(Unlocks.Dinosaurs) < 2:
+        if not buy(Unlocks.Dinosaurs):
             return False
-    # 供料前真实补电，支付播种、成熟和收获，以覆盖P4与扩田生产。
+    if not ensure_power(200):
+        return False
+    clear()
+    maximum = size * size - 1
+    factor = 2 ** (num_unlocked(Unlocks.Dinosaurs) - 1)
+    for level in [2, 3]:
+        target = get_cost(Unlocks.Polyculture)[Items.Bone]
+        if level == 2:
+            target = max(target, 60000 - maximum * maximum * factor)
+        for cycle in range(3):
+            if num_items(Items.Bone) >= target:
+                break
+            if get_time() > 7000:
+                return False
+            origin()
+            needed = target - num_items(Items.Bone)
+            length = 1
+            while length * length * factor < needed and length < maximum:
+                length += 1
+            floor = -1
+            if length < maximum:
+                floor = num_items(Items.Cactus) - (length + 1) * get_cost(Entities.Apple)[Items.Cactus]
+            before = num_items(Items.Bone)
+            change_hat(Hats.Dinosaur_Hat)
+            run_dinosaur_chase_loop(size, floor)
+            change_hat(Hats.Straw_Hat)
+            if num_items(Items.Bone) - before < length * length * factor:
+                quick_print("early_companion_failed", level, get_time())
+                return False
+            quick_print("early_companion_bone", level, get_time(), num_items(Items.Bone) - before)
+            clear()
+        if not unlock(Unlocks.Polyculture):
+            return False
+        quick_print("early_companion_upgrade", get_time(), level, num_items(Items.Bone))
+    return True
+
+
+def staged_supply():
+    for technology, level in [(Unlocks.Trees, 5), (Unlocks.Watering, 5)]:
+        while num_unlocked(technology) < level:
+            if not buy(technology):
+                return False
     if not solar_reserve():
         return False
-    # 提前筹最终8座5格M4小迷宫的Weird，联产木头支付胡萝卜5/6与供水6。
-    required = (max(0, 1000000 - num_items(Items.Gold)) + 4) // 5 + 8 * 5 * 8 * 8 + 16
+    gold_goal = 1000000
+    gold_goal += 128000
+    required = (max(0, gold_goal - num_items(Items.Gold)) + 3) // 4 + 8 * 4 * 8 * 16 + 2 * 16
     if not boost_stock({Items.Weird_Substance: required}):
         return False
-    for technology in [Unlocks.Carrots, Unlocks.Carrots, Unlocks.Watering]:
-        if not buy(technology):
-            return False
-    # 用实际16000 Carrot购买P4，再支付Expand7与Cactus科技的整田供料。
-    if not buy(Unlocks.Pumpkins):
-        return False
-    # Expand7的64000 Pumpkin走原真实供料，不借后期库存。
-    if not buy(Unlocks.Expand):
-        return False
-    quick_print("directed_expand16", get_time(), get_world_size(), num_items(Items.Power), num_items(Items.Pumpkin))
+    for technology, level in [(Unlocks.Carrots, 6), (Unlocks.Watering, 6), (Unlocks.Pumpkins, 4), (Unlocks.Expand, 7)]:
+        while num_unlocked(technology) < level:
+            if not buy(technology):
+                return False
     if not ensure_power(1200):
         return False
     while num_unlocked(Unlocks.Cactus) < 2:
         if not buy(Unlocks.Cactus):
             return False
-    # M2→4=504000；D0→4=518000；保留30000苹果与告警储备。
-    if not cactus_stock(1052000):
+    if not buy(Unlocks.Mazes):
+        return False
+    if not small_maze_gold(get_cost(Unlocks.Megafarm)[Items.Gold], 4):
+        return False
+    if not unlock(Unlocks.Megafarm):
+        return False
+    quick_print("directed_megafarm", get_time(), max_drones(), num_items(Items.Power))
+    while num_unlocked(Unlocks.Pumpkins) < 6:
+        if not buy(Unlocks.Pumpkins):
+            return False
+    while num_unlocked(Unlocks.Cactus) < 3:
+        if not buy(Unlocks.Cactus):
+            return False
+    required = 20000
+    for level in range(num_unlocked(Unlocks.Mazes) + 1, 5):
+        required += 12000 * 6 ** (level - 2)
+    for level in range(num_unlocked(Unlocks.Dinosaurs) + 1, 6):
+        if level == 1:
+            required += 2000
+        else:
+            required += 12000 * 6 ** (level - 2)
+    if not cactus_stock(required):
         return False
     while num_unlocked(Unlocks.Mazes) < 4:
         if not buy(Unlocks.Mazes):
             return False
-    while num_unlocked(Unlocks.Dinosaurs) < 4:
+    while num_unlocked(Unlocks.Dinosaurs) < 5:
         if not buy(Unlocks.Dinosaurs):
             return False
     quick_print("directed_supply", get_time(), num_items(Items.Cactus), num_items(Items.Power), num_items(Items.Fertilizer))
     return True
 
 
-
-
-
 def finish_gold():
-    # Weird已提前支付；补足末段迷宫与四条蛇所需能量，避免再收整田。
+    # Weird已提前支付；补足末段迷宫与两条蛇所需能量，避免再收整田。
     if num_items(Items.Power) < 1600:
         if not basic({Items.Carrot: get_world_size() * get_world_size()}):
             return False
@@ -933,9 +1073,12 @@ def finish_gold():
 
 
 def finish_bones():
-    # 迷宫工人均已回收，预留400 Power，串行完成完整恐龙周期。
-    if not ensure_power(400):
-        return False
+    # 迷宫工人均已回收，两条D5蛇按缺口补电后串行结算。
+    if num_items(Items.Power) < 220:
+        if not basic({Items.Carrot: get_world_size() * get_world_size()}):
+            return False
+        if not parallel_solar_reserve(get_world_size(), 220):
+            return False
     clear()
     for cycle in range(15):
         if num_items(Items.Bone) >= 2000000:
@@ -1458,17 +1601,17 @@ def fill_main_cycle(start, moves, apple_index, cactus_floor):
         start = 0
 
 def small_maze_gold(target, n=None):
-    # 中期2/4机用半幅小迷宫，末段8机用三列布局；工人全回收后才清场。
+    # 中期用半幅小迷宫，末段16机用四列布局；工人全回收后才清场。
     WORLD = get_world_size()
     TARGET_GOLD = target
-    DRONES = min(max_drones(), 8)
+    DRONES = min(max_drones(), 16)
     REUSE_LIMIT = 300
     DIRS = [North, East, South, West]
     BACK = [2, 3, 0, 1]
     MULT = 2 ** (num_unlocked(Unlocks.Mazes) - 1)
-    cols = 3
+    cols = 4
     if n == None:
-        n = WORLD // 3
+        n = WORLD // 4
     else:
         cols = WORLD // n
     deadline = min(7000, get_time() + 800)
