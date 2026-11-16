@@ -24,6 +24,7 @@
 | 去掉 `carry_match` 只留直推 | seed1-3 757.9/733.9/821.3秒才30～45次合并 | 两步搬运才是主力产出，直推只占小部分 | `.codex/mush-surface/cand6.py` |
 | 先 `feed_column` 再 `carry_match` | 273.9/276.5/277.1秒，对照263.6/265.8/267.3秒 | 便宜的直推先跑会把可两格搬运的状态改掉，整轮更慢 | `.codex/mush-surface/cand8.py` |
 | 不再七挖确认六层、直接接受第一场 | 331.0/333.6/303.7秒 | 六层场的产出是三层场的两倍，挑场代价远小于产出差 | `.codex/mush-surface/cand10.py` |
+| 缓存改整数键并加边界判断 | seed1-3 269.9/272.3/273.8秒，对照263.6/265.8/267.3秒；解释器35.1M对31.3M | 两跳坐标的越界判断比元组哈希更贵，净变慢 | `.codex/mush-surface/cand11.py` |
 | 相邻双柱连续同色配对 | 8个完整场次29152/112.04秒，约260 Mushroom/s | 材料利用率远低于约16000/片预算，少移动未回本 | [20261111_rejected_s_pairs.py](../../references/leaderboard_history/lb_mushrooms/20261111_rejected_s_pairs.py) |
 | 每机固定列、棋盘源/接收异步供料 | 前者16片12992/116.839秒；后者11片34192/119.294秒 | 快速挖掉尚可配对块，失配损失超过省下的搬运 | [20261109_rejected_mushroom_checkerboard_supply_v1.py](../../references/leaderboard_history/lb_mushrooms/20261109_rejected_mushroom_checkerboard_supply_v1.py) |
 | 三格高度带与空接收组合 | 137.483秒仅70816/240000并报layer失败 | 跨层、分区和塌方的组合不满足共同高度不变量 | [20261106_rejected_band3.py](../../references/leaderboard_history/lb_mushrooms/20261106_rejected_band3.py) |
