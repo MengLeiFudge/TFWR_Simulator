@@ -6,7 +6,7 @@
 
 客户端和本地模拟器从 GitHub 仓库取得，Thunderstore 包只安装游戏模组。后台控制接口需要支持协议2的DLL。
 
-当前源码面向 Steam 构建26462009编译，原生输出使用当前`MainSim`的实例日志器。游戏的`Saver.Save(MainSim)`已改为返回`Task<bool>`；使用旧`bool`签名的DLL会报`MissingMethodException`，并阻断包括`prepare`在内的请求。`quit`等待保存成功后才发布完成状态，并在同一请求终态落盘后退出。需用当前游戏程序集重新编译，替换本地DLL后重启游戏加载；本地兼容更新不代表已发布的包同步更新。
+当前源码面向 Steam 构建26462009编译，原生输出使用当前`MainSim`的实例日志器。游戏的`Saver.Save(MainSim)`已改为返回`Task<bool>`；使用旧`bool`签名的DLL会报`MissingMethodException`，并阻断包括`prepare`在内的请求。`quit`等待保存成功后才发布完成状态，并在同一请求终态落盘后退出。需用当前游戏程序集重新编译并替换 DLL 后重启游戏加载；0.2.3 已包含该兼容修复并发布到 Thunderstore。
 
 ## 后台控制
 
@@ -20,6 +20,13 @@ python3 game_control/tools/run_real_game_script.py --action quit
 ```
 
 有活动外部请求时，须显式加 `--replace`；已有终态须先收取结果。没有外部请求时保留手动游玩的主菜单和排行榜结果页。
+
+## 0.2.3 更新
+
+- 适配游戏更新后的保存签名：游戏把 `Saver.Save(MainSim)` 改成返回 `Task<bool>`，用旧签名编译的 DLL 会在 `quit` 抛 `MissingMethodException`，并连带阻断 `prepare` 等请求。本版按当前游戏程序集重新编译，`quit` 逐帧等待保存完成。
+- `quit` 只在保存确认成功且没有警告弹窗时发布完成状态再退出；保存未确认时保留游戏并报告失败。
+- 取消请求或投递新请求会撤销尚未执行的退出，不提前确认终态。
+- 此修复此前只在本机替换的 DLL 上生效，0.2.3 是它第一次进入公开包。
 
 ## 0.2.2 更新
 
