@@ -233,13 +233,15 @@ def feed_column(neighbors, floor, cache, x, y):
             continue
         # 非蘑菇柱只有确认两块同色且都高于floor至少两格后才准备。
         target = z
+        cands = []
+        for i in neighbors:
+            if types[i] >= 0 and types[i] != t and heights[i] >= target + 2:
+                cands.append(i)
         pair_a = -1
         pair_b = -1
-        for i in neighbors:
-            if types[i] < 0 or types[i] == t or heights[i] < target + 2:
-                continue
-            for j in neighbors:
-                if j > i and types[j] == types[i] and heights[j] >= target + 2:
+        for i in cands:
+            for j in cands:
+                if j > i and types[j] == types[i]:
                     pair_a = i
                     pair_b = j
                     break
