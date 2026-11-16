@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得（本地已验证六层场筛选；当前版本尚未实机）。
+# 完整轮时间：4:37.057（7200游戏秒场均会话26轮，标准误1.53秒，seed1-26；尚无本版实机）。
 
 def lb_mushrooms():
     began = get_time()
@@ -158,10 +158,12 @@ def work_layer(block, ceiling, cells):
             continue
         # 已公开柱可能高于上次计划高度；仍以当前柱顶处理。
         mushroom = get_ground_type() == Grounds.Mushroom
+        t = -1
         if mushroom:
             mushrooms += 1
+            t = measure()
         if z >= ceiling and mushroom:
-            count = carry_match(cache, x, y, neighbors, floor)
+            count = carry_match(cache, x, y, neighbors, floor, z, t)
             if count == None:
                 quick_print("mushrooms_abort", "carry", block, x, y, z, get_pos_z())
                 return None
@@ -174,24 +176,23 @@ def work_layer(block, ceiling, cells):
                     quick_print("mushrooms_abort", "drop", block, x, y, z, get_pos_z())
                     return None
                 digs += 1
-        count = feed_column(neighbors, floor)
+        before = pairs + digs
+        count = feed_column(neighbors, floor, z, mushroom, t)
         if count == None:
             quick_print("mushrooms_abort", "feed", block, x, y, z, get_pos_z())
             return None
         pairs += count
-        read_column(cache, x, y)
-        for i in neighbors:
-            dx, dy = OFFSETS[i]
-            read_column(cache, x + dx, y + dy, DIRECTIONS[i])
+        if pairs + digs > before:
+            # 本列真的变动过才刷新缓存；carry_match 自己会重读自格与四邻。
+            read_column(cache, x, y)
+            for i in neighbors:
+                dx, dy = OFFSETS[i]
+                read_column(cache, x + dx, y + dy, DIRECTIONS[i])
     return pairs, digs, mushrooms
 
 
 # 直接从脚下推送省去前往邻格再返回的两次移动。
-def push_match(neighbors, floor):
-    if get_ground_type() != Grounds.Mushroom:
-        return 0
-    t = measure()
-    z = get_pos_z()
+def push_match(neighbors, floor, z, t):
     for i in neighbors:
         direction = DIRECTIONS[i]
         if get_ground_type(direction) == Grounds.Mushroom:
@@ -214,16 +215,21 @@ def push_neighbor(i):
 
 
 # 直接匹配会使目标下降一格；双邻配对保持目标高度，但不能提前同型消除。
-def feed_column(neighbors, floor):
+def feed_column(neighbors, floor, z, mushroom, t):
     matched = 0
+    fresh = False
     while True:
-        z = get_pos_z()
+        if fresh:
+            z = get_pos_z()
+            if z < floor:
+                return matched
+            mushroom = get_ground_type() == Grounds.Mushroom
+            t = -1
+            if mushroom:
+                t = measure()
+        fresh = True
         if z < floor:
             return matched
-        mushroom = get_ground_type() == Grounds.Mushroom
-        t = -1
-        if mushroom:
-            t = measure()
         types = [-1, -1, -1, -1]
         heights = [0, 0, 0, 0]
         hit = -1
@@ -244,13 +250,15 @@ def feed_column(neighbors, floor):
         target = z
         if not mushroom:
             target = floor
+        cands = []
+        for i in neighbors:
+            if types[i] >= 0 and types[i] != t and heights[i] >= target + 2:
+                cands.append(i)
         pair_a = -1
         pair_b = -1
-        for i in neighbors:
-            if types[i] < 0 or types[i] == t or heights[i] < target + 2:
-                continue
-            for j in neighbors:
-                if j > i and types[j] == types[i] and heights[j] >= target + 2:
+        for i in cands:
+            for j in cands:
+                if j > i and types[j] == types[i]:
                     pair_a = i
                     pair_b = j
                     break
@@ -316,12 +324,11 @@ def read_column(cache, x, y, direction=None):
 
 
 # 直接匹配优先；两步搬运只经过已公开的同高低台，不建立搜索队列。
-def carry_match(cache, x, y, neighbors, floor):
-    direct = push_match(neighbors, floor)
+def carry_match(cache, x, y, neighbors, floor, z, t):
+    direct = push_match(neighbors, floor, z, t)
     if direct != 0:
         return direct
-    read_column(cache, x, y)
-    z, t = cache[(x, y)]
+    cache[(x, y)] = (z, t)
     if t < 0 or z - 1 <= floor:
         return 0
     for i in neighbors:
