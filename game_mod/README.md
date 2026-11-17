@@ -128,6 +128,8 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
 - `save` 与 `open`、`close`、`dock`、`arrange` 会调用 `Saver.Save` 并等保存确认后才写终态；保存未确认、或警告弹窗未关闭时记为失败并保留现场。
 - `open` 读取 `code_file` 指定的源码（超过 1 MB 拒绝），按 `second_script`（缺省 `stand`）停靠；`dock`、`arrange` 用 `second_script`/`target_script` 作锚点；`list` 把窗口清单写进 `result_text`。
 - 新增命令要求 `protocol_version >= 3`；只发 `run`/`prepare`/`quit` 的旧客户端不受影响。
+- 实时字段 `executing`、`leaderboard_running`、`leaderboard_screen`、`busy_windows` 每轮刷新，与请求字段互不覆盖；`busy_windows` 只报模组已知的运行窗口，手工运行其它窗口时可能为空。
+- 配置 `AutoOkLeaderboardResult=true` 时，结果页一出现就按 OK，供等“运行结束”的外部脚本使用；不开启时仍只关闭属于本模组请求的结果页。
 - 脚本正常流转为 `idle → requested → running → done/failed → idle`；快速控制请求可直接从 `requested` 写回带起止时间的终态。
 - `requested` 或 `running` 可写入同一请求的 `stop_requested`；停止完成后进入 `failed`，`last_error` 保存停止原因。
 - 更大的请求 ID 替换旧请求。旧客户端观察到更大 ID 后按 `superseded` 结束，不再确认或清除新请求。

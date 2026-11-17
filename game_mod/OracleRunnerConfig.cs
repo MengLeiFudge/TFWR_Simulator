@@ -36,6 +36,11 @@ internal sealed class OracleRunnerConfig
             "DefaultRequestTimeoutSeconds",
             20f,
             "state.json 未显式提供 timeout_seconds 时，单次请求的默认执行超时（秒）。");
+        AutoOkLeaderboardResult = config.Bind(
+            "General",
+            "AutoOkLeaderboardResult",
+            false,
+            "排行榜结果页一出现就按 OK。外部队列等待运行结束时，结果页会继续让游戏报告 executing=true。");
         RequestStopGracePeriodSeconds = config.Bind(
             "Timing",
             "RequestStopGracePeriodSeconds",
@@ -56,4 +61,6 @@ internal sealed class OracleRunnerConfig
     public ConfigEntry<float> DefaultRequestTimeoutSeconds { get; }
 
     public ConfigEntry<float> RequestStopGracePeriodSeconds { get; }
+
+    public ConfigEntry<bool> AutoOkLeaderboardResult { get; }
 }

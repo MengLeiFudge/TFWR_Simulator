@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Globalization;
 using System.IO;
@@ -64,6 +65,7 @@ public sealed partial class Plugin : BaseUnityPlugin
     private float stopRequestedAt;
     private readonly LeaderboardResultAutoCloseGate leaderboardResultAutoCloseGate = new LeaderboardResultAutoCloseGate();
     private bool playInvoked;
+    private bool leaderboardScreenDismissed;
     private StopReason stopReason = StopReason.None;
     private OracleRunnerStateFile? activeRequest;
     private OracleRunnerStateFile? pendingRequest;
@@ -142,6 +144,7 @@ public sealed partial class Plugin : BaseUnityPlugin
             return;
         }
         nextStatePollAt = now + Mathf.Max(0.05f, runnerConfig.StartupPollIntervalMs.Value / 1000f);
+        PublishLiveStatus(mainSim);
         try
         {
             // BepInEx 默认每两秒刷盘；先刷新日志，再发布终态，避免短请求返回空日志。
@@ -220,6 +223,44 @@ public sealed partial class Plugin : BaseUnityPlugin
                 Log.LogWarning($"状态文件同步失败，将在下次轮询重试：{stateStore.StateFilePath}；{ex.Message}");
             }
         }
+    }
+
+    /// <summary>把执行与结果页状态写回状态文件，供外部队列判断何时可以改脚本文件。</summary>
+    /// <param name="mainSim">真实游戏执行器。</param>
+    private void PublishLiveStatus(MainSim mainSim)
+    {
+        bool executing = mainSim.IsExecuting();
+        bool leaderboardRunning = mainSim.leaderboardManager != null && mainSim.leaderboardManager.IsRunning;
+        bool leaderboardScreen = mainSim.leaderboardManager != null && mainSim.leaderboardManager.IsLeaderBoardScreenOpen;
+
+        var busyWindows = new List<string>();
+        if (executing)
+        {
+            string? runningWindow = activeRequest?.TargetScript;
+            if (string.IsNullOrWhiteSpace(runningWindow))
+            {
+                runningWindow = observedLeaderboardScriptName;
+            }
+            if (!string.IsNullOrWhiteSpace(runningWindow))
+            {
+                busyWindows.Add(runningWindow);
+            }
+        }
+        stateStore.QueueLiveStatus(executing, leaderboardRunning, leaderboardScreen, busyWindows.ToArray());
+
+        // 结果页打开时游戏仍报告执行中；外部队列等待结束会被卡住，按配置自动按 OK。
+        if (!leaderboardScreen)
+        {
+            leaderboardScreenDismissed = false;
+            return;
+        }
+        if (leaderboardScreenDismissed || !runnerConfig.AutoOkLeaderboardResult.Value)
+        {
+            return;
+        }
+        leaderboardScreenDismissed = true;
+        mainSim.leaderboardManager!.OkPressed();
+        Log.LogInfo("自动关闭排行榜结果页");
     }
 
     /// <summary>只初始化缺失状态或恢复插件重载前遗留的 running 状态。</summary>

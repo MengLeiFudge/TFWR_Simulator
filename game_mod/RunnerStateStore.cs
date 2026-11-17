@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 
@@ -14,6 +15,13 @@ public sealed class RunnerStateStore
     private readonly string stateFilePath;
     private readonly object gate = new();
     private OracleRunnerStateFile? pendingState;
+
+    // 实时状态由模组每轮刷新，独立于客户端拥有的请求字段。
+    private bool? liveExecuting;
+    private bool? liveLeaderboardRunning;
+    private bool? liveLeaderboardScreen;
+    private string[]? liveBusyWindows;
+    private bool livePending;
 
     /// <summary>创建状态存储，不执行文件 I/O。</summary>
     /// <param name="stateFilePath">当前 BepInEx profile 的状态文件路径。</param>
@@ -48,7 +56,7 @@ public sealed class RunnerStateStore
                 OracleRunnerStateFile? current = ReadCurrent();
                 if (pendingState == null)
                 {
-                    return current;
+                    return ApplyLiveStatus(current);
                 }
 
                 // 新请求由客户端拥有。旧请求的终态不能覆盖它；同一请求的停止指令
@@ -64,7 +72,7 @@ public sealed class RunnerStateStore
                     current = pendingState;
                 }
                 pendingState = null;
-                return current;
+                return ApplyLiveStatus(current);
             }
             finally
             {
@@ -72,6 +80,43 @@ public sealed class RunnerStateStore
                 File.Delete(lockPath);
             }
         }
+    }
+
+    /// <summary>排队实时执行状态；下一次同步时合并进状态文件，不改客户端拥有的请求字段。</summary>
+    public void QueueLiveStatus(bool executing, bool leaderboardRunning, bool leaderboardScreen, string[] busyWindows)
+    {
+        lock (gate)
+        {
+            liveExecuting = executing;
+            liveLeaderboardRunning = leaderboardRunning;
+            liveLeaderboardScreen = leaderboardScreen;
+            liveBusyWindows = busyWindows;
+            livePending = true;
+        }
+    }
+
+    /// <summary>把排队的实时状态合并进当前状态；值与文件一致时不重复写盘。</summary>
+    private OracleRunnerStateFile? ApplyLiveStatus(OracleRunnerStateFile? current)
+    {
+        if (!livePending || current == null)
+        {
+            livePending = false;
+            return current;
+        }
+        livePending = false;
+        bool sameWindows = (current.BusyWindows ?? Array.Empty<string>())
+            .SequenceEqual(liveBusyWindows ?? Array.Empty<string>());
+        if (current.Executing == liveExecuting && current.LeaderboardRunning == liveLeaderboardRunning &&
+            current.LeaderboardScreen == liveLeaderboardScreen && sameWindows)
+        {
+            return current;
+        }
+        current.Executing = liveExecuting;
+        current.LeaderboardRunning = liveLeaderboardRunning;
+        current.LeaderboardScreen = liveLeaderboardScreen;
+        current.BusyWindows = liveBusyWindows;
+        WriteCurrent(current);
+        return current;
     }
 
     /// <summary>保存待写快照，不阻塞游戏线程；后续 Read 负责持锁落盘。</summary>
@@ -93,6 +138,10 @@ public sealed class RunnerStateStore
                 StartedAt = state.StartedAt,
                 FinishedAt = state.FinishedAt,
                 LastError = state.LastError,
+                Executing = liveExecuting,
+                LeaderboardRunning = liveLeaderboardRunning,
+                LeaderboardScreen = liveLeaderboardScreen,
+                BusyWindows = liveBusyWindows,
             };
         }
     }

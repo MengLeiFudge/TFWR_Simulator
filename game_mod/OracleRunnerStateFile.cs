@@ -52,6 +52,22 @@ public sealed class OracleRunnerStateFile
     [DataMember(Name = "code_file", EmitDefaultValue = false)]
     public string? CodeFile { get; set; }
 
+    /// <summary>游戏当前是否有程序在运行；结果页打开时游戏仍报告执行中。</summary>
+    [DataMember(Name = "executing", EmitDefaultValue = false)]
+    public bool? Executing { get; set; }
+
+    /// <summary>排行榜统计是否在跑。</summary>
+    [DataMember(Name = "leaderboard_running", EmitDefaultValue = false)]
+    public bool? LeaderboardRunning { get; set; }
+
+    /// <summary>排行榜结果页是否打开。</summary>
+    [DataMember(Name = "leaderboard_screen", EmitDefaultValue = false)]
+    public bool? LeaderboardScreen { get; set; }
+
+    /// <summary>正在执行的脚本窗口；执行期间改它的文件会让游戏停止程序。</summary>
+    [DataMember(Name = "busy_windows", EmitDefaultValue = false)]
+    public string[]? BusyWindows { get; set; }
+
     /// <summary>命令返回的文本结果，例如 list 的窗口清单。</summary>
     [DataMember(Name = "result_text", EmitDefaultValue = false)]
     public string? ResultText { get; set; }

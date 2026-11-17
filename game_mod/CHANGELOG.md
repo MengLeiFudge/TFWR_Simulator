@@ -7,6 +7,8 @@
 - `ok`、`list`、`minimize`、`restore`、`play`、`stop` 为即时命令：不打断正在运行的脚本，直接在当前帧完成后返回终态。
 - 协议版本升到 3；新增命令要求 `protocol_version >= 3`，旧客户端仍可只用 `run`/`prepare`/`quit`。
 - 保存统一走异步 `Saver.Save`：窗口变更和 `save` 都等保存确认，未确认或弹警告框时报告失败而不是成功。
+- 状态文件新增实时字段 `executing`、`leaderboard_running`、`leaderboard_screen`、`busy_windows`，每轮轮询刷新；外部队列据此判断运行何时结束、何时可以改脚本文件。
+- 新增配置 `AutoOkLeaderboardResult`：结果页一出现就按 OK。结果页打开期间游戏仍报告 `IsExecuting=true`，等结束的外部脚本会被卡死。
 
 ## 0.2.4 — 2026-11-17
 
