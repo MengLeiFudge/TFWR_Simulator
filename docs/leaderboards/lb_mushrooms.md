@@ -20,11 +20,11 @@
 
 | 尝试方案 | 实测／模拟表现 | 原因与适用范围 | 参考代码 |
 | --- | --- | --- | --- |
-| 纯表面配对（四个探针） | 探针1 400秒60096；探针3 400秒142048；探针4（四邻展开、无缓存、修好走位）178.7秒150704后到批次上限 | 只按“甲列顶色=乙列顶色且甲更高”连推，每合并只要约650tick，但每场只能吃588～790次合并（现版1690），换场与揭场的串行开销反超省下的动作；整轮比现版慢一倍以上，方向否定 | 探针与回执留 `.codex/mush-surface/probe1..4.py` |
-| 去掉 `carry_match` 只留直推 | seed1-3 757.9/733.9/821.3秒才30～45次合并 | 两步搬运才是主力产出，直推只占小部分 | `.codex/mush-surface/cand6.py` |
-| 先 `feed_column` 再 `carry_match` | 273.9/276.5/277.1秒，对照263.6/265.8/267.3秒 | 便宜的直推先跑会把可两格搬运的状态改掉，整轮更慢 | `.codex/mush-surface/cand8.py` |
-| 不再七挖确认六层、直接接受第一场 | 331.0/333.6/303.7秒 | 六层场的产出是三层场的两倍，挑场代价远小于产出差 | `.codex/mush-surface/cand10.py` |
-| 缓存改整数键并加边界判断 | seed1-3 269.9/272.3/273.8秒，对照263.6/265.8/267.3秒；解释器35.1M对31.3M | 两跳坐标的越界判断比元组哈希更贵，净变慢 | `.codex/mush-surface/cand11.py` |
+| 纯表面配对（四个探针） | 探针1 400秒60096；探针3 400秒142048；探针4（四邻展开、无缓存、修好走位）178.7秒150704后到批次上限 | 只按“甲列顶色=乙列顶色且甲更高”连推，每合并只要约650tick，但每场只能吃588～790次合并（现版1690），换场与揭场的串行开销反超省下的动作；整轮比现版慢一倍以上，方向否定 | 探针与回执留 `.codex/tests/mush-surface/probe1..4.py` |
+| 去掉 `carry_match` 只留直推 | seed1-3 757.9/733.9/821.3秒才30～45次合并 | 两步搬运才是主力产出，直推只占小部分 | `.codex/tests/mush-surface/cand6.py` |
+| 先 `feed_column` 再 `carry_match` | 273.9/276.5/277.1秒，对照263.6/265.8/267.3秒 | 便宜的直推先跑会把可两格搬运的状态改掉，整轮更慢 | `.codex/tests/mush-surface/cand8.py` |
+| 不再七挖确认六层、直接接受第一场 | 331.0/333.6/303.7秒 | 六层场的产出是三层场的两倍，挑场代价远小于产出差 | `.codex/tests/mush-surface/cand10.py` |
+| 缓存改整数键并加边界判断 | seed1-3 269.9/272.3/273.8秒，对照263.6/265.8/267.3秒；解释器35.1M对31.3M | 两跳坐标的越界判断比元组哈希更贵，净变慢 | `.codex/tests/mush-surface/cand11.py` |
 | 相邻双柱连续同色配对 | 8个完整场次29152/112.04秒，约260 Mushroom/s | 材料利用率远低于约16000/片预算，少移动未回本 | [20261111_rejected_s_pairs.py](../../references/leaderboard_history/lb_mushrooms/20261111_rejected_s_pairs.py) |
 | 每机固定列、棋盘源/接收异步供料 | 前者16片12992/116.839秒；后者11片34192/119.294秒 | 快速挖掉尚可配对块，失配损失超过省下的搬运 | [20261109_rejected_mushroom_checkerboard_supply_v1.py](../../references/leaderboard_history/lb_mushrooms/20261109_rejected_mushroom_checkerboard_supply_v1.py) |
 | 三格高度带与空接收组合 | 137.483秒仅70816/240000并报layer失败 | 跨层、分区和塌方的组合不满足共同高度不变量 | [20261106_rejected_band3.py](../../references/leaderboard_history/lb_mushrooms/20261106_rejected_band3.py) |
@@ -44,7 +44,7 @@
 
 | 日期 | 成绩（实机／模拟／版本注记） | 核心改动 | 归档代码 |
 | --- | --- | --- | --- |
-| 2026-11-16 | 269.880秒（7200游戏秒场均会话27轮，标准误1.50秒；尚无本版实机） | `carry_match` 成功后跳过该格 `feed_column` | 当前 [lb_mushrooms.py](../../scripts/leaderboard/lb_mushrooms.py)，回执见 `.codex/mush-surface/` |
+| 2026-11-16 | 269.880秒（7200游戏秒场均会话27轮，标准误1.50秒；尚无本版实机） | `carry_match` 成功后跳过该格 `feed_column` | 当前 [lb_mushrooms.py](../../scripts/leaderboard/lb_mushrooms.py)，回执见 `.codex/tests/mush-surface/` |
 | 2026-11-16 | 277.057秒（7200游戏秒场均会话26轮，标准误1.53秒；尚无本版实机） | 复用已读柱顶／颜色、缓存按需刷新、先挑候选再配对 | 当前 [lb_mushrooms.py](../../scripts/leaderboard/lb_mushrooms.py)，候选与回执留 `.codex/mush-opt/`（原始材料已于 2026-11-17 清理） |
 | 2026-11-06 | 572.673秒（构建26462009，13轮官方完整统计；请求348）。 | 补齐其余十个地下榜的正式实机基线 | [20261106_v01_9m32.673s_22bf18ce.py](../../references/leaderboard_history/lb_mushrooms/20261106_v01_9m32.673s_22bf18ce.py) |
 | 2026-11-06 | 557.267秒（构建26462009，13轮官方完整统计；请求357）。 | 蘑菇多机利用空接收柱并保留单机基线 | [20261106_v02_9m17.267s_1c3d2fc9.py](../../references/leaderboard_history/lb_mushrooms/20261106_v02_9m17.267s_1c3d2fc9.py) |

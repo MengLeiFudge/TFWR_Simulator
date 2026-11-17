@@ -20,7 +20,7 @@
 
 A每例省0.03028824秒（均值时间-0.1885%），B每例省0.06123492秒（-0.3810%）。解释器实际扣费各省183／371tick，另省1tick的`range`内置调用；物理动作未减少。B产物670行，仍只维护107行原版及规则。9份原版/A/B轨迹（A/B共6组配对）的物理动作及非时间观测顺序、参数和返回值一致；统计修改前后、开关前后和无转换AST往返均保持原版时间、库存、状态、节点／API计数及输出。每份费用均对账，原版seed1的成熟轮询11890tick占解释器17724tick的大部分，不能将其全部视为可消除的计算时间。
 
-原型位置为本机`.codex/tick-optimizer-cactus-20261113/`：`experiment.py`保存生成／执行规则，`generation.json`保存指纹，`comparison.json`保存配对汇总，`profile_*.json`、`*.hot-spots.seed-*.json`及`*.trace.seed-*.jsonl`保留原始报告；`analyze.py`复核费用守恒及轨迹。18份单机完整报告、单机种子批次最长单例0.470墙钟秒；8组既有实机归档重放通过。当前未修改正式脚本或存档，未实机，原型不与上方不同seed组的历史均值混算或替代主表结果。生成与费用规范见[解释器费用](interpreter_cost_notes.md#母版与固定代码生成)。
+原型位置为本机`.codex/tests/tick-optimizer-cactus-20261113/`：`experiment.py`保存生成／执行规则，`generation.json`保存指纹，`comparison.json`保存配对汇总，`profile_*.json`、`*.hot-spots.seed-*.json`及`*.trace.seed-*.jsonl`保留原始报告；`analyze.py`复核费用守恒及轨迹。18份单机完整报告、单机种子批次最长单例0.470墙钟秒；8组既有实机归档重放通过。当前未修改正式脚本或存档，未实机，原型不与上方不同seed组的历史均值混算或替代主表结果。生成与费用规范见[解释器费用](interpreter_cost_notes.md#母版与固定代码生成)。
 
 ## 淘汰与未采用方案
 

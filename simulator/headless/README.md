@@ -31,7 +31,9 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 公开榜只认游戏内满约7200秒（2小时）的完整统计会话成绩：会话内每轮从同一初始条件重新开始，上传分数是各轮时间的**均值**，且只在最后一轮成功时生效。本地因此统一用 [session.py](session.py) 跑满同样预算再比较，不拿单seed单轮数字当对照成绩：
 
 ```bash
-python3 simulator/headless/session.py scripts/leaderboard/lb_maze.py --leaderboard maze --session-seconds 7200 --jobs 20 --output .codex/session-maze.json
+python3 simulator/headless/session.py scripts/leaderboard/lb_maze.py --leaderboard maze --session-seconds 7200 --jobs 20
+
+会话结论同时打印到标准输出；报告默认写 `.codex/tmp/sessions/<榜单>-session.json`，同一榜单重跑直接覆盖，加 `--no-output` 则只打印。
 ```
 
 工具按批启动独立工作进程（`--jobs` 并行）累计各轮游戏时间，到预算即停；均分只算达成目标（`stop_reason=finished`）的轮，任一轮未达成目标就按 `StopLeaderboardRun` 规则判整场无效并立即停止。报告给出轮数、累计游戏秒、均值、标准差、标准误、最小／最大值和逐轮明细。

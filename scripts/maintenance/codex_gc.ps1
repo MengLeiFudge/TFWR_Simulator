@@ -1,12 +1,12 @@
-param(
+﻿param(
     [switch]$Apply,
     [switch]$KeepTmp,
     [double]$TrashDays = 7,
     [double]$MinAgeHours = 2,
     [double]$MaxReportMB = 5,
     [string[]]$KeepDirs = @(
-        'drafts', 'thunderstore', 'deployments', 'oracle-r2-fix', 'oracle-r2-smoke',
-        'tests\simulator-seed-parallel', 'tick-optimizer-cactus-20261113'
+        'drafts', 'tests\simulator-seed-parallel', 'tests\tick-optimizer-cactus-20261113',
+        'tests\mush-surface', 'deployments', 'thunderstore'
     ),
     [int]$Limit = 15
 )
@@ -79,6 +79,19 @@ foreach ($entry in $expiredTrash) {
     if (-not $size) { $size = 0 }
     $trashBytes += $size
     Add-Target $targets ([pscustomobject]@{ FullName = $entry.FullName; Length = [long]$size }) '回收站超期'
+}
+
+# 规则外顶层条目：.codex 只允许固定六个目录和本 README，其余一律可删。
+$allowedTop = @('README.md', 'drafts', 'tests', 'tmp', 'trash', 'deployments', 'thunderstore')
+foreach ($entry in Get-ChildItem -LiteralPath $codexRoot -Force) {
+    if ($allowedTop -contains $entry.Name) { continue }
+    $size = $null
+    if ($entry.PSIsContainer) {
+        $size = (Get-ChildItem -LiteralPath $entry.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
+            Measure-Object Length -Sum).Sum
+    } else { $size = $entry.Length }
+    if (-not $size) { $size = 0 }
+    Add-Target $targets ([pscustomobject]@{ FullName = $entry.FullName; Length = [long]$size }) '规则外顶层'
 }
 
 $totalBytes = ($targets | Measure-Object Bytes -Sum).Sum

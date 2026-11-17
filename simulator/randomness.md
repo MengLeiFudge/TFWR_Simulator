@@ -43,7 +43,7 @@ dotnet run --project simulator/TFWRMechanismModel.csproj -- rng --seed 123 --sam
 
 另用 .NET 10 显式 seed 的兼容实现作独立本地对照：12 个 seed，覆盖负数、Int32 两端和 161803398 邻界；`Next()`、整数区间（含跨 Int32 范围）、`NextDouble()` 的 IEEE 位模式、`NextBytes()` 和零宽区间混合调用，共 73,728 个值及 96 个子流 seed 全部相同。该部分不是在游戏 Mono 中执行全部重载，不能扩大实机覆盖范围。
 
-本地实验与原始证据保存在 `.codex/tests/rng-parity/`：`probe.py`、`reference/Program.cs`、`game-test.py`、`game-simulate.py`、`game-output.txt` 和 `comparison.json`。原始游戏输出 SHA256 为 `3310a9946e1a588cb16df76837ae1cb39128f5f3c40804aec4046ded15f02857`。较早请求 `20` 的四 seed、128 值对照保留在 `.codex/oracle-r2-fix/`。
+本地实验与原始证据保存在 `.codex/tests/rng-parity/`：`probe.py`、`reference/Program.cs`、`game-test.py`、`game-simulate.py`、`game-output.txt` 和 `comparison.json`。原始游戏输出 SHA256 为 `3310a9946e1a588cb16df76837ae1cb39128f5f3c40804aec4046ded15f02857`。较早请求 `20` 的四 seed、128 值对照保留在 `.codex/tests/oracle-r2-fix/`。
 
 程序集 SHA256：
 
