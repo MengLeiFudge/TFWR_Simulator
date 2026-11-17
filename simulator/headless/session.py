@@ -6,6 +6,7 @@
 """
 import argparse
 import json
+import os
 from pathlib import Path
 import statistics
 import subprocess
@@ -57,7 +58,7 @@ def main():
     parser.add_argument('script', type=Path, help='入口脚本，相对于仓库根目录')
     parser.add_argument('--leaderboard', help='排行榜盘面名，省略则用preset')
     parser.add_argument('--session-seconds', type=float, default=7200.0, help='会话预算，默认7200游戏秒')
-    parser.add_argument('--jobs', type=int, default=20, help='并行工作进程数，默认20')
+    parser.add_argument('--jobs', type=int, default=None, help='并行工作进程数，默认取CPU核数与目标轮数的较小值')
     parser.add_argument('--seed-start', type=int, default=1)
     parser.add_argument('--max-runs', type=int, default=1200, help='轮数上限，防止短轮无限续跑')
     parser.add_argument('--run-seconds', type=float, default=7200.0, help='单轮游戏时间上限，默认与会话预算相同')
@@ -70,6 +71,7 @@ def main():
     parser.add_argument('--output', type=Path, help='会话报告路径，默认写 .codex/tmp/sessions/<榜单或脚本>-session.json，同名覆盖')
     parser.add_argument('--no-output', action='store_true', help='只在标准输出打印结论，不写报告文件')
     args = parser.parse_args()
+    args.jobs = args.jobs or (os.cpu_count() or 1)
     if args.no_output:
         args.output = None
     elif args.output is None:

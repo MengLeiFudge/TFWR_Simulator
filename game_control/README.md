@@ -87,7 +87,7 @@ python3 game_control/tools/sync_leaderboard_scripts.py cur2save --all
 
 ### `run_real_game_script.py`
 
-启动或复用真实游戏，通过状态机请求模组执行目标脚本。模组侧运行没有时限，预算是客户端自己的：AI每次提交运行都必须根据任务预算显式传入 `--total-timeout`，即客户端愿意等待的现实秒数，须为大于0的有限值；到期由客户端写 `stop_requested` 并收终态。该参数用于 `run`、`submit` 和旧版文本提交，其余操作省略时按300秒。保存时限使用模组的 [SaveTimeoutSeconds 配置](../game_mod/README.md#配置)；模组侧兜底上限见 [MaxRunSeconds](../game_mod/README.md#配置)。
+启动或复用真实游戏，通过状态机请求模组执行目标脚本。模组侧运行没有时限，游戏侧按异步处理：`--action submit` 投递后立即返回ID，`submit` 不接受等待时限，到期停止与取消都由调用者自行执行（`wait`/`cancel`）。需要同步等待时显式用 `--action run` 或文本模式，并给出 `--total-timeout`（客户端愿意等待的现实秒，须为大于0的有限值），到期客户端写 `stop_requested` 并收终态。控制类操作省略该参数时按300秒。运行请求需要协议4的模组（0.3.1）；保存时限使用 [SaveTimeoutSeconds](../game_mod/README.md#配置)，模组侧兜底上限见 [MaxRunSeconds](../game_mod/README.md#配置)。
 
 ```bash
 python3 game_control/tools/run_real_game_script.py --target-script lb_start --total-timeout 600
@@ -104,7 +104,7 @@ python3 game_control/tools/run_real_game_script.py --target-script lb_start --to
 
 模组与客户端通过独占创建的 `.lock` 文件协调请求 ID 分配、停止和终态确认。锁异常残留时先停止游戏和全部客户端，再移除残留锁。具体字段和自写客户端要求见 [文件协议](../game_mod/README.md#文件协议)。
 
-普通脚本可直接指定 `--target-script`，无需生成 `lb_start`。`lb_start` 会要求 leaderboard 结算证据；普通 simulate 探针应使用已有测试入口。`--request-only` 只提交请求，默认拒绝覆盖活动请求；明确替换须加 `--replace`。终态须先取结果回收，不能直接覆盖。默认文本等待模式先等待 idle，超时或 Ctrl+C 会请求停止自己的任务并有限等待清理。
+普通脚本可直接指定 `--target-script`，无需生成 `lb_start`。`lb_start` 会要求 leaderboard 结算证据；普通 simulate 探针应使用已有测试入口。`--request-only` 只提交请求，默认拒绝覆盖活动请求；明确替换须加 `--replace`。终态不是活动请求，但覆盖前要求结果已归档，否则返回 `result_not_collected`；确实要丢弃旧结果时用 `--replace`。默认文本等待模式先等待 idle，超时或 Ctrl+C 会请求停止自己的任务并有限等待清理。
 
 AI调用推荐下述JSON接口。旧版文本提交及 Python `request_script_run()` 不建立完整请求回执；它们可用 `request_script_stop(state_path, request_id, reason)` 取消，再等待 `done/failed` 并调用 `acknowledge_terminal_state(state_path, request_id)`。不要直接写 JSON；旧 ID 无权停止或清除新请求。
 
@@ -117,7 +117,7 @@ AI调用推荐下述JSON接口。旧版文本提交及 Python `request_script_ru
 ```bash
 python3 game_control/tools/run_real_game_script.py --action health
 python3 game_control/tools/run_real_game_script.py --action prepare
-python3 game_control/tools/run_real_game_script.py --action submit --target-script lb_start --total-timeout 600 --idempotency-key cactus-candidate-01
+python3 game_control/tools/run_real_game_script.py --action submit --target-script lb_start --idempotency-key cactus-candidate-01
 python3 game_control/tools/run_real_game_script.py --action status --request-id 123
 python3 game_control/tools/run_real_game_script.py --action wait --request-id 123 --total-timeout 90
 python3 game_control/tools/run_real_game_script.py --action cancel --request-id 123
@@ -125,11 +125,11 @@ python3 game_control/tools/run_real_game_script.py --action result --request-id 
 python3 game_control/tools/run_real_game_script.py --action quit
 ```
 
-`123`替换为提交返回的 `request_id`；各操作按需调用。`--json` 等价于默认 `--action run`，提交后持续监控并收取结果；`--request-only --json` 等价于submit。
+`123`替换为提交返回的 `request_id`；各操作按需调用。`--json` 默认动作为 `submit`（投递即返回）；要持续监控并收取结果，显式加 `--action run`。`--request-only --json` 与 `submit` 等价。
 
 | 操作 | 行为 |
 | --- | --- |
-| `submit` | 立即返回ID，不持续监控。遇忙返回 `busy`；只有显式 `--replace` 才能替换活动请求，终态仍须先回收 |
+| `submit` | 立即返回ID，不持续监控，不接受 `--total-timeout`。遇忙返回 `busy`；活动请求只有显式 `--replace` 才能替换；终态可直接被新请求覆盖，但要求旧结果已归档 |
 | `status` | 查看指定ID或当前请求，不确认终态；活动期间不读 `output.txt` |
 | `wait` | 按ID监控、收取终态并回到idle；等待超时或中断只结束等待，可用相同ID继续 |
 | `cancel` | 仅停止匹配ID；随后用wait/result收取终态 |

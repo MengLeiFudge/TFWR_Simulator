@@ -5,7 +5,7 @@ public sealed class SimulationOptions
     public string Script { get; private set; } = "";
     public int Seed { get; private set; } = 1;
     public int[] Seeds { get; private set; } = [];
-    public int Jobs { get; private set; } = Math.Max(1, Math.Min(Environment.ProcessorCount, 8));
+    public int Jobs { get; private set; } = Math.Max(1, Environment.ProcessorCount);
     public int Size { get; private set; }
     public double GameSeconds { get; private set; } = 30;
     public double WallSeconds { get; private set; } = 10;
@@ -92,6 +92,7 @@ public sealed class SimulationOptions
         }
         if (seen.Contains("--seed") && seen.Contains("--seeds")) throw new ArgumentException("Use seed or seeds, not both");
         if (result.Seeds.Length == 0) result.Seeds = [result.Seed];
+        if (!seen.Contains("--jobs")) result.Jobs = Math.Max(1, Math.Min(Environment.ProcessorCount, result.Seeds.Length));
         if (result.Seeds.Length > 100 || result.Seeds.Distinct().Count() != result.Seeds.Length || result.Seeds.Any(s => s < 0)
             || result.Jobs < 1 || result.Jobs > 64 || result.MaxCalls < 1 || result.MaxNodes < 1 || result.Size is < 0 or > 32
             || !double.IsFinite(result.GameSeconds) || result.GameSeconds <= 0 || result.GameSeconds > 86400

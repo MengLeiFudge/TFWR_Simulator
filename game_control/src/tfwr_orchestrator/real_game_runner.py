@@ -187,10 +187,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="--status-only 即使 state=running 也读取游戏 output.txt；仅在确认游戏不在写日志时使用。",
     )
     args = parser.parse_args(argv)
-    if not args.status_only and args.action in (None, 'run', 'submit'):
-        if args.total_timeout is None or not math.isfinite(args.total_timeout) or args.total_timeout <= 0:
-            parser.error('运行脚本必须显式提供 --total-timeout，给出客户端愿意等待的现实秒数（大于0的有限值）')
-    elif args.total_timeout is None:
+    if args.total_timeout is not None and (not math.isfinite(args.total_timeout) or args.total_timeout <= 0):
+        parser.error('--total-timeout 须为大于0的有限现实秒数')
+    if args.action == 'submit' and args.total_timeout is not None:
+        parser.error('submit 只投递不等待，不接受 --total-timeout；到期自动停止请用 --action run，或提交后用 --action wait')
+    if (args.action in ('run', 'wait')
+            or (args.action is None and not args.json and not args.status_only and not args.request_only)
+            ) and args.total_timeout is None:
+        parser.error('同步等待入口必须显式提供 --total-timeout（客户端愿意等待的现实秒）；异步投递用 --json 或 --action submit')
+    if args.total_timeout is None:
         args.total_timeout = 300.0
     for name in ('startup_timeout', 'total_timeout', 'poll_interval', 'output_stall_timeout'):
         value = getattr(args, name)
@@ -245,6 +250,9 @@ WINDOW_ACTIONS = ('open', 'close', 'minimize', 'unminimize', 'dock')
 
 
 def required_protocol_version(command: str) -> int:
+    """运行请求不带时限字段，需要0.3.1（协议4）；控制命令按各自最低版本。"""
+    if command in ('run', 'submit'):
+        return 4
     return CONTROL_PROTOCOLS.get(command, 1)
 
 
@@ -637,7 +645,12 @@ def request_script_run(
         raise ValueError("target-script 不能为空。")
     with state_transaction(state_path):
         current = read_state_file(state_path)
-        require_available(current, replace_current)
+        published = cast(int, (current or {}).get('protocol_version', 1))
+        if published < 4:
+            raise ValueError(
+                f"模组协议版本{published}不支持无时限运行，请更新 TFWR Oracle Runner 到 0.3.1 并重启游戏。"
+            )
+        require_available(current, replace_current, state_path)
         request_id = allocate_request_id(state_path, current)
         write_state_file(
             state_path,
@@ -1086,7 +1099,7 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"real_game_runner requested request_id={request_id} "
             f"target_script={normalize_target_script_name(args.target_script)} "
-            f"client_wait={args.total_timeout:g} mode=request_only"
+            f"mode=request_only 已投递，不等待；用 status/wait/result 按ID查询"
         )
         return 0
 
@@ -1167,15 +1180,24 @@ def read_record(path: Path) -> dict[str, Any] | None:
     return value
 
 
-def require_available(current: dict | None, replace_current: bool) -> None:
-    """终态不是活动请求，可直接被新请求替换；只有请求进行中才要求显式--replace。"""
+def require_available(current: dict | None, replace_current: bool, state_path: Path | None = None) -> None:
+    """终态可替换，但要求结果已归档；请求进行中才要求显式--replace。"""
     if current is None:
         raise TaskError('not_connected', '模组状态文件尚未生成，请启动对应profile的游戏')
     status = current['status']
-    if status == 'idle' or status in TERMINAL_STATUSES or (
-        replace_current and status in ('requested', 'running', 'stop_requested')
-    ):
+    if status == 'idle' or replace_current:
         return
+    if status in TERMINAL_STATUSES:
+        receipt = None
+        if state_path is not None:
+            receipt = read_record(resolve_request_record_path(state_path, cast(int, current['request_id'])))
+        if receipt is None or receipt.get('result') is not None:
+            return
+        raise TaskError(
+            'result_not_collected',
+            '上一个请求已结束但结果还没归档；先 --action result 收结果，或用 --replace 明确丢弃',
+            request_id=current['request_id'], status=status,
+        )
     raise TaskError('busy', '当前请求尚未回收；先按ID等待并取结果，替换活动请求须显式指定--replace',
                     request_id=current['request_id'], status=status)
 
@@ -1229,7 +1251,7 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
                         raise TaskError('idempotency_conflict', '幂等键已用于不同参数，请复用原参数或换一个键')
                     return int(previous['request_id'])
             current = read_state_file(state_path)
-            require_available(current, args.replace)
+            require_available(current, args.replace, state_path)
             if required_protocol > 1 and cast(int, (current or {}).get('protocol_version', 1)) < required_protocol:
                 raise TaskError(
                     'mod_upgrade_required',
@@ -1503,7 +1525,7 @@ def task_health(args: argparse.Namespace, state_path: Path) -> dict[str, Any]:
 
 def task_main(args: argparse.Namespace) -> int:
     """stdout为一个JSON回执，监控文本走stderr；退出码与outcome一起解释。"""
-    action = args.action or ('status' if args.status_only else 'submit' if args.request_only else 'run')
+    action = args.action or ('status' if args.status_only else 'submit')
     request_id = args.request_id
     try:
         with redirect_stdout(sys.stderr):
