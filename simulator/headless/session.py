@@ -19,6 +19,20 @@ def clocktext(seconds):
     return f'{int(total // 60)}:{total % 60:06.3f}'
 
 
+def warn_stale_source(root):
+    """反编译事实源落后于本机游戏时提示更新命令，不阻塞会话。"""
+    checker = root / 'game_control' / 'tools' / 'refresh_decompiled_sources.py'
+    if not checker.is_file():
+        return
+    result = subprocess.run([sys.executable, str(checker), '--check'], cwd=root,
+                            capture_output=True, text=True, encoding='utf-8', errors='replace')
+    if result.returncode == 0:
+        return
+    for line in result.stdout.splitlines():
+        if '落后' in line or '≠' in line:
+            print(f'⚠ {line}')
+
+
 def runbatch(root, assemblies, script, args, seeds, output):
     command = [args.dotnet, str(assemblies), str(script), '--seeds', ','.join(str(seed) for seed in seeds),
                '--jobs', str(min(args.jobs, len(seeds))), '--seconds', f'{args.run_seconds:g}',
@@ -61,6 +75,7 @@ def main():
     elif args.output is None:
         args.output = Path('.codex/tmp/sessions') / f'{args.leaderboard or args.script.stem}-session.json'
     root = Path(__file__).resolve().parents[2]
+    warn_stale_source(root)
     assembly = Path(__file__).resolve().parent / 'bin/Release/net10.0/TFWRSimulator.dll'
     assemblies = assembly.relative_to(root)
     if not (root / assemblies).exists():
