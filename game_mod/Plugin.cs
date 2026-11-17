@@ -88,7 +88,7 @@ public sealed partial class Plugin : BaseUnityPlugin
 
         Log.LogInfo(
             $"enabled={runnerConfig.Enabled.Value} state_file={stateStore.StateFilePath} " +
-            $"poll_ms={runnerConfig.StartupPollIntervalMs.Value} default_timeout={runnerConfig.DefaultRequestTimeoutSeconds.Value}s");
+            $"poll_ms={runnerConfig.StartupPollIntervalMs.Value} save_timeout={runnerConfig.SaveTimeoutSeconds.Value}s");
     }
 
     private void OnDestroy()
@@ -349,6 +349,13 @@ public sealed partial class Plugin : BaseUnityPlugin
             lastHandledRequestId = requestedState.RequestId;
             return;
         }
+        if (command == "run" && (!requestedState.TimeoutSeconds.HasValue || requestedState.TimeoutSeconds.Value <= 0))
+        {
+            MarkFailedWithOutput(requestedState, "run requires an explicit positive timeout_seconds", DateTimeOffset.UtcNow);
+            stateStore.Write(requestedState);
+            lastHandledRequestId = Math.Max(lastHandledRequestId, requestedState.RequestId);
+            return;
+        }
         bool control = command != "run";
         if (control && mainSim.IsExecuting() && !preparationStopInvoked)
         {
@@ -472,9 +479,8 @@ public sealed partial class Plugin : BaseUnityPlugin
             return;
         }
 
-        double timeoutSeconds = activeRequest.TimeoutSeconds ?? runnerConfig.DefaultRequestTimeoutSeconds.Value;
-        if (timeoutSeconds > 0 &&
-            Time.realtimeSinceStartup - activeRequestStartedAt >= timeoutSeconds)
+        double timeoutSeconds = activeRequest.TimeoutSeconds!.Value;
+        if (Time.realtimeSinceStartup - activeRequestStartedAt >= timeoutSeconds)
         {
             BeginStop(mainSim, StopReason.Timeout);
             return;
@@ -817,7 +823,7 @@ public sealed partial class Plugin : BaseUnityPlugin
             MarkFailedWithOutput(
                 activeRequest,
                 stopReason == StopReason.Timeout
-                    ? $"request timed out after {(activeRequest.TimeoutSeconds ?? runnerConfig.DefaultRequestTimeoutSeconds.Value):0.###}s"
+                    ? $"request timed out after {activeRequest.TimeoutSeconds:0.###}s"
                     : activeRequest.LastError ?? "stop requested",
                 DateTimeOffset.UtcNow
             );

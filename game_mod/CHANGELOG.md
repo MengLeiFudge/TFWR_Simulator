@@ -7,7 +7,8 @@
 - `ok`、`list`、`minimize`、`unminimize`、`play`、`stop` 为即时命令，不等待工作区空闲；其中 `stop` 主动停止当前程序。
 - 协议版本升到 3；新增命令要求 `protocol_version >= 3`，旧客户端仍可只用 `run`/`prepare`/`quit`。
 - 配置改为 `General`（`AutoPlayMainMenu`、`AutoOkLeaderboardResult`、`Enabled`）与 `Advanced`（缺省窗口、轮询间隔、各类超时）两段。
-- 保存统一走异步 `Saver.Save`：窗口变更、`save` 和 `quit` 共用等待与请求超时；另增 `Advanced.SaveTimeoutSeconds` 独立上限（默认30秒，范围1～300秒），请求不限时时仍生效。取消或替换撤销退出，保存失败保留现场；状态文件丢失或读取失败时记录请求上下文。
+- 脚本运行由调用方显式提供正的有限 `timeout_seconds`，CLI运行提交必须传 `--request-timeout`；移除模组默认运行时限。控制和查询操作不使用运行时限。
+- 保存统一走异步 `Saver.Save`：窗口变更、`save` 和 `quit` 仅使用 `Advanced.SaveTimeoutSeconds`（默认10秒，范围0～60秒，0表示不限时），与脚本运行时限独立。取消或替换撤销退出，保存失败保留现场；状态文件丢失或读取失败时记录请求上下文。
 - 状态文件新增实时字段 `executing`、`leaderboard_running`、`leaderboard_screen`、`busy_windows`，每轮轮询刷新；外部队列据此判断运行何时结束、何时可以改脚本文件。
 - 新增配置 `AutoOkLeaderboardResult`：结果页一出现就按 OK。结果页打开期间游戏仍报告 `IsExecuting=true`，等结束的外部脚本会被卡死。
 

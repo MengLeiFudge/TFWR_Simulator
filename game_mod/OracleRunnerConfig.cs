@@ -31,18 +31,13 @@ internal sealed class OracleRunnerConfig
             "ScriptReadyTimeoutSeconds",
             30f,
             "等待脚本窗口出现的最长时间（秒），一般不用改。");
-        DefaultRequestTimeoutSeconds = config.Bind(
-            "Advanced",
-            "DefaultRequestTimeoutSeconds",
-            20f,
-            "请求未给 timeout_seconds 时的默认执行超时（秒），一般不用改。");
         SaveTimeoutSeconds = config.Bind(
             "Advanced",
             "SaveTimeoutSeconds",
-            30f,
+            10f,
             new ConfigDescription(
-                "等待游戏保存的独立上限（秒，1至300）；请求 timeout_seconds=0 时仍生效。",
-                new AcceptableValueRange<float>(1f, 300f)));
+                "等待游戏保存的时间上限（秒，0至60）；0表示不限时。",
+                new AcceptableValueRange<float>(0f, 60f)));
         AutoOkLeaderboardResult = config.Bind(
             "General",
             "AutoOkLeaderboardResult",
@@ -64,8 +59,6 @@ internal sealed class OracleRunnerConfig
     public ConfigEntry<int> StartupPollIntervalMs { get; }
 
     public ConfigEntry<float> ScriptReadyTimeoutSeconds { get; }
-
-    public ConfigEntry<float> DefaultRequestTimeoutSeconds { get; }
 
     public ConfigEntry<float> SaveTimeoutSeconds { get; }
 

@@ -87,7 +87,7 @@ python3 game_control/tools/sync_leaderboard_scripts.py cur2save --all
 
 ### `run_real_game_script.py`
 
-启动或复用真实游戏，通过状态机请求模组执行目标脚本：
+启动或复用真实游戏，通过状态机请求模组执行目标脚本。AI每次提交运行都必须根据任务预算显式传入 `--request-timeout`，单位为墙钟秒，须为大于0的有限值；没有默认时限，0、负数、NaN和无穷大均拒绝。该参数用于 `run`、`submit` 和旧版文本提交，查询与控制操作不接受它。`--total-timeout` 单独控制客户端本次等待多久；保存时限使用模组的 [SaveTimeoutSeconds 配置](../game_mod/README.md#配置)。
 
 ```bash
 python3 game_control/tools/run_real_game_script.py --target-script lb_start --request-timeout 20
@@ -138,7 +138,7 @@ python3 game_control/tools/run_real_game_script.py --action quit
 | `health` | 查询进程、状态、路径和有限日志中的模组版本；`workspace_ready=null`，不将文件存在当作工作区已就绪 |
 | `prepare` | 停止当前游戏执行、确认结果页并进入工作区；等待完成并回收，返回 `workspace_ready` |
 | `quit` | 停止、保存并正常退出游戏；等待完成并回收，再确认原进程退出，返回 `game_exited` |
-| `save` | 停止执行并等待保存确认；等待受请求超时和模组 `Advanced.SaveTimeoutSeconds` 独立上限约束 |
+| `save` | 停止执行并等待保存确认；保存阶段只使用模组 `Advanced.SaveTimeoutSeconds` 配置 |
 | `play/stop/ok/list` | 进入工作区、停止程序、关闭结果页或读取窗口清单；`list` 的结果在 `result_text` |
 | `open/close/minimize/unminimize` | 用 `--target-script` 指定窗口；`open` 可用 `--code-file` 指定源码和 `--second-script` 指定停靠窗口 |
 | `dock` | 将 `--target-script` 窗口停靠到 `--second-script` 窗口链尾 |

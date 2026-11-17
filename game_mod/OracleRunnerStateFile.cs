@@ -32,7 +32,7 @@ public sealed class OracleRunnerStateFile
     [DataMember(Name = "target_script")]
     public string? TargetScript { get; set; }
 
-    /// <summary>请求的墙钟超时秒数；零表示不限制执行时间。</summary>
+    /// <summary>run必须显式提供正的有限墙钟秒数；控制命令不使用此字段。</summary>
     [DataMember(Name = "timeout_seconds")]
     public double? TimeoutSeconds { get; set; }
 

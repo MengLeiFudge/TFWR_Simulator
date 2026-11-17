@@ -132,8 +132,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--request-timeout",
         type=float,
-        default=20.0,
-        help="单次请求在模组内运行的超时时间，默认 20 秒。",
+        default=None,
+        help="运行脚本的墙钟时间上限（秒）；run/submit及文本提交必须显式给出大于0的有限值。",
     )
     parser.add_argument(
         "--startup-timeout",
@@ -193,7 +193,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="--status-only 即使 state=running 也读取游戏 output.txt；仅在确认游戏不在写日志时使用。",
     )
     args = parser.parse_args(argv)
-    for name in ('request_timeout', 'startup_timeout', 'total_timeout', 'poll_interval', 'output_stall_timeout'):
+    if not args.status_only and args.action in (None, 'run', 'submit'):
+        if args.request_timeout is None or not math.isfinite(args.request_timeout) or args.request_timeout <= 0:
+            parser.error('运行脚本必须显式提供 --request-timeout，值须为大于0的有限秒数')
+    elif args.request_timeout is not None:
+        parser.error('--request-timeout只用于运行脚本；保存时限使用模组的SaveTimeoutSeconds配置')
+    for name in ('startup_timeout', 'total_timeout', 'poll_interval', 'output_stall_timeout'):
         value = getattr(args, name)
         if not math.isfinite(value) or value < 0 or (name in ('startup_timeout', 'total_timeout', 'poll_interval') and value == 0):
             parser.error(f'{name} 必须是有效的非负秒数；启动/等待/轮询须大于0')
@@ -252,13 +257,13 @@ def build_requested_state(
     *,
     request_id: int,
     target_script: str,
-    timeout_seconds: float,
+    timeout_seconds: float | None,
 ) -> dict[str, object]:
     return {
         "request_id": request_id,
         "status": "requested",
         "target_script": normalize_target_script_name(target_script),
-        "timeout_seconds": float(timeout_seconds),
+        "timeout_seconds": float(timeout_seconds) if timeout_seconds is not None else None,
         "started_at": None,
         "finished_at": None,
         "last_error": None,
@@ -639,8 +644,8 @@ def request_script_run(
     replace_current: bool = False,
 ) -> int:
     """锁内检查空闲再提交；显式替换才允许覆盖活动请求。"""
-    if not math.isfinite(timeout_seconds) or timeout_seconds < 0:
-        raise ValueError("request-timeout 必须是非负有限秒数；0 表示不限时。")
+    if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
+        raise ValueError("request-timeout 必须显式提供大于0的有限秒数。")
     if not normalize_target_script_name(target_script):
         raise ValueError("target-script 不能为空。")
     with state_transaction(state_path):

@@ -138,12 +138,7 @@ public sealed partial class Plugin
         }
 
         double timeout = runnerConfig.SaveTimeoutSeconds.Value;
-        double requestTimeout = savingRequest.TimeoutSeconds ?? runnerConfig.DefaultRequestTimeoutSeconds.Value;
-        if (requestTimeout > 0)
-        {
-            timeout = Math.Min(timeout, requestTimeout);
-        }
-        if (!saveTask.IsCompleted && Time.realtimeSinceStartup - saveStartedAt < timeout)
+        if (!saveTask.IsCompleted && (timeout == 0 || Time.realtimeSinceStartup - saveStartedAt < timeout))
         {
             MaybeLogProgress($"等待游戏保存 request_id={current.RequestId}");
             return true;
