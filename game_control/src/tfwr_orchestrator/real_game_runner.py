@@ -94,6 +94,17 @@ class TaskError(RuntimeError):
         self.details = details
 
 
+def resolve_effective_action(args: argparse.Namespace) -> str:
+    """先确定最终动作再校验参数：--json、--request-only 和幂等键都归为异步提交。"""
+    if args.action:
+        return args.action
+    if args.status_only:
+        return 'status'
+    if args.request_only or args.json or args.idempotency_key:
+        return 'submit'
+    return 'run'
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -103,7 +114,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument('--action', choices=('run', 'submit', 'status', 'wait', 'cancel', 'result', 'health') + CONTROL_ACTIONS,
                         help='AI任务操作；指定后stdout只输出一个JSON对象')
-    parser.add_argument('--json', action='store_true', help='使用JSON任务接口；默认执行run')
+    parser.add_argument('--json', action='store_true',
+                        help='使用JSON任务接口；默认提交（submit）后立即返回，要同步等待请加 --action run')
     parser.add_argument('--request-id', type=int, help='查询、等待、取消或收取的请求ID')
     parser.add_argument('--idempotency-key', help='提交重试键；相同键和参数复用原请求，不重复启动')
     parser.add_argument('--replace', action='store_true', help='明确允许新请求停止并替换当前活动请求')
@@ -139,7 +151,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--total-timeout",
         type=float,
         default=None,
-        help="客户端愿意等待的现实秒数；run/submit及文本提交必须显式给出大于0的有限值，其余操作省略时按300秒。",
+        help="客户端愿意等待的现实秒数；run/wait/文本同步模式必须显式给出，submit不接受，控制命令省略时按300秒。",
     )
     parser.add_argument(
         "--poll-interval",
@@ -187,14 +199,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="--status-only 即使 state=running 也读取游戏 output.txt；仅在确认游戏不在写日志时使用。",
     )
     args = parser.parse_args(argv)
+    args.effective_action = resolve_effective_action(args)
     if args.total_timeout is not None and (not math.isfinite(args.total_timeout) or args.total_timeout <= 0):
         parser.error('--total-timeout 须为大于0的有限现实秒数')
-    if args.action == 'submit' and args.total_timeout is not None:
-        parser.error('submit 只投递不等待，不接受 --total-timeout；到期自动停止请用 --action run，或提交后用 --action wait')
-    if (args.action in ('run', 'wait')
-            or (args.action is None and not args.json and not args.status_only and not args.request_only)
-            ) and args.total_timeout is None:
-        parser.error('同步等待入口必须显式提供 --total-timeout（客户端愿意等待的现实秒）；异步投递用 --json 或 --action submit')
+    if args.effective_action == 'submit' and args.total_timeout is not None:
+        parser.error('submit只投递不等待，不接受--total-timeout；到期停止请用--action run，或提交后用--action wait')
+    if args.effective_action in ('run', 'wait') and args.total_timeout is None:
+        parser.error(f'{args.effective_action}是同步等待入口，必须显式提供--total-timeout（客户端愿意等待的现实秒）')
     if args.total_timeout is None:
         args.total_timeout = 300.0
     for name in ('startup_timeout', 'total_timeout', 'poll_interval', 'output_stall_timeout'):
@@ -1191,8 +1202,14 @@ def require_available(current: dict | None, replace_current: bool, state_path: P
         receipt = None
         if state_path is not None:
             receipt = read_record(resolve_request_record_path(state_path, cast(int, current['request_id'])))
-        if receipt is None or receipt.get('result') is not None:
+        if receipt is not None and receipt.get('result') is not None:
             return
+        if receipt is None:
+            raise TaskError(
+                'result_not_collected',
+                '上一个请求已结束但来自没有回执的旧入口，结果无法归档；确认丢弃请加 --replace',
+                request_id=current['request_id'], status=status,
+            )
         raise TaskError(
             'result_not_collected',
             '上一个请求已结束但结果还没归档；先 --action result 收结果，或用 --replace 明确丢弃',
@@ -1525,7 +1542,7 @@ def task_health(args: argparse.Namespace, state_path: Path) -> dict[str, Any]:
 
 def task_main(args: argparse.Namespace) -> int:
     """stdout为一个JSON回执，监控文本走stderr；退出码与outcome一起解释。"""
-    action = args.action or ('status' if args.status_only else 'submit')
+    action = args.effective_action
     request_id = args.request_id
     try:
         with redirect_stdout(sys.stderr):

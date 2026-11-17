@@ -92,7 +92,7 @@ public sealed class SimulationOptions
         }
         if (seen.Contains("--seed") && seen.Contains("--seeds")) throw new ArgumentException("Use seed or seeds, not both");
         if (result.Seeds.Length == 0) result.Seeds = [result.Seed];
-        if (!seen.Contains("--jobs")) result.Jobs = Math.Max(1, Math.Min(Environment.ProcessorCount, result.Seeds.Length));
+        if (!seen.Contains("--jobs")) result.Jobs = Math.Max(1, Math.Min(Math.Min(Environment.ProcessorCount, result.Seeds.Length), 64));
         if (result.Seeds.Length > 100 || result.Seeds.Distinct().Count() != result.Seeds.Length || result.Seeds.Any(s => s < 0)
             || result.Jobs < 1 || result.Jobs > 64 || result.MaxCalls < 1 || result.MaxNodes < 1 || result.Size is < 0 or > 32
             || !double.IsFinite(result.GameSeconds) || result.GameSeconds <= 0 || result.GameSeconds > 86400

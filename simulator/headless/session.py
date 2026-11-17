@@ -71,7 +71,9 @@ def main():
     parser.add_argument('--output', type=Path, help='会话报告路径，默认写 .codex/tmp/sessions/<榜单或脚本>-session.json，同名覆盖')
     parser.add_argument('--no-output', action='store_true', help='只在标准输出打印结论，不写报告文件')
     args = parser.parse_args()
-    args.jobs = args.jobs or (os.cpu_count() or 1)
+    args.jobs = args.jobs or min(os.cpu_count() or 1, 64)
+    if not 1 <= args.jobs <= 64:
+        parser.error('--jobs 须在1～64之间（模拟器单批并行上限）')
     if args.no_output:
         args.output = None
     elif args.output is None:
