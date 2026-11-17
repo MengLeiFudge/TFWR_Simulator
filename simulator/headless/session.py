@@ -53,8 +53,13 @@ def main():
     parser.add_argument('--extra', action='append', default=[], help='透传给模拟器的额外参数，如 "--size 32"')
     parser.add_argument('--expect-seconds', type=float, help='单轮预估游戏秒，用来限制首批并发')
     parser.add_argument('--dotnet', default='dotnet')
-    parser.add_argument('--output', type=Path, help='会话报告路径，相对于仓库根目录')
+    parser.add_argument('--output', type=Path, help='会话报告路径，默认写 .codex/tmp/sessions/<榜单或脚本>-session.json，同名覆盖')
+    parser.add_argument('--no-output', action='store_true', help='只在标准输出打印结论，不写报告文件')
     args = parser.parse_args()
+    if args.no_output:
+        args.output = None
+    elif args.output is None:
+        args.output = Path('.codex/tmp/sessions') / f'{args.leaderboard or args.script.stem}-session.json'
     root = Path(__file__).resolve().parents[2]
     assembly = Path(__file__).resolve().parent / 'bin/Release/net10.0/TFWRSimulator.dll'
     assemblies = assembly.relative_to(root)

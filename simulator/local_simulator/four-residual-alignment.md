@@ -36,7 +36,7 @@
 
 ## 证据
 
-本机证据根目录为`.codex/leaderboard-sol/four-residual-alignment/`。`before-manifest.json`与`before-*.py`保留修正前来源；中间模型与原始结果分别归档；`final-model-manifest.json`固定最终模型，`regression/`及`selected-results.json`保存最终16榜完整结果。四个目标目录的`native-precision-v1/`保存原生269～272完整回执、双日志、入口、部署与恢复指纹；`checkpoint-replays/`及`checkpoint-replay-summary.json`保存最终检查点对照。
+本机证据根目录为`.codex/leaderboard-sol/four-residual-alignment/`（原始材料已于 2026-11-17 清理）。`before-manifest.json`与`before-*.py`保留修正前来源；中间模型与原始结果分别归档；`final-model-manifest.json`固定最终模型，`regression/`及`selected-results.json`保存最终16榜完整结果。四个目标目录的`native-precision-v1/`保存原生269～272完整回执、双日志、入口、部署与恢复指纹；`checkpoint-replays/`及`checkpoint-replay-summary.json`保存最终检查点对照。
 
 诊断中的`sun-merge-ticks`为定位wait竞态增加了每rank两次收费下标预览，两端都包含这些费用，仅作首差定位；没有把它的时间当成正式源的完整时间。私有插桩生成器的`elif`语法错误及汇总器误判JSON顶层结构均在实机投递前停止，失败源码和stderr保留，修正后才继续。
 

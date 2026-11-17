@@ -12,7 +12,7 @@
 
 最终执行文件再按每例15墙钟秒运行，seed0/1/123分别完成77/75/77座塔，最后结算边界为1167.29/1063.38/1073.92游戏秒、净Power127927.57/131570.46/137538.18。按`150100×边界时间/边界净Power`外推1369.604917845/1213.139621158/1172.004689898秒，均1251.583076300秒；记录日志精度0.01秒，未选择性删除较慢seed0。三例均预算到限、状态完整且速率有效，原150100目标未完整跑完；这是连续已结算周期估算，没有把停止时间写成完成时间。Parser及当前源码指纹通过，ty零错误、零警告，16条提示；无新版实机。
 
-旧版完整三seed1285.509868964/1241.532496481/1296.294932258秒，均1274.445765901秒；本批父版seed1完整复现1285.509868964秒。其86塔定位381.58、清填270.54、稳定采样156.96、备料/维修/收获373.32秒；`wasted`计1000次即时放置未增高，不能把它直接等同全部Block损耗。历史request482正式6轮1363.254秒。原始输入/源码/报告、完整周期配对及外推计算留`.codex/five-structures-20261115/pyramid-results.json`。
+旧版完整三seed1285.509868964/1241.532496481/1296.294932258秒，均1274.445765901秒；本批父版seed1完整复现1285.509868964秒。其86塔定位381.58、清填270.54、稳定采样156.96、备料/维修/收获373.32秒；`wasted`计1000次即时放置未增高，不能把它直接等同全部Block损耗。历史request482正式6轮1363.254秒。原始输入/源码/报告、完整周期配对及外推计算留`.codex/five-structures-20261115/pyramid-results.json`（原始材料已于 2026-11-17 清理）。
 
 ## 淘汰与未采用方案
 
@@ -31,7 +31,7 @@
 | 西基边两机南北走端点 | seed1完整1310.944088712秒，对1285.509868964秒，慢25.434秒 | 少派机与少挖不等于更短关键路径，定位均时4.437→5.056秒，未采用 | `make_edge.py`从父版替换`pyramid_edge_bounds`，分别spawn/主机调用`pyramid_boundary((x0,y),floor,(0,±1))` |
 | 塔外留一格隔离带、缺Block才并行采料 | seed1正常结算32塔，32订单库存均足，最低余量198；动作数量与父版相同，新增采料工人没有启动 | 本窗口没有单机采料瓶颈；不能从未触发分支宣称所有并行备料已验证或无用 | `make_materials.py`及`pyramid-materials-seed1.json`；双向边界完整85塔也无缺料订单，最小余量185 |
 
-本批可复用机制：当前资源快照`DesignConstants.caveIn.neighborsInStabilityPropagation=0`对应four，Sand稳定度为2；挖掘后的稳定传播按四邻处理，而新放Sand另要求下层八邻Sand/Limestone（脚下Limestone为例外）。两者不能混为八邻坍塌。依据为`simulator/headless/data/assets.json`、原版`Native/Design.cs`枚举及`Native/Farm.cs`的`ClearGroundWithCaveins`/`isSandSupported`。模板原生蚀损为3～6整柱，不是固定只缺顶端一两块。负例只关闭已测构造；原始脚本/生成步骤与报告均在`.codex/five-structures-20261115/`，不将预算退出写成完整成绩。
+本批可复用机制：当前资源快照`DesignConstants.caveIn.neighborsInStabilityPropagation=0`对应four，Sand稳定度为2；挖掘后的稳定传播按四邻处理，而新放Sand另要求下层八邻Sand/Limestone（脚下Limestone为例外）。两者不能混为八邻坍塌。依据为`simulator/headless/data/assets.json`、原版`Native/Design.cs`枚举及`Native/Farm.cs`的`ClearGroundWithCaveins`/`isSandSupported`。模板原生蚀损为3～6整柱，不是固定只缺顶端一两块。负例只关闭已测构造；原始脚本/生成步骤与报告均在`.codex/five-structures-20261115/`（原始材料已于 2026-11-17 清理），不将预算退出写成完整成绩。
 
 ## 历史正式版本演进
 

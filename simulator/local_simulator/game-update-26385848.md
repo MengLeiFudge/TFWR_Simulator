@@ -44,7 +44,7 @@
 | resources.assets | `69530547e96315f230557c12d4133154b3dcdbace2cfe256ac018003a96ec931` |
 | 被替代的旧Core.dll | `b8ac8d22b614d9e48d3affa9a4de9c77e799b824ed8f50dc2e494cc2dd9f9082` |
 
-本机原始证据位于 `.codex/leaderboard-sol/game-update/`：`source-manifest.json`、两份完整反编译源码、`assets.current.json` 和 `asset-comparison.json`。资产共解析16实体、38帽子、20物品、30榜单、53科技，解析错误为0。提取使用隔离的UnityPy工具环境，模拟器运行依赖仍只有Python标准库。
+本机原始证据位于 `.codex/leaderboard-sol/game-update/`（原始材料已于 2026-11-17 清理）：`source-manifest.json`、两份完整反编译源码、`assets.current.json` 和 `asset-comparison.json`。资产共解析16实体、38帽子、20物品、30榜单、53科技，解析错误为0。提取使用隔离的UnityPy工具环境，模拟器运行依赖仍只有Python标准库。
 
 关键源码入口是 `Sunflower.Harvest/GetHarvestYield`、`Tree.OnFree`、`Farm.UsePower`、`Treasure.Harvest/CompleteRepositioning`、`DinosaurHat.FindFreeCells/TryChooseTarget/OnMove/RemoveApple`、`Apple.Measure`、`GridManager.GenerateExpandedWorld/GenerateWorld/ClearGrid/WaterDecay`、`Simulation` 构造器和 `BufferedCryptoRandom`。
 

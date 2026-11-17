@@ -12,7 +12,7 @@ Wood短前缀定位到工厂返回静态名称后立即调用被多收1t，多�
 
 最终模型重跑全部16份正式源，目标均完成，库存非负；其他12榜本地时间逐项不变，仍只核对到既有0.01秒原生显示精度。Reset固定前缀315条tick检查点及向日葵两波9920条收割检查点与原生相同，前缀总时间也相同到整数纳秒。细节、首差与覆盖边界见[四榜修复](four-residual-alignment.md)。这通过所列脚本/场景的单seed时间对照，不能推广为全部方法、状态或任意策略完全一致。
 
-本次新增证据位于`.codex/leaderboard-sol/four-residual-alignment/`，保存最终模型指纹、16榜完整本地回归、四次纳秒原生返回、检查点对照与存档恢复清单。三个生产文件LSP零诊断。此前证据位于`.codex/leaderboard-sol/game-update-revalidation/`，保留修正前baseline、中间model-v2、最终model-v3及paired-results-model-v3.json、选定实现的selected-results.json、执行时模型源码与哈希、原始真实回执和双日志。下文139条、662条和旧版约900秒通过记录仍只属于旧指纹；本批策略对照不等于重新完成全部方法与边界清单。
+本次新增证据位于`.codex/leaderboard-sol/four-residual-alignment/`（原始材料已于 2026-11-17 清理），保存最终模型指纹、16榜完整本地回归、四次纳秒原生返回、检查点对照与存档恢复清单。三个生产文件LSP零诊断。此前证据位于`.codex/leaderboard-sol/game-update-revalidation/`（原始材料已于 2026-11-17 清理），保留修正前baseline、中间model-v2、最终model-v3及paired-results-model-v3.json、选定实现的selected-results.json、执行时模型源码与哈希、原始真实回执和双日志。下文139条、662条和旧版约900秒通过记录仍只属于旧指纹；本批策略对照不等于重新完成全部方法与边界清单。
 
 ## 2026-10-27：解释器节时写法专项
 
@@ -32,7 +32,7 @@ request138没有产生探针输出，不能算通过：探针用了游戏不接�
 
 仅用`simulate`验证语言，没有重新运行完整榜单。139/140都完成并回收到同ID idle，已有`test.py`、`simulate.py`、`lb_start.py`逐字节恢复。request141正常退出，最终health为idle141、进程ID为空；BepInEx和Unity日志没有新增Error/Exception。
 
-本机证据：`.codex/leaderboard-astra/interpreter-alignment/acceptance-final.json`。同目录保留实际脚本、依赖与备份哈希、每次原始请求报告、双日志、本地报告和比较器；`real-3/`对应request140。此专项证明上述操作的费用与返回值，不证明完整语言或任意策略无误差。普通通配导入、模块属性赋值等明确拒绝；完整浮点字符串格式化、地区相关字符串排序及全部切片边界仍未全面对齐，不应用这些未验证语义推断候选胜负。
+本机证据：`.codex/leaderboard-astra/interpreter-alignment/acceptance-final.json`（原始材料已于 2026-11-17 清理）。同目录保留实际脚本、依赖与备份哈希、每次原始请求报告、双日志、本地报告和比较器；`real-3/`对应request140。此专项证明上述操作的费用与返回值，不证明完整语言或任意策略无误差。普通通配导入、模块属性赋值等明确拒绝；完整浮点字符串格式化、地区相关字符串排序及全部切片边界仍未全面对齐，不应用这些未验证语义推断候选胜负。
 
 ## 旧版单seed精度验收：记录场景通过
 

@@ -41,7 +41,7 @@ Quartz定位版Reset源码在普通初始科技、零库存和seed1下，修正�
 
 前两项在修改后重放本地固定输入，对照保留的原始当前构建实机归档；后六项在修正后重新运行实机。原源码、场景、修前报告和原始请求均未覆盖。八项离散状态、整数值一致，小数只按quick_print的0.01显示精度比较；完整返回时间来自simulate返回值的整数纳秒，单独精确核对。七个长程窗口均超过900游戏秒，满足误差小于1秒的门槛。`underground.py`的ty LSP无诊断。
 
-证据根目录：`.codex/leaderboard-sol/underground-official/alignment-26462009/`。`current-reset`与`rice-ground-only`下的`model-after-cavein.json`及`game-seed1/comparison-after-cavein.json`保留修后重放；`ore-methods`、`iron-prospect`、`lazy-cover`、`late-coal3`、`late-rice5`、`shallow-coal16`下的`game-seed1/comparison.json`保留新鲜方法与组合复核。Core.dll SHA256为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。各请求检查BepInEx和Unity双日志，未见新增错误，同ID回idle后恢复已有test.py/simulate.py，其他存档Python文件哈希未变。
+证据根目录：`.codex/leaderboard-sol/underground-official/alignment-26462009/`（原始材料已于 2026-11-17 清理）。`current-reset`与`rice-ground-only`下的`model-after-cavein.json`及`game-seed1/comparison-after-cavein.json`保留修后重放；`ore-methods`、`iron-prospect`、`lazy-cover`、`late-coal3`、`late-rice5`、`shallow-coal16`下的`game-seed1/comparison.json`保留新鲜方法与组合复核。Core.dll SHA256为`f0efda7c138de8028b1769c121a4b5c17b6bb538aeae5a67d1881e7c4ebd7d25`。各请求检查BepInEx和Unity双日志，未见新增错误，同ID回idle后恢复已有test.py/simulate.py，其他存档Python文件哈希未变。
 
 本次只确认上述源码、参数、seed和组合。资源快照及原有模型元数据仍保留真实来源版本；未将全部API、任意并发或正式榜单专用盘面标为当前构建精度通过。修正前的策略预测保留为历史，后续候选使用修正后报告；没有为验收模型逐榜运行14个完整策略。
 
@@ -49,7 +49,7 @@ Quartz定位版Reset源码在普通初始科技、零库存和seed1下，修正�
 
 炸药单机候选在普通8×8、满级科技、seed1下保留100000 Dynamite目标。原256次搜层边界在32.053517640秒停止，未投递实机。仅把搜层和开格覆盖层上限放宽到2048后，模型在1316.479833090秒以`dynamite_cycle 27 error 0 368`返回，实际库存50144，仍未达目标。两份失败报告保留，未改变正式专用榜的256次边界或100000目标。
 
-实机请求405复现后者：37条输出的文本、整数和状态一致，完整时间1316.479833090秒，误差0ns。双日志无新增错误，同ID回idle后恢复已有test.py/simulate.py，其余Python文件哈希未变。证据为`.codex/leaderboard-sol/underground-official/alignment-26462009/dynamite-single-lazy-cover-ordinary-failure/game-seed1/comparison.json`及原始日志、派生源码与参数清单。
+实机请求405复现后者：37条输出的文本、整数和状态一致，完整时间1316.479833090秒，误差0ns。双日志无新增错误，同ID回idle后恢复已有test.py/simulate.py，其余Python文件哈希未变。证据为`.codex/leaderboard-sol/underground-official/alignment-26462009/dynamite-single-lazy-cover-ordinary-failure/game-seed1/comparison.json`（原始材料已于 2026-11-17 清理）及原始日志、派生源码与参数清单。
 
 该项只确认模型如实复现所列失败边界。`goal_reached=false`，`long_window_passed=false`；不计为完整目标组合通过，不外推到专用盘面。普通地层中返回error的精确分支尚未定位，正式榜的原目标验证另记策略文档。
 
@@ -57,13 +57,13 @@ Quartz定位版Reset源码在普通初始科技、零库存和seed1下，修正�
 
 请求408在普通8×8、满级科技、seed1下核对地面/坐标查询、硬度/稳定性越界及成功/失败推送。先在(0,0)放置Block_Red，从(7,0)查询East得到该红块及z=1，而硬度和稳定性查询均为None。人工彩块不可推，can_push/push均返回False。移除彩块后找到实际Mushroom层-65，将西侧环绕邻柱(7,0)准备到-66，再从(0,0)向West成功push；实际两柱高度变为-66/-65。
 
-本地与实机5条输出的文本、整数、状态一致，完整时间均为7.248601350游戏秒，误差0ns。双日志无新增错误，同ID回idle后恢复已有test.py/simulate.py，其他Python文件哈希未变。证据为`.codex/leaderboard-sol/underground-official/alignment-26462009/wrap-methods-v3/game-seed1/comparison.json`。该项只通过所列方法与边界，窗口小于900秒，`long_window_passed=false`。
+本地与实机5条输出的文本、整数、状态一致，完整时间均为7.248601350游戏秒，误差0ns。双日志无新增错误，同ID回idle后恢复已有test.py/simulate.py，其他Python文件哈希未变。证据为`.codex/leaderboard-sol/underground-official/alignment-26462009/wrap-methods-v3/game-seed1/comparison.json`（原始材料已于 2026-11-17 清理）。该项只通过所列方法与边界，窗口小于900秒，`long_window_passed=false`。
 
 ## 2026-11-07：Rice升级费用短方法对照
 
 请求413使用当前Reset在Mining5/Iron2后的正常前置科技，初始Rice3、Block3000。默认get_cost先返回Rice4所需1000 Block，解锁后Rice4/Block2000；再次返回Rice5所需2000 Block，解锁后Rice5/Block0。返回值、等级和扣减库存均逐项核对，本地与实机4条输出一致，完整时间均为0.139588856游戏秒，误差0ns。
 
-证据为`.codex/leaderboard-sol/underground-official/alignment-26462009/rice-upgrade-costs/game-seed1/comparison.json`，探针为`.codex/tests/rice_upgrade_costs_probe.py`。双日志无新增错误，同ID回idle后恢复已有test.py/simulate.py，其他Python文件未变。该项只覆盖默认get_cost和这两个升级的资源扣减，`long_window_passed=false`。
+证据为`.codex/leaderboard-sol/underground-official/alignment-26462009/rice-upgrade-costs/game-seed1/comparison.json`（原始材料已于 2026-11-17 清理），探针为`.codex/tests/rice_upgrade_costs_probe.py`。双日志无新增错误，同ID回idle后恢复已有test.py/simulate.py，其他Python文件未变。该项只覆盖默认get_cost和这两个升级的资源扣减，`long_window_passed=false`。
 
 ## 实现范围
 
@@ -145,7 +145,7 @@ python3 -m simulator.local_simulator strategy.py --leaderboard mushrooms_single 
 
 ## 证据与纠偏
 
-原始资料保存在本机 `.codex/dlc-sim/`：每个用例含 `probe.py`、`scenario.json`、`seedN/local.json`、`fresh-local.json`、`outputs.json`、完整请求与双日志、`comparison.json`、`restoration.json`。总表为 `comparison.json`；工具为 `run_pair.py` 和 `compare.py --fresh`。排行榜本地检查位于 `leaderboards/reports.json`、`goal-reports.json`，CLI 检查为 `cli-mushrooms.json`。
+原始资料保存在本机 `.codex/dlc-sim/`（原始材料已于 2026-11-17 清理）：每个用例含 `probe.py`、`scenario.json`、`seedN/local.json`、`fresh-local.json`、`outputs.json`、完整请求与双日志、`comparison.json`、`restoration.json`。总表为 `comparison.json`；工具为 `run_pair.py` 和 `compare.py --fresh`。排行榜本地检查位于 `leaderboards/reports.json`、`goal-reports.json`，CLI 检查为 `cli-mushrooms.json`。
 
 失败与修正证据保留：
 

@@ -18,7 +18,7 @@
 
 均值294.318080982→272.152114256秒，用时减少7.53%。每例15墙钟秒，全部正常结束、目标达成、状态完整，母版和产物均经原版Parser执行。费用报告定位到旧二维动态距离计算43895t、成熟选择60959t及反复距离表构造10288t；整数相对位置表消除重复几何计算后，未预生成母版三seed280.691306791/273.444023412/272.665249746秒，预生成再省5.749/2.184/2.411秒。成熟与随机调用随初始化时间变化，不能把全部差异说成相同动作下的纯tick差。
 
-报告、费用与源码指纹留`.codex/gemini-directions-20261115/`：`sun-single-base`、`sun-single-v2-costs.json`、`sun-tables-mother-final`（seed0/123）、`sun-single-tables-template`（seed1）及`final-sunflowers_single`。生成及逐字节核对见[工具说明](../../simulator/optimizer/README.md)，固定来源见[来源记录](github_strategy_research.md#gemini交接的公开机制)。旧版request452正式均295.370520秒仍是公开成绩来源。
+报告、费用与源码指纹留`.codex/gemini-directions-20261115/`（原始材料已于 2026-11-17 清理）：`sun-single-base`、`sun-single-v2-costs.json`、`sun-tables-mother-final`（seed0/123）、`sun-single-tables-template`（seed1）及`final-sunflowers_single`。生成及逐字节核对见[工具说明](../../simulator/optimizer/README.md)，固定来源见[来源记录](github_strategy_research.md#gemini交接的公开机制)。旧版request452正式均295.370520秒仍是公开成绩来源。
 
 ## 淘汰与未采用方案
 

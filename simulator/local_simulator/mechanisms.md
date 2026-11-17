@@ -29,7 +29,7 @@
 
 新鲜同源seed1方法对照request222：成熟低瓣1→最高瓣8→最高瓣8；成熟低瓣1→普通草收割→最高瓣8；成熟低瓣1→未成熟低瓣移除0→最高瓣8。8条花瓣数、成熟状态、Power增量和调用tick记录与模型逐字一致，总tick均69484。本地阶段11.43776124秒，实机显示11.44秒，符合两位小数展示精度；不能把舍入差当精确计时误差。双日志无错误/异常，idle222恢复原test.py/simulate.py，游戏保持开启。
 
-当时模型不额外施加错收产量惩罚，对应的丢花/独立区域报告只对该旧版有效。此对照只覆盖列出的边界，不代表全部并发或长程精度。证据`.codex/leaderboard-astra/sunflowers-incorrect-harvest/`：执行源`452f5c6a69e791d5e39bc690f59ce4442e371101f784765e979d9a7278c13e97`，实机报告`e6081addd75e09b806e04e7bd15354abe5ad76eb5e6f206095f77ea55949aec5`，本地报告与模型world.py SHA保存在analysis.json。
+当时模型不额外施加错收产量惩罚，对应的丢花/独立区域报告只对该旧版有效。此对照只覆盖列出的边界，不代表全部并发或长程精度。证据`.codex/leaderboard-astra/sunflowers-incorrect-harvest/`（原始材料已于 2026-11-17 清理）：执行源`452f5c6a69e791d5e39bc690f59ce4442e371101f784765e979d9a7278c13e97`，实机报告`e6081addd75e09b806e04e7bd15354abe5ad76eb5e6f206095f77ea55949aec5`，本地报告与模型world.py SHA保存在analysis.json。
 
 ## 计时实现与待验证边界
 

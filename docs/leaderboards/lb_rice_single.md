@@ -18,7 +18,7 @@
 | 1 | 165.164571090 | 149.297648580 |
 | 123 | 166.671740250 | 148.100110830 |
 
-均值165.334942440→148.263019860秒，用时减少10.33%。每例15墙钟秒，全部正常结束、目标达成、状态完整，原版Parser执行通过。报告及源码指纹留`.codex/gemini-directions-20261115/{rice_single-base,final-rice_single}-seed*.json`；固定来源见[来源记录](github_strategy_research.md#gemini交接的公开机制)。旧版request480正式44轮165.681545455秒属于历史。
+均值165.334942440→148.263019860秒，用时减少10.33%。每例15墙钟秒，全部正常结束、目标达成、状态完整，原版Parser执行通过。报告及源码指纹留`.codex/gemini-directions-20261115/{rice_single-base,final-rice_single}-seed*.json`（原始材料已于 2026-11-17 清理）；固定来源见[来源记录](github_strategy_research.md#gemini交接的公开机制)。旧版request480正式44轮165.681545455秒属于历史。
 
 ## 淘汰与未采用方案
 

@@ -55,7 +55,7 @@ Special_Soils只加成种在对应地块上的作物：Loam对Carrot/Sunflower�
 | 竹子闭环仅筛首花、保留竹桩 | 共同三seed完整均3045.906270510秒，对2991.607494878秒，慢54.299秒 | 能完成目标；省去二次筛选后整轮仍无改善，不替换现源 | [首花模块](../../references/leaderboard_history/lb_fastest_underground_reset/20261115_rejected_reset_closed_bamboo_first.py)，原报告`under-bamboo-first-seed*.json` |
 | 后期供电复用四机分瓣生产、达标免收余档 | 共同三seed完整均3028.261093838秒，对2991.607494878秒，慢36.654秒 | 补电局部缩短但整轮未改善；真实Carrot、水、成熟及后续生产均计入，未实现统一时钟 | 从`5f34716`重建：`ur_s_parallel_solar_reserve(size,target=0)`每瓣前检查目标；`ur_power_stock`保留实际筹种和clear，后接该调用，替代原串行种收；原源`under-power/lb_fastest_underground_reset.py` |
 
-本批原源、完整报告和指纹索引留`.codex/gemini-reset-maze-20261115/results.json`。稻米和竹子模块重建时分别复制为`deep_rice.py`、`closed_bamboo.py`，取`5f34716`入口，在末尾main之前静态导入`reset_rice_stock`或`reset_bamboo_stock`，以同名`ur_rice_stock`或`ur_bamboo_stock`返回其结果。末段竹子代表将原`ur_bamboo_stock`改名`ur_bamboo_stock_original`，新入口对goal<10000沿用原版，其余调用模块；`ur_need`的实际稻米预算保持不变。归档及原路径/SHA256映射见[manifest](../../references/leaderboard_history/manifest.json)。
+本批原源、完整报告和指纹索引留`.codex/gemini-reset-maze-20261115/results.json`（原始材料已于 2026-11-17 清理）。稻米和竹子模块重建时分别复制为`deep_rice.py`、`closed_bamboo.py`，取`5f34716`入口，在末尾main之前静态导入`reset_rice_stock`或`reset_bamboo_stock`，以同名`ur_rice_stock`或`ur_bamboo_stock`返回其结果。末段竹子代表将原`ur_bamboo_stock`改名`ur_bamboo_stock_original`，新入口对goal<10000沿用原版，其余调用模块；`ur_need`的实际稻米预算保持不变。归档及原路径/SHA256映射见[manifest](../../references/leaderboard_history/manifest.json)。
 
 2026-11-15这批完整比较均为原版零库存重置场景、同一seed、原目标，每例15墙钟秒，最多两进程；三个新整轮代表均正常完成、目标达成、状态完整、效率有效并回收全部工人。因初筛均值已退步，没有选择性扩seed或与旧八seed均值混比，也没有撤回八seed3026.821846秒的有效旧候选。这里只关闭已测的低科技组合，不否定同田、闭环或并行供电的全部构造。
 
