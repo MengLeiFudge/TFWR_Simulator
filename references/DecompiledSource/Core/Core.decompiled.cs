@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using Core.Content.FarmObjectS;
 using Core.Content.WorldGen;
 using Core.Platform;
@@ -3072,6 +3073,8 @@ public class SweeperController : GridController
 
 	public const string UpgradeName = "dynamite";
 
+	private const double CheckMinesInterval = 0.1;
+
 	private GroundSO oreMine;
 
 	private GroundSO oreDud;
@@ -3079,6 +3082,8 @@ public class SweeperController : GridController
 	private GroundSO[] counterGrounds;
 
 	private Dictionary<int, StratumData> strata = new Dictionary<int, StratumData>();
+
+	private List<int> tempStrata;
 
 	public double DynamitePerDudBlock => 1.0;
 
@@ -3168,6 +3173,10 @@ public class SweeperController : GridController
 			{
 				StratumData stratumData = (strata[reference.depth] = GeneratePuzzle(vector3Int));
 				value = stratumData;
+				if (strata.Count == 1)
+				{
+					ScheduleCheckMines();
+				}
 			}
 			if (IsMine(reference2.groundSo))
 			{
@@ -3362,11 +3371,16 @@ public class SweeperController : GridController
 				{
 					continue;
 				}
+				GetMineCount(array, vector3Int.x, vector3Int.y, worldSize.x) = -1;
 				foreach (Vector2Int item2 in GridManager.Neighboring8Positions((Vector2Int)vector3Int))
 				{
 					if (gm.IsWithinBounds(item2))
 					{
-						GetMineCount(array, item2.x, item2.y, worldSize.x)++;
+						ref int mineCount = ref GetMineCount(array, item2.x, item2.y, worldSize.x);
+						if (mineCount >= 0)
+						{
+							mineCount++;
+						}
 					}
 				}
 			}
@@ -3421,7 +3435,7 @@ public class SweeperController : GridController
 			}
 		}
 		int mineCount = GetMineCount(map, pos.x, pos.y, sizex);
-		if (mineCount == 0)
+		if (mineCount <= 0)
 		{
 			reference.groundSo = (flag ? GetCounterGround(1) : GetCounterGround(0));
 		}
@@ -3451,6 +3465,57 @@ public class SweeperController : GridController
 			}
 		}
 		return false;
+	}
+
+	private void ScheduleCheckMines()
+	{
+		gm.farm.sim.StartTimer(CheckMines, Duration.FromSeconds(0.1));
+	}
+
+	private void CheckMines()
+	{
+		if (strata == null || strata.Count == 0)
+		{
+			return;
+		}
+		if (tempStrata == null)
+		{
+			tempStrata = new List<int>();
+		}
+		tempStrata.Clear();
+		tempStrata.AddRange(strata.Keys);
+		int x = gm.WorldSize.x;
+		foreach (int tempStratum in tempStrata)
+		{
+			GroundData.Chunk chunk = gm.ChunkAt(tempStratum);
+			StratumData stratumData = strata[tempStratum];
+			int i = 0;
+			for (int num = stratumData.neighborMap.Length; i < num; i++)
+			{
+				if (stratumData.neighborMap[i] < 0)
+				{
+					int num2 = i % x;
+					int num3 = i / x;
+					if (!chunk.IsBlockPresent(num2, num3, tempStratum, gm.WorldSize))
+					{
+						UnityEngine.Debug.LogError($"SweeperController: Mine block at ({num2}/{num3}/{tempStratum}) is no longer present.");
+						ClearAndScorePuzzle(new Vector3Int(num2, num3, tempStratum), explode: true);
+						break;
+					}
+					ref GroundData.Ground reference = ref chunk.GroundAt(num2, num3, tempStratum, gm.WorldSize);
+					if (reference.groundSo != oreMine)
+					{
+						UnityEngine.Debug.LogError($"SweeperController: Mine block at ({num2}/{num3}/{tempStratum}) was changed to '{reference.groundSo.objectName}'.");
+						ClearAndScorePuzzle(new Vector3Int(num2, num3, tempStratum), explode: true);
+						break;
+					}
+				}
+			}
+		}
+		if (strata.Count > 0)
+		{
+			ScheduleCheckMines();
+		}
 	}
 }
 public class Treasure : HedgePlant
@@ -10605,7 +10670,7 @@ public class GridManager
 		}
 		foreach (Vector2Int item3 in GetRingAroundPosition(aroundPos, 2))
 		{
-			if (IsWithinBounds(item3) && item3.x != item3.y)
+			if (IsWithinBounds(item3) && item3.x - aroundPos.x != item3.y - aroundPos.y)
 			{
 				deque.Enqueue(item3);
 			}
@@ -11931,7 +11996,9 @@ public class MainSim : MonoBehaviour, ISimRunner
 
 	public int executionId;
 
-	public volatile bool dirty;
+	private int saveRevision;
+
+	private int savedRevision;
 
 	private object lockSimulation = new object();
 
@@ -11986,6 +12053,27 @@ public class MainSim : MonoBehaviour, ISimRunner
 
 	public EDlcMask InstalledDlcs => sim?.farm.installedDlcs ?? PlatformManager.InstalledDlcs;
 
+	public int SaveRevision => Volatile.Read(ref saveRevision);
+
+	public bool dirty
+	{
+		get
+		{
+			return SaveRevision != Volatile.Read(ref savedRevision);
+		}
+		set
+		{
+			if (value)
+			{
+				Interlocked.Increment(ref saveRevision);
+			}
+			else
+			{
+				MarkSaved(SaveRevision);
+			}
+		}
+	}
+
 	public bool StepByStepMode
 	{
 		get
@@ -12024,6 +12112,14 @@ public class MainSim : MonoBehaviour, ISimRunner
 		}
 		mainCamera = Camera.main;
 		logger = new Logger();
+	}
+
+	public void MarkSaved(int revision)
+	{
+		if (revision == SaveRevision)
+		{
+			Volatile.Write(ref savedRevision, revision);
+		}
 	}
 
 	private void Start()
@@ -15375,6 +15471,7 @@ public class Execution
 						}
 						else if (States[num6].currentSideEffect != SideEffect.None && !(States[num6].OpCount > GlobalOpCount))
 						{
+							ProgramState programState = States[num6];
 							try
 							{
 								ApplySideEffect(num6);
@@ -15385,13 +15482,10 @@ public class Execution
 								States[num6].currentSideEffect = SideEffect.Error;
 								ApplySideEffect(num6);
 							}
-							if (States.Count > num6 && States[num6] != null)
-							{
-								num2 += States[num6].ConsumeOps();
-								States[num6].currentSideEffect = SideEffect.None;
-								States[num6].currentSideEffectArgument = null;
-								States[num6].currentSideEffectArgument2 = null;
-							}
+							num2 += programState.ConsumeOps();
+							programState.currentSideEffect = SideEffect.None;
+							programState.currentSideEffectArgument = null;
+							programState.currentSideEffectArgument2 = null;
 						}
 					}
 					sim.farm.UsedPower += num2 / 200.0 / 30.0;
@@ -16349,7 +16443,11 @@ public class Logger
 		}
 		if (logMessage.Length > 1000)
 		{
-			logMessage = logMessage.Substring(0, 1000);
+			logMessage = CodeUtilities.RemoveSyntaxTags(logMessage);
+			if (logMessage.Length > 1000)
+			{
+				logMessage = logMessage.Substring(0, 1000);
+			}
 		}
 		lock (outputLock)
 		{
@@ -18006,14 +18104,14 @@ public class ImportNode : Node
 					throw new ExecuteException("error_module_not_found");
 				}
 				Node node = value.Parse();
+				if (node == null)
+				{
+					throw new ExecuteException("error_syntax_error_in_import");
+				}
 				if (state.DroneId > 0)
 				{
 					Dictionary<object, object> copies = new Dictionary<object, object>();
 					node = node.DeepCopy(copies);
-				}
-				if (node == null)
-				{
-					throw new ExecuteException("error_syntax_error_in_import");
 				}
 				Dictionary<string, (IPyObject, bool)> dictionary = new Dictionary<string, (IPyObject, bool)>();
 				dictionary["__name__"] = (new PyString(name), false);
@@ -20629,6 +20727,15 @@ public enum TokenType
 }
 public static class Saver
 {
+	private sealed class QueuedSnapshot
+	{
+		public Action writeProgress;
+
+		public Action writeCode;
+
+		public Task completion;
+	}
+
 	private readonly struct PendingCodeChange
 	{
 		public readonly string name;
@@ -20664,48 +20771,136 @@ public static class Saver
 
 	private const int version = 3;
 
-	public static bool Save(MainSim mainSim)
+	private static Task pendingSave = Task.CompletedTask;
+
+	private static readonly object queuedSnapshotsLock = new object();
+
+	private static readonly Dictionary<string, QueuedSnapshot> queuedSnapshots = new Dictionary<string, QueuedSnapshot>();
+
+	private static string builtinsCode;
+
+	private static readonly ConcurrentDictionary<string, string> lastWrittenCode = new ConcurrentDictionary<string, string>();
+
+	public static bool IsSaving => !pendingSave.IsCompleted;
+
+	private static Task QueueSave(Action write)
 	{
-		if (mainSim == null)
+		Task previous = pendingSave;
+		return pendingSave = Task.Run(async delegate
 		{
-			return false;
-		}
-		string text = OptionHolder.GetString("activeSave", "Save0");
-		try
+			try
+			{
+				await previous.ConfigureAwait(continueOnCapturedContext: false);
+			}
+			catch
+			{
+			}
+			write();
+		});
+	}
+
+	private static Task QueueSnapshot(string savePath, Action backup, Action writeProgress, Action writeCode)
+	{
+		lock (queuedSnapshotsLock)
 		{
-			string json = JsonUtility.ToJson(CreateSaveGame(mainSim));
-			string pathOfSaveDirectory = GetPathOfSaveDirectory(text);
-			CreateBackupSnapshot(text);
-			WriteSaveGame(json, pathOfSaveDirectory);
-			WriteCodeFiles(mainSim.workspace, pathOfSaveDirectory);
-			mainSim.dirty = false;
-			return true;
-		}
-		catch (Exception exception)
-		{
-			ReportSaveFailure(mainSim, text, exception);
-			return false;
+			if (queuedSnapshots.TryGetValue(savePath, out var queued))
+			{
+				if (writeProgress != null)
+				{
+					queued.writeProgress = writeProgress;
+				}
+				if (writeCode != null)
+				{
+					queued.writeCode = writeCode;
+				}
+				return queued.completion;
+			}
+			queued = new QueuedSnapshot
+			{
+				writeProgress = writeProgress,
+				writeCode = writeCode
+			};
+			queuedSnapshots.Add(savePath, queued);
+			queued.completion = QueueSave(delegate
+			{
+				lock (queuedSnapshotsLock)
+				{
+					queuedSnapshots.Remove(savePath);
+				}
+				backup();
+				queued.writeProgress?.Invoke();
+				queued.writeCode?.Invoke();
+			});
+			return queued.completion;
 		}
 	}
 
-	public static bool SaveProgress(MainSim mainSim)
+	public static async Task WaitForPendingSaves()
+	{
+		Task observed;
+		do
+		{
+			observed = pendingSave;
+			try
+			{
+				await observed;
+			}
+			catch
+			{
+			}
+		}
+		while (observed != pendingSave);
+	}
+
+	public static Task<bool> Save(MainSim mainSim)
+	{
+		return SaveAsync(mainSim, saveProgress: true, saveCode: true);
+	}
+
+	public static Task<bool> SaveProgress(MainSim mainSim)
+	{
+		return SaveAsync(mainSim, saveProgress: true, saveCode: false);
+	}
+
+	public static Task<bool> SaveCode(MainSim mainSim)
+	{
+		return SaveAsync(mainSim, saveProgress: false, saveCode: true);
+	}
+
+	private static async Task<bool> SaveAsync(MainSim mainSim, bool saveProgress, bool saveCode)
 	{
 		if (mainSim == null)
 		{
 			return false;
 		}
-		string text = OptionHolder.GetString("activeSave", "Save0");
+		string fileName = OptionHolder.GetString("activeSave", "Save0");
 		try
 		{
-			string json = JsonUtility.ToJson(CreateSaveGame(mainSim));
-			string pathOfSaveDirectory = GetPathOfSaveDirectory(text);
-			CreateBackupSnapshot(text);
-			WriteSaveGame(json, pathOfSaveDirectory);
+			string dataPath = Helper.persistentDataPath;
+			string savePath = GetPathOfSaveDirectory(fileName);
+			int revision = mainSim.SaveRevision;
+			string json = (saveProgress ? JsonUtility.ToJson(CreateSaveGame(mainSim)) : null);
+			Dictionary<string, string> code = (saveCode ? CaptureCodeFiles(mainSim.workspace) : null);
+			string builtins = (saveCode ? (builtinsCode ?? (builtinsCode = Localizer.LoadBuiltins())) : null);
+			await QueueSnapshot(savePath, delegate
+			{
+				CreateBackupSnapshot(fileName, dataPath);
+			}, saveProgress ? ((Action)delegate
+			{
+				WriteSaveGame(json, savePath);
+			}) : null, saveCode ? ((Action)delegate
+			{
+				WriteCodeFiles(code, builtins, savePath);
+			}) : null);
+			if (saveProgress && saveCode && mainSim != null)
+			{
+				mainSim.MarkSaved(revision);
+			}
 			return true;
 		}
 		catch (Exception exception)
 		{
-			ReportSaveFailure(mainSim, text, exception);
+			ReportSaveFailure(mainSim, fileName, exception);
 			return false;
 		}
 	}
@@ -20751,31 +20946,10 @@ public static class Saver
 		return saveGame;
 	}
 
-	public static bool SaveCode(MainSim mainSim)
-	{
-		if (mainSim == null)
-		{
-			return false;
-		}
-		string text = OptionHolder.GetString("activeSave", "Save0");
-		try
-		{
-			string pathOfSaveDirectory = GetPathOfSaveDirectory(text);
-			CreateBackupSnapshot(text);
-			WriteCodeFiles(mainSim.workspace, pathOfSaveDirectory);
-			return true;
-		}
-		catch (Exception exception)
-		{
-			ReportSaveFailure(mainSim, text, exception);
-			return false;
-		}
-	}
-
 	private static void ReportSaveFailure(MainSim mainSim, string fileName, Exception exception)
 	{
 		UnityEngine.Debug.LogException(exception);
-		if (!(mainSim?.warningPopup == null))
+		if (!(mainSim == null) && !(mainSim.warningPopup == null))
 		{
 			List<WarningPopup.ButtonData> buttonsToAdd = new List<WarningPopup.ButtonData>
 			{
@@ -20790,37 +20964,48 @@ public static class Saver
 		WriteTextAtomically(new FileInfo(savePath + "/save.json"), json);
 	}
 
-	private static void WriteCodeFiles(Workspace workspace, string savePath)
+	private static Dictionary<string, string> CaptureCodeFiles(Workspace workspace)
 	{
-		foreach (CodeWindow value in workspace.codeWindows.Values)
+		Dictionary<string, string> dictionary = new Dictionary<string, string>();
+		foreach (CodeWindow item in workspace.codeWindows.Values.ToList())
 		{
-			if (!IsValidCodeFileName(value.fileName))
+			if (!IsValidCodeFileName(item.fileName))
 			{
-				if (!SanitizeCodeFileName(value.fileName, out var newFileName) || workspace.IsWindowOpen(newFileName, ignoreCase: true))
+				if (!SanitizeCodeFileName(item.fileName, out var newFileName) || workspace.IsWindowOpen(newFileName, ignoreCase: true))
 				{
 					newFileName = workspace.GenerateFileName("f");
 				}
-				value.Rename(newFileName);
+				item.Rename(newFileName);
 			}
-			WriteTextAtomically(new FileInfo($"{savePath}/{value.fileName}.py"), value.CodeInput.text);
+			dictionary.Add(item.fileName, item.CodeInput.text);
 		}
-		FileInfo fileInfo = new FileInfo(savePath + "/__builtins__.py");
-		if (!fileInfo.Exists)
+		return dictionary;
+	}
+
+	private static void WriteCodeFiles(Dictionary<string, string> code, string builtins, string savePath)
+	{
+		foreach (KeyValuePair<string, string> item in code)
 		{
-			string content = Localizer.LoadBuiltins();
-			WriteTextAtomically(fileInfo, content);
+			FileInfo fileInfo = new FileInfo(Path.Combine(savePath, item.Key + ".py"));
+			WriteTextAtomically(fileInfo, item.Value);
+			lastWrittenCode[fileInfo.FullName] = item.Value;
 		}
-		foreach (string item in from f in Directory.GetFiles(savePath)
-			where Path.GetExtension(f) == ".py" && !workspace.codeWindows.ContainsKey(Path.GetFileNameWithoutExtension(f)) && !f.EndsWith("__builtins__.py")
+		FileInfo fileInfo2 = new FileInfo(savePath + "/__builtins__.py");
+		if (!fileInfo2.Exists)
+		{
+			WriteTextAtomically(fileInfo2, builtins);
+		}
+		foreach (string item2 in from f in Directory.GetFiles(savePath)
+			where Path.GetExtension(f) == ".py" && !code.ContainsKey(Path.GetFileNameWithoutExtension(f)) && !f.EndsWith("__builtins__.py")
 			select f)
 		{
-			File.Delete(item);
+			File.Delete(item2);
 		}
 	}
 
-	private static string CreateBackupPath(string fileName)
+	private static string CreateBackupPath(string fileName, string dataPath)
 	{
-		string text = Helper.persistentDataPath + "/Backup";
+		string text = dataPath + "/Backup";
 		Directory.CreateDirectory(text);
 		string text2 = fileName + "_backup";
 		List<(int, string)> list = new List<(int, string)>();
@@ -20868,37 +21053,37 @@ public static class Saver
 		return $"{text}/{fileName}_backup{num5}";
 	}
 
-	private static void CreateBackupSnapshot(string fileName)
+	private static void CreateBackupSnapshot(string fileName, string dataPath)
 	{
-		string pathOfSaveDirectory = GetPathOfSaveDirectory(fileName);
-		string legacySaveFilePath = GetLegacySaveFilePath(fileName);
-		if (!Directory.Exists(pathOfSaveDirectory) && !File.Exists(legacySaveFilePath))
+		string text = Path.Combine(dataPath, "Saves", fileName);
+		string text2 = Path.Combine(dataPath, "Saves", fileName + ".json");
+		if (!Directory.Exists(text) && !File.Exists(text2))
 		{
 			return;
 		}
-		string text = CreateBackupPath(fileName);
-		string text2 = Path.Combine(Directory.GetParent(text).FullName, $".{fileName}.{Guid.NewGuid():N}.tmp");
+		string text3 = CreateBackupPath(fileName, dataPath);
+		string text4 = Path.Combine(Directory.GetParent(text3).FullName, $".{fileName}.{Guid.NewGuid():N}.tmp");
 		try
 		{
-			Directory.CreateDirectory(text2);
-			if (Directory.Exists(pathOfSaveDirectory))
+			Directory.CreateDirectory(text4);
+			if (Directory.Exists(text))
 			{
-				CopyDirectory(pathOfSaveDirectory, text2);
+				CopyDirectory(text, text4);
 			}
-			string text3 = Path.Combine(text2, "save.json");
-			if (!File.Exists(text3) && File.Exists(legacySaveFilePath))
+			string text5 = Path.Combine(text4, "save.json");
+			if (!File.Exists(text5) && File.Exists(text2))
 			{
-				File.Copy(legacySaveFilePath, text3);
+				File.Copy(text2, text5);
 			}
-			Directory.Move(text2, text);
+			Directory.Move(text4, text3);
 		}
 		catch
 		{
-			if (Directory.Exists(text2))
+			if (Directory.Exists(text4))
 			{
 				try
 				{
-					Directory.Delete(text2, recursive: true);
+					Directory.Delete(text4, recursive: true);
 				}
 				catch (Exception ex)
 				{
@@ -21112,6 +21297,7 @@ public static class Saver
 
 	public static void StartFileWatcher()
 	{
+		lastWrittenCode.Clear();
 		string pathOfSaveDirectory = GetPathOfSaveDirectory(OptionHolder.GetString("activeSave", "Save0"));
 		if (!Directory.Exists(pathOfSaveDirectory))
 		{
@@ -21200,6 +21386,10 @@ public static class Saver
 
 	public static void ApplyCodeChanges(Workspace workspace)
 	{
+		if (IsSaving)
+		{
+			return;
+		}
 		DateTime now = DateTime.UtcNow;
 		List<PendingCodeChange> list;
 		lock (pendingCodeChangesLock)
@@ -21224,9 +21414,13 @@ public static class Saver
 					continue;
 				}
 			}
-			if (code != null && workspace.codeWindows.TryGetValue(item2.name, out var value2) && value2.CodeInput.text != code)
+			if (code != null && workspace.codeWindows.TryGetValue(item2.name, out var value2) && (!lastWrittenCode.TryGetValue(item2.path, out var value3) || !(code == value3)))
 			{
-				value2.ApplyExternalCode(code);
+				lastWrittenCode.TryRemove(item2.path, out var _);
+				if (value2.CodeInput.text != code)
+				{
+					value2.ApplyExternalCode(code);
+				}
 			}
 		}
 	}
@@ -21299,7 +21493,7 @@ public static class Saver
 			saveGame.openDocPages.Add(new Pair<string, string>(docsWindowName, oldSaveGame.openDocsPage));
 			saveGame.openFilePositions.Add(new Pair<string, Vector2>(docsWindowName, oldSaveGame.docsPos));
 		}
-		CreateBackupSnapshot(text);
+		CreateBackupSnapshot(text, Helper.persistentDataPath);
 		int num2 = Math.Min(oldSaveGame.functionNames.Count, oldSaveGame.functionCode.Count);
 		for (int num3 = 0; num3 < num2; num3++)
 		{
@@ -21400,7 +21594,7 @@ public static class Saver
 
 	public static bool RenameSave(string saveName, string newSaveName)
 	{
-		if (!IsValidSaveName(newSaveName) || Directory.Exists(GetPathOfSaveDirectory(newSaveName)))
+		if (IsSaving || !IsValidSaveName(newSaveName) || Directory.Exists(GetPathOfSaveDirectory(newSaveName)))
 		{
 			return false;
 		}
@@ -21417,6 +21611,10 @@ public static class Saver
 
 	public static bool DeleteSave(string saveName)
 	{
+		if (IsSaving)
+		{
+			return false;
+		}
 		try
 		{
 			Directory.Delete(GetPathOfSaveDirectory(saveName), recursive: true);
@@ -26482,8 +26680,11 @@ public class Menu : MonoBehaviour
 	[SerializeField]
 	private ColoredButton saveButton;
 
+	private bool waitingToQuit;
+
 	private void Start()
 	{
+		Application.wantsToQuit += WaitForSavesBeforeQuit;
 		ResourceManager.LoadAll();
 		Achievements.LoadStats();
 		Localizer.Localize("ok");
@@ -26529,6 +26730,33 @@ public class Menu : MonoBehaviour
 	private void OnDisable()
 	{
 		Saver.SaveTitleSave(this);
+	}
+
+	private void OnDestroy()
+	{
+		Application.wantsToQuit -= WaitForSavesBeforeQuit;
+	}
+
+	private bool WaitForSavesBeforeQuit()
+	{
+		if (!Saver.IsSaving)
+		{
+			return true;
+		}
+		if (!waitingToQuit)
+		{
+			FinishQuit();
+		}
+		return false;
+	}
+
+	private async void FinishQuit()
+	{
+		waitingToQuit = true;
+		await Task.Yield();
+		await Saver.WaitForPendingSaves();
+		waitingToQuit = false;
+		Application.Quit();
 	}
 
 	private IEnumerator OpenLatestNews(bool firstTime)
@@ -26596,15 +26824,23 @@ public class Menu : MonoBehaviour
 		saveChooser.Setup();
 	}
 
-	public void PressSaveButton()
+	public async void PressSaveButton()
 	{
-		TimerManager.StartTimer(ReleaseSaveButton, 1.0);
-		saveButton.Interactable = false;
-		if (Saver.Save(MainSim.Inst))
+		if (!saveButton.Interactable)
 		{
-			saveButton.Text = Localizer.Localize("saved");
+			return;
 		}
-		Saver.SaveTitleSave(this);
+		saveButton.Interactable = false;
+		bool flag = await Saver.Save(MainSim.Inst);
+		if (!(this == null))
+		{
+			if (flag)
+			{
+				saveButton.Text = Localizer.Localize("saved");
+			}
+			Saver.SaveTitleSave(this);
+			TimerManager.StartTimer(ReleaseSaveButton, 1.0);
+		}
 	}
 
 	private void ReleaseSaveButton()
@@ -26642,9 +26878,9 @@ public class Menu : MonoBehaviour
 		{
 			List<WarningPopup.ButtonData> buttonsToAdd = new List<WarningPopup.ButtonData>
 			{
-				new WarningPopup.ButtonData("save", delegate
+				new WarningPopup.ButtonData("save", async delegate
 				{
-					if (Saver.Save(MainSim.Inst))
+					if (await Saver.Save(MainSim.Inst))
 					{
 						Application.Quit();
 					}
@@ -26774,6 +27010,8 @@ public class SaveChooser : MonoBehaviour
 
 	private Dictionary<string, SaveOption> openOptions = new Dictionary<string, SaveOption>();
 
+	private bool loadingSave;
+
 	public void Setup()
 	{
 		foreach (SaveOption value in openOptions.Values)
@@ -26817,30 +27055,59 @@ public class SaveChooser : MonoBehaviour
 		MainSim.Inst.warningPopup.ShowPopup(text, buttonsToAdd);
 	}
 
-	public void LoadSave(string saveName)
+	public async void LoadSave(string saveName)
 	{
+		if (loadingSave)
+		{
+			return;
+		}
+		loadingSave = true;
+		await Saver.WaitForPendingSaves();
+		if (this == null)
+		{
+			return;
+		}
 		if (MainSim.Inst.dirty)
 		{
+			bool confirmed = false;
 			List<WarningPopup.ButtonData> buttonsToAdd = new List<WarningPopup.ButtonData>
 			{
-				new WarningPopup.ButtonData("save", delegate
+				new WarningPopup.ButtonData("save", async delegate
 				{
-					Saver.StopFileWatcher();
-					if (Saver.Save(MainSim.Inst))
+					if (!confirmed)
 					{
-						menu.LoadSave(saveName);
-						SceneManager.LoadScene(0);
-					}
-					else
-					{
-						Saver.StartFileWatcher();
+						confirmed = true;
+						ColoredButton[] componentsInChildren = MainSim.Inst.warningPopup.GetComponentsInChildren<ColoredButton>();
+						for (int i = 0; i < componentsInChildren.Length; i++)
+						{
+							componentsInChildren[i].Interactable = false;
+						}
+						Saver.StopFileWatcher();
+						bool flag = await Saver.Save(MainSim.Inst);
+						if (!(this == null))
+						{
+							if (flag)
+							{
+								menu.LoadSave(saveName);
+								SceneManager.LoadScene(0);
+							}
+							else
+							{
+								Saver.StartFileWatcher();
+								loadingSave = false;
+							}
+						}
 					}
 				}),
 				new WarningPopup.ButtonData("don't save", delegate
 				{
-					Saver.StopFileWatcher();
-					menu.LoadSave(saveName);
-					SceneManager.LoadScene(0);
+					if (!confirmed)
+					{
+						confirmed = true;
+						Saver.StopFileWatcher();
+						menu.LoadSave(saveName);
+						SceneManager.LoadScene(0);
+					}
 				})
 			};
 			MainSim.Inst.warningPopup.ShowPopup("popup_warning_load_game", buttonsToAdd);
@@ -30861,7 +31128,7 @@ internal class UnitySourceGeneratedAssemblyMonoScriptTypes_v1
 				99, 114, 105, 112, 116, 115, 92, 67, 111, 114,
 				101, 92, 80, 114, 111, 103, 76, 97, 110, 103,
 				92, 84, 111, 107, 101, 110, 83, 116, 114, 101,
-				97, 109, 46, 99, 115, 0, 0, 0, 7, 0,
+				97, 109, 46, 99, 115, 0, 0, 0, 8, 0,
 				0, 0, 29, 92, 65, 115, 115, 101, 116, 115,
 				92, 83, 99, 114, 105, 112, 116, 115, 92, 67,
 				111, 114, 101, 92, 83, 97, 118, 101, 114, 46,
@@ -31100,7 +31367,7 @@ internal class UnitySourceGeneratedAssemblyMonoScriptTypes_v1
 				105, 110, 103, 76, 97, 121, 111, 117, 116, 71,
 				114, 111, 117, 112, 46, 99, 115
 			},
-			TypesData = new byte[3848]
+			TypesData = new byte[3873]
 			{
 				0, 0, 0, 0, 13, 124, 65, 99, 104, 105,
 				101, 118, 101, 109, 101, 110, 116, 115, 0, 0,
@@ -31362,134 +31629,137 @@ internal class UnitySourceGeneratedAssemblyMonoScriptTypes_v1
 				12, 124, 84, 111, 107, 101, 110, 83, 116, 114,
 				101, 97, 109, 0, 0, 0, 0, 6, 124, 84,
 				111, 107, 101, 110, 0, 0, 0, 0, 6, 124,
-				83, 97, 118, 101, 114, 0, 0, 0, 0, 23,
-				83, 97, 118, 101, 114, 124, 80, 101, 110, 100,
-				105, 110, 103, 67, 111, 100, 101, 67, 104, 97,
-				110, 103, 101, 0, 0, 0, 0, 12, 124, 79,
-				108, 100, 83, 97, 118, 101, 71, 97, 109, 101,
-				0, 0, 0, 0, 9, 124, 83, 97, 118, 101,
-				71, 97, 109, 101, 0, 0, 0, 0, 10, 124,
-				84, 105, 116, 108, 101, 83, 97, 118, 101, 0,
-				0, 0, 0, 4, 124, 83, 70, 79, 0, 0,
-				0, 0, 5, 124, 80, 97, 105, 114, 0, 0,
-				0, 0, 12, 124, 83, 116, 101, 97, 109, 83,
-				99, 114, 105, 112, 116, 0, 0, 0, 0, 15,
-				124, 83, 116, 101, 97, 109, 83, 116, 97, 116,
-				115, 76, 111, 111, 112, 0, 0, 0, 0, 13,
-				124, 66, 108, 105, 110, 107, 77, 97, 110, 97,
-				103, 101, 114, 0, 0, 0, 0, 16, 124, 66,
-				114, 101, 97, 107, 80, 111, 105, 110, 116, 80,
-				97, 110, 101, 108, 0, 0, 0, 0, 14, 124,
-				67, 111, 100, 101, 67, 111, 109, 112, 108, 101,
-				116, 101, 114, 0, 0, 0, 0, 12, 124, 67,
-				111, 100, 101, 69, 120, 97, 109, 112, 108, 101,
-				0, 0, 0, 0, 31, 67, 111, 100, 101, 69,
-				120, 97, 109, 112, 108, 101, 124, 80, 111, 105,
-				110, 116, 101, 114, 69, 110, 116, 101, 114, 72,
-				97, 110, 100, 108, 101, 114, 0, 0, 0, 0,
-				31, 67, 111, 100, 101, 69, 120, 97, 109, 112,
-				108, 101, 124, 67, 111, 100, 101, 69, 120, 97,
-				109, 112, 108, 101, 83, 101, 116, 116, 105, 110,
-				103, 115, 0, 0, 0, 0, 41, 67, 111, 100,
-				101, 69, 120, 97, 109, 112, 108, 101, 43, 67,
-				111, 100, 101, 69, 120, 97, 109, 112, 108, 101,
-				83, 101, 116, 116, 105, 110, 103, 115, 124, 73,
-				116, 101, 109, 69, 110, 116, 114, 121, 0, 0,
-				0, 0, 11, 124, 67, 111, 100, 101, 79, 112,
-				116, 105, 111, 110, 0, 0, 0, 0, 11, 124,
-				67, 111, 100, 101, 87, 105, 110, 100, 111, 119,
-				0, 0, 0, 0, 16, 124, 67, 111, 110, 116,
-				97, 105, 110, 101, 114, 83, 99, 97, 108, 101,
-				114, 0, 0, 0, 0, 16, 124, 68, 76, 67,
-				83, 116, 97, 116, 117, 115, 66, 117, 116, 116,
-				111, 110, 0, 0, 0, 0, 11, 124, 68, 111,
-				99, 115, 87, 105, 110, 100, 111, 119, 0, 0,
-				0, 0, 17, 124, 68, 114, 111, 112, 100, 111,
-				119, 110, 84, 111, 111, 108, 116, 105, 112, 115,
-				0, 0, 0, 0, 13, 124, 69, 114, 114, 111,
-				114, 77, 101, 115, 115, 97, 103, 101, 0, 0,
-				0, 0, 15, 124, 70, 108, 97, 115, 104, 105,
-				110, 103, 66, 117, 116, 116, 111, 110, 0, 0,
-				0, 0, 9, 124, 72, 97, 116, 80, 111, 112,
-				117, 112, 0, 0, 0, 0, 27, 124, 72, 111,
-				114, 105, 122, 111, 110, 116, 97, 108, 70, 105,
-				116, 76, 97, 121, 111, 117, 116, 69, 108, 101,
-				109, 101, 110, 116, 0, 0, 0, 0, 12, 124,
-				73, 109, 97, 103, 101, 76, 111, 97, 100, 101,
-				114, 0, 0, 0, 0, 10, 124, 73, 110, 118,
-				101, 110, 116, 111, 114, 121, 0, 0, 0, 0,
-				7, 124, 73, 116, 101, 109, 85, 73, 0, 0,
-				0, 0, 12, 124, 76, 101, 97, 100, 101, 114,
-				98, 111, 97, 114, 100, 0, 0, 0, 0, 17,
-				124, 76, 101, 97, 100, 101, 114, 98, 111, 97,
-				114, 100, 69, 110, 116, 114, 121, 0, 0, 0,
-				0, 19, 124, 76, 101, 97, 100, 101, 114, 98,
-				111, 97, 114, 100, 77, 97, 110, 97, 103, 101,
-				114, 0, 0, 0, 0, 13, 124, 77, 97, 114,
-				107, 100, 111, 119, 110, 76, 105, 110, 107, 0,
-				0, 0, 0, 13, 124, 77, 97, 114, 107, 100,
-				111, 119, 110, 84, 101, 120, 116, 0, 0, 0,
-				0, 24, 77, 97, 114, 107, 100, 111, 119, 110,
-				84, 101, 120, 116, 124, 84, 101, 120, 116, 83,
-				101, 99, 116, 105, 111, 110, 0, 0, 0, 0,
-				22, 77, 97, 114, 107, 100, 111, 119, 110, 84,
-				101, 120, 116, 124, 72, 111, 118, 101, 114, 73,
-				110, 102, 111, 0, 0, 0, 0, 30, 124, 85,
-				110, 100, 101, 114, 108, 105, 110, 101, 77, 101,
-				115, 104, 67, 97, 112, 97, 99, 105, 116, 121,
-				82, 101, 115, 101, 114, 118, 101, 114, 0, 0,
-				0, 0, 5, 124, 77, 101, 110, 117, 0, 0,
-				0, 0, 11, 124, 79, 112, 116, 105, 111, 110,
-				77, 101, 110, 117, 0, 0, 0, 0, 12, 124,
-				83, 97, 118, 101, 67, 104, 111, 111, 115, 101,
-				114, 0, 0, 0, 0, 11, 124, 83, 97, 118,
-				101, 79, 112, 116, 105, 111, 110, 0, 0, 0,
-				0, 17, 124, 79, 112, 101, 110, 70, 101, 101,
-				100, 98, 97, 99, 107, 70, 111, 114, 109, 0,
-				0, 0, 0, 11, 124, 79, 117, 116, 112, 117,
-				116, 84, 101, 120, 116, 0, 0, 0, 0, 13,
-				124, 82, 101, 115, 101, 97, 114, 99, 104, 77,
-				101, 110, 117, 0, 0, 0, 0, 25, 82, 101,
-				115, 101, 97, 114, 99, 104, 77, 101, 110, 117,
-				124, 85, 110, 108, 111, 99, 107, 76, 97, 121,
-				111, 117, 116, 0, 0, 0, 0, 17, 124, 83,
-				99, 97, 108, 101, 100, 83, 99, 114, 111, 108,
-				108, 82, 101, 99, 116, 0, 0, 0, 0, 10,
-				124, 83, 101, 97, 114, 99, 104, 66, 111, 120,
-				0, 0, 0, 0, 22, 83, 101, 97, 114, 99,
-				104, 66, 111, 120, 124, 83, 101, 97, 114, 99,
-				104, 82, 101, 115, 117, 108, 116, 0, 0, 0,
-				0, 15, 124, 83, 112, 111, 105, 108, 101, 114,
-				87, 97, 114, 110, 105, 110, 103, 0, 0, 0,
-				0, 12, 124, 84, 105, 116, 108, 101, 87, 105,
-				110, 100, 111, 119, 0, 0, 0, 0, 15, 124,
-				84, 105, 116, 108, 101, 87, 111, 114, 107, 115,
-				112, 97, 99, 101, 0, 0, 0, 0, 28, 124,
-				67, 117, 115, 116, 111, 109, 83, 116, 97, 110,
-				100, 97, 108, 111, 110, 101, 73, 110, 112, 117,
-				116, 77, 111, 100, 117, 108, 101, 0, 0, 0,
-				0, 8, 124, 84, 111, 111, 108, 116, 105, 112,
-				0, 0, 0, 0, 16, 124, 84, 111, 111, 108,
-				116, 105, 112, 65, 99, 99, 101, 115, 115, 111,
-				114, 0, 0, 0, 0, 18, 124, 84, 111, 111,
-				108, 116, 105, 112, 80, 111, 115, 105, 116, 105,
-				111, 110, 101, 114, 0, 0, 0, 0, 13, 124,
-				84, 111, 111, 108, 116, 105, 112, 85, 116, 105,
-				108, 115, 0, 0, 0, 0, 10, 124, 85, 110,
-				108, 111, 99, 107, 66, 111, 120, 0, 0, 0,
-				0, 8, 124, 86, 105, 100, 101, 111, 85, 73,
-				0, 0, 0, 0, 12, 124, 87, 97, 114, 110,
-				105, 110, 103, 73, 99, 111, 110, 0, 0, 0,
-				0, 7, 124, 87, 105, 110, 100, 111, 119, 0,
-				0, 0, 0, 10, 124, 87, 111, 114, 107, 115,
-				112, 97, 99, 101, 0, 0, 0, 0, 14, 124,
-				87, 111, 114, 107, 115, 112, 97, 99, 101, 66,
-				97, 115, 101, 0, 0, 0, 0, 20, 124, 87,
-				114, 97, 112, 112, 105, 110, 103, 76, 97, 121,
-				111, 117, 116, 71, 114, 111, 117, 112
+				83, 97, 118, 101, 114, 0, 0, 0, 0, 20,
+				83, 97, 118, 101, 114, 124, 81, 117, 101, 117,
+				101, 100, 83, 110, 97, 112, 115, 104, 111, 116,
+				0, 0, 0, 0, 23, 83, 97, 118, 101, 114,
+				124, 80, 101, 110, 100, 105, 110, 103, 67, 111,
+				100, 101, 67, 104, 97, 110, 103, 101, 0, 0,
+				0, 0, 12, 124, 79, 108, 100, 83, 97, 118,
+				101, 71, 97, 109, 101, 0, 0, 0, 0, 9,
+				124, 83, 97, 118, 101, 71, 97, 109, 101, 0,
+				0, 0, 0, 10, 124, 84, 105, 116, 108, 101,
+				83, 97, 118, 101, 0, 0, 0, 0, 4, 124,
+				83, 70, 79, 0, 0, 0, 0, 5, 124, 80,
+				97, 105, 114, 0, 0, 0, 0, 12, 124, 83,
+				116, 101, 97, 109, 83, 99, 114, 105, 112, 116,
+				0, 0, 0, 0, 15, 124, 83, 116, 101, 97,
+				109, 83, 116, 97, 116, 115, 76, 111, 111, 112,
+				0, 0, 0, 0, 13, 124, 66, 108, 105, 110,
+				107, 77, 97, 110, 97, 103, 101, 114, 0, 0,
+				0, 0, 16, 124, 66, 114, 101, 97, 107, 80,
+				111, 105, 110, 116, 80, 97, 110, 101, 108, 0,
+				0, 0, 0, 14, 124, 67, 111, 100, 101, 67,
+				111, 109, 112, 108, 101, 116, 101, 114, 0, 0,
+				0, 0, 12, 124, 67, 111, 100, 101, 69, 120,
+				97, 109, 112, 108, 101, 0, 0, 0, 0, 31,
+				67, 111, 100, 101, 69, 120, 97, 109, 112, 108,
+				101, 124, 80, 111, 105, 110, 116, 101, 114, 69,
+				110, 116, 101, 114, 72, 97, 110, 100, 108, 101,
+				114, 0, 0, 0, 0, 31, 67, 111, 100, 101,
+				69, 120, 97, 109, 112, 108, 101, 124, 67, 111,
+				100, 101, 69, 120, 97, 109, 112, 108, 101, 83,
+				101, 116, 116, 105, 110, 103, 115, 0, 0, 0,
+				0, 41, 67, 111, 100, 101, 69, 120, 97, 109,
+				112, 108, 101, 43, 67, 111, 100, 101, 69, 120,
+				97, 109, 112, 108, 101, 83, 101, 116, 116, 105,
+				110, 103, 115, 124, 73, 116, 101, 109, 69, 110,
+				116, 114, 121, 0, 0, 0, 0, 11, 124, 67,
+				111, 100, 101, 79, 112, 116, 105, 111, 110, 0,
+				0, 0, 0, 11, 124, 67, 111, 100, 101, 87,
+				105, 110, 100, 111, 119, 0, 0, 0, 0, 16,
+				124, 67, 111, 110, 116, 97, 105, 110, 101, 114,
+				83, 99, 97, 108, 101, 114, 0, 0, 0, 0,
+				16, 124, 68, 76, 67, 83, 116, 97, 116, 117,
+				115, 66, 117, 116, 116, 111, 110, 0, 0, 0,
+				0, 11, 124, 68, 111, 99, 115, 87, 105, 110,
+				100, 111, 119, 0, 0, 0, 0, 17, 124, 68,
+				114, 111, 112, 100, 111, 119, 110, 84, 111, 111,
+				108, 116, 105, 112, 115, 0, 0, 0, 0, 13,
+				124, 69, 114, 114, 111, 114, 77, 101, 115, 115,
+				97, 103, 101, 0, 0, 0, 0, 15, 124, 70,
+				108, 97, 115, 104, 105, 110, 103, 66, 117, 116,
+				116, 111, 110, 0, 0, 0, 0, 9, 124, 72,
+				97, 116, 80, 111, 112, 117, 112, 0, 0, 0,
+				0, 27, 124, 72, 111, 114, 105, 122, 111, 110,
+				116, 97, 108, 70, 105, 116, 76, 97, 121, 111,
+				117, 116, 69, 108, 101, 109, 101, 110, 116, 0,
+				0, 0, 0, 12, 124, 73, 109, 97, 103, 101,
+				76, 111, 97, 100, 101, 114, 0, 0, 0, 0,
+				10, 124, 73, 110, 118, 101, 110, 116, 111, 114,
+				121, 0, 0, 0, 0, 7, 124, 73, 116, 101,
+				109, 85, 73, 0, 0, 0, 0, 12, 124, 76,
+				101, 97, 100, 101, 114, 98, 111, 97, 114, 100,
+				0, 0, 0, 0, 17, 124, 76, 101, 97, 100,
+				101, 114, 98, 111, 97, 114, 100, 69, 110, 116,
+				114, 121, 0, 0, 0, 0, 19, 124, 76, 101,
+				97, 100, 101, 114, 98, 111, 97, 114, 100, 77,
+				97, 110, 97, 103, 101, 114, 0, 0, 0, 0,
+				13, 124, 77, 97, 114, 107, 100, 111, 119, 110,
+				76, 105, 110, 107, 0, 0, 0, 0, 13, 124,
+				77, 97, 114, 107, 100, 111, 119, 110, 84, 101,
+				120, 116, 0, 0, 0, 0, 24, 77, 97, 114,
+				107, 100, 111, 119, 110, 84, 101, 120, 116, 124,
+				84, 101, 120, 116, 83, 101, 99, 116, 105, 111,
+				110, 0, 0, 0, 0, 22, 77, 97, 114, 107,
+				100, 111, 119, 110, 84, 101, 120, 116, 124, 72,
+				111, 118, 101, 114, 73, 110, 102, 111, 0, 0,
+				0, 0, 30, 124, 85, 110, 100, 101, 114, 108,
+				105, 110, 101, 77, 101, 115, 104, 67, 97, 112,
+				97, 99, 105, 116, 121, 82, 101, 115, 101, 114,
+				118, 101, 114, 0, 0, 0, 0, 5, 124, 77,
+				101, 110, 117, 0, 0, 0, 0, 11, 124, 79,
+				112, 116, 105, 111, 110, 77, 101, 110, 117, 0,
+				0, 0, 0, 12, 124, 83, 97, 118, 101, 67,
+				104, 111, 111, 115, 101, 114, 0, 0, 0, 0,
+				11, 124, 83, 97, 118, 101, 79, 112, 116, 105,
+				111, 110, 0, 0, 0, 0, 17, 124, 79, 112,
+				101, 110, 70, 101, 101, 100, 98, 97, 99, 107,
+				70, 111, 114, 109, 0, 0, 0, 0, 11, 124,
+				79, 117, 116, 112, 117, 116, 84, 101, 120, 116,
+				0, 0, 0, 0, 13, 124, 82, 101, 115, 101,
+				97, 114, 99, 104, 77, 101, 110, 117, 0, 0,
+				0, 0, 25, 82, 101, 115, 101, 97, 114, 99,
+				104, 77, 101, 110, 117, 124, 85, 110, 108, 111,
+				99, 107, 76, 97, 121, 111, 117, 116, 0, 0,
+				0, 0, 17, 124, 83, 99, 97, 108, 101, 100,
+				83, 99, 114, 111, 108, 108, 82, 101, 99, 116,
+				0, 0, 0, 0, 10, 124, 83, 101, 97, 114,
+				99, 104, 66, 111, 120, 0, 0, 0, 0, 22,
+				83, 101, 97, 114, 99, 104, 66, 111, 120, 124,
+				83, 101, 97, 114, 99, 104, 82, 101, 115, 117,
+				108, 116, 0, 0, 0, 0, 15, 124, 83, 112,
+				111, 105, 108, 101, 114, 87, 97, 114, 110, 105,
+				110, 103, 0, 0, 0, 0, 12, 124, 84, 105,
+				116, 108, 101, 87, 105, 110, 100, 111, 119, 0,
+				0, 0, 0, 15, 124, 84, 105, 116, 108, 101,
+				87, 111, 114, 107, 115, 112, 97, 99, 101, 0,
+				0, 0, 0, 28, 124, 67, 117, 115, 116, 111,
+				109, 83, 116, 97, 110, 100, 97, 108, 111, 110,
+				101, 73, 110, 112, 117, 116, 77, 111, 100, 117,
+				108, 101, 0, 0, 0, 0, 8, 124, 84, 111,
+				111, 108, 116, 105, 112, 0, 0, 0, 0, 16,
+				124, 84, 111, 111, 108, 116, 105, 112, 65, 99,
+				99, 101, 115, 115, 111, 114, 0, 0, 0, 0,
+				18, 124, 84, 111, 111, 108, 116, 105, 112, 80,
+				111, 115, 105, 116, 105, 111, 110, 101, 114, 0,
+				0, 0, 0, 13, 124, 84, 111, 111, 108, 116,
+				105, 112, 85, 116, 105, 108, 115, 0, 0, 0,
+				0, 10, 124, 85, 110, 108, 111, 99, 107, 66,
+				111, 120, 0, 0, 0, 0, 8, 124, 86, 105,
+				100, 101, 111, 85, 73, 0, 0, 0, 0, 12,
+				124, 87, 97, 114, 110, 105, 110, 103, 73, 99,
+				111, 110, 0, 0, 0, 0, 7, 124, 87, 105,
+				110, 100, 111, 119, 0, 0, 0, 0, 10, 124,
+				87, 111, 114, 107, 115, 112, 97, 99, 101, 0,
+				0, 0, 0, 14, 124, 87, 111, 114, 107, 115,
+				112, 97, 99, 101, 66, 97, 115, 101, 0, 0,
+				0, 0, 20, 124, 87, 114, 97, 112, 112, 105,
+				110, 103, 76, 97, 121, 111, 117, 116, 71, 114,
+				111, 117, 112
 			},
 			TotalFiles = 151,
-			TotalTypes = 192,
+			TotalTypes = 193,
 			IsEditorOnly = false
 		};
 	}
