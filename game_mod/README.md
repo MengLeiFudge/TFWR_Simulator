@@ -181,6 +181,8 @@ dotnet build game_mod/TFWROracleRunner.csproj -c Release -t:PackageThunderstore 
 
 输出位于 `game_mod/bin/Release/netstandard2.1/`。ZIP 包含 manifest、README、MIT 许可证、图标与本模组 DLL；加载器由依赖包提供，游戏程序集仅用于编译引用。
 
+发布用 `scripts\packaging\publish_mod.ps1`：默认 `-Check` 核对版本号四处一致与包内文件字节一致，`-Publish` 上传并核对远端结果，`-Verify` 只核对已发布版本。激活状态以包接口的 `latest` 为准，版本接口发布后有几秒到几分钟缓存延迟；等待总时长由 `-WaitSeconds` 限制（默认 30）。
+
 ## 许可证
 
 本模组采用 MIT 许可证，完整条款见包内 `LICENSE`。BepInEx、Harmony 和游戏程序集的许可由各自权利人提供。

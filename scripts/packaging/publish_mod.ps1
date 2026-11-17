@@ -1,6 +1,8 @@
 ﻿param(
     [switch]$Check,
     [switch]$Publish,
+    [switch]$Verify,
+    [int]$WaitSeconds = 30,
     [string]$Proxy = 'http://127.0.0.1:7890'
 )
 
@@ -103,31 +105,66 @@ foreach ($name in ($expectedEntries | Sort-Object)) {
     Write-Output ("  {0,-48} {1,9:N0} 字节 {2}" -f $name, $entries[$name].Bytes, $entries[$name].Sha256.Substring(0, 12))
 }
 Write-Output '版本、包内文件与源文件核对通过。'
-if (-not $Publish) {
-    Write-Output '未上传；加 -Publish 上传并核对远端结果。'
+if (-not $Publish -and -not $Verify) {
+    Write-Output '未上传；加 -Publish 上传，或加 -Verify 只核对已发布版本。'
     exit 0
 }
-
-# ---- 上传：远端同版本已存在就停止，避免覆盖或重复发布 ----
-$auth = @{ Authorization = "Bearer $([Environment]::GetEnvironmentVariable('THUNDERSTORE_API_TOKEN','User'))" }
-if ([string]::IsNullOrWhiteSpace($auth.Authorization)) { Fail 'Windows 用户环境变量缺少 THUNDERSTORE_API_TOKEN' }
 $packageApi = "$base/api/experimental/package/$namespace/$packageName/"
 $versionApi = "$packageApi$version/"
-
 function Get-Remote($uri, [switch]$AllowMissing) {
     try {
-        return Invoke-RestMethod -Uri $uri -Proxy $Proxy -TimeoutSec 20
+        return Invoke-RestMethod -Uri $uri -Proxy $Proxy -TimeoutSec 15
     } catch {
         if ($AllowMissing -and $_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) { return $null }
         throw
     }
 }
 
+if ($Verify) {
+    $listingLatest = Invoke-RestMethod -Uri "$base/api/experimental/package/$namespace/$packageName/" -Proxy $Proxy -TimeoutSec 15
+    $remote = Get-Remote $versionApi -AllowMissing
+    $active = ($remote -and $remote.is_active) -or
+        ($listingLatest.latest.version_number -eq $version -and $listingLatest.latest.is_active)
+    Write-Output ("远端 latest={0}；版本接口 {1}" -f $listingLatest.latest.version_number,
+        $(if ($remote) { '已刷新' } else { '尚未刷新（用 latest 判定）' }))
+    $downloadPath = Join-Path $env:TEMP "$packageName-$version-public.zip"
+    Invoke-WebRequest -Uri "$base/package/download/$namespace/$packageName/$version/" -OutFile $downloadPath -Proxy $Proxy -TimeoutSec 30
+    $publicHash = (Get-FileHash -LiteralPath $downloadPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $publicBytes = (Get-Item -LiteralPath $downloadPath).Length
+    Remove-Item -LiteralPath $downloadPath -Force
+    $receiptDir = Join-Path (Join-Path $repoRoot '.codex') (Join-Path 'thunderstore' $version)
+    New-Item -ItemType Directory -Path $receiptDir -Force | Out-Null
+    $receiptPath = Join-Path $receiptDir ("verify-{0}.json" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
+    [ordered]@{
+        verified_at_utc = (Get-Date).ToUniversalTime().ToString('o')
+        namespace = $namespace; name = $packageName; version = $version
+        zip = $zipPath; zip_sha256 = $zipHash
+        remote_active = $active
+        public_download_bytes = $publicBytes
+        public_download_sha256 = $publicHash
+        public_download_matches = ($publicHash -eq $zipHash)
+    } | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 $receiptPath
+    Write-Output ("远端 active={0}；公开下载 {1:N0} 字节 sha256={2}" -f $active, $publicBytes, $publicHash)
+    Write-Output ("回执 {0}" -f $receiptPath)
+    if (-not $active) { Fail "$version 在远端未激活" }
+    if ($publicHash -ne $zipHash) { Fail "公开下载与本地包哈希不一致：$publicHash" }
+    Write-Output "核对通过：$namespace-$packageName-$version 已激活，公开包与本地字节一致。"
+    exit 0
+}
+
+# ---- 上传：远端同版本已存在就停止，避免覆盖或重复发布 ----
+$auth = @{ Authorization = "Bearer $([Environment]::GetEnvironmentVariable('THUNDERSTORE_API_TOKEN','User'))" }
+if ([string]::IsNullOrWhiteSpace($auth.Authorization)) { Fail 'Windows 用户环境变量缺少 THUNDERSTORE_API_TOKEN' }
+
 $existing = Get-Remote $versionApi -AllowMissing
+$latest = Get-Remote $packageApi -AllowMissing
 if ($existing) { Fail "$namespace-$packageName-$version 已存在于远端，请升版本号" }
+if ($latest -and $latest.latest.version_number -eq $version) {
+    Fail "远端 latest 已经是 $version（版本接口可能还没刷新），请升版本号"
+}
 
 $file = Get-Item -LiteralPath $zipPath
-$init = Invoke-RestMethod -Uri "$base/api/experimental/usermedia/initiate-upload/" -Method Post -Headers $auth -Proxy $Proxy -TimeoutSec 20 -ContentType 'application/json' -Body (@{ filename = $file.Name; file_size_bytes = $file.Length } | ConvertTo-Json -Compress)
+$init = Invoke-RestMethod -Uri "$base/api/experimental/usermedia/initiate-upload/" -Method Post -Headers $auth -Proxy $Proxy -TimeoutSec 15 -ContentType 'application/json' -Body (@{ filename = $file.Name; file_size_bytes = $file.Length } | ConvertTo-Json -Compress)
 $uploadId = $init.user_media.uuid
 if (-not $uploadId -or -not $init.upload_urls) { Fail '上传初始化返回不完整' }
 $parts = @()
@@ -163,7 +200,7 @@ try {
     }
 } finally { $stream.Dispose() }
 
-$finished = Invoke-RestMethod -Uri "$base/api/experimental/usermedia/$uploadId/finish-upload/" -Method Post -Headers $auth -Proxy $Proxy -TimeoutSec 20 -ContentType 'application/json' -Body (@{ parts = $parts } | ConvertTo-Json -Depth 5 -Compress)
+$finished = Invoke-RestMethod -Uri "$base/api/experimental/usermedia/$uploadId/finish-upload/" -Method Post -Headers $auth -Proxy $Proxy -TimeoutSec 15 -ContentType 'application/json' -Body (@{ parts = $parts } | ConvertTo-Json -Depth 5 -Compress)
 if ($finished.status -ne 'upload_complete') { Fail "上传未完成：$($finished.status)" }
 
 $body = @{
@@ -173,15 +210,24 @@ $body = @{
     has_nsfw_content = $false
     upload_uuid = $uploadId
 }
-$submission = Invoke-RestMethod -Uri "$base/api/experimental/submission/submit/" -Method Post -Headers $auth -Proxy $Proxy -TimeoutSec 60 -ContentType 'application/json' -Body ($body | ConvertTo-Json -Depth 5 -Compress)
+$submission = Invoke-RestMethod -Uri "$base/api/experimental/submission/submit/" -Method Post -Headers $auth -Proxy $Proxy -TimeoutSec 30 -ContentType 'application/json' -Body ($body | ConvertTo-Json -Depth 5 -Compress)
 
 # ---- 复核：精确版本激活、社区与分类一致、公开下载与本地包同哈希 ----
 $confirmed = $false
 $remote = $null
-for ($attempt = 1; $attempt -le 12; $attempt++) {
-    Start-Sleep -Seconds 5
+$deadline = (Get-Date).AddSeconds($WaitSeconds)
+for ($attempt = 1; ; $attempt++) {
+    # 版本接口发布后有几秒到几分钟的缓存延迟，激活以包接口的 latest 为准。
+    $listingLatest = Get-Remote $packageApi -AllowMissing
     $remote = Get-Remote $versionApi -AllowMissing
-    if ($remote -and $remote.is_active) { $confirmed = $true; break }
+    $latestIsOurs = $listingLatest -and $listingLatest.latest -and
+        $listingLatest.latest.version_number -eq $version -and $listingLatest.latest.is_active
+    Write-Output ("核对远端激活 第{0}次：latest={1} active={2} 版本接口={3}" -f
+        $attempt, ($listingLatest.latest.version_number), [bool]$latestIsOurs,
+        $(if ($remote) { '已刷新' } else { '尚未刷新' }))
+    if ($latestIsOurs -or ($remote -and $remote.is_active)) { $confirmed = $true; break }
+    if ((Get-Date) -ge $deadline) { break }
+    Start-Sleep -Seconds 2
 }
 $listing = $null
 if ($confirmed) { $listing = Get-Remote $packageApi -AllowMissing }
