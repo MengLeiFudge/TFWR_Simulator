@@ -69,7 +69,7 @@ python3 game_control/tools/refresh_gamesave_link.py
 
 ### `sync_leaderboard_scripts.py`
 
-同步榜单脚本。写入 `gamesave/` 时，在同一状态锁内检查空闲状态并完成复制，覆盖前自动备份到 `.codex/tmp/leaderboard-sync/<唯一编号>/`，由 `.codex` 回收工具按临时产物清理；缺少已有目标文件时拒绝新增。协议3要求 `idle` 且实时执行、打榜和结果页字段均明确为 `false`；协议1/2（包括0.2.4）允许实时字段缺失，此时依赖 `idle`，已有忙碌标记仍会阻止覆盖。旧协议不能据此确认手动脚本是否运行，需先停止手动执行；同步期间不要手动启动脚本。活动请求、状态缺失或读取失败时均拒绝覆盖；协议3取结果后还需等模组刷新实时字段。`save2cur` 只读存档，不要求游戏空闲。默认只同步单个目标脚本：
+同步榜单脚本。写入 `gamesave/` 时，在同一状态锁内检查空闲状态并完成复制，覆盖前自动备份到 `.codex/tmp/leaderboard-sync/<唯一编号>/`，由 `.codex` 回收工具按临时产物清理；缺少已有目标文件时拒绝新增。协议3及以上（当前4）要求 `idle` 且实时执行、打榜和结果页字段均明确为 `false`；协议1/2（包括0.2.4）允许实时字段缺失，此时依赖 `idle`，已有忙碌标记仍会阻止覆盖。旧协议不能据此确认手动脚本是否运行，需先停止手动执行；同步期间不要手动启动脚本。活动请求、状态缺失或读取失败时均拒绝覆盖；协议3取结果后还需等模组刷新实时字段。`save2cur` 只读存档，不要求游戏空闲。默认只同步单个目标脚本：
 
 ```bash
 python3 game_control/tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single
@@ -87,7 +87,7 @@ python3 game_control/tools/sync_leaderboard_scripts.py cur2save --all
 
 ### `run_real_game_script.py`
 
-启动或复用真实游戏，通过状态机请求模组执行目标脚本。模组侧运行没有时限，游戏侧按异步处理：`--action submit` 投递后立即返回ID，`submit` 不接受等待时限，到期停止与取消都由调用者自行执行（`wait`/`cancel`）。需要同步等待时显式用 `--action run` 或文本模式，并给出 `--total-timeout`（客户端愿意等待的现实秒，须为大于0的有限值），到期客户端写 `stop_requested` 并收终态。控制类操作省略该参数时按300秒。运行请求需要协议4的模组（0.3.1）；保存时限使用 [SaveTimeoutSeconds](../game_mod/README.md#配置)，模组侧兜底上限见 [MaxRunSeconds](../game_mod/README.md#配置)。
+启动或复用真实游戏，通过状态机请求模组执行目标脚本。模组侧运行没有时限，游戏侧按异步处理：`--action submit` 投递后立即返回ID，`submit` 不接受等待时限，到期停止与取消都由调用者自行执行（`wait`/`cancel`）。需要同步等待时显式用 `--action run` 或文本模式，并给出 `--total-timeout`（客户端愿意等待的现实秒，须为大于0的有限值），到期客户端写 `stop_requested` 并收终态。控制类操作省略该参数时按300秒。`--max-leaderboard-runs`（短筛后自动停止）只在等待型入口生效：纯 `submit` 投递后没人监控，就不会自动停。运行请求需要协议4的模组（0.3.1）；保存时限使用 [SaveTimeoutSeconds](../game_mod/README.md#配置)，模组侧兜底上限见 [MaxRunSeconds](../game_mod/README.md#配置)。
 
 ```bash
 python3 game_control/tools/run_real_game_script.py --target-script lb_start --total-timeout 600
@@ -144,7 +144,7 @@ python3 game_control/tools/run_real_game_script.py --action quit
 | `dock` | 将 `--target-script` 窗口停靠到 `--second-script` 窗口链尾 |
 | `arrange` | 按名称排列全部窗口，`--target-script` 为首窗口，缺省 `stand` |
 
-控制操作不运行存档脚本。已有活动外部请求时须显式加 `--replace`；终态须先用result回收。手动执行没有外部请求ID时，prepare/quit直接停止它。保存失败或游戏确认窗口阻塞时返回失败；不默认选择未知弹窗。验收结束且近期不再使用游戏时调用quit。
+控制操作不运行存档脚本。已有活动外部请求时须显式加 `--replace`；终态不阻塞新请求，但要求旧结果已归档（先 `result`，或 `--replace` 明确丢弃）。手动执行没有外部请求ID时，prepare/quit直接停止它。保存失败或游戏确认窗口阻塞时返回失败；不默认选择未知弹窗。验收结束且近期不再使用游戏时调用quit。
 幂等键在同一状态目录内持久有效。相同键、命令、目标窗口、第二窗口、源码文件路径与输出路径复用原ID；参数不同返回 `idempotency_conflict`。所有提交类操作均可用 `--idempotency-key` 和 `--replace`，查询操作不接受它们。更换脚本内容或发起新一轮应使用新键。中断发生在回执写入与状态投递之间时返回 `submission_unknown`，不会自动重复启动。未提供键时，每次提交都是新请求。
 
 回执在状态文件旁的 `config/mlj.tfwr.oracle-runner.state.requests/`，不写Save0。`<id>.json`保存输出起点、增量查询游标及终态摘要，`<id>.result.json`保存含三份完整输出的终态报告，`key-<hash>.json`保存幂等索引，`0.json`预留递增ID。新版仍可读取旧版内嵌完整结果的回执。回执随请求累计，当前不自动清理。完整报告及摘要保存后才确认idle；确认失败可用同一ID重试result回收。旧客户端请求缺少起点，或监测到模组日志被替换/截断时，`output_complete=false`。被替换且尚未保存的请求标记 `superseded`，不读取新请求的输出。

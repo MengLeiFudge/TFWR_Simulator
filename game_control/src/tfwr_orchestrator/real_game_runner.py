@@ -200,6 +200,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     args = parser.parse_args(argv)
     args.effective_action = resolve_effective_action(args)
+    if args.action is not None and args.request_only:
+        parser.error('--request-only 不能与 --action 同用；异步投递直接写 --action submit')
+    if args.action is not None and args.status_only:
+        parser.error('--status-only 不能与 --action 同用；状态查询写 --action status')
+    if args.idempotency_key is not None:
+        if args.effective_action not in SUBMIT_ACTIONS:
+            parser.error('--idempotency-key 只用于提交类操作')
+
     if args.total_timeout is not None and (not math.isfinite(args.total_timeout) or args.total_timeout <= 0):
         parser.error('--total-timeout 须为大于0的有限现实秒数')
     if args.effective_action == 'submit' and args.total_timeout is not None:

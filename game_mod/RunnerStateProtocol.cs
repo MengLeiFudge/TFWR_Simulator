@@ -31,13 +31,6 @@ public static class RunnerStateProtocol
         };
     }
 
-    public static void MarkSuperseded(OracleRunnerStateFile state, int supersededByRequestId, DateTimeOffset finishedAt)
-    {
-        state.Status = RunnerRequestStatus.Superseded;
-        state.FinishedAt = ToIso8601(finishedAt);
-        state.LastError = $"superseded by request_id={supersededByRequestId}";
-    }
-
     public static void MarkRunning(OracleRunnerStateFile state, DateTimeOffset startedAt)
     {
         state.Status = RunnerRequestStatus.Running;

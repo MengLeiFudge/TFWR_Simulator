@@ -134,12 +134,12 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --t
 - `protocol_version` 只由模组发布，客户端只读；请求里带不带都不影响执行。模组收到不认识的 `command` 时写 `failed`，旧DLL遇到新命令同样报未知命令，所以不需要客户端先声明版本。
 - 重复或落后的 `request_id` 不再静默丢弃：模组写 `failed`，`last_error` 说明当前已处理到哪个编号，客户端应改用更大的ID。
 - 工作区已就绪却没有目标窗口时立即 `failed`；其余等待（未进工作区、别的脚本在跑、确认弹窗未关闭）持续保持 `requested`，要兜底就把 `ScriptReadyTimeoutSeconds` 设为正数。
-- 终态 `done`/`failed`/`superseded` 不是活动请求，可直接被更大的新请求覆盖；`requested`/`running`/`stop_requested` 才是活动请求。
+- 终态 `done`/`failed`/`superseded` 不是活动请求，可直接被更大的新请求覆盖；`requested`/`running`/`stop_requested` 才是活动请求。模组不会自动归档旧结果，本仓库客户端在覆盖前要求旧结果已归档（见 [协调器说明](https://github.com/MengLeiFudge/TFWR_Simulator/blob/master/game_control/README.md)）。
 - 实时字段 `executing`、`leaderboard_running`、`leaderboard_screen`、`busy_windows` 每轮刷新，与请求字段互不覆盖；`busy_windows` 只报模组已知的运行窗口，手工运行其它窗口时可能为空。
 - 配置 `AutoOkLeaderboardResult=true` 时，结果页一出现就按 OK，供等“运行结束”的外部脚本使用；不开启时仍只关闭属于本模组请求的结果页。
-- 脚本正常流转为 `idle → requested → running → done/failed → idle`；快速控制请求可直接从 `requested` 写回带起止时间的终态。
+- 脚本正常流转为 `idle → requested → running → done/failed`；回到 `idle` 是客户端为了让状态文件可读的自选动作，模组不强制。快速控制请求可直接从 `requested` 写回带起止时间的终态。
 - `requested` 或 `running` 可写入同一请求的 `stop_requested`；停止完成后进入 `failed`，`last_error` 保存停止原因。
-- 更大的请求 ID 替换旧请求。旧客户端观察到更大 ID 后按 `superseded` 结束，不再确认或清除新请求。
+- 更大的请求 ID 替换旧请求；模组本身不写 `superseded`，由客户端观察到更大 ID 后自行判定，不再确认或清除新请求。
 - 模组的状态修改先排队，下一次同步将请求快照与实时字段合并后一次原子落盘；写入失败保留快照重试。执行监控和 leaderboard 观察仍逐帧进行。
 
 两端通过独占创建 `<状态文件>.lock` 来保护读改写：C# 使用 `FileMode.CreateNew`，Python 使用 `O_CREAT | O_EXCL`。持锁期间重新读取状态，写入同目录临时文件并原子替换，最后释放锁。模组遇到占用或 I/O 错误时等待下一次轮询，不在主线程 sleep；客户端进行有限重试。
