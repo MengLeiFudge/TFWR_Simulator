@@ -71,16 +71,16 @@ python3 game_control/tools/run_real_game_script.py --status-only
 运行已有脚本 `my_script.py`，等待完成后打印结果：
 
 ```bash
-python3 game_control/tools/run_real_game_script.py --target-script my_script --request-timeout 20
+python3 game_control/tools/run_real_game_script.py --target-script my_script --total-timeout 600
 ```
 
 只提交请求并立即退出：
 
 ```bash
-python3 game_control/tools/run_real_game_script.py --target-script my_script --request-timeout 60 --request-only
+python3 game_control/tools/run_real_game_script.py --target-script my_script --total-timeout 60 --request-only
 ```
 
-`--request-only` 默认拒绝覆盖活动请求；明确替换须加 `--replace`，终态须先回收。AI调用推荐 `--action submit/status/wait/cancel/result/health` 的JSON任务接口，支持幂等提交和结果留存，沿用当前DLL协议。常规文本等待模式先等待 `idle`。本仓库打榜使用 `lb_start` 派生入口；参数与任务生命周期见 [协调器说明](https://github.com/MengLeiFudge/TFWR_Simulator/blob/master/game_control/README.md)。
+`--request-only` 默认拒绝覆盖活动请求；明确替换须加 `--replace`。终态 `done`/`failed`/`superseded` 不是活动请求，可直接被新请求覆盖。AI调用推荐 `--action submit/status/wait/cancel/result/health` 的JSON任务接口，支持幂等提交和结果留存，沿用当前DLL协议。常规文本等待模式先等待 `idle`。本仓库打榜使用 `lb_start` 派生入口；参数与任务生命周期见 [协调器说明](https://github.com/MengLeiFudge/TFWR_Simulator/blob/master/game_control/README.md)。
 
 ## 榜单页面与 Steam 数据
 
@@ -104,8 +104,9 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
 | General | `AutoOkLeaderboardResult` | `false` | 排行榜结果页一出现就按 OK，供等"运行结束"的外部队列使用 |
 | Advanced | `DefaultTargetScript` | `lb_start` | 请求未给 `target_script` 时使用的脚本窗口 |
 | Advanced | `StartupPollIntervalMs` | `250` | 状态文件同步间隔，最小生效值 50ms |
-| Advanced | `ScriptReadyTimeoutSeconds` | `30` | 等待工作区、空闲执行器及脚本窗口的期限 |
-| Advanced | `SaveTimeoutSeconds` | `10` | 保存等待上限，范围0～60秒；0表示不限时，与脚本运行时限独立 |
+| Advanced | `ScriptReadyTimeoutSeconds` | `0` | 等待工作区、空闲执行器或停止生效的现实秒上限，范围0～3600；0表示不限时，请求保持 `requested` |
+| Advanced | `MaxRunSeconds` | `0` | 单次 `run` 的现实秒兜底上限，范围0～86400；0表示不限时。只在客户端失联时避免无限运行 |
+| Advanced | `SaveTimeoutSeconds` | `10` | 保存等待上限，范围0～60秒；0表示不限时 |
 | Advanced | `RequestStopGracePeriodSeconds` | `3` | 停止后等待 `StopMainExecution()` 生效的观察窗口 |
 
 ## 文件协议
@@ -117,7 +118,6 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
   "request_id": 1,
   "status": "requested",
   "target_script": "my_script",
-  "timeout_seconds": 20,
   "started_at": null,
   "finished_at": null,
   "last_error": null
@@ -125,13 +125,16 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
 ```
 
 - `request_id` 为递增的非负 32 位整数；分配新 ID 和提交必须在同一次锁内完成。
-- `run` 的 `timeout_seconds` 必须由调用方显式提供，为大于0的有限墙钟秒数；缺失、`null` 或0均拒绝启动。控制命令不使用该字段，可设为 `null`；保存阶段使用 `Advanced.SaveTimeoutSeconds` 配置。
-- `command` 缺省或为 `run` 时执行脚本。控制命令：`prepare`（停在空闲工作区）、`save`（只存档，游戏继续）、`quit`（存档确认后退出，等于 `save` 加退出）、`play`、`stop`、`ok`、`open`、`close`、`minimize`、`unminimize`、`dock`、`arrange`、`list`。模组写回 `protocol_version=3`。
+- `run` 没有时间参数：模组启动脚本后一直观察到它自然结束，再写 `done`；客户端要停止就写同请求的 `stop_requested`。防止客户端掉线后无限运行只用配置 `Advanced.MaxRunSeconds`，默认0表示不限。
+- `command` 缺省或为 `run` 时执行脚本。控制命令：`prepare`（停在空闲工作区）、`save`（只存档，游戏继续）、`quit`（存档确认后退出，等于 `save` 加退出）、`play`、`stop`、`ok`、`open`、`close`、`minimize`、`unminimize`、`dock`、`arrange`、`list`。模组写回 `protocol_version=4`。
 - `minimize`/`unminimize` 收放单个窗口；`dock` 只把 `target_script` 挂到 `second_script` 链尾；`arrange` 把所有窗口按名字排序挂成一列，锚点取 `target_script`（缺省 `stand`）。
 - 即时命令 `play`、`stop`、`ok`、`list`、`minimize`、`unminimize` 不等待空闲，收到请求的当帧完成并写回终态；其中 `stop` 主动停止当前程序。
 - `save`、`quit` 与 `open`、`close`、`dock`、`arrange` 共用异步保存流程，等保存确认后才写终态；保存等待只使用 `Advanced.SaveTimeoutSeconds`。超时、保存未确认或警告弹窗未关闭时记为失败并保留现场；后台保存可能继续完成。取消或被新请求替换后不再退出游戏，不回滚已经开始的磁盘保存。保存期间状态文件丢失会记录警告并撤销退出；状态读取失败时保留等待句柄并定期警告，待恢复读取后继续处理。
 - `open` 读取 `code_file` 指定的源码（超过 1 MB 拒绝），按 `second_script`（缺省 `stand`）停靠；`open/close/minimize/unminimize/dock` 必须指定 `target_script`，`dock` 另需 `second_script`。`arrange` 用 `target_script`（缺省 `stand`）作首窗口，先解除其停靠再排列；`list` 把窗口清单写进 `result_text`。
-- 新增命令要求 `protocol_version >= 3`；空闲状态由模组发布实际支持的协议版本，升级DLL后旧idle文件会自动更新。旧客户端仍可使用 `run`/`prepare`/`quit`，运行请求须显式携带正的有限时限；旧 `DefaultRequestTimeoutSeconds` 配置不再生效。
+- `protocol_version` 只由模组发布，客户端只读；请求里带不带都不影响执行。模组收到不认识的 `command` 时写 `failed`，旧DLL遇到新命令同样报未知命令，所以不需要客户端先声明版本。
+- 重复或落后的 `request_id` 不再静默丢弃：模组写 `failed`，`last_error` 说明当前已处理到哪个编号，客户端应改用更大的ID。
+- 工作区已就绪却没有目标窗口时立即 `failed`；其余等待（未进工作区、别的脚本在跑、确认弹窗未关闭）持续保持 `requested`，要兜底就把 `ScriptReadyTimeoutSeconds` 设为正数。
+- 终态 `done`/`failed`/`superseded` 不是活动请求，可直接被更大的新请求覆盖；`requested`/`running`/`stop_requested` 才是活动请求。
 - 实时字段 `executing`、`leaderboard_running`、`leaderboard_screen`、`busy_windows` 每轮刷新，与请求字段互不覆盖；`busy_windows` 只报模组已知的运行窗口，手工运行其它窗口时可能为空。
 - 配置 `AutoOkLeaderboardResult=true` 时，结果页一出现就按 OK，供等“运行结束”的外部脚本使用；不开启时仍只关闭属于本模组请求的结果页。
 - 脚本正常流转为 `idle → requested → running → done/failed → idle`；快速控制请求可直接从 `requested` 写回带起止时间的终态。
@@ -144,6 +147,16 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
 自写客户端须遵守相同的锁协议；直接覆盖 JSON 不具备并发保护。取消和终态确认还必须核对当前请求 ID。可复用 Python 模块中的 `request_script_run`、`request_script_stop` 与 `acknowledge_terminal_state`。
 
 如果进程异常退出并留下 `.lock`，先停止游戏和全部客户端，再移除该残留锁并重新启动。程序不会按锁龄自动抢锁。无效 JSON 或未知状态会报告错误，不会被当成新会话重置。
+
+## 为什么这样设计
+
+游戏实例和本地模拟器不是同一种东西，协议按这个区别定形：
+
+- **单实例、串行**：同一时刻只有一个脚本在跑，进工作区、结果页、存档都耦合在同一时间线上；本地模拟可以多核铺满、几分钟出一个榜，游戏里同一件事可能两小时。所以游戏侧只给异步命令——投递即返回，客户端按ID轮询，想什么时候回来读都行。
+- **游戏秒与现实秒**：成绩口径只有游戏秒（排行榜一轮 7200 游戏秒），加速只改变现实秒。运行本身因此没有"时间上限"语义，脚本自己决定何时结束。现实秒只出现在三个兜底配置里（`SaveTimeoutSeconds`、`ScriptReadyTimeoutSeconds`、`MaxRunSeconds`），默认都设为不限时。
+- **强终不产生成绩**：被外部时钟掐掉的运行是未完成，写 `failed`；只有脚本自然结束才写 `done` 并被客户端当成结果。
+- **失败代价不对称**：本地一次失败几分钟，改参数重跑即可；游戏一次失败废掉一轮两小时，还可能污染榜单成绩。所以请求ID递增、终态只由模组写、结果与终态分开保存，都是为了事后能核对到底发生了什么。
+- **墙钟只防跑飞**：只有客户端掉线、脚本死循环这类异常才需要外部时钟介入，因此这些上限默认关闭或给足余量，不参与成绩语义。
 
 ## 输出
 

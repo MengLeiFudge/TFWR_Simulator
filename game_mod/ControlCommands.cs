@@ -21,14 +21,9 @@ public sealed partial class Plugin
     private static bool IsImmediateCommand(string command) =>
         command is "play" or "stop" or "ok" or "list" or "minimize" or "unminimize";
 
-    private static int CommandProtocolVersion(string command) => command switch
-    {
-        "run" => 1,
-        "prepare" or "quit" => 2,
-        "save" or "open" or "close" or "dock" or "arrange" or "play" or "stop" or "ok"
-            or "list" or "minimize" or "unminimize" => RunnerStateProtocol.CurrentProtocolVersion,
-        _ => 0 // 未知命令，不表示协议版本。
-    };
+    private static bool IsKnownCommand(string command) => command is
+        "run" or "prepare" or "quit" or "save" or "play" or "stop" or "ok"
+        or "open" or "close" or "dock" or "arrange" or "list" or "minimize" or "unminimize";
 
     /// <summary>执行不等待空闲的即时命令；stop 主动停止当前脚本。</summary>
     private void ExecuteImmediateCommand(MainSim mainSim, OracleRunnerStateFile request, string command)

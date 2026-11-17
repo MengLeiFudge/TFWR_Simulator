@@ -87,10 +87,10 @@ python3 game_control/tools/sync_leaderboard_scripts.py cur2save --all
 
 ### `run_real_game_script.py`
 
-启动或复用真实游戏，通过状态机请求模组执行目标脚本。AI每次提交运行都必须根据任务预算显式传入 `--request-timeout`，单位为墙钟秒，须为大于0的有限值；没有默认时限，0、负数、NaN和无穷大均拒绝。该参数用于 `run`、`submit` 和旧版文本提交，查询与控制操作不接受它。`--total-timeout` 单独控制客户端本次等待多久；保存时限使用模组的 [SaveTimeoutSeconds 配置](../game_mod/README.md#配置)。
+启动或复用真实游戏，通过状态机请求模组执行目标脚本。模组侧运行没有时限，预算是客户端自己的：AI每次提交运行都必须根据任务预算显式传入 `--total-timeout`，即客户端愿意等待的现实秒数，须为大于0的有限值；到期由客户端写 `stop_requested` 并收终态。该参数用于 `run`、`submit` 和旧版文本提交，其余操作省略时按300秒。保存时限使用模组的 [SaveTimeoutSeconds 配置](../game_mod/README.md#配置)；模组侧兜底上限见 [MaxRunSeconds](../game_mod/README.md#配置)。
 
 ```bash
-python3 game_control/tools/run_real_game_script.py --target-script lb_start --request-timeout 20
+python3 game_control/tools/run_real_game_script.py --target-script lb_start --total-timeout 600
 ```
 
 默认流程：
@@ -117,7 +117,7 @@ AI调用推荐下述JSON接口。旧版文本提交及 Python `request_script_ru
 ```bash
 python3 game_control/tools/run_real_game_script.py --action health
 python3 game_control/tools/run_real_game_script.py --action prepare
-python3 game_control/tools/run_real_game_script.py --action submit --target-script lb_start --request-timeout 60 --idempotency-key cactus-candidate-01
+python3 game_control/tools/run_real_game_script.py --action submit --target-script lb_start --total-timeout 600 --idempotency-key cactus-candidate-01
 python3 game_control/tools/run_real_game_script.py --action status --request-id 123
 python3 game_control/tools/run_real_game_script.py --action wait --request-id 123 --total-timeout 90
 python3 game_control/tools/run_real_game_script.py --action cancel --request-id 123
@@ -145,7 +145,7 @@ python3 game_control/tools/run_real_game_script.py --action quit
 | `arrange` | 按名称排列全部窗口，`--target-script` 为首窗口，缺省 `stand` |
 
 控制操作不运行存档脚本。已有活动外部请求时须显式加 `--replace`；终态须先用result回收。手动执行没有外部请求ID时，prepare/quit直接停止它。保存失败或游戏确认窗口阻塞时返回失败；不默认选择未知弹窗。验收结束且近期不再使用游戏时调用quit。
-幂等键在同一状态目录内持久有效。相同键、命令、目标窗口、第二窗口、源码文件路径、请求超时与输出路径复用原ID；参数不同返回 `idempotency_conflict`。所有提交类操作均可用 `--idempotency-key` 和 `--replace`，查询操作不接受它们。更换脚本内容或发起新一轮应使用新键。中断发生在回执写入与状态投递之间时返回 `submission_unknown`，不会自动重复启动。未提供键时，每次提交都是新请求。
+幂等键在同一状态目录内持久有效。相同键、命令、目标窗口、第二窗口、源码文件路径与输出路径复用原ID；参数不同返回 `idempotency_conflict`。所有提交类操作均可用 `--idempotency-key` 和 `--replace`，查询操作不接受它们。更换脚本内容或发起新一轮应使用新键。中断发生在回执写入与状态投递之间时返回 `submission_unknown`，不会自动重复启动。未提供键时，每次提交都是新请求。
 
 回执在状态文件旁的 `config/mlj.tfwr.oracle-runner.state.requests/`，不写Save0。`<id>.json`保存输出起点、增量查询游标及终态摘要，`<id>.result.json`保存含三份完整输出的终态报告，`key-<hash>.json`保存幂等索引，`0.json`预留递增ID。新版仍可读取旧版内嵌完整结果的回执。回执随请求累计，当前不自动清理。完整报告及摘要保存后才确认idle；确认失败可用同一ID重试result回收。旧客户端请求缺少起点，或监测到模组日志被替换/截断时，`output_complete=false`。被替换且尚未保存的请求标记 `superseded`，不读取新请求的输出。
 
@@ -231,7 +231,7 @@ python3 game_control/tools/extract_unlock_snapshot.py --format markdown --output
 ```bash
 python3 game_control/tools/refresh_gamesave_link.py
 python3 game_control/tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single
-python3 game_control/tools/run_real_game_script.py --target-script lb_start --request-timeout 20
+python3 game_control/tools/run_real_game_script.py --target-script lb_start --total-timeout 600
 ```
 
 ## 验证

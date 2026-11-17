@@ -20,7 +20,7 @@ public sealed class OracleRunnerStateFile
         get => RunnerStateProtocol.ToStatusText(Status);
         set => Status = RunnerStateProtocol.ParseStatusText(value);
     }
-    /// <summary>模组支持的协议版本；版本2支持prepare与quit，版本3增加save、ok、list等控制命令。</summary>
+    /// <summary>模组支持的协议版本；版本2支持prepare与quit，版本3增加save、ok、list等控制命令，版本4取消运行时限并允许终态直接被新请求替换。只由模组写入，客户端只读。</summary>
     [DataMember(Name = "protocol_version")]
     public int ProtocolVersion { get; set; } = RunnerStateProtocol.CurrentProtocolVersion;
 
@@ -31,10 +31,6 @@ public sealed class OracleRunnerStateFile
     /// <summary>游戏内已有脚本窗口的名称。</summary>
     [DataMember(Name = "target_script")]
     public string? TargetScript { get; set; }
-
-    /// <summary>run必须显式提供正的有限墙钟秒数；控制命令不使用此字段。</summary>
-    [DataMember(Name = "timeout_seconds")]
-    public double? TimeoutSeconds { get; set; }
 
     /// <summary>执行开始的 ISO 8601 时间。</summary>
     [DataMember(Name = "started_at")]

@@ -145,7 +145,6 @@ public sealed class RunnerStateStore
                 SecondScript = state.SecondScript,
                 CodeFile = state.CodeFile,
                 ResultText = state.ResultText,
-                TimeoutSeconds = state.TimeoutSeconds,
                 StartedAt = state.StartedAt,
                 FinishedAt = state.FinishedAt,
                 LastError = state.LastError,
@@ -168,12 +167,9 @@ public sealed class RunnerStateStore
             var serializer = new DataContractJsonSerializer(typeof(OracleRunnerStateFile));
             var state = serializer.ReadObject(stream) as OracleRunnerStateFile
                 ?? throw new SerializationException("状态文件必须是 JSON 对象。");
-            if (state.RequestId < 0 ||
-                (state.TimeoutSeconds.HasValue &&
-                 (double.IsNaN(state.TimeoutSeconds.Value) || double.IsInfinity(state.TimeoutSeconds.Value) ||
-                  state.TimeoutSeconds.Value < 0)))
+            if (state.RequestId < 0)
             {
-                throw new SerializationException("request_id 和 timeout_seconds 必须是非负有限数值。");
+                throw new SerializationException("request_id 必须是非负整数。");
             }
             return state;
         }

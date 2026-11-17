@@ -4,7 +4,7 @@ namespace TFWROracleRunner;
 
 public static class RunnerStateProtocol
 {
-    public const int CurrentProtocolVersion = 3;
+    public const int CurrentProtocolVersion = 4;
     public const string StateFileName = "mlj.tfwr.oracle-runner.state.json";
 
     public static string NormalizeTargetScriptName(string? configuredName)
@@ -25,21 +25,6 @@ public static class RunnerStateProtocol
             RequestId = requestId,
             Status = RunnerRequestStatus.Idle,
             TargetScript = null,
-            TimeoutSeconds = null,
-            StartedAt = null,
-            FinishedAt = null,
-            LastError = null,
-        };
-    }
-
-    public static OracleRunnerStateFile CreateRequested(int requestId, string targetScript, double timeoutSeconds)
-    {
-        return new OracleRunnerStateFile
-        {
-            RequestId = requestId,
-            Status = RunnerRequestStatus.Requested,
-            TargetScript = NormalizeTargetScriptName(targetScript),
-            TimeoutSeconds = timeoutSeconds,
             StartedAt = null,
             FinishedAt = null,
             LastError = null,

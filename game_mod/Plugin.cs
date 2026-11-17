@@ -17,12 +17,12 @@ public sealed partial class Plugin : BaseUnityPlugin
 {
     internal const string PluginGuid = "mlj.tfwr.oracle-runner";
     internal const string PluginName = "TFWR Oracle Runner";
-    internal const string PluginVersion = "0.3.0";
+    internal const string PluginVersion = "0.3.1";
 
     private enum StopReason
     {
         None,
-        Timeout,
+        MaxRunExceeded,
         Superseded,
         StopRequested,
     }
@@ -88,7 +88,8 @@ public sealed partial class Plugin : BaseUnityPlugin
 
         Log.LogInfo(
             $"enabled={runnerConfig.Enabled.Value} state_file={stateStore.StateFilePath} " +
-            $"poll_ms={runnerConfig.StartupPollIntervalMs.Value} save_timeout={runnerConfig.SaveTimeoutSeconds.Value}s");
+            $"poll_ms={runnerConfig.StartupPollIntervalMs.Value} save_timeout={runnerConfig.SaveTimeoutSeconds.Value}s " +
+            $"ready_timeout={runnerConfig.ScriptReadyTimeoutSeconds.Value}s max_run={runnerConfig.MaxRunSeconds.Value}s");
     }
 
     private void OnDestroy()
@@ -250,17 +251,7 @@ public sealed partial class Plugin : BaseUnityPlugin
         {
             if (observedState.RequestId <= lastHandledRequestId)
             {
-                return;
-            }
-            if (observedState.ProtocolVersion < 3)
-            {
-                MarkFailedWithOutput(
-                    observedState,
-                    $"command {observedState.Command} requires protocol_version >= 3",
-                    DateTimeOffset.UtcNow
-                );
-                stateStore.Write(observedState);
-                lastHandledRequestId = Math.Max(lastHandledRequestId, observedState.RequestId);
+                RejectStaleRequestId(observedState);
                 return;
             }
             ExecuteImmediateCommand(mainSim, observedState, observedState.Command!);
@@ -271,6 +262,7 @@ public sealed partial class Plugin : BaseUnityPlugin
         {
             if (observedState.RequestId <= lastHandledRequestId)
             {
+                RejectStaleRequestId(observedState);
                 return;
             }
 
@@ -318,6 +310,18 @@ public sealed partial class Plugin : BaseUnityPlugin
         }
     }
 
+    /// <summary>重复或落后的请求编号直接判失败，避免客户端无声等待。</summary>
+    /// <param name="observedState">文件中读到的请求。</param>
+    private void RejectStaleRequestId(OracleRunnerStateFile observedState)
+    {
+        MarkFailedWithOutput(
+            observedState,
+            $"request_id {observedState.RequestId} is not greater than last handled {lastHandledRequestId}; allocate a new increasing id",
+            DateTimeOffset.UtcNow
+        );
+        stateStore.Write(observedState);
+    }
+
     /// <summary>在单次请求期限内进入工作区，等待窗口及空闲执行器，再启动目标脚本。</summary>
     /// <param name="mainSim">真实游戏执行器。</param>
     /// <param name="requestedState">当前仍待启动的请求。</param>
@@ -330,30 +334,11 @@ public sealed partial class Plugin : BaseUnityPlugin
             preparationStopInvoked = false;
         }
         string command = requestedState.Command ?? "run";
-        int protocol = CommandProtocolVersion(command);
-        if (protocol > 1 && requestedState.ProtocolVersion < protocol)
-        {
-            MarkFailedWithOutput(
-                requestedState,
-                $"command {command} requires protocol_version >= {protocol}",
-                DateTimeOffset.UtcNow
-            );
-            stateStore.Write(requestedState);
-            lastHandledRequestId = requestedState.RequestId;
-            return;
-        }
-        if (protocol == 0)
+        if (!IsKnownCommand(command))
         {
             MarkFailedWithOutput(requestedState, $"unknown command: {command}", DateTimeOffset.UtcNow);
             stateStore.Write(requestedState);
             lastHandledRequestId = requestedState.RequestId;
-            return;
-        }
-        if (command == "run" && (!requestedState.TimeoutSeconds.HasValue || requestedState.TimeoutSeconds.Value <= 0))
-        {
-            MarkFailedWithOutput(requestedState, "run requires an explicit positive timeout_seconds", DateTimeOffset.UtcNow);
-            stateStore.Write(requestedState);
-            lastHandledRequestId = Math.Max(lastHandledRequestId, requestedState.RequestId);
             return;
         }
         bool control = command != "run";
@@ -381,23 +366,32 @@ public sealed partial class Plugin : BaseUnityPlugin
             requestedState.TargetScript ?? runnerConfig.TargetScriptName.Value
         );
         CodeWindow? targetWindow = mainSim.workspace == null ? null : FindTargetWindow(mainSim.workspace, targetScriptName);
-        string? waiting = mainSim.warningPopup != null && mainSim.warningPopup.gameObject.activeInHierarchy
+        // 工作区已就绪却找不到窗口是确定错误，不等就绪上限；其余等待项都是瞬时状态。
+        string? blocking = mainSim.warningPopup != null && mainSim.warningPopup.gameObject.activeInHierarchy
             ? "game confirmation is pending; resolve the dialog before retrying"
             : mainSim.workspace == null || !mainSim.workspace.gameObject.activeInHierarchy
             ? "workspace is not active"
-            : !control && targetWindow == null ? $"script window not found: {targetScriptName}"
             : mainSim.IsExecuting() ? "another script is still executing" : null;
-        if (waiting != null)
+        if (blocking == null && !control && targetWindow == null)
         {
-            if (Time.realtimeSinceStartup - startingRequestAt >= runnerConfig.ScriptReadyTimeoutSeconds.Value)
+            MarkFailedWithOutput(requestedState, $"script window not found: {targetScriptName}", DateTimeOffset.UtcNow);
+            stateStore.Write(requestedState);
+            lastHandledRequestId = Math.Max(lastHandledRequestId, requestedState.RequestId);
+            return;
+        }
+        if (blocking != null)
+        {
+            float readySeconds = runnerConfig.ScriptReadyTimeoutSeconds.Value;
+            bool expired = readySeconds > 0f && Time.realtimeSinceStartup - startingRequestAt >= readySeconds;
+            if (expired)
             {
-                MarkFailedWithOutput(requestedState, waiting, DateTimeOffset.UtcNow);
+                MarkFailedWithOutput(requestedState, blocking, DateTimeOffset.UtcNow);
                 stateStore.Write(requestedState);
                 lastHandledRequestId = Math.Max(lastHandledRequestId, requestedState.RequestId);
             }
             else
             {
-                MaybeLogProgress($"等待请求启动 request_id={requestedState.RequestId}: {waiting}");
+                MaybeLogProgress($"等待请求启动 request_id={requestedState.RequestId}: {blocking}");
             }
             return;
         }
@@ -479,17 +473,19 @@ public sealed partial class Plugin : BaseUnityPlugin
             return;
         }
 
-        double timeoutSeconds = activeRequest.TimeoutSeconds!.Value;
-        if (Time.realtimeSinceStartup - activeRequestStartedAt >= timeoutSeconds)
+        float maxRunSeconds = runnerConfig.MaxRunSeconds.Value;
+        if (maxRunSeconds > 0f && Time.realtimeSinceStartup - activeRequestStartedAt >= maxRunSeconds)
         {
-            BeginStop(mainSim, StopReason.Timeout);
+            BeginStop(mainSim, StopReason.MaxRunExceeded);
             return;
         }
 
         MaybeLogItemSnapshot(
             mainSim,
             status: "running",
-            detail: $"timeout={timeoutSeconds.ToString("0.0", CultureInfo.InvariantCulture)}"
+            detail: maxRunSeconds > 0f
+                ? $"max_run={maxRunSeconds.ToString("0.0", CultureInfo.InvariantCulture)}"
+                : "max_run=off"
         );
     }
 
@@ -818,12 +814,12 @@ public sealed partial class Plugin : BaseUnityPlugin
             return;
         }
 
-        if (stopReason == StopReason.Timeout || stopReason == StopReason.StopRequested)
+        if (stopReason == StopReason.MaxRunExceeded || stopReason == StopReason.StopRequested)
         {
             MarkFailedWithOutput(
                 activeRequest,
-                stopReason == StopReason.Timeout
-                    ? $"request timed out after {activeRequest.TimeoutSeconds:0.###}s"
+                stopReason == StopReason.MaxRunExceeded
+                    ? $"run exceeded MaxRunSeconds={runnerConfig.MaxRunSeconds.Value:0.###}s"
                     : activeRequest.LastError ?? "stop requested",
                 DateTimeOffset.UtcNow
             );

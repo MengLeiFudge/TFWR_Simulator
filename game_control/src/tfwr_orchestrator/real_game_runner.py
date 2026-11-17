@@ -130,12 +130,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="open 读取的源码文件绝对路径；省略则创建空窗口。",
     )
     parser.add_argument(
-        "--request-timeout",
-        type=float,
-        default=None,
-        help="运行脚本的墙钟时间上限（秒）；run/submit及文本提交必须显式给出大于0的有限值。",
-    )
-    parser.add_argument(
         "--startup-timeout",
         type=float,
         default=30.0,
@@ -144,8 +138,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--total-timeout",
         type=float,
-        default=300.0,
-        help="整次等待的最大墙钟时间，默认 300 秒。",
+        default=None,
+        help="客户端愿意等待的现实秒数；run/submit及文本提交必须显式给出大于0的有限值，其余操作省略时按300秒。",
     )
     parser.add_argument(
         "--poll-interval",
@@ -194,10 +188,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     args = parser.parse_args(argv)
     if not args.status_only and args.action in (None, 'run', 'submit'):
-        if args.request_timeout is None or not math.isfinite(args.request_timeout) or args.request_timeout <= 0:
-            parser.error('运行脚本必须显式提供 --request-timeout，值须为大于0的有限秒数')
-    elif args.request_timeout is not None:
-        parser.error('--request-timeout只用于运行脚本；保存时限使用模组的SaveTimeoutSeconds配置')
+        if args.total_timeout is None or not math.isfinite(args.total_timeout) or args.total_timeout <= 0:
+            parser.error('运行脚本必须显式提供 --total-timeout，给出客户端愿意等待的现实秒数（大于0的有限值）')
+    elif args.total_timeout is None:
+        args.total_timeout = 300.0
     for name in ('startup_timeout', 'total_timeout', 'poll_interval', 'output_stall_timeout'):
         value = getattr(args, name)
         if not math.isfinite(value) or value < 0 or (name in ('startup_timeout', 'total_timeout', 'poll_interval') and value == 0):
@@ -246,6 +240,7 @@ CONTROL_PROTOCOLS = {
 }
 CONTROL_ACTIONS = tuple(CONTROL_PROTOCOLS)
 SUBMIT_ACTIONS = ('run', 'submit', *CONTROL_ACTIONS)
+TERMINAL_STATUSES = ('done', 'failed', 'superseded')
 WINDOW_ACTIONS = ('open', 'close', 'minimize', 'unminimize', 'dock')
 
 
@@ -257,13 +252,11 @@ def build_requested_state(
     *,
     request_id: int,
     target_script: str,
-    timeout_seconds: float | None,
 ) -> dict[str, object]:
     return {
         "request_id": request_id,
         "status": "requested",
         "target_script": normalize_target_script_name(target_script),
-        "timeout_seconds": float(timeout_seconds) if timeout_seconds is not None else None,
         "started_at": None,
         "finished_at": None,
         "last_error": None,
@@ -276,7 +269,6 @@ def build_idle_state(*, request_id: int, protocol_version: int = 1) -> dict[str,
         "status": "idle",
         "protocol_version": protocol_version,
         "target_script": None,
-        "timeout_seconds": None,
         "started_at": None,
         "finished_at": None,
         "last_error": None,
@@ -290,7 +282,6 @@ def build_stop_requested_state(current_state: dict[str, object], message: str) -
         "command": current_state.get("command"),
         "protocol_version": current_state.get("protocol_version", 1),
         "target_script": normalize_target_script_name(str(current_state.get("target_script") or "")),
-        "timeout_seconds": current_state.get("timeout_seconds"),
         "started_at": current_state.get("started_at"),
         "finished_at": None,
         "last_error": message,
@@ -542,7 +533,6 @@ def wait_for_status(
                     "request_id": request_id,
                     "status": "superseded",
                     "target_script": None,
-                    "timeout_seconds": None,
                     "started_at": None,
                     "finished_at": current.get("finished_at"),
                     "last_error": f"superseded by request_id={current_request_id}",
@@ -640,12 +630,9 @@ def request_script_run(
     *,
     state_path: Path,
     target_script: str,
-    timeout_seconds: float,
     replace_current: bool = False,
 ) -> int:
     """锁内检查空闲再提交；显式替换才允许覆盖活动请求。"""
-    if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
-        raise ValueError("request-timeout 必须显式提供大于0的有限秒数。")
     if not normalize_target_script_name(target_script):
         raise ValueError("target-script 不能为空。")
     with state_transaction(state_path):
@@ -657,7 +644,6 @@ def request_script_run(
             build_requested_state(
                 request_id=request_id,
                 target_script=target_script,
-                timeout_seconds=timeout_seconds,
             ),
         )
         return request_id
@@ -952,7 +938,7 @@ def print_status_only(args: argparse.Namespace) -> int:
             f"request_id={state.get('request_id')} "
             f"status={state.get('status')} "
             f"target_script={state.get('target_script')} "
-            f"timeout={state.get('timeout_seconds')} "
+            f"command={state.get('command')} "
             f"last_error={state.get('last_error')}"
         )
     request_pattern = re.compile(rf"\brequest_id={state['request_id']}\b") if state else None
@@ -1095,13 +1081,12 @@ def main(argv: list[str] | None = None) -> int:
         request_id = request_script_run(
             state_path=state_path,
             target_script=args.target_script,
-            timeout_seconds=args.request_timeout,
             replace_current=args.replace,
         )
         print(
             f"real_game_runner requested request_id={request_id} "
             f"target_script={normalize_target_script_name(args.target_script)} "
-            f"timeout={args.request_timeout:g} mode=request_only"
+            f"client_wait={args.total_timeout:g} mode=request_only"
         )
         return 0
 
@@ -1118,7 +1103,6 @@ def main(argv: list[str] | None = None) -> int:
     request_id = request_script_run(
         state_path=state_path,
         target_script=args.target_script,
-        timeout_seconds=args.request_timeout,
         replace_current=args.replace,
     )
     try:
@@ -1184,11 +1168,13 @@ def read_record(path: Path) -> dict[str, Any] | None:
 
 
 def require_available(current: dict | None, replace_current: bool) -> None:
-    """终态必须先取结果；只允许明确替换requested/running/stop_requested。"""
+    """终态不是活动请求，可直接被新请求替换；只有请求进行中才要求显式--replace。"""
     if current is None:
         raise TaskError('not_connected', '模组状态文件尚未生成，请启动对应profile的游戏')
     status = current['status']
-    if status == 'idle' or (replace_current and status in ('requested', 'running', 'stop_requested')):
+    if status == 'idle' or status in TERMINAL_STATUSES or (
+        replace_current and status in ('requested', 'running', 'stop_requested')
+    ):
         return
     raise TaskError('busy', '当前请求尚未回收；先按ID等待并取结果，替换活动请求须显式指定--replace',
                     request_id=current['request_id'], status=status)
@@ -1224,7 +1210,7 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
     code_file = to_windows_path(normalize_config_path(args.code_file).resolve()) if args.code_file else None
     baseline = capture_output_baseline(save_root=args.save_root, game_root=args.game_root, bepinex_root=args.bepinex_root)
     paths = serialize_baseline(baseline)
-    fingerprint = {'target_script': target, 'timeout_seconds': args.request_timeout,
+    fingerprint = {'target_script': target,
                    'paths': {key: value for key, value in paths.items() if key.endswith('_path')}}
     if command != 'run':
         fingerprint['command'] = command
@@ -1258,10 +1244,9 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
                 write_state_file(resolve_request_record_path(state_path, request_id), receipt)
                 if key_path is not None:
                     write_state_file(key_path, {'request_id': request_id, 'fingerprint': fingerprint})
-                request = build_requested_state(
-                    request_id=request_id, target_script=target or '', timeout_seconds=args.request_timeout)
+                request = build_requested_state(request_id=request_id, target_script=target or '')
                 if command != 'run':
-                    request.update(command=command, protocol_version=required_protocol)
+                    request['command'] = command
                 if second is not None:
                     request['second_script'] = second
                 if code_file is not None:
@@ -1369,7 +1354,7 @@ def build_task_report(state: dict, outputs: CapturedOutputs, *, output_complete:
     reason = str(state.get('last_error') or '')
     reasons = (('reached stable leaderboard runs', 'sample_limit'),
                ('client cancelled', 'cancelled'), ('client wait', 'client_timeout'),
-               ('request timed out', 'request_timeout'), ('mod log stalled', 'log_stall'),
+               ('run exceeded MaxRunSeconds', 'max_run_exceeded'), ('mod log stalled', 'log_stall'),
                ('script runtime error', 'script_error'))
     reason_code = next((code for prefix, code in reasons if reason.startswith(prefix)), None)
     if state['status'] == 'done':

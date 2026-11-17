@@ -29,8 +29,17 @@ internal sealed class OracleRunnerConfig
         ScriptReadyTimeoutSeconds = config.Bind(
             "Advanced",
             "ScriptReadyTimeoutSeconds",
-            30f,
-            "等待脚本窗口出现的最长时间（秒），一般不用改。");
+            0f,
+            new ConfigDescription(
+                "等待工作区、空闲执行器或停止生效的现实秒上限（0至3600）；0表示不限时，请求保持requested等待。",
+                new AcceptableValueRange<float>(0f, 3600f)));
+        MaxRunSeconds = config.Bind(
+            "Advanced",
+            "MaxRunSeconds",
+            0f,
+            new ConfigDescription(
+                "单次run的现实秒兜底上限（0至86400）；0表示不限时。只在客户端失联时避免无限运行，不参与成绩语义。",
+                new AcceptableValueRange<float>(0f, 86400f)));
         SaveTimeoutSeconds = config.Bind(
             "Advanced",
             "SaveTimeoutSeconds",
@@ -59,6 +68,8 @@ internal sealed class OracleRunnerConfig
     public ConfigEntry<int> StartupPollIntervalMs { get; }
 
     public ConfigEntry<float> ScriptReadyTimeoutSeconds { get; }
+
+    public ConfigEntry<float> MaxRunSeconds { get; }
 
     public ConfigEntry<float> SaveTimeoutSeconds { get; }
 
