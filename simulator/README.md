@@ -170,3 +170,17 @@ dotnet run --project simulator/TFWRMechanismModel.csproj -- companion --size 5 -
 - 这个工具适合筛掉理论上明显不成立的路线。
 - 如果某个候选在这里表现接近或更好，再迁移到 `scripts/leaderboard/lb_*.py` 做真实游戏验证。
 - 如果真实游戏结果和本模型冲突，以真实游戏为准，并回头修正模型口径。
+
+## 反编译事实源与 Native 同步
+
+`references/DecompiledSource/` 必须与当前游戏构建一致；`simulator/headless/Native/` 是从中摘出的游戏逻辑。
+
+```bash
+python3 game_control/tools/refresh_decompiled_sources.py --check   # 只核对，落后时返回非零
+python3 game_control/tools/refresh_decompiled_sources.py           # 默认：发现落后就重新反编译并重写清单
+```
+
+核对口径是比较 Managed 目录里 `Core.dll`／`Assembly-CSharp.dll`／`mscorlib.dll` 的 SHA256 与 `source-manifest.json`，并读 Steam 的 `appmanifest_2060160.acf` 报出构建号。`session.py` 启动时会跑一次 `--check`，落后就打印提示。
+
+迁移 Native 的方法：取新反编译源码与上一版（`git show` 旧提交）的 diff，逐块确认属于哪些类；只把 `Execution`、`Farm`、`World`、`Language` 等被摘出的类的改动搬进来，`MainSim`、`Logger`、`Saver`、`Menu`、`SaveChooser` 等 UI 与存档类不在模拟范围内。2026-11-17 核对 26462009：模拟相关改动只有 `Execution` 的 `ProgramState` 局部缓存和 `ImportNode` 的 `null` 检查顺序，两处 Native 已经是新实现；其余改动都在未摘出的类里，因此本轮无需改 Native。
+

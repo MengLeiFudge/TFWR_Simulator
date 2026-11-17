@@ -509,6 +509,7 @@ def wait_for_status(
     controlled_stop_message: str | None = None
     last_live_progress_at = 0.0
     last_live_progress_line = ""
+    leaderboard_screen_logged = False
     while time.monotonic() < deadline:
         loop_now = time.monotonic()
         current = read_state_file(state_path)
@@ -519,6 +520,18 @@ def wait_for_status(
                 receipt = read_record(resolve_request_record_path(state_path, request_id))
                 if receipt and receipt.get('result') is not None:
                     return receipt['result']
+            if current.get('leaderboard_screen'):
+                # 结果页打开时游戏仍报告执行中、日志也不再增长；不把它当成停滞。
+                last_output_activity_at = loop_now
+                if not leaderboard_screen_logged:
+                    print(
+                        f"real_game_runner leaderboard_screen request_id={request_id}"
+                        "：排行榜结果页已打开，等模组按 OK 关闭",
+                        flush=True,
+                    )
+                    leaderboard_screen_logged = True
+            else:
+                leaderboard_screen_logged = False
             if current_request_id > request_id and "superseded" in accepted_statuses:
                 return {
                     "request_id": request_id,

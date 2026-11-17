@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import ast
 import argparse
+import json
 from pathlib import Path
 import shutil
 
-from .config import GAMESAVE_LINK, LEADERBOARD_SCRIPT_ROOT
+from .config import GAMESAVE_LINK, LEADERBOARD_SCRIPT_ROOT, resolve_oracle_state_path
 
 
 DEFAULT_LEADERBOARD_ITERATIONS = 10_000
@@ -162,10 +163,32 @@ def build_argument_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def require_save_idle(names: list[str]) -> None:
+    """执行中改脚本文件会让游戏停止程序；同步前先核对模组报告的实时状态。"""
+    try:
+        state_path = resolve_oracle_state_path()
+    except (OSError, RuntimeError, ValueError):
+        return
+    if not state_path.is_file():
+        return
+    try:
+        state = json.loads(state_path.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return
+    busy = [str(name) for name in (state.get('busy_windows') or [])]
+    if state.get('executing'):
+        detail = f"：{'、'.join(busy)}" if busy else ''
+        raise SystemExit(f"存档里有脚本正在执行{detail}，等它结束再同步；改运行中的文件会让游戏停止程序。")
+    overlap = [name for name in names if name in set(busy)]
+    if overlap:
+        raise SystemExit("目标窗口正在执行：" + '、'.join(overlap))
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_argument_parser().parse_args(argv)
     source_dir, target_dir = resolve_sync_paths(args.direction)
 
+    require_save_idle([] if args.all else [args.target_script])
     if args.all:
         copied = sync_all_leaderboard_files(source_dir, target_dir)
     else:
