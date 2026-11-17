@@ -21,7 +21,7 @@
 
 ### Josh 28:03视频：阶段目标与路线差异
 
-来源：[Josh：WORLD RECORD FULL RESET (28:03)](https://www.youtube.com/watch?v=hdBSvuOim74)，发布于2025-11-09，2026-11-16读取说明、评论及相关作者回复，并按阶段查看41张真实1080p视频帧。终点日志是`Unlocks.Leaderboard 1 || Time: 28:3.13`；画面可见`simulate("Main2.0", {}, {}, {}, 83, 1)`，作为作者的一次路线展示，不写成当前公开榜成绩或本机完整统计。下表时间均取画面内游戏日志；YouTube播放位置通常晚约1.6～1.9秒。原始帧、公开回复、67项升级转录及校核在`.codex/youtube-reset-20261116/`，以`frame-manifest.json`和`observations.json`定位。
+来源：[Josh：WORLD RECORD FULL RESET (28:03)](https://www.youtube.com/watch?v=hdBSvuOim74)，发布于2025-11-09，2026-11-16读取说明、评论及相关作者回复，并按阶段查看41张真实1080p视频帧。终点日志是`Unlocks.Leaderboard 1 || Time: 28:3.13`；画面可见`simulate("Main2.0", {}, {}, {}, 83, 1)`，作为作者的一次路线展示，不写成当前公开榜成绩或本机完整统计。下表时间均取画面内游戏日志；YouTube播放位置通常晚约1.6～1.9秒。原始帧、公开回复、67项升级转录及校核在`.codex/sources/videos/youtube-hdBSvuOim74/`，以`frame-manifest.json`和`observations.json`定位。
 
 | 游戏时间段 | 阶段目标 | 画面与升级日志 |
 | --- | --- | --- |

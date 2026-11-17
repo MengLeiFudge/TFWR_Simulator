@@ -6,7 +6,7 @@
     [double]$MaxReportMB = 5,
     [string[]]$KeepDirs = @(
         'drafts', 'tests\simulator-seed-parallel', 'tests\tick-optimizer-cactus-20261113',
-        'tests\mush-surface', 'deployments', 'thunderstore'
+        'tests\mush-surface', 'deployments', 'thunderstore', 'sources'
     ),
     [int]$Limit = 15
 )
@@ -81,8 +81,8 @@ foreach ($entry in $expiredTrash) {
     Add-Target $targets ([pscustomobject]@{ FullName = $entry.FullName; Length = [long]$size }) '回收站超期'
 }
 
-# 规则外顶层条目：.codex 只允许固定六个目录和本 README，其余一律可删。
-$allowedTop = @('README.md', 'drafts', 'tests', 'tmp', 'trash', 'deployments', 'thunderstore')
+# 规则外顶层条目：.codex 只允许固定七个目录和本 README，其余一律可删。
+$allowedTop = @('README.md', 'drafts', 'tests', 'tmp', 'trash', 'deployments', 'thunderstore', 'sources')
 foreach ($entry in Get-ChildItem -LiteralPath $codexRoot -Force) {
     if ($allowedTop -contains $entry.Name) { continue }
     $size = $null
@@ -97,6 +97,12 @@ foreach ($entry in Get-ChildItem -LiteralPath $codexRoot -Force) {
 $totalBytes = ($targets | Measure-Object Bytes -Sum).Sum
 if (-not $totalBytes) { $totalBytes = 0 }
 Write-Output ("仓库 {0}（apply={1}）" -f $codexRoot, $Apply.IsPresent)
+$sourceRoot = Join-Path $codexRoot 'sources'
+$sourceBytes = ($files | Where-Object { $_.FullName.StartsWith("$sourceRoot\", [StringComparison]::OrdinalIgnoreCase) } | Measure-Object Length -Sum).Sum
+$currentBytes = (Get-ChildItem -LiteralPath $codexRoot -Recurse -File -Force | Measure-Object Length -Sum).Sum
+Write-Output ("当前 .codex {0:N1} MiB，其中来源证据 {1:N1} MiB" -f ($currentBytes / 1MB), ($sourceBytes / 1MB))
+if ($sourceBytes -gt 250MB) { Write-Warning '来源证据超过 250 MiB；请精简重复帧和可重建产物后再保存新素材。' }
+if ($currentBytes -gt 512MB) { Write-Warning '.codex 超过 512 MiB；请先回收临时产物，再检查来源证据、部署备份和发布回执。' }
 Write-Output ("待清理 {0} 项，共 {1:N1} MB；保留跳过 {2} 个文件" -f $targets.Count, ($totalBytes / 1MB), $kept)
 foreach ($group in $targets | Group-Object Category | Sort-Object Name) {
     $sum = ($group.Group | Measure-Object Bytes -Sum).Sum

@@ -1741,7 +1741,9 @@
       ],
       "reflection_document": "docs/leaderboards/bilibili_strategy_research.md#画面复核与反思",
       "analysis_document": "docs/leaderboards/lb_pumpkins.md",
-      "raw_directory": ".codex/bilibili-pumpkin-frame-20261115"
+      "raw_directory": ".codex/sources/videos/bilibili-BV1TekFBEEWy",
+      "rebuild_directory": ".codex/tests/video-research/bilibili-BV1TekFBEEWy",
+      "temporary_reports_directory": ".codex/tmp/video-research/bilibili-BV1TekFBEEWy"
     },
     "reading_limits": [
       "video duration is not a leaderboard time",
