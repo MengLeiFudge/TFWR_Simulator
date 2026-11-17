@@ -2,10 +2,11 @@
 
 ## 0.3.0 — 2026-11-17
 
-- 新增控制命令，外部工具不必再做坐标点击或手工建窗：`save`（异步保存并等确认）、`play`（主菜单进工作区）、`stop`、`ok`（关闭排行榜结果页）、`open`（按文件内容新建脚本窗口并停靠）、`close`、`minimize`、`restore`、`dock`、`arrange`、`list`（窗口清单写 `result_text`）。
+- 新增控制命令，外部工具不必再做坐标点击或手工建窗：`save`（异步保存并等确认）、`play`（主菜单进工作区）、`stop`、`ok`（关闭排行榜结果页）、`open`（按文件内容新建脚本窗口并停靠）、`close`、`minimize`、`unminimize`、`dock`、`arrange`、`list`（窗口清单写 `result_text`）。
 - 请求字段新增 `second_script`（dock/arrange 的锚点窗口）、`code_file`（open 读取的源码，超过 1 MB 拒绝）、`result_text`（命令输出）。
-- `ok`、`list`、`minimize`、`restore`、`play`、`stop` 为即时命令：不打断正在运行的脚本，直接在当前帧完成后返回终态。
+- `ok`、`list`、`minimize`、`unminimize`、`play`、`stop` 为即时命令：不打断正在运行的脚本，直接在当前帧完成后返回终态。
 - 协议版本升到 3；新增命令要求 `protocol_version >= 3`，旧客户端仍可只用 `run`/`prepare`/`quit`。
+- 配置改为 `General`（`AutoPlayMainMenu`、`AutoOkLeaderboardResult`、`Enabled`）与 `Advanced`（缺省窗口、轮询间隔、各类超时）两段。
 - 保存统一走异步 `Saver.Save`：窗口变更和 `save` 都等保存确认，未确认或弹警告框时报告失败而不是成功。
 - 状态文件新增实时字段 `executing`、`leaderboard_running`、`leaderboard_screen`、`busy_windows`，每轮轮询刷新；外部队列据此判断运行何时结束、何时可以改脚本文件。
 - 新增配置 `AutoOkLeaderboardResult`：结果页一出现就按 OK。结果页打开期间游戏仍报告 `IsExecuting=true`，等结束的外部脚本会被卡死。

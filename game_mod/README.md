@@ -95,15 +95,18 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
 
 配置文件：`<BepInEx 根目录>/config/mlj.tfwr.oracle-runner.cfg`。
 
-| 配置项 | 默认值 | 用途 |
-| --- | --- | --- |
-| `Enabled` | `true` | 启用执行器 |
-| `TargetScriptName` | `lb_start` | 请求未指定目标时使用的脚本名 |
-| `AutoPlayMainMenu` | `false` | 没有外部请求时是否自动进入工作区；请求准备不受此项限制 |
-| `StartupPollIntervalMs` | `250` | 状态文件同步间隔，最小生效值为 50ms |
-| `ScriptReadyTimeoutSeconds` | `30` | 每个请求等待工作区、空闲执行器及脚本窗口的期限 |
-| `DefaultRequestTimeoutSeconds` | `20` | 请求未指定超时时使用的秒数 |
-| `RequestStopGracePeriodSeconds` | `3` | 停止较慢时输出进度提示的等待时间 |
+`General` 段是日常会动的开关，`Advanced` 段是执行器内部时序，一般不用改。
+
+| 段 | 配置项 | 默认值 | 用途 |
+| --- | --- | --- | --- |
+| General | `Enabled` | `true` | 启用执行器 |
+| General | `AutoPlayMainMenu` | `false` | 没有外部请求时是否自动进入工作区；请求准备不受此项限制 |
+| General | `AutoOkLeaderboardResult` | `false` | 排行榜结果页一出现就按 OK，供等"运行结束"的外部队列使用 |
+| Advanced | `DefaultTargetScript` | `lb_start` | 请求未给 `target_script` 时使用的脚本窗口 |
+| Advanced | `StartupPollIntervalMs` | `250` | 状态文件同步间隔，最小生效值 50ms |
+| Advanced | `ScriptReadyTimeoutSeconds` | `30` | 等待工作区、空闲执行器及脚本窗口的期限 |
+| Advanced | `DefaultRequestTimeoutSeconds` | `20` | 请求未指定超时时使用的秒数 |
+| Advanced | `RequestStopGracePeriodSeconds` | `3` | 停止后等待 `StopMainExecution()` 生效的观察窗口 |
 
 ## 文件协议
 
@@ -123,8 +126,9 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
 
 - `request_id` 为递增的非负 32 位整数；分配新 ID 和提交必须在同一次锁内完成。
 - `timeout_seconds` 为非负有限秒数；`0` 表示不限时，`null` 使用模组默认值。
-- `command` 缺省或为 `run` 时执行脚本。控制命令：`prepare`（停在空闲工作区）、`quit`（保存后退出）、`save`、`play`、`stop`、`ok`、`open`、`close`、`minimize`、`restore`、`dock`、`arrange`、`list`。模组写回 `protocol_version=3`。
-- 即时命令 `play`、`stop`、`ok`、`list`、`minimize`、`restore` 不打断正在运行的脚本，收到请求的当帧完成并写回终态。
+- `command` 缺省或为 `run` 时执行脚本。控制命令：`prepare`（停在空闲工作区）、`save`（只存档，游戏继续）、`quit`（存档确认后退出，等于 `save` 加退出）、`play`、`stop`、`ok`、`open`、`close`、`minimize`、`unminimize`、`dock`、`arrange`、`list`。模组写回 `protocol_version=3`。
+- `minimize`/`unminimize` 收放单个窗口；`dock` 只把 `target_script` 挂到 `second_script` 链尾；`arrange` 把所有窗口按名字排序挂成一列，锚点取 `target_script`（缺省 `stand`）。
+- 即时命令 `play`、`stop`、`ok`、`list`、`minimize`、`unminimize` 不打断正在运行的脚本，收到请求的当帧完成并写回终态。
 - `save` 与 `open`、`close`、`dock`、`arrange` 会调用 `Saver.Save` 并等保存确认后才写终态；保存未确认、或警告弹窗未关闭时记为失败并保留现场。
 - `open` 读取 `code_file` 指定的源码（超过 1 MB 拒绝），按 `second_script`（缺省 `stand`）停靠；`dock`、`arrange` 用 `second_script`/`target_script` 作锚点；`list` 把窗口清单写进 `result_text`。
 - 新增命令要求 `protocol_version >= 3`；只发 `run`/`prepare`/`quit` 的旧客户端不受影响。

@@ -12,40 +12,40 @@ internal sealed class OracleRunnerConfig
             true,
             "是否启用自动权威执行器。");
         TargetScriptName = config.Bind(
-            "General",
-            "TargetScriptName",
+            "Advanced",
+            "DefaultTargetScript",
             "lb_start",
-            "目标脚本窗口名，不带 .py。");
+            "请求没有给 target_script 时使用的窗口名，不带 .py。");
         AutoPlayMainMenu = config.Bind(
             "General",
             "AutoPlayMainMenu",
             false,
             "是否在没有外部请求时自动进入游戏。外部请求会自行进入工作区，不受此项限制。");
         StartupPollIntervalMs = config.Bind(
-            "Timing",
+            "Advanced",
             "StartupPollIntervalMs",
             250,
-            "轮询主菜单、工作区和 state.json 的时间间隔（毫秒）。");
+            "轮询主菜单、工作区和 state.json 的时间间隔（毫秒），一般不用改。");
         ScriptReadyTimeoutSeconds = config.Bind(
-            "Timing",
+            "Advanced",
             "ScriptReadyTimeoutSeconds",
             30f,
-            "等待脚本窗口出现的最长时间（秒）。仅用于单次 requested 请求启动期。");
+            "等待脚本窗口出现的最长时间（秒），一般不用改。");
         DefaultRequestTimeoutSeconds = config.Bind(
-            "Timing",
+            "Advanced",
             "DefaultRequestTimeoutSeconds",
             20f,
-            "state.json 未显式提供 timeout_seconds 时，单次请求的默认执行超时（秒）。");
+            "请求未给 timeout_seconds 时的默认执行超时（秒），一般不用改。");
         AutoOkLeaderboardResult = config.Bind(
             "General",
             "AutoOkLeaderboardResult",
             false,
             "排行榜结果页一出现就按 OK。外部队列等待运行结束时，结果页会继续让游戏报告 executing=true。");
         RequestStopGracePeriodSeconds = config.Bind(
-            "Timing",
+            "Advanced",
             "RequestStopGracePeriodSeconds",
             3f,
-            "收到覆盖请求或超时停止后，等待 StopMainExecution() 生效的提示窗口（秒）。");
+            "停止后等待 StopMainExecution() 生效的观察窗口（秒），一般不用改。");
     }
 
     public ConfigEntry<bool> Enabled { get; }

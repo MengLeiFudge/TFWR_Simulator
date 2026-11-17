@@ -19,12 +19,12 @@ public sealed partial class Plugin
     private Task<bool>? saveTask;
 
     private static bool IsImmediateCommand(string command) =>
-        command is "play" or "stop" or "ok" or "list" or "minimize" or "restore";
+        command is "play" or "stop" or "ok" or "list" or "minimize" or "unminimize";
 
     /// <summary>0.3.0 新增的控制命令要求调用方声明协议 3。</summary>
     private static bool RequiresProtocol3(string command) =>
         command is "save" or "open" or "close" or "dock" or "arrange" or "play" or "stop" or "ok"
-            or "list" or "minimize" or "restore";
+            or "list" or "minimize" or "unminimize";
 
     private static bool IsKnownCommand(string command) =>
         command is "run" or "prepare" or "quit" or "save" or "open" or "close" or "dock" or "arrange"
@@ -43,7 +43,7 @@ public sealed partial class Plugin
                 "ok" => CloseLeaderboardResult(mainSim),
                 "list" => ListWindows(mainSim),
                 "minimize" => SetWindowMinimized(mainSim, request, true),
-                "restore" => SetWindowMinimized(mainSim, request, false),
+                "unminimize" => SetWindowMinimized(mainSim, request, false),
                 _ => null
             };
             RunnerStateProtocol.MarkDone(request, DateTimeOffset.UtcNow);
@@ -223,7 +223,7 @@ public sealed partial class Plugin
     {
         Window window = RequireWindow(mainSim, request.TargetScript, "minimize");
         window.SetMinmized(minimize);
-        return minimize ? "minimized" : "restored";
+        return minimize ? "minimized" : "unminimized";
     }
 
     private void OpenWindow(MainSim mainSim, OracleRunnerStateFile request)

@@ -233,10 +233,10 @@ def normalize_target_script_name(target_script: str | None) -> str | None:
 # 控制动作不读 target_script；协议 3 才有窗口、保存和结果页命令。
 CONTROL_ACTIONS = (
     'prepare', 'quit', 'save', 'play', 'stop', 'ok',
-    'open', 'close', 'minimize', 'restore', 'dock', 'arrange', 'list',
+    'open', 'close', 'minimize', 'unminimize', 'dock', 'arrange', 'list',
 )
 PROTOCOL3_ACTIONS = (
-    'save', 'play', 'stop', 'ok', 'open', 'close', 'minimize', 'restore', 'dock', 'arrange', 'list',
+    'save', 'play', 'stop', 'ok', 'open', 'close', 'minimize', 'unminimize', 'dock', 'arrange', 'list',
 )
 
 
