@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import ast
 import argparse
-import json
+from contextlib import contextmanager
+from collections.abc import Iterator
 from pathlib import Path
 import shutil
+from uuid import uuid4
 
-from .config import GAMESAVE_LINK, LEADERBOARD_SCRIPT_ROOT, resolve_oracle_state_path
+from .config import GAMESAVE_LINK, LEADERBOARD_SCRIPT_ROOT, REPO_ROOT, resolve_oracle_state_path
+from .real_game_runner import read_state_file, state_transaction
 
 
 DEFAULT_LEADERBOARD_ITERATIONS = 10_000
@@ -117,27 +120,26 @@ def sync_single_leaderboard_file(source_dir: Path, target_dir: Path, target_scri
         raise FileNotFoundError(f"未找到目标脚本: {source_file}")
     validate_game_compatible_script(source_file)
 
-    copied: list[str] = []
-    shutil.copy2(source_file, target_dir / normalized_name)
-    copied.append(normalized_name)
-    if target_dir == GAMESAVE_LINK:
-        (target_dir / "lb_start.py").write_text(render_lb_start(normalized_name), encoding="utf-8")
-        copied.append("lb_start.py")
-    return copied
+    names = [normalized_name, 'lb_start.py'] if target_dir == GAMESAVE_LINK else [normalized_name]
+    with save_sync_transaction(target_dir, names):
+        shutil.copy2(source_file, target_dir / normalized_name)
+        if target_dir == GAMESAVE_LINK:
+            (target_dir / 'lb_start.py').write_text(render_lb_start(normalized_name), encoding='utf-8')
+    return names
 
 
 def sync_all_leaderboard_files(source_dir: Path, target_dir: Path) -> list[str]:
     ensure_source_dir(source_dir)
     ensure_target_dir(target_dir)
 
-    copied: list[str] = []
-    for source_file in sorted(source_dir.glob("lb_*.py")):
-        if not source_file.is_file():
-            continue
+    sources = [path for path in sorted(source_dir.glob('lb_*.py')) if path.is_file()]
+    for source_file in sources:
         validate_game_compatible_script(source_file)
-        shutil.copy2(source_file, target_dir / source_file.name)
-        copied.append(source_file.name)
-    return copied
+    names = [path.name for path in sources]
+    with save_sync_transaction(target_dir, names):
+        for source_file in sources:
+            shutil.copy2(source_file, target_dir / source_file.name)
+    return names
 
 
 def build_argument_parser() -> argparse.ArgumentParser:
@@ -163,32 +165,33 @@ def build_argument_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def require_save_idle(names: list[str]) -> None:
-    """执行中改脚本文件会让游戏停止程序；同步前先核对模组报告的实时状态。"""
-    try:
-        state_path = resolve_oracle_state_path()
-    except (OSError, RuntimeError, ValueError):
+@contextmanager
+def save_sync_transaction(target_dir: Path, names: list[str]) -> Iterator[None]:
+    """写真实存档时持有请求锁，拒绝活动或未知状态；反向同步不占用游戏。"""
+    if target_dir != GAMESAVE_LINK or not names:
+        yield
         return
-    if not state_path.is_file():
-        return
-    try:
-        state = json.loads(state_path.read_text(encoding='utf-8'))
-    except (OSError, ValueError):
-        return
-    busy = [str(name) for name in (state.get('busy_windows') or [])]
-    if state.get('executing'):
-        detail = f"：{'、'.join(busy)}" if busy else ''
-        raise SystemExit(f"存档里有脚本正在执行{detail}，等它结束再同步；改运行中的文件会让游戏停止程序。")
-    overlap = [name for name in names if name in set(busy)]
-    if overlap:
-        raise SystemExit("目标窗口正在执行：" + '、'.join(overlap))
+    state_path = resolve_oracle_state_path()
+    with state_transaction(state_path):
+        state = read_state_file(state_path)
+        if state is None or state.get('status') != 'idle' or any(
+            state.get(key) is not False for key in ('executing', 'leaderboard_running', 'leaderboard_screen')
+        ) or state.get('busy_windows'):
+            raise RuntimeError('模组尚未确认空闲，不能覆盖存档脚本；先停止并回收请求，等待实时状态刷新后重试。')
+        for name in names:
+            if not (target_dir / name).is_file():
+                raise FileNotFoundError(f'存档缺少已有脚本，不允许同步新增文件：{name}')
+        backup_dir = REPO_ROOT / '.codex' / 'deployments' / f'leaderboard-sync-{uuid4().hex}'
+        backup_dir.mkdir(parents=True)
+        for name in names:
+            shutil.copy2(target_dir / name, backup_dir / name)
+        yield
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_argument_parser().parse_args(argv)
     source_dir, target_dir = resolve_sync_paths(args.direction)
 
-    require_save_idle([] if args.all else [args.target_script])
     if args.all:
         copied = sync_all_leaderboard_files(source_dir, target_dir)
     else:

@@ -4,6 +4,7 @@ namespace TFWROracleRunner;
 
 public static class RunnerStateProtocol
 {
+    public const int CurrentProtocolVersion = 3;
     public const string StateFileName = "mlj.tfwr.oracle-runner.state.json";
 
     public static string NormalizeTargetScriptName(string? configuredName)

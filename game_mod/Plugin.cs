@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Threading.Tasks;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -53,8 +52,6 @@ public sealed partial class Plugin : BaseUnityPlugin
     private Harmony? harmony;
     private int startingRequestId = -1;
     private float startingRequestAt;
-    private int quitRequestId = -1;
-    private Task<bool>? quitSaveTask;
     private bool preparationStopInvoked;
     private float stateFailureSince = -1f;
     private float nextStatePollAt;
@@ -157,57 +154,15 @@ public sealed partial class Plugin : BaseUnityPlugin
             }
             OracleRunnerStateFile? current = stateStore.Read();
             stateFailureSince = -1f;
-            // 保存完成后先发布终态，再退出；取消或新请求会撤销尚未执行的退出。
-            if (quitRequestId >= 0)
+            if (ObservePendingSave(mainSim, current))
             {
-                int id = quitRequestId;
-                if (current?.RequestId != id ||
-                    (current.Status != RunnerRequestStatus.Running && current.Status != RunnerRequestStatus.Done))
-                {
-                    quitRequestId = -1;
-                    quitSaveTask = null;
-                }
-                else if (quitSaveTask != null)
-                {
-                    if (!quitSaveTask.IsCompleted)
-                    {
-                        MaybeLogProgress($"等待游戏保存 request_id={id}");
-                        return;
-                    }
-                    Task<bool> save = quitSaveTask;
-                    quitSaveTask = null;
-                    if (save.Status != TaskStatus.RanToCompletion || !save.Result ||
-                        (mainSim.warningPopup != null && mainSim.warningPopup.gameObject.activeInHierarchy))
-                    {
-                        quitRequestId = -1;
-                        string reason = save.Exception?.GetBaseException().Message ?? "game save was not confirmed; see game dialog and logs";
-                        MarkFailedWithOutput(current, $"control command failed: {reason}", DateTimeOffset.UtcNow);
-                    }
-                    else
-                    {
-                        RunnerStateProtocol.MarkDone(current, DateTimeOffset.UtcNow);
-                        Log.LogInfo($"控制请求完成 command=quit workspace_ready=True request_id={id}");
-                    }
-                    stateStore.Write(current);
-                    return;
-                }
-                else
-                {
-                    quitRequestId = -1;
-                    if (current.Status == RunnerRequestStatus.Done)
-                    {
-                        Log.LogInfo($"正常退出游戏 request_id={id}");
-                        mainSim.menu.Quit();
-                        return;
-                    }
-                }
+                return;
             }
             EnsureStateFileReady(mainSim, current);
             if (current != null)
             {
                 ObserveStopRequestedState(mainSim, current);
                 ObserveRequestedState(mainSim, current);
-                ObservePendingSave(mainSim, current);
             }
         }
         catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is SerializationException)
@@ -273,11 +228,6 @@ public sealed partial class Plugin : BaseUnityPlugin
             stateStore.Write(RunnerStateProtocol.CreateIdle(lastHandledRequestId));
             return;
         }
-        if (current.Status == RunnerRequestStatus.Idle && current.ProtocolVersion < 2)
-        {
-            current.ProtocolVersion = 2;
-            stateStore.Write(current);
-        }
 
         if (activeRequest == null &&
             !mainSim.IsExecuting() &&
@@ -294,7 +244,7 @@ public sealed partial class Plugin : BaseUnityPlugin
             return;
         }
 
-        // ok/list/minimize 等即时命令不碰正在运行的脚本，直接在观察阶段完成。
+        // 即时命令不等待空闲，在观察阶段完成；stop 会主动停止当前执行。
         if (IsImmediateCommand(observedState.Command ?? "run"))
         {
             if (observedState.RequestId <= lastHandledRequestId)
@@ -379,18 +329,19 @@ public sealed partial class Plugin : BaseUnityPlugin
             preparationStopInvoked = false;
         }
         string command = requestedState.Command ?? "run";
-        if (RequiresProtocol3(command) && requestedState.ProtocolVersion < 3)
+        int protocol = CommandProtocolVersion(command);
+        if (protocol > 1 && requestedState.ProtocolVersion < protocol)
         {
             MarkFailedWithOutput(
                 requestedState,
-                $"command {command} requires protocol_version >= 3",
+                $"command {command} requires protocol_version >= {protocol}",
                 DateTimeOffset.UtcNow
             );
             stateStore.Write(requestedState);
             lastHandledRequestId = requestedState.RequestId;
             return;
         }
-        if (!IsKnownCommand(command))
+        if (protocol == 0)
         {
             MarkFailedWithOutput(requestedState, $"unknown command: {command}", DateTimeOffset.UtcNow);
             stateStore.Write(requestedState);

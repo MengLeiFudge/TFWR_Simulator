@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -14,23 +13,24 @@ public sealed partial class Plugin
     // open 读取的源码上限，避免误把大文件读进存档窗口。
     private const long MaxCodeFileBytes = 1L << 20;
 
-    // 等待沙箱保存完成的请求；窗口变更和保存命令共用。
-    private int saveRequestId = -1;
+    // 所有保存操作共用句柄；quit 额外等待同一请求的 done 落盘。
+    private OracleRunnerStateFile? savingRequest;
     private Task<bool>? saveTask;
+    private float saveStartedAt;
 
     private static bool IsImmediateCommand(string command) =>
         command is "play" or "stop" or "ok" or "list" or "minimize" or "unminimize";
 
-    /// <summary>0.3.0 新增的控制命令要求调用方声明协议 3。</summary>
-    private static bool RequiresProtocol3(string command) =>
-        command is "save" or "open" or "close" or "dock" or "arrange" or "play" or "stop" or "ok"
-            or "list" or "minimize" or "unminimize";
+    private static int CommandProtocolVersion(string command) => command switch
+    {
+        "run" => 1,
+        "prepare" or "quit" => 2,
+        "save" or "open" or "close" or "dock" or "arrange" or "play" or "stop" or "ok"
+            or "list" or "minimize" or "unminimize" => RunnerStateProtocol.CurrentProtocolVersion,
+        _ => 0
+    };
 
-    private static bool IsKnownCommand(string command) =>
-        command is "run" or "prepare" or "quit" or "save" or "open" or "close" or "dock" or "arrange"
-        || IsImmediateCommand(command);
-
-    /// <summary>执行不打断脚本即时的命令；状态写入与终态确认由本方法负责。</summary>
+    /// <summary>执行不等待空闲的即时命令；stop 主动停止当前脚本。</summary>
     private void ExecuteImmediateCommand(MainSim mainSim, OracleRunnerStateFile request, string command)
     {
         try
@@ -58,111 +58,111 @@ public sealed partial class Plugin
         lastHandledRequestId = Math.Max(lastHandledRequestId, request.RequestId);
     }
 
-    /// <summary>执行需要工作区空闲的命令；需要保存的请求由轮询继续确认终态。</summary>
+    /// <summary>工作区变更完成后统一保存；prepare 只确认工作区已就绪。</summary>
     private void ExecuteIdleCommand(MainSim mainSim, OracleRunnerStateFile request, string command)
     {
         try
         {
             switch (command)
             {
-                case "quit":
-                    QuitGame(mainSim, request);
-                    return;
                 case "prepare":
                     RunnerStateProtocol.MarkRunning(request, DateTimeOffset.UtcNow);
                     RunnerStateProtocol.MarkDone(request, DateTimeOffset.UtcNow);
+                    stateStore.Write(request);
                     Log.LogInfo($"控制请求完成 command=prepare workspace_ready=True request_id={request.RequestId}");
-                    break;
-                case "save":
-                    BeginSave(mainSim, request);
                     return;
+                case "quit":
+                case "save":
+                    break;
                 case "open":
                     OpenWindow(mainSim, request);
-                    return;
+                    break;
                 case "close":
                     CloseWindow(mainSim, request);
-                    return;
+                    break;
                 case "dock":
                     DockWindow(mainSim, request);
-                    return;
+                    break;
                 case "arrange":
                     ArrangeWindows(mainSim, request);
-                    return;
+                    break;
                 default:
                     throw new InvalidOperationException($"unknown command: {command}");
             }
+            saveTask = Saver.Save(mainSim);
+            savingRequest = request;
+            saveStartedAt = Time.realtimeSinceStartup;
+            RunnerStateProtocol.MarkRunning(request, DateTimeOffset.UtcNow);
+            stateStore.Write(request);
+            Log.LogInfo($"等待游戏保存 request_id={request.RequestId} command={command}");
         }
         catch (Exception ex)
         {
-            MarkFailedWithOutput(request, $"control command failed: {ex.Message}", DateTimeOffset.UtcNow);
-        }
-        stateStore.Write(request);
-    }
-
-    /// <summary>quit 与保存命令共用异步保存句柄；保存确认后发布终态，quit 再退出游戏。</summary>
-    private void QuitGame(MainSim mainSim, OracleRunnerStateFile request)
-    {
-        quitSaveTask = Saver.Save(mainSim);
-        quitRequestId = request.RequestId;
-        RunnerStateProtocol.MarkRunning(request, DateTimeOffset.UtcNow);
-        stateStore.Write(request);
-        lastHandledRequestId = request.RequestId;
-        Log.LogInfo($"等待游戏保存 request_id={request.RequestId}");
-    }
-
-    private void BeginSave(MainSim mainSim, OracleRunnerStateFile request)
-    {
-        RunnerStateProtocol.MarkRunning(request, DateTimeOffset.UtcNow);
-        stateStore.Write(request);
-        saveRequestId = request.RequestId;
-        saveTask = Saver.Save(mainSim);
-        lastHandledRequestId = Math.Max(lastHandledRequestId, request.RequestId);
-        Log.LogInfo($"等待游戏保存 request_id={request.RequestId} command={request.Command}");
-    }
-
-    /// <summary>逐帧观察保存完成情况；失败时保留现场并报告，不提前确认成功。</summary>
-    private void ObservePendingSave(MainSim mainSim, OracleRunnerStateFile? current)
-    {
-        if (saveRequestId < 0)
-        {
-            return;
-        }
-        int requestId = saveRequestId;
-        if (current?.RequestId != requestId ||
-            (current.Status != RunnerRequestStatus.Running && current.Status != RunnerRequestStatus.Done))
-        {
-            saveRequestId = -1;
+            savingRequest = null;
             saveTask = null;
-            return;
+            MarkFailedWithOutput(request, $"control command failed: {ex.Message}", DateTimeOffset.UtcNow);
+            stateStore.Write(request);
+        }
+    }
+
+    /// <summary>保存期间占用请求；quit 只在同一请求的成功终态落盘后退出。</summary>
+    private bool ObservePendingSave(MainSim mainSim, OracleRunnerStateFile? current)
+    {
+        if (savingRequest == null)
+        {
+            return false;
+        }
+        bool quitConfirmed = saveTask == null && savingRequest.Status == RunnerRequestStatus.Done && savingRequest.Command == "quit";
+        if (current?.RequestId != savingRequest.RequestId ||
+            (current.Status != RunnerRequestStatus.Running && current.Status != RunnerRequestStatus.Done &&
+             !(quitConfirmed && current.Status == RunnerRequestStatus.Idle)))
+        {
+            // 取消或替换撤销后续退出，不回滚游戏已经开始的磁盘保存。
+            savingRequest = null;
+            saveTask = null;
+            return false;
         }
         if (saveTask == null)
         {
-            saveRequestId = -1;
-            return;
+            savingRequest = null;
+            if (quitConfirmed)
+            {
+                Log.LogInfo($"正常退出游戏 request_id={current.RequestId}");
+                mainSim.menu.Quit();
+            }
+            return true;
         }
-        if (!saveTask.IsCompleted)
+
+        double timeout = savingRequest.TimeoutSeconds ?? runnerConfig.DefaultRequestTimeoutSeconds.Value;
+        if (!saveTask.IsCompleted && (timeout <= 0 || Time.realtimeSinceStartup - saveStartedAt < timeout))
         {
-            MaybeLogProgress($"等待游戏保存 request_id={requestId}");
-            return;
+            MaybeLogProgress($"等待游戏保存 request_id={current.RequestId}");
+            return true;
         }
 
         Task<bool> save = saveTask;
         saveTask = null;
-        saveRequestId = -1;
-        if (save.Status != TaskStatus.RanToCompletion || !save.Result ||
+        if (!save.IsCompleted || save.Status != TaskStatus.RanToCompletion || !save.Result ||
             (mainSim.warningPopup != null && mainSim.warningPopup.gameObject.activeInHierarchy))
         {
-            string reason = save.Exception?.GetBaseException().Message
-                            ?? "game save was not confirmed; see game dialog and logs";
+            string reason = !save.IsCompleted ? "game save timed out; save may still finish in background"
+                : save.Exception?.GetBaseException().Message ?? "game save was not confirmed; see game dialog and logs";
             MarkFailedWithOutput(current, $"control command failed: {reason}", DateTimeOffset.UtcNow);
-            Log.LogWarning($"游戏保存未确认 command={current.Command} request_id={requestId}：{reason}");
+            savingRequest = null;
+            Log.LogWarning($"游戏保存未确认 command={current.Command} request_id={current.RequestId}：{reason}");
         }
         else
         {
             RunnerStateProtocol.MarkDone(current, DateTimeOffset.UtcNow);
-            Log.LogInfo($"控制请求完成 command={current.Command} request_id={requestId}");
+            savingRequest = current;
+            if (current.Command != "quit")
+            {
+                savingRequest = null;
+            }
+            Log.LogInfo($"控制请求完成 command={current.Command} request_id={current.RequestId}");
         }
         stateStore.Write(current);
+        return true;
     }
 
     private string? Play(MainSim mainSim)
@@ -250,7 +250,6 @@ public sealed partial class Plugin
             Window anchorWindow = RequireWindowOf(anchor);
             createdWindow.DockOnto(anchorWindow.LeastDockedChild ?? anchorWindow);
         }
-        BeginSave(mainSim, request);
     }
 
     private void CloseWindow(MainSim mainSim, OracleRunnerStateFile request)
@@ -260,7 +259,6 @@ public sealed partial class Plugin
             throw new InvalidOperationException("program is executing");
         }
         RequireWindow(mainSim, request.TargetScript, "close").Close();
-        BeginSave(mainSim, request);
     }
 
     private void DockWindow(MainSim mainSim, OracleRunnerStateFile request)
@@ -273,7 +271,6 @@ public sealed partial class Plugin
         }
         source.Undock();
         source.DockOnto(anchor.LeastDockedChild ?? anchor);
-        BeginSave(mainSim, request);
     }
 
     private void ArrangeWindows(MainSim mainSim, OracleRunnerStateFile request)
@@ -281,6 +278,7 @@ public sealed partial class Plugin
         Workspace workspace = mainSim.workspace
                               ?? throw new InvalidOperationException("workspace not ready");
         Window head = RequireWindow(mainSim, string.IsNullOrEmpty(request.TargetScript) ? "stand" : request.TargetScript, "arrange");
+        head.Undock();
         var others = new List<Window>();
         foreach (var item in workspace.codeWindows)
         {
@@ -303,7 +301,6 @@ public sealed partial class Plugin
         {
             window.DockOnto(head.LeastDockedChild ?? head);
         }
-        BeginSave(mainSim, request);
     }
 
     private Window RequireWindow(MainSim mainSim, string? name, string command)

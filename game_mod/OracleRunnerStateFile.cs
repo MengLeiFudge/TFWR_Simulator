@@ -22,7 +22,7 @@ public sealed class OracleRunnerStateFile
     }
     /// <summary>模组支持的协议版本；版本2支持prepare与quit，版本3增加save、ok、list等控制命令。</summary>
     [DataMember(Name = "protocol_version")]
-    public int ProtocolVersion { get; set; } = 3;
+    public int ProtocolVersion { get; set; } = RunnerStateProtocol.CurrentProtocolVersion;
 
     /// <summary>run执行脚本，prepare准备工作区，quit保存后退出；缺省为run。</summary>
     [DataMember(Name = "command")]
@@ -44,7 +44,7 @@ public sealed class OracleRunnerStateFile
     [DataMember(Name = "finished_at")]
     public string? FinishedAt { get; set; }
 
-    /// <summary>dock/arrange 的第二个窗口名；省略时 arrange 用 stand。</summary>
+    /// <summary>dock 的锚点窗口；open 缺省停靠到 stand。</summary>
     [DataMember(Name = "second_script", EmitDefaultValue = false)]
     public string? SecondScript { get; set; }
 

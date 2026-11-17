@@ -128,16 +128,16 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
 - `timeout_seconds` 为非负有限秒数；`0` 表示不限时，`null` 使用模组默认值。
 - `command` 缺省或为 `run` 时执行脚本。控制命令：`prepare`（停在空闲工作区）、`save`（只存档，游戏继续）、`quit`（存档确认后退出，等于 `save` 加退出）、`play`、`stop`、`ok`、`open`、`close`、`minimize`、`unminimize`、`dock`、`arrange`、`list`。模组写回 `protocol_version=3`。
 - `minimize`/`unminimize` 收放单个窗口；`dock` 只把 `target_script` 挂到 `second_script` 链尾；`arrange` 把所有窗口按名字排序挂成一列，锚点取 `target_script`（缺省 `stand`）。
-- 即时命令 `play`、`stop`、`ok`、`list`、`minimize`、`unminimize` 不打断正在运行的脚本，收到请求的当帧完成并写回终态。
-- `save` 与 `open`、`close`、`dock`、`arrange` 会调用 `Saver.Save` 并等保存确认后才写终态；保存未确认、或警告弹窗未关闭时记为失败并保留现场。
-- `open` 读取 `code_file` 指定的源码（超过 1 MB 拒绝），按 `second_script`（缺省 `stand`）停靠；`dock`、`arrange` 用 `second_script`/`target_script` 作锚点；`list` 把窗口清单写进 `result_text`。
-- 新增命令要求 `protocol_version >= 3`；只发 `run`/`prepare`/`quit` 的旧客户端不受影响。
+- 即时命令 `play`、`stop`、`ok`、`list`、`minimize`、`unminimize` 不等待空闲，收到请求的当帧完成并写回终态；其中 `stop` 主动停止当前程序。
+- `save`、`quit` 与 `open`、`close`、`dock`、`arrange` 共用异步保存流程，等保存确认后才写终态；保存等待计入 `timeout_seconds`，超时、保存未确认或警告弹窗未关闭时记为失败并保留现场。取消不会回滚已经开始的磁盘保存；取消或被新请求替换后不再退出游戏。
+- `open` 读取 `code_file` 指定的源码（超过 1 MB 拒绝），按 `second_script`（缺省 `stand`）停靠；`open/close/minimize/unminimize/dock` 必须指定 `target_script`，`dock` 另需 `second_script`。`arrange` 用 `target_script`（缺省 `stand`）作首窗口，先解除其停靠再排列；`list` 把窗口清单写进 `result_text`。
+- 新增命令要求 `protocol_version >= 3`；空闲状态由模组发布实际支持的协议版本，升级DLL后旧idle文件会自动更新。只发 `run`/`prepare`/`quit` 的旧客户端保持兼容。
 - 实时字段 `executing`、`leaderboard_running`、`leaderboard_screen`、`busy_windows` 每轮刷新，与请求字段互不覆盖；`busy_windows` 只报模组已知的运行窗口，手工运行其它窗口时可能为空。
 - 配置 `AutoOkLeaderboardResult=true` 时，结果页一出现就按 OK，供等“运行结束”的外部脚本使用；不开启时仍只关闭属于本模组请求的结果页。
 - 脚本正常流转为 `idle → requested → running → done/failed → idle`；快速控制请求可直接从 `requested` 写回带起止时间的终态。
 - `requested` 或 `running` 可写入同一请求的 `stop_requested`；停止完成后进入 `failed`，`last_error` 保存停止原因。
 - 更大的请求 ID 替换旧请求。旧客户端观察到更大 ID 后按 `superseded` 结束，不再确认或清除新请求。
-- 模组的状态修改先排队，在下一次同步时落盘；执行监控和 leaderboard 观察仍逐帧进行。
+- 模组的状态修改先排队，下一次同步将请求快照与实时字段合并后一次原子落盘；写入失败保留快照重试。执行监控和 leaderboard 观察仍逐帧进行。
 
 两端通过独占创建 `<状态文件>.lock` 来保护读改写：C# 使用 `FileMode.CreateNew`，Python 使用 `O_CREAT | O_EXCL`。持锁期间重新读取状态，写入同目录临时文件并原子替换，最后释放锁。模组遇到占用或 I/O 错误时等待下一次轮询，不在主线程 sleep；客户端进行有限重试。
 
@@ -170,6 +170,8 @@ dotnet build game_mod/TFWROracleRunner.csproj -c Release -p:TFWRGameRoot="D:\Ste
 ```
 
 WSL 中使用 `dotnet.exe`，两个属性仍传 Windows 路径。MSBuild 也读取进程环境变量 `TFWR_GAME_ROOT` 与 `TFWR_BEPINEX_ROOT`，但不会读取仓库 `.env`。
+
+也可在 Windows 执行 `scripts\packaging\build_mod.cmd`，入口通过 Python 协调器读取仓库 `.env` 和现有环境变量，定位仓库、游戏与BepInEx；需要Windows Python 3（`py -3`）及PATH中的 `dotnet.exe`。额外MSBuild参数可跟在命令后面。
 
 生成 Thunderstore/R2 ZIP：
 

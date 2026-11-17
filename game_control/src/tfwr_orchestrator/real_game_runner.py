@@ -17,6 +17,7 @@ from typing import Any, Sequence, cast
 
 from .config import (
     load_local_env,
+    normalize_config_path,
     resolve_bepinex_log_path,
     resolve_bepinex_root,
     resolve_game_root,
@@ -115,13 +116,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--target-script",
-        default="lb_start",
-        help="要请求执行的脚本窗口名，可带或不带 .py。",
+        default=None,
+        help="目标窗口名，可带或不带 .py；run 缺省 lb_start，arrange 缺省 stand。",
     )
     parser.add_argument(
         "--second-script",
         default=None,
-        help="dock/arrange 的锚点窗口；arrange 缺省用 stand。",
+        help="dock 的锚点窗口；open 的停靠窗口，缺省 stand。",
     )
     parser.add_argument(
         "--code-file",
@@ -208,14 +209,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error('action不能与request-only/status-only同时使用')
     if args.request_id is not None and args.action not in ('status', 'wait', 'cancel', 'result'):
         parser.error('request-id只能用于status/wait/cancel/result')
-    if args.idempotency_key and args.action not in (None, 'run', 'submit', 'prepare', 'quit'):
-        parser.error('idempotency-key只能用于run/submit/prepare/quit')
+    if args.idempotency_key and args.action not in (None, *SUBMIT_ACTIONS):
+        parser.error('idempotency-key只能用于提交脚本或控制命令')
     if args.include_game_output and (args.action or args.json or args.idempotency_key):
         parser.error('JSON任务接口仅在收取终态时读取output.txt，不支持include-game-output')
     if args.idempotency_key and args.status_only:
         parser.error('idempotency-key不能用于status-only')
-    if args.replace and (args.status_only or args.action not in (None, 'run', 'submit', 'prepare', 'quit')):
-        parser.error('replace只能用于run/submit/prepare/quit')
+    if args.replace and (args.status_only or args.action not in (None, *SUBMIT_ACTIONS)):
+        parser.error('replace只能用于提交脚本或控制命令')
+    if args.target_script is None and args.action not in WINDOW_ACTIONS:
+        args.target_script = 'stand' if args.action == 'arrange' else 'lb_start'
     return args
 
 
@@ -230,22 +233,19 @@ def normalize_target_script_name(target_script: str | None) -> str | None:
     return value or None
 
 
-# 控制动作不读 target_script；协议 3 才有窗口、保存和结果页命令。
-CONTROL_ACTIONS = (
-    'prepare', 'quit', 'save', 'play', 'stop', 'ok',
-    'open', 'close', 'minimize', 'unminimize', 'dock', 'arrange', 'list',
-)
-PROTOCOL3_ACTIONS = (
-    'save', 'play', 'stop', 'ok', 'open', 'close', 'minimize', 'unminimize', 'dock', 'arrange', 'list',
-)
+CONTROL_PROTOCOLS = {
+    'prepare': 2, 'quit': 2,
+    'save': 3, 'play': 3, 'stop': 3, 'ok': 3,
+    'open': 3, 'close': 3, 'minimize': 3, 'unminimize': 3,
+    'dock': 3, 'arrange': 3, 'list': 3,
+}
+CONTROL_ACTIONS = tuple(CONTROL_PROTOCOLS)
+SUBMIT_ACTIONS = ('run', 'submit', *CONTROL_ACTIONS)
+WINDOW_ACTIONS = ('open', 'close', 'minimize', 'unminimize', 'dock')
 
 
 def required_protocol_version(command: str) -> int:
-    if command in PROTOCOL3_ACTIONS:
-        return 3
-    if command in CONTROL_ACTIONS:
-        return 2
-    return 1
+    return CONTROL_PROTOCOLS.get(command, 1)
 
 
 def build_requested_state(
@@ -1206,15 +1206,27 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
     """幂等回执先于投递落盘；重试只读取原ID，模糊投递不会自动再次启动。"""
     command = args.action if args.action in CONTROL_ACTIONS else 'run'
     required_protocol = required_protocol_version(command)
-    target = normalize_target_script_name(args.target_script) if command == 'run' else None
-    if command == 'run' and not target:
-        raise TaskError('invalid_target', 'target-script不能为空')
+    target = normalize_target_script_name(args.target_script) if command in ('run', 'arrange', *WINDOW_ACTIONS) else None
+    if command in ('run', *WINDOW_ACTIONS) and not target:
+        raise TaskError('invalid_target', f'{command}需要--target-script')
+    second = normalize_target_script_name(args.second_script)
+    if command == 'dock' and not second:
+        raise TaskError('invalid_target', 'dock需要--second-script')
+    if second and command not in ('open', 'dock'):
+        raise TaskError('invalid_argument', 'second-script只能用于open/dock')
+    if args.code_file and command != 'open':
+        raise TaskError('invalid_argument', 'code-file只能用于open')
+    code_file = to_windows_path(normalize_config_path(args.code_file).resolve()) if args.code_file else None
     baseline = capture_output_baseline(save_root=args.save_root, game_root=args.game_root, bepinex_root=args.bepinex_root)
     paths = serialize_baseline(baseline)
     fingerprint = {'target_script': target, 'timeout_seconds': args.request_timeout,
                    'paths': {key: value for key, value in paths.items() if key.endswith('_path')}}
     if command != 'run':
         fingerprint['command'] = command
+    if second is not None:
+        fingerprint['second_script'] = second
+    if code_file is not None:
+        fingerprint['code_file'] = code_file
     key_path = resolve_request_key_path(state_path, args.idempotency_key) if args.idempotency_key else None
     # 两次锁内复核夹住进程预检；不在持锁期间启动进程或等待游戏。
     for phase in (0, 1):
@@ -1245,10 +1257,10 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
                     request_id=request_id, target_script=target or '', timeout_seconds=args.request_timeout)
                 if command != 'run':
                     request.update(command=command, protocol_version=required_protocol)
-                if args.second_script:
-                    request['second_script'] = args.second_script
-                if args.code_file:
-                    request['code_file'] = args.code_file
+                if second is not None:
+                    request['second_script'] = second
+                if code_file is not None:
+                    request['code_file'] = code_file
                 write_state_file(state_path, request)
                 return request_id
         exe = resolve_game_executable(args.game_root)
@@ -1357,7 +1369,8 @@ def build_task_report(state: dict, outputs: CapturedOutputs, *, output_complete:
     reason_code = next((code for prefix, code in reasons if reason.startswith(prefix)), None)
     if state['status'] == 'done':
         outcome = 'completed'
-        if target_requires_leaderboard_summary(state.get('target_script')) and not full_statistics:
+        if (state.get('command', 'run') in (None, 'run')
+            and target_requires_leaderboard_summary(state.get('target_script')) and not full_statistics):
             outcome = 'missing_leaderboard_summary'
     elif state['status'] == 'failed':
         outcome = 'stopped' if is_controlled_stop(state) or reason.startswith('client ') else 'failed'
@@ -1507,7 +1520,7 @@ def task_main(args: argparse.Namespace) -> int:
             state_path = resolve_oracle_state_path(args.game_root, bepinex_root=args.bepinex_root)
             if action == 'health':
                 result = task_health(args, state_path)
-            elif action in ('run', 'submit', 'prepare', 'quit'):
+            elif action in SUBMIT_ACTIONS:
                 pid = find_game_process_id() if action == 'quit' else None
                 request_id = submit_task(args, state_path)
                 result = (wait_task(args, state_path, request_id, cancel_on_timeout=True) if action != 'submit'

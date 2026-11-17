@@ -54,25 +54,24 @@ public sealed class RunnerStateStore
             try
             {
                 OracleRunnerStateFile? current = ReadCurrent();
-                if (pendingState == null)
+                bool changed = false;
+                if (pendingState != null)
                 {
-                    return ApplyLiveStatus(current);
+                    // 新请求不能被旧快照覆盖；停止指令不能被较早排队的 running 覆盖。
+                    bool canWrite = current == null ||
+                        (current.RequestId == pendingState.RequestId &&
+                         !(pendingState.Status == RunnerRequestStatus.Running &&
+                           current.Status != RunnerRequestStatus.Requested &&
+                           current.Status != RunnerRequestStatus.Running));
+                    if (canWrite)
+                    {
+                        current = pendingState;
+                        changed = true;
+                    }
                 }
-
-                // 新请求由客户端拥有。旧请求的终态不能覆盖它；同一请求的停止指令
-                // 也不能被较早排队的 running 状态覆盖，但允许正常终态完成该请求。
-                bool canWrite = current == null ||
-                    (current.RequestId == pendingState.RequestId &&
-                     !(pendingState.Status == RunnerRequestStatus.Running &&
-                       current.Status != RunnerRequestStatus.Requested &&
-                       current.Status != RunnerRequestStatus.Running));
-                if (canWrite)
-                {
-                    WriteCurrent(pendingState);
-                    current = pendingState;
-                }
+                current = ApplyLiveStatus(current, changed);
                 pendingState = null;
-                return ApplyLiveStatus(current);
+                return current;
             }
             finally
             {
@@ -95,27 +94,39 @@ public sealed class RunnerStateStore
         }
     }
 
-    /// <summary>把排队的实时状态合并进当前状态；值与文件一致时不重复写盘。</summary>
-    private OracleRunnerStateFile? ApplyLiveStatus(OracleRunnerStateFile? current)
+    /// <summary>合并请求快照、实时状态及空闲时的模组能力，每轮最多原子写盘一次。</summary>
+    private OracleRunnerStateFile? ApplyLiveStatus(OracleRunnerStateFile? current, bool changed)
     {
-        if (!livePending || current == null)
+        if (current == null)
         {
             livePending = false;
-            return current;
+            return null;
+        }
+        // requested 保留调用方声明的协议；idle 发布当前 DLL 的能力。
+        if (current.Status == RunnerRequestStatus.Idle && current.ProtocolVersion != RunnerStateProtocol.CurrentProtocolVersion)
+        {
+            current.ProtocolVersion = RunnerStateProtocol.CurrentProtocolVersion;
+            changed = true;
+        }
+        if (livePending)
+        {
+            bool sameWindows = (current.BusyWindows ?? Array.Empty<string>())
+                .SequenceEqual(liveBusyWindows ?? Array.Empty<string>());
+            if (current.Executing != liveExecuting || current.LeaderboardRunning != liveLeaderboardRunning ||
+                current.LeaderboardScreen != liveLeaderboardScreen || !sameWindows)
+            {
+                current.Executing = liveExecuting;
+                current.LeaderboardRunning = liveLeaderboardRunning;
+                current.LeaderboardScreen = liveLeaderboardScreen;
+                current.BusyWindows = liveBusyWindows;
+                changed = true;
+            }
+        }
+        if (changed)
+        {
+            WriteCurrent(current);
         }
         livePending = false;
-        bool sameWindows = (current.BusyWindows ?? Array.Empty<string>())
-            .SequenceEqual(liveBusyWindows ?? Array.Empty<string>());
-        if (current.Executing == liveExecuting && current.LeaderboardRunning == liveLeaderboardRunning &&
-            current.LeaderboardScreen == liveLeaderboardScreen && sameWindows)
-        {
-            return current;
-        }
-        current.Executing = liveExecuting;
-        current.LeaderboardRunning = liveLeaderboardRunning;
-        current.LeaderboardScreen = liveLeaderboardScreen;
-        current.BusyWindows = liveBusyWindows;
-        WriteCurrent(current);
         return current;
     }
 
