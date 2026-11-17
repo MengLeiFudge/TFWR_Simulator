@@ -28,6 +28,7 @@ from .config import (
     resolve_unity_log_path,
     to_windows_path,
 )
+from .leaderboard_cache import APP_ID
 from .output_capture import (
     CapturedOutputs,
     FileSignature,
@@ -99,7 +100,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "并在结束后分别读取脚本 output.txt、BepInEx/LogOutput.log 和 Unity Player.log。"
         )
     )
-    parser.add_argument('--action', choices=('run', 'submit', 'status', 'wait', 'cancel', 'result', 'health', 'prepare', 'quit'),
+    parser.add_argument('--action', choices=('run', 'submit', 'status', 'wait', 'cancel', 'result', 'health') + CONTROL_ACTIONS,
                         help='AI任务操作；指定后stdout只输出一个JSON对象')
     parser.add_argument('--json', action='store_true', help='使用JSON任务接口；默认执行run')
     parser.add_argument('--request-id', type=int, help='查询、等待、取消或收取的请求ID')
@@ -116,6 +117,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--target-script",
         default="lb_start",
         help="要请求执行的脚本窗口名，可带或不带 .py。",
+    )
+    parser.add_argument(
+        "--second-script",
+        default=None,
+        help="dock/arrange 的锚点窗口；arrange 缺省用 stand。",
+    )
+    parser.add_argument(
+        "--code-file",
+        default=None,
+        help="open 读取的源码文件绝对路径；省略则创建空窗口。",
     )
     parser.add_argument(
         "--request-timeout",
@@ -217,6 +228,24 @@ def normalize_target_script_name(target_script: str | None) -> str | None:
     if value.endswith(".py"):
         value = value[:-3]
     return value or None
+
+
+# 控制动作不读 target_script；协议 3 才有窗口、保存和结果页命令。
+CONTROL_ACTIONS = (
+    'prepare', 'quit', 'save', 'play', 'stop', 'ok',
+    'open', 'close', 'minimize', 'restore', 'dock', 'arrange', 'list',
+)
+PROTOCOL3_ACTIONS = (
+    'save', 'play', 'stop', 'ok', 'open', 'close', 'minimize', 'restore', 'dock', 'arrange', 'list',
+)
+
+
+def required_protocol_version(command: str) -> int:
+    if command in PROTOCOL3_ACTIONS:
+        return 3
+    if command in CONTROL_ACTIONS:
+        return 2
+    return 1
 
 
 def build_requested_state(
@@ -381,17 +410,22 @@ def write_state_file(state_path: Path, state: dict[str, object]) -> None:
     raise RuntimeError(f"写入状态文件失败: {state_path}") from last_error
 
 
+# 直接从 exe 启动时必须自己声明 Steam 身份，否则 Steam 不初始化、DLC 检测得到 0 项解锁。
+STEAM_LAUNCH_ENV = {"SteamAppId": str(APP_ID), "SteamGameId": str(APP_ID)}
+
+
 def launch_windows_game(exe_path: Path) -> tuple[int, bool]:
     if os.name == "nt":
-        process = subprocess.Popen([str(exe_path)])
+        process = subprocess.Popen([str(exe_path)], env={**os.environ, **STEAM_LAUNCH_ENV})
         return (process.pid, False)
 
     windows_exe = to_windows_path(exe_path)
+    environment = "; ".join(f"$env:{key}='{value}'" for key, value in STEAM_LAUNCH_ENV.items())
     command = [
         "powershell.exe",
         "-NoProfile",
         "-Command",
-        f"$p = Start-Process -FilePath '{windows_exe}' -PassThru; $p.Id",
+        f"{environment}; $p = Start-Process -FilePath '{windows_exe}' -PassThru; $p.Id",
     ]
     completed = subprocess.run(command, check=True, capture_output=True, text=True)
     pid_text = completed.stdout.strip().splitlines()[-1]
@@ -1157,7 +1191,8 @@ def allocate_request_id(state_path: Path, current: dict | None) -> int:
 
 def submit_task(args: argparse.Namespace, state_path: Path) -> int:
     """幂等回执先于投递落盘；重试只读取原ID，模糊投递不会自动再次启动。"""
-    command = args.action if args.action in ('prepare', 'quit') else 'run'
+    command = args.action if args.action in CONTROL_ACTIONS else 'run'
+    required_protocol = required_protocol_version(command)
     target = normalize_target_script_name(args.target_script) if command == 'run' else None
     if command == 'run' and not target:
         raise TaskError('invalid_target', 'target-script不能为空')
@@ -1179,8 +1214,11 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
                     return int(previous['request_id'])
             current = read_state_file(state_path)
             require_available(current, args.replace)
-            if command != 'run' and cast(int, (current or {}).get('protocol_version', 1)) < 2:
-                raise TaskError('mod_upgrade_required', 'prepare/quit需要支持协议2的模组，请本地更新DLL并重启游戏')
+            if required_protocol > 1 and cast(int, (current or {}).get('protocol_version', 1)) < required_protocol:
+                raise TaskError(
+                    'mod_upgrade_required',
+                    f'{command}需要支持协议{required_protocol}的模组，请本地更新DLL并重启游戏',
+                )
             if phase == 1:
                 request_id = allocate_request_id(state_path, current)
                 baseline = capture_output_baseline(save_root=args.save_root, game_root=args.game_root, bepinex_root=args.bepinex_root)
@@ -1193,7 +1231,11 @@ def submit_task(args: argparse.Namespace, state_path: Path) -> int:
                 request = build_requested_state(
                     request_id=request_id, target_script=target or '', timeout_seconds=args.request_timeout)
                 if command != 'run':
-                    request.update(command=command, protocol_version=2)
+                    request.update(command=command, protocol_version=required_protocol)
+                if args.second_script:
+                    request['second_script'] = args.second_script
+                if args.code_file:
+                    request['code_file'] = args.code_file
                 write_state_file(state_path, request)
                 return request_id
         exe = resolve_game_executable(args.game_root)
