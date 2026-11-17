@@ -13,11 +13,11 @@ using UnityEngine;
 namespace TFWROracleRunner;
 
 [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
-public sealed class Plugin : BaseUnityPlugin
+public sealed partial class Plugin : BaseUnityPlugin
 {
     internal const string PluginGuid = "mlj.tfwr.oracle-runner";
     internal const string PluginName = "TFWR Oracle Runner";
-    internal const string PluginVersion = "0.2.4";
+    internal const string PluginVersion = "0.3.0";
 
     private enum StopReason
     {
@@ -204,6 +204,7 @@ public sealed class Plugin : BaseUnityPlugin
             {
                 ObserveStopRequestedState(mainSim, current);
                 ObserveRequestedState(mainSim, current);
+                ObservePendingSave(mainSim, current);
             }
         }
         catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is SerializationException)
@@ -249,6 +250,28 @@ public sealed class Plugin : BaseUnityPlugin
     {
         if (observedState.Status != RunnerRequestStatus.Requested)
         {
+            return;
+        }
+
+        // ok/list/minimize 等即时命令不碰正在运行的脚本，直接在观察阶段完成。
+        if (IsImmediateCommand(observedState.Command ?? "run"))
+        {
+            if (observedState.RequestId <= lastHandledRequestId)
+            {
+                return;
+            }
+            if (observedState.ProtocolVersion < 3)
+            {
+                MarkFailedWithOutput(
+                    observedState,
+                    $"command {observedState.Command} requires protocol_version >= 3",
+                    DateTimeOffset.UtcNow
+                );
+                stateStore.Write(observedState);
+                lastHandledRequestId = Math.Max(lastHandledRequestId, observedState.RequestId);
+                return;
+            }
+            ExecuteImmediateCommand(mainSim, observedState, observedState.Command!);
             return;
         }
 
@@ -315,7 +338,18 @@ public sealed class Plugin : BaseUnityPlugin
             preparationStopInvoked = false;
         }
         string command = requestedState.Command ?? "run";
-        if (command != "run" && command != "prepare" && command != "quit")
+        if (RequiresProtocol3(command) && requestedState.ProtocolVersion < 3)
+        {
+            MarkFailedWithOutput(
+                requestedState,
+                $"command {command} requires protocol_version >= 3",
+                DateTimeOffset.UtcNow
+            );
+            stateStore.Write(requestedState);
+            lastHandledRequestId = requestedState.RequestId;
+            return;
+        }
+        if (!IsKnownCommand(command))
         {
             MarkFailedWithOutput(requestedState, $"unknown command: {command}", DateTimeOffset.UtcNow);
             stateStore.Write(requestedState);
@@ -369,31 +403,9 @@ public sealed class Plugin : BaseUnityPlugin
         }
         if (control)
         {
-            try
-            {
-                if (command == "quit")
-                {
-                    // 当前游戏异步保存；主线程逐帧观察完成，禁止提前确认退出。
-                    quitSaveTask = Saver.Save(mainSim);
-                    quitRequestId = requestedState.RequestId;
-                    RunnerStateProtocol.MarkRunning(requestedState, DateTimeOffset.UtcNow);
-                    stateStore.Write(requestedState);
-                    lastHandledRequestId = requestedState.RequestId;
-                    Log.LogInfo($"等待游戏保存 request_id={requestedState.RequestId}");
-                    return;
-                }
-                RunnerStateProtocol.MarkRunning(requestedState, DateTimeOffset.UtcNow);
-                RunnerStateProtocol.MarkDone(requestedState, DateTimeOffset.UtcNow);
-                Log.LogInfo($"控制请求完成 command={command} workspace_ready=True request_id={requestedState.RequestId}");
-            }
-            catch (Exception ex)
-            {
-                quitRequestId = -1;
-                quitSaveTask = null;
-                MarkFailedWithOutput(requestedState, $"control command failed: {ex.Message}", DateTimeOffset.UtcNow);
-            }
-            stateStore.Write(requestedState);
-            lastHandledRequestId = requestedState.RequestId;
+            // 控制命令共用请求 ID 与终态确认；quit 和窗口变更要等保存完成后再发布结果。
+            ExecuteIdleCommand(mainSim, requestedState, command);
+            lastHandledRequestId = Math.Max(lastHandledRequestId, requestedState.RequestId);
             return;
         }
 

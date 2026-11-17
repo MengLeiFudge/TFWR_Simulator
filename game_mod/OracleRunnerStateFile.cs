@@ -20,9 +20,9 @@ public sealed class OracleRunnerStateFile
         get => RunnerStateProtocol.ToStatusText(Status);
         set => Status = RunnerStateProtocol.ParseStatusText(value);
     }
-    /// <summary>模组支持的协议版本；版本2支持prepare与quit控制命令。</summary>
+    /// <summary>模组支持的协议版本；版本2支持prepare与quit，版本3增加save、ok、list等控制命令。</summary>
     [DataMember(Name = "protocol_version")]
-    public int ProtocolVersion { get; set; } = 2;
+    public int ProtocolVersion { get; set; } = 3;
 
     /// <summary>run执行脚本，prepare准备工作区，quit保存后退出；缺省为run。</summary>
     [DataMember(Name = "command")]
@@ -43,6 +43,18 @@ public sealed class OracleRunnerStateFile
     /// <summary>执行结束的 ISO 8601 时间。</summary>
     [DataMember(Name = "finished_at")]
     public string? FinishedAt { get; set; }
+
+    /// <summary>dock/arrange 的第二个窗口名；省略时 arrange 用 stand。</summary>
+    [DataMember(Name = "second_script", EmitDefaultValue = false)]
+    public string? SecondScript { get; set; }
+
+    /// <summary>open 命令读取的代码文件绝对路径；省略时创建空窗口。</summary>
+    [DataMember(Name = "code_file", EmitDefaultValue = false)]
+    public string? CodeFile { get; set; }
+
+    /// <summary>命令返回的文本结果，例如 list 的窗口清单。</summary>
+    [DataMember(Name = "result_text", EmitDefaultValue = false)]
+    public string? ResultText { get; set; }
 
     /// <summary>失败或取消原因。</summary>
     [DataMember(Name = "last_error")]

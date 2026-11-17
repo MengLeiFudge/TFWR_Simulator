@@ -123,7 +123,11 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
 
 - `request_id` 为递增的非负 32 位整数；分配新 ID 和提交必须在同一次锁内完成。
 - `timeout_seconds` 为非负有限秒数；`0` 表示不限时，`null` 使用模组默认值。
-- `command` 缺省或为 `run` 时执行脚本；`prepare` 与 `quit` 为独立控制请求，不读取 `target_script`。模组写回 `protocol_version=2` 表示支持这些命令。
+- `command` 缺省或为 `run` 时执行脚本。控制命令：`prepare`（停在空闲工作区）、`quit`（保存后退出）、`save`、`play`、`stop`、`ok`、`open`、`close`、`minimize`、`restore`、`dock`、`arrange`、`list`。模组写回 `protocol_version=3`。
+- 即时命令 `play`、`stop`、`ok`、`list`、`minimize`、`restore` 不打断正在运行的脚本，收到请求的当帧完成并写回终态。
+- `save` 与 `open`、`close`、`dock`、`arrange` 会调用 `Saver.Save` 并等保存确认后才写终态；保存未确认、或警告弹窗未关闭时记为失败并保留现场。
+- `open` 读取 `code_file` 指定的源码（超过 1 MB 拒绝），按 `second_script`（缺省 `stand`）停靠；`dock`、`arrange` 用 `second_script`/`target_script` 作锚点；`list` 把窗口清单写进 `result_text`。
+- 新增命令要求 `protocol_version >= 3`；只发 `run`/`prepare`/`quit` 的旧客户端不受影响。
 - 脚本正常流转为 `idle → requested → running → done/failed → idle`；快速控制请求可直接从 `requested` 写回带起止时间的终态。
 - `requested` 或 `running` 可写入同一请求的 `stop_requested`；停止完成后进入 `failed`，`last_error` 保存停止原因。
 - 更大的请求 ID 替换旧请求。旧客户端观察到更大 ID 后按 `superseded` 结束，不再确认或清除新请求。
