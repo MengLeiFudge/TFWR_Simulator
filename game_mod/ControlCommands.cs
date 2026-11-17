@@ -27,7 +27,7 @@ public sealed partial class Plugin
         "prepare" or "quit" => 2,
         "save" or "open" or "close" or "dock" or "arrange" or "play" or "stop" or "ok"
             or "list" or "minimize" or "unminimize" => RunnerStateProtocol.CurrentProtocolVersion,
-        _ => 0
+        _ => 0 // 未知命令，不表示协议版本。
     };
 
     /// <summary>执行不等待空闲的即时命令；stop 主动停止当前脚本。</summary>
@@ -118,6 +118,10 @@ public sealed partial class Plugin
              !(quitConfirmed && current.Status == RunnerRequestStatus.Idle)))
         {
             // 取消或替换撤销后续退出，不回滚游戏已经开始的磁盘保存。
+            if (current == null)
+            {
+                Log.LogWarning($"保存期间状态文件丢失，撤销后续退出 command={savingRequest.Command} request_id={savingRequest.RequestId}；磁盘保存可能仍在进行");
+            }
             savingRequest = null;
             saveTask = null;
             return false;
@@ -133,8 +137,13 @@ public sealed partial class Plugin
             return true;
         }
 
-        double timeout = savingRequest.TimeoutSeconds ?? runnerConfig.DefaultRequestTimeoutSeconds.Value;
-        if (!saveTask.IsCompleted && (timeout <= 0 || Time.realtimeSinceStartup - saveStartedAt < timeout))
+        double timeout = runnerConfig.SaveTimeoutSeconds.Value;
+        double requestTimeout = savingRequest.TimeoutSeconds ?? runnerConfig.DefaultRequestTimeoutSeconds.Value;
+        if (requestTimeout > 0)
+        {
+            timeout = Math.Min(timeout, requestTimeout);
+        }
+        if (!saveTask.IsCompleted && Time.realtimeSinceStartup - saveStartedAt < timeout)
         {
             MaybeLogProgress($"等待游戏保存 request_id={current.RequestId}");
             return true;
@@ -154,11 +163,7 @@ public sealed partial class Plugin
         else
         {
             RunnerStateProtocol.MarkDone(current, DateTimeOffset.UtcNow);
-            savingRequest = current;
-            if (current.Command != "quit")
-            {
-                savingRequest = null;
-            }
+            savingRequest = current.Command == "quit" ? current : null;
             Log.LogInfo($"控制请求完成 command={current.Command} request_id={current.RequestId}");
         }
         stateStore.Write(current);

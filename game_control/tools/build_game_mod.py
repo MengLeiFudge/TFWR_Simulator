@@ -24,7 +24,7 @@ def main() -> int:
             *sys.argv[1:],
         ],
         cwd=REPO_ROOT,
-        timeout=120,
+        timeout=300,
     )
 
 

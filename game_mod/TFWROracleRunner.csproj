@@ -97,6 +97,6 @@
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ThunderstoreStage)/plugins/TFWROracleRunner" />
     <Copy SourceFiles="manifest.json;README.md;CHANGELOG.md;icon.png;LICENSE" DestinationFolder="$(ThunderstoreStage)" />
     <ZipDirectory SourceDirectory="$(ThunderstoreStage)" DestinationFile="$(ThunderstoreArchive)" Overwrite="true" />
-    <Message Importance="high" Text="R2 / Thunderstore 包：$(ThunderstoreArchive)" />
+    <Message Importance="high" Text="R2 / Thunderstore 包：$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(ThunderstoreArchive)'))" />
   </Target>
 </Project>

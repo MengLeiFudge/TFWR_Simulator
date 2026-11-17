@@ -106,6 +106,7 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
 | Advanced | `StartupPollIntervalMs` | `250` | 状态文件同步间隔，最小生效值 50ms |
 | Advanced | `ScriptReadyTimeoutSeconds` | `30` | 等待工作区、空闲执行器及脚本窗口的期限 |
 | Advanced | `DefaultRequestTimeoutSeconds` | `20` | 请求未指定超时时使用的秒数 |
+| Advanced | `SaveTimeoutSeconds` | `30` | 保存等待的独立上限，范围1～300秒；请求不限时时仍生效 |
 | Advanced | `RequestStopGracePeriodSeconds` | `3` | 停止后等待 `StopMainExecution()` 生效的观察窗口 |
 
 ## 文件协议
@@ -125,11 +126,11 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --r
 ```
 
 - `request_id` 为递增的非负 32 位整数；分配新 ID 和提交必须在同一次锁内完成。
-- `timeout_seconds` 为非负有限秒数；`0` 表示不限时，`null` 使用模组默认值。
+- `timeout_seconds` 为非负有限秒数；`0` 表示执行不限时，`null` 使用模组默认值。异步保存另受 `Advanced.SaveTimeoutSeconds` 限制。
 - `command` 缺省或为 `run` 时执行脚本。控制命令：`prepare`（停在空闲工作区）、`save`（只存档，游戏继续）、`quit`（存档确认后退出，等于 `save` 加退出）、`play`、`stop`、`ok`、`open`、`close`、`minimize`、`unminimize`、`dock`、`arrange`、`list`。模组写回 `protocol_version=3`。
 - `minimize`/`unminimize` 收放单个窗口；`dock` 只把 `target_script` 挂到 `second_script` 链尾；`arrange` 把所有窗口按名字排序挂成一列，锚点取 `target_script`（缺省 `stand`）。
 - 即时命令 `play`、`stop`、`ok`、`list`、`minimize`、`unminimize` 不等待空闲，收到请求的当帧完成并写回终态；其中 `stop` 主动停止当前程序。
-- `save`、`quit` 与 `open`、`close`、`dock`、`arrange` 共用异步保存流程，等保存确认后才写终态；保存等待计入 `timeout_seconds`，超时、保存未确认或警告弹窗未关闭时记为失败并保留现场。取消不会回滚已经开始的磁盘保存；取消或被新请求替换后不再退出游戏。
+- `save`、`quit` 与 `open`、`close`、`dock`、`arrange` 共用异步保存流程，等保存确认后才写终态；保存等待取正数请求超时和 `Advanced.SaveTimeoutSeconds` 中较短者，请求超时为0也受保存上限约束。超时、保存未确认或警告弹窗未关闭时记为失败并保留现场；后台保存可能继续完成。取消或被新请求替换后不再退出游戏，不回滚已经开始的磁盘保存。保存期间状态文件丢失会记录警告并撤销退出；状态读取失败时保留等待句柄并定期警告，待恢复读取后继续处理。
 - `open` 读取 `code_file` 指定的源码（超过 1 MB 拒绝），按 `second_script`（缺省 `stand`）停靠；`open/close/minimize/unminimize/dock` 必须指定 `target_script`，`dock` 另需 `second_script`。`arrange` 用 `target_script`（缺省 `stand`）作首窗口，先解除其停靠再排列；`list` 把窗口清单写进 `result_text`。
 - 新增命令要求 `protocol_version >= 3`；空闲状态由模组发布实际支持的协议版本，升级DLL后旧idle文件会自动更新。只发 `run`/`prepare`/`quit` 的旧客户端保持兼容。
 - 实时字段 `executing`、`leaderboard_running`、`leaderboard_screen`、`busy_windows` 每轮刷新，与请求字段互不覆盖；`busy_windows` 只报模组已知的运行窗口，手工运行其它窗口时可能为空。

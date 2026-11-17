@@ -175,7 +175,8 @@ public sealed partial class Plugin : BaseUnityPlugin
             if (now - stateFailureSince >= 5f && now >= nextStateWarningAt)
             {
                 nextStateWarningAt = now + 5f;
-                Log.LogWarning($"状态文件同步失败，将在下次轮询重试：{stateStore.StateFilePath}；{ex.Message}");
+                string saving = savingRequest == null ? string.Empty : $"；保留保存等待 command={savingRequest.Command} request_id={savingRequest.RequestId}";
+                Log.LogWarning($"状态文件同步失败，将在下次轮询重试：{stateStore.StateFilePath}；{ex.Message}{saving}");
             }
         }
     }

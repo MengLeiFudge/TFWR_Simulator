@@ -174,14 +174,16 @@ def save_sync_transaction(target_dir: Path, names: list[str]) -> Iterator[None]:
     state_path = resolve_oracle_state_path()
     with state_transaction(state_path):
         state = read_state_file(state_path)
+        legacy_idle = state is not None and state.get('protocol_version', 1) in (1, 2)
         if state is None or state.get('status') != 'idle' or any(
-            state.get(key) is not False for key in ('executing', 'leaderboard_running', 'leaderboard_screen')
+            state.get(key, False if legacy_idle else None) is not False
+            for key in ('executing', 'leaderboard_running', 'leaderboard_screen')
         ) or state.get('busy_windows'):
-            raise RuntimeError('模组尚未确认空闲，不能覆盖存档脚本；先停止并回收请求，等待实时状态刷新后重试。')
+            raise RuntimeError('模组尚未确认空闲，不能覆盖存档脚本；先停止并回收请求，协议3还需等待实时空闲状态刷新。')
         for name in names:
             if not (target_dir / name).is_file():
                 raise FileNotFoundError(f'存档缺少已有脚本，不允许同步新增文件：{name}')
-        backup_dir = REPO_ROOT / '.codex' / 'deployments' / f'leaderboard-sync-{uuid4().hex}'
+        backup_dir = REPO_ROOT / '.codex' / 'tmp' / 'leaderboard-sync' / uuid4().hex
         backup_dir.mkdir(parents=True)
         for name in names:
             shutil.copy2(target_dir / name, backup_dir / name)

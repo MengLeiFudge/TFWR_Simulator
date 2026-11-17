@@ -69,7 +69,7 @@ python3 game_control/tools/refresh_gamesave_link.py
 
 ### `sync_leaderboard_scripts.py`
 
-同步榜单脚本。写入 `gamesave/` 时，在同一状态锁内检查 `idle` 和模组明确报告的空闲字段，并完成复制，覆盖前自动备份到 `.codex/deployments/leaderboard-sync-<唯一编号>/`；活动请求、状态缺失或读取失败时拒绝覆盖，缺少已有目标文件时拒绝新增。取结果后需等模组刷新实时字段；同步期间不要手动启动游戏脚本。`save2cur` 只读存档，不要求游戏空闲。默认只同步单个目标脚本：
+同步榜单脚本。写入 `gamesave/` 时，在同一状态锁内检查空闲状态并完成复制，覆盖前自动备份到 `.codex/tmp/leaderboard-sync/<唯一编号>/`，由 `.codex` 回收工具按临时产物清理；缺少已有目标文件时拒绝新增。协议3要求 `idle` 且实时执行、打榜和结果页字段均明确为 `false`；协议1/2（包括0.2.4）允许实时字段缺失，此时依赖 `idle`，已有忙碌标记仍会阻止覆盖。旧协议不能据此确认手动脚本是否运行，需先停止手动执行；同步期间不要手动启动脚本。活动请求、状态缺失或读取失败时均拒绝覆盖；协议3取结果后还需等模组刷新实时字段。`save2cur` 只读存档，不要求游戏空闲。默认只同步单个目标脚本：
 
 ```bash
 python3 game_control/tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single
@@ -138,7 +138,7 @@ python3 game_control/tools/run_real_game_script.py --action quit
 | `health` | 查询进程、状态、路径和有限日志中的模组版本；`workspace_ready=null`，不将文件存在当作工作区已就绪 |
 | `prepare` | 停止当前游戏执行、确认结果页并进入工作区；等待完成并回收，返回 `workspace_ready` |
 | `quit` | 停止、保存并正常退出游戏；等待完成并回收，再确认原进程退出，返回 `game_exited` |
-| `save` | 停止执行并等待保存确认；保存等待受请求超时约束 |
+| `save` | 停止执行并等待保存确认；等待受请求超时和模组 `Advanced.SaveTimeoutSeconds` 独立上限约束 |
 | `play/stop/ok/list` | 进入工作区、停止程序、关闭结果页或读取窗口清单；`list` 的结果在 `result_text` |
 | `open/close/minimize/unminimize` | 用 `--target-script` 指定窗口；`open` 可用 `--code-file` 指定源码和 `--second-script` 指定停靠窗口 |
 | `dock` | 将 `--target-script` 窗口停靠到 `--second-script` 窗口链尾 |
