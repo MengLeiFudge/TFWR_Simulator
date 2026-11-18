@@ -425,7 +425,8 @@ def opening_plant():
     return unlock(Unlocks.Plant)
 
 
-def opening_speed():
+def opening_speed_expand2():
+    # 产物是 Speed1 加 Expand2（田进到 3×3）；调用方不要再自己买 Expand。
     while num_unlocked(Unlocks.Speed) == 0 or num_items(Items.Wood) < 20:
         crop = Entities.Grass
         if get_pos_y() == 1 or (num_unlocked(Unlocks.Speed) > 0 and get_pos_y() == 0):
@@ -454,7 +455,7 @@ def step1():
         return False
     if not opening_plant():
         return False
-    if not opening_speed():
+    if not opening_speed_expand2():
         return False
     if not opening_technologies():
         return False
@@ -879,7 +880,8 @@ def next_megafarm():
     return True
 
 
-def eight_drones():
+def four_drones():
+    # 产物是可买下一档无人机：Fertilizer、P2、Expand5、供电与 Megafarm2。
     if not buy(Unlocks.Fertilizer):
         return False
     if num_unlocked(Unlocks.Pumpkins) < 2:
@@ -889,7 +891,11 @@ def eight_drones():
         return False
     if not solar_reserve():
         return False
-    if not next_megafarm():
+    return next_megafarm()
+
+
+def eight_drones():
+    if not four_drones():
         return False
     if not buy(Unlocks.Carrots):
         return False
