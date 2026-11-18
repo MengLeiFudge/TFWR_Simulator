@@ -17,7 +17,7 @@ public sealed partial class Plugin : BaseUnityPlugin
 {
     internal const string PluginGuid = "mlj.tfwr.oracle-runner";
     internal const string PluginName = "TFWR Oracle Runner";
-    internal const string PluginVersion = "0.3.2";
+    internal const string PluginVersion = "0.3.1";
 
     private enum StopReason
     {

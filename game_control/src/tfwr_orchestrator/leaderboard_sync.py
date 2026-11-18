@@ -182,7 +182,7 @@ def save_sync_transaction(target_dir: Path, names: list[str]) -> Iterator[None]:
             if (state is not None and state.get('status') == 'idle' and not legacy_idle
                     and any(key not in state for key in live_keys)):
                 raise RuntimeError('模组版本过旧，未发布后台保存状态 saving，无法确认写盘已结束；'
-                                   '先把 TFWR Oracle Runner 升级到 0.3.2 并重启游戏，再同步存档脚本。')
+                                   '先把 TFWR Oracle Runner 升级到 0.3.1 并重启游戏，再同步存档脚本。')
             raise RuntimeError('模组尚未确认空闲，不能覆盖存档脚本；先停止并回收请求，并等待实时空闲状态刷新。')
         for name in names:
             if not (target_dir / name).is_file():
