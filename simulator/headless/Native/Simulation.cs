@@ -111,6 +111,9 @@ public class Simulation
 
 	public double DiggingSpeedFactor { get; private set; } = 1.0;
 
+	/// <summary>排行榜脚本节点数超限；原版据此取消该场排行榜运行。</summary>
+	public bool LeaderboardCodeLimitExceeded { get; internal set; }
+
 	public Duration CurrentTime { get; private set; }
 
 	public bool Paused { get; set; }

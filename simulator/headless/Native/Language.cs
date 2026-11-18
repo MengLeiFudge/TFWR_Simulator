@@ -1680,6 +1680,7 @@ public class ImportNode : Node
 				{
 					throw new ExecuteException("error_syntax_error_in_import");
 				}
+				execution.RegisterLeaderboardCode(name, node);
 				if (state.DroneId > 0)
 				{
 					Dictionary<object, object> copies = new Dictionary<object, object>();

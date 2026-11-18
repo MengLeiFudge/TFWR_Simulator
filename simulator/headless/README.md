@@ -120,7 +120,7 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 | `import_native.py`、`export_assets.py` | 开发时生成源码和资源，模拟运行时不调用 |
 | `fixtures/`、`verify.py` | 归档实机脚本与观测重放，不启动真实游戏 |
 
-源码来自本机原版Core.dll与Utils.dll的早期导入；2026-11-18按构建26732695重新核对并移植了会改变计费的差异（挖矿速度按实际50%重置为1.5^max(N-1,0)并统一除以初始1.5、列表解构计1 tick、别名导入按非静态每次扣费、免费调试函数非静态调用至少1 tick、set_world_size不缩到2格以下），其余改动属界面与错误处理，不影响时间。原作者代码保持其原有归属，生成文件不是重新编写的独立算法。二进制SHA256保存在资源快照的 `source_assemblies`，反编译文本SHA256在 `Native/source.json`。导入器和导出器锁定该版本；游戏更新时必须重新审查适配与重放结果，不能只换资源。
+源码来自本机原版Core.dll与Utils.dll的早期导入；2026-11-18按构建26732695重新核对并移植了会改变计费的差异（挖矿速度按实际50%重置为1.5^max(N-1,0)并统一除以初始1.5、列表解构计1 tick、别名导入按非静态每次扣费、免费调试函数非静态调用至少1 tick、set_world_size不缩到2格以下、排行榜脚本节点超10万即报错并取消该场），其余改动属界面与错误处理，不影响时间。原作者代码保持其原有归属，生成文件不是重新编写的独立算法。二进制SHA256保存在资源快照的 `source_assemblies`，反编译文本SHA256在 `Native/source.json`。导入器和导出器锁定该版本；游戏更新时必须重新审查适配与重放结果，不能只换资源。
 
 生成源码的步骤是用ILSpy反编译上述两个程序集为 `Core.cs`、`Utils.cs`，然后运行：
 

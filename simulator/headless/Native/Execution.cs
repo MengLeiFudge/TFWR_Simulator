@@ -1235,6 +1235,12 @@ public class Execution
 
 	public const double OPERATION_OPS = 1.0;
 
+	public const int MaxLeaderboardCodeNodes = 100000;
+
+	private readonly HashSet<string> leaderboardCodeModules = new HashSet<string>();
+
+	private int leaderboardCodeNodeCount;
+
 	public Simulation sim;
 
 	private List<ProgramState> states;
@@ -1269,6 +1275,46 @@ public class Execution
 		MainState = states[0];
 		Id = id;
 		NextExecutionTime = sim.CurrentTime;
+		try
+		{
+			RegisterLeaderboardCode(syntaxTree.boxedParams.codeWindow?.fileName, syntaxTree);
+		}
+		catch (ExecuteException currentExecuteException)
+		{
+			MainState.CurrentExecutingNode = syntaxTree;
+			MainState.currentExecuteException = currentExecuteException;
+			MainState.currentSideEffect = SideEffect.Error;
+		}
+	}
+
+	public void RegisterLeaderboardCode(string moduleName, Node syntaxTree)
+	{
+		if (sim.leaderboardType == LeaderboardType.none || sim.leaderboardType == LeaderboardType.simulation ||
+			(leaderboardCodeNodeCount <= MaxLeaderboardCodeNodes && !leaderboardCodeModules.Add(moduleName)))
+		{
+			return;
+		}
+		Stack<Node> stack = new Stack<Node>();
+		stack.Push(syntaxTree);
+		while (stack.Count > 0 && leaderboardCodeNodeCount <= MaxLeaderboardCodeNodes)
+		{
+			Node node = stack.Pop();
+			if (node == null)
+			{
+				continue;
+			}
+			leaderboardCodeNodeCount++;
+			foreach (Node slot in node.slots)
+			{
+				stack.Push(slot);
+			}
+		}
+		if (leaderboardCodeNodeCount <= MaxLeaderboardCodeNodes)
+		{
+			return;
+		}
+		sim.LeaderboardCodeLimitExceeded = true;
+		throw new ExecuteException("error_leaderboard_code_too_large");
 	}
 
 	public void StopExecution()
@@ -1966,17 +2012,21 @@ public class Execution
 		}
 		case SideEffect.Error:
 		{
-			ExecuteException currentExecuteException = States[droneId].currentExecuteException;
+			ExecuteException ex = States[droneId].currentExecuteException ?? new ExecuteException("Unexpected error");
 			Node currentExecutingNode = States[droneId].CurrentExecutingNode;
-			int startIndex = ((currentExecuteException.startIndex >= 0) ? currentExecuteException.startIndex : currentExecutingNode.boxedParams.wordStart);
-			int endIndex = ((currentExecuteException.endIndex >= 0) ? currentExecuteException.endIndex : currentExecutingNode.boxedParams.wordEnd);
-			States[droneId].CurrentExecutingNode?.boxedParams.codeWindow?.SetErrorMessage(currentExecuteException.Message, startIndex, endIndex);
-			sim.simRunner.Logger.LogError(Localizer.Localize(currentExecuteException.Message), States[droneId]);
+			int startIndex = ((ex.startIndex >= 0 || currentExecutingNode == null) ? ex.startIndex : currentExecutingNode.boxedParams.wordStart);
+			int endIndex = ((ex.endIndex >= 0 || currentExecutingNode == null) ? ex.endIndex : currentExecutingNode.boxedParams.wordEnd);
+			States[droneId].CurrentExecutingNode?.boxedParams.codeWindow?.SetErrorMessage(ex.Message, startIndex, endIndex);
+			sim.simRunner.Logger.LogError(Localizer.Localize(ex.Message), States[droneId]);
 			sim.Error();
 			IsPerformingAStep = false;
 			sim.farm.mainDroneId = droneId;
 			MainState = States[droneId];
 			sim.UnlockAchievement("CAUSE_A_RUNTIME_ERROR");
+			if (sim.LeaderboardCodeLimitExceeded)
+			{
+				StopExecution();
+			}
 			break;
 		}
 		case SideEffect.DoAFlip:
