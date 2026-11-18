@@ -999,9 +999,11 @@ def companion_dinosaurs():
 
 
 def companion_bones(level):
-    # 前提：恐龙已 2 级、田已清空、供电已备；只升当前下一级，等级不符就跳过。
-    if num_unlocked(Unlocks.Polyculture) + 1 != level:
+    # 前提：恐龙已 2 级、田已清空、供电已备。已达目标返回 True；缺前一级返回 False，不能把未达成当达成。
+    if num_unlocked(Unlocks.Polyculture) >= level:
         return True
+    if num_unlocked(Unlocks.Polyculture) + 1 != level:
+        return False
     size = get_world_size()
     maximum = size * size - 1
     factor = 2 ** (num_unlocked(Unlocks.Dinosaurs) - 1)
