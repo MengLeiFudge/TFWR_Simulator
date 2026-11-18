@@ -290,6 +290,10 @@
 
 **机制核对（`Native/World.cs`、`Native/Farm.cs`）：Weird 只有两个来源。** 一是被 `Fertilize()` 标记为 `weird` 的作物，收割时额外掉 `trunc(0.5 × dropAmount × YieldFactor)`（`World.cs:1392`）；二是迷宫收获（`World.cs:1962`）。肥料是**被动产出**：`ReceiveFertilizer` 每 `20 / 2^level` 秒加 1 个（`Farm.cs:1337`，模拟器 `HarvestFactor=1`），即肥料1 为 0.05/秒、肥料3 为 0.4/秒。
 
+**实测（`.codex/tmp/m18-s83.json`，seed83）：`weird_flip` 94.28 秒产出 1,089 Weird，净增 2,275 木，即 11.5 Weird/秒。** 24:49 路线从肥料1（471 秒）到 Mazes 1（618 秒）的 147 秒里要凑 1000 Weird，需 6.8 Weird/秒；本机实测吞吐已高于该需求，且同步木入库为正。机制侧打通。
+
+接线时遇到两个具体障碍，均与 `next_megafarm()` 的默认迷宫边长有关：`small_maze_gold` 的 `n` 缺省为 `WORLD // 4`，6×6 下等于 **1**，于是 `required = (2000 + 0) // 1 + 8×1×1×1 + 2 = 2010` 个 Weird；而 `unlock(Mazes)` 已花掉 1000，翻转剩下的 521 不够，`boost_stock` 会去调 `get_companion()` 并在伴生1 之前直接 `error_missing_x_unlock [Polyculture]`。下一版把 `next_megafarm(maze_size=...)` 传下去（6×6 用 6），并按 `n=6` 重算 `required`（约 384）后再试；这一步不成立之前，翻转机制还不能接进正式路径。
+
 **关键机制：`use_item(Weird_Substance, 1)` 施在非灌木的 Growable 上会 `ToggleWeird()`，同时翻转该格与四个正交邻格**（`Execution.cs:1679–1683` → `World.cs:1432–1444`）。`canBeWeird` 对 grass/tree/bush/carrot/pumpkin/sunflower/cactus 全部为 1。因此“棋盘树＋草心”布局下，1 个 Weird 可翻转草心与四棵邻树，收割四棵树得 `4 × trunc(0.5 × 5 × YF)`：Trees 2 下 20、Trees 3 下 40，另有 20 木。**净收益 +19（Trees 2）／+39（Trees 3），是约 20～40 倍的放大**，且不依赖伴生。这解释了 24:49 路线如何在伴生1（13:19）之前就凑出 Mazes 1（10:18）：少量施肥树产出的头几十个 Weird 可以滚成上千。
 
 本机现版没有任何一处用这个放大：`first_megafarm` 的 `use_item(Weird_Substance, size)` 是对灌木开迷宫（消耗 Weird），`boost_stock` 走伴生。**这是目前找到的最大单点缺口**，下一步实现 `weird_flip(target)` 步骤并测净 Weird/秒与同步木入库。
