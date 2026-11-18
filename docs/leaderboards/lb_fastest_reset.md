@@ -126,8 +126,8 @@
 | 尝试方案 | 实测／模拟表现 | 原因与适用范围 | 参考代码 |
 | --- | --- | --- | --- |
 | 3×3 解锁 Trees 后常驻树 | 会话均 2018.227523（6/6 达标，3/6 更快，均值慢 3.89 秒，配对 SE 8.02） | 差异小于 1×SE，记未定不采用；3×3 满扫约 4 秒，灌木基础成熟 4 秒、树 7 秒，换树把四格木料提高但挤掉胡萝卜与干草，瓶颈只是换了一类 | `opening_stock` 的 3×3 分支改成 Trees 已解锁就种树；报告 `.codex/tmp/fr-session-m3.json` |
-| 整列留草（开局＋常驻两处） | 会话均 2032.043702（6/6 达标，1/6 更快，均值慢 17.71 秒，配对 SE 8.33） | 更慢：整列草把 4×4/5×5 的胡萝卜与木料一起压掉 | `opening_stock` 的 `x > 0` 胡萝卜限制＋`tick_cell` 的 `get_pos_x() == 0` 全列草；报告 `.codex/tmp/fr-session-m4.json` |
-| 只把开局布局改成整列留草 | 会话均 2025.004747（6/6 达标，2/6 更快，均值慢 10.67 秒，配对 SE 6.51） | 更慢：仅动 `opening_stock` 也一样，说明 4×4/5×5 的干草不是靠加格能补的 | 只保留上一条的 `opening_stock` 改动；报告 `.codex/tmp/fr-session-m4b.json` |
+| 整列留草（开局＋常驻两处） | 会话均 2032.043702（6/6 达标，1/6 更快，均值慢 17.71 秒，配对 SE 8.33） | 整列留草未改善这两版；Expand 3→4 是 4×4→6×6（`Native/Helper.cs:106–107`），该版整列草把 4×4 的胡萝卜与木料一起压掉 | `opening_stock` 的 `x > 0` 胡萝卜限制＋`tick_cell` 的 `get_pos_x() == 0` 全列草；报告 `.codex/tmp/fr-session-m4.json` |
+| 只把开局布局改成整列留草 | 会话均 2025.004747（6/6 达标，2/6 更快，均值慢 10.67 秒，配对 SE 6.51） | 整列留草未改善这两版；仅动 `opening_stock` 同样更慢，不能据此排除其他草/胡萝卜比例 | 只保留上一条的 `opening_stock` 改动；报告 `.codex/tmp/fr-session-m4b.json` |
 | 非树格常驻胡萝卜 | 会话均 33:36.609（6/6 完成，比常驻混种版慢 2.27 秒） | 整轮慢 2.27 秒，未证实收益；该版只改 `tick_cell`，而 Trees 2/Grass 2 走 `step1`→`opening_stock`，不能把差异归到这两项 | 把 `tick_cell` 的胡萝卜条件改成恒真；报告 `.codex/tmp/fr-session-m2.json` |
 | P3却缩减Trees/Carrots等级 | seed1完整2505.143632秒 | 基础产量被缩减后，后续Weird/Wood速率仍接近旧P1，高伴生投资没有兑现；只关闭此组合 | [缩减等级代表](../../references/leaderboard_history/lb_fastest_reset/20261116_rejected_poly3_reduced_yields.py) |
 | 新前缀＋P1/16机/C3/D5 | 7200秒会话4轮均2336.066660秒，比2484.598921秒基线快 | 有效中间版，后被P3/P6及视频布局组合替代；证明旧8机/C2账不能排除D5 | [16机P1代表](../../references/leaderboard_history/lb_fastest_reset/20261116_rejected_poly1_16_c3_d5.py) |
