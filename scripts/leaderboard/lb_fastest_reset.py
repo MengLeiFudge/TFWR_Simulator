@@ -869,9 +869,15 @@ def parallel_pumpkin_stock(target):
     return True
 
 
-def next_megafarm():
+def next_megafarm(cols=None):
+    # 迷宫中心格数由调用方决定：早期默认半个田宽，12×12 只容得下 4×4；机数超过格数就会排出界。
+    if cols == None:
+        cols = get_world_size() // 2
+    if max_drones() > cols * cols:
+        quick_print("directed_failed", "maze_cols_too_small", get_time(), max_drones(), cols)
+        return False
     target_gold = get_cost(Unlocks.Megafarm)[Items.Gold]
-    if not small_maze_gold(target_gold, get_world_size() // 2):
+    if not small_maze_gold(target_gold, cols):
         quick_print("directed_failed", "early_small_gold", get_time(), num_items(Items.Gold))
         return False
     if not unlock(Unlocks.Megafarm):
