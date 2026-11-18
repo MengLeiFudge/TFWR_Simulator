@@ -994,11 +994,13 @@ def ensure_power(target):
     return True
 
 
-def companion_dinosaurs():
-    size = get_world_size()
-    if not cactus_stock(14000 + size * size * 8):
+def companion_dinosaurs(levels=2, stock=None):
+    # 只负责备料、买指定级数恐龙、备电、清场；跑几条蛇由调用方组合。
+    if stock == None:
+        stock = 14000 + get_world_size() ** 2 * 8
+    if not cactus_stock(stock):
         return False
-    while num_unlocked(Unlocks.Dinosaurs) < 2:
+    while num_unlocked(Unlocks.Dinosaurs) < levels:
         if not buy(Unlocks.Dinosaurs):
             return False
     if not ensure_power(200):
@@ -1007,8 +1009,9 @@ def companion_dinosaurs():
     return True
 
 
-def companion_bones(level):
-    # 前提：恐龙已 2 级、田已清空、供电已备。已达目标返回 True；缺前一级返回 False，不能把未达成当达成。
+def companion_bones(level, prefund=True):
+    # 前提：恐龙已解锁、田已清空、供电已备。已达目标返回 True；缺前一级返回 False。
+    # prefund 是这一级要跑几条蛇的取舍：为下一级多攒骨就置 True，只付本级实价就置 False。
     if num_unlocked(Unlocks.Polyculture) >= level:
         return True
     if num_unlocked(Unlocks.Polyculture) + 1 != level:
@@ -1017,7 +1020,7 @@ def companion_bones(level):
     maximum = size * size - 1
     factor = 2 ** (num_unlocked(Unlocks.Dinosaurs) - 1)
     target = get_cost(Unlocks.Polyculture)[Items.Bone]
-    if level == 2:
+    if prefund and level == 2:
         target = max(target, 60000 - maximum * maximum * factor)
     for cycle in range(3):
         if num_items(Items.Bone) >= target:
