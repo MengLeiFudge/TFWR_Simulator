@@ -210,7 +210,17 @@ $body = @{
     has_nsfw_content = $false
     upload_uuid = $uploadId
 }
-$submission = Invoke-RestMethod -Uri "$base/api/experimental/submission/submit/" -Method Post -Headers $auth -Proxy $Proxy -TimeoutSec 30 -ContentType 'application/json' -Body ($body | ConvertTo-Json -Depth 5 -Compress)
+try {
+    $submission = Invoke-RestMethod -Uri "$base/api/experimental/submission/submit/" -Method Post -Headers $auth -Proxy $Proxy -TimeoutSec 30 -ContentType 'application/json' -Body ($body | ConvertTo-Json -Depth 5 -Compress)
+} catch {
+    # 上次上传已提交、只是尚未激活时重跑会撞版本重复；这不是失败，继续核对激活。
+    $detail = "$($_.ErrorDetails.Message)$($_.Exception.Message)"
+    if ($detail -match 'already exists') {
+        Write-Output "远端已有同版本提交，跳过重复提交，继续核对激活"
+        $submission = $null
+    }
+    else { throw }
+}
 
 # ---- 复核：精确版本激活、社区与分类一致、公开下载与本地包同哈希 ----
 $confirmed = $false
