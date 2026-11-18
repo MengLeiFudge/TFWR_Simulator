@@ -125,6 +125,7 @@
 
 | 尝试方案 | 实测／模拟表现 | 原因与适用范围 | 参考代码 |
 | --- | --- | --- | --- |
+| D2 → P2 → Maze2 → 八机 → P3 | 会话均 2015.303306（6/6 达标，1/6 更快，均值慢 4.23 秒，配对 SE 1.99） | 更慢：P2 不足以低成本供 32k Gold，P3 推到八机之后（seed83 1385.09）反而更贵；只早八机不早 16 机 | 把 `eight_drones()` 尾部改成 `companion_dinosaurs()`+`companion_bones(2)`→`buy(Mazes)`→`next_megafarm()`→`companion_bones(3)`；报告 `.codex/tmp/fr-session-m11.json` |
 | 全扫时让 `(size-1,1)/(size-1,2)` 优先留草 | 会话均 2014.938778（6/6 达标，3/6 更快，均值慢 0.60 秒，配对 SE 4.93） | 差异小于 1×SE，记未定不采用。现状确实是：4×4 的 `(3,1)`、6×6 的 `(5,1)` 按棋盘规则种成树，短回访的 `opening_cell` 遇到未熟树直接返回，那两格里只有一格真在产草；但把两格都改成草后整轮无变化 | 在 `opening_stock` 的布局判断前加 `size > 3 and (x, y) in [(size - 1, 1), (size - 1, 2)]` 强制草；报告 `.codex/tmp/fr-session-m10.json` |
 | 只留 P2，跳过第二条蛇与 P3 | 会话均 2030.204679（6/6 达标，0/6 更快，均值慢 15.87 秒，配对 SE 2.58） | 跳过第二条蛇与 P3 后整轮慢 15.87 秒。`Native/World.cs:3959` 骨头只看长度与恐龙等级；51.85 秒是基线 P2→P3 间隔，不是配对节省 | `early_companion_upgrade()` 的 `for level in [2, 3]` 改成 `[2]`；报告 `.codex/tmp/fr-session-m8.json` |
 | Maze2 → 八机 → 两蛇与 P2/P3 | seed83 完整 2004.05（快 2.09 秒，未做六轮会话） | 首田 20736 先付 Maze2 余 8736，八机从 1328.21 提前到 **1218.12（−110 秒）**，但两蛇与 P2/P3 推到 1230.69／1277.55／1329.41，16 机 1476.25（原 1476.86）、Mazes3 1430.94（原 1432.41）几乎不变。提前八机的时刻不是净收益 | 把 `buy(Unlocks.Mazes)` 与 `next_megafarm()` 提到 `early_companion_upgrade()` 之前；报告 `.codex/tmp/m9-s83.json` |
