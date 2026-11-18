@@ -1017,7 +1017,7 @@ def staged_supply():
     required = (max(0, gold_goal - num_items(Items.Gold)) + 3) // 4 + 8 * 4 * 8 * 16 + 2 * 16
     if not boost_stock({Items.Weird_Substance: required}):
         return False
-    for technology, level in [(Unlocks.Carrots, 6), (Unlocks.Watering, 6), (Unlocks.Pumpkins, 4), (Unlocks.Expand, 7)]:
+    for technology, level in [(Unlocks.Carrots, 6), (Unlocks.Watering, 6), (Unlocks.Pumpkins, 4)]:
         while num_unlocked(technology) < level:
             if not buy(technology):
                 return False
@@ -1035,6 +1035,10 @@ def staged_supply():
     quick_print("directed_megafarm", get_time(), max_drones(), num_items(Items.Power))
     while num_unlocked(Unlocks.Pumpkins) < 6:
         if not buy(Unlocks.Pumpkins):
+            return False
+    # 视频做到 16 机 + 32x 单产后再扩 16x16，几十秒就够；先扩田会空转 70 秒以上。
+    while num_unlocked(Unlocks.Expand) < 7:
+        if not buy(Unlocks.Expand):
             return False
     while num_unlocked(Unlocks.Cactus) < 3:
         if not buy(Unlocks.Cactus):
