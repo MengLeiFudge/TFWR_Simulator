@@ -180,7 +180,7 @@
 | 全扫时让 `(size-1,1)/(size-1,2)` 优先留草 | 会话均 2014.938778（6/6 达标，3/6 更快，均值慢 0.60 秒，配对 SE 4.93） | 差异小于 1×SE，记未定不采用；组合未测出整轮收益。`size > 3` 同时改了 4×4 与 6×6，不能排除单段收益；6×6 的树格是 `(5,2)`，`(5,1)` 在 Carrots3 前是草、之后才是胡萝卜 | 在 `opening_stock` 的布局判断前加 `size > 3 and (x, y) in [(size - 1, 1), (size - 1, 2)]` 强制草；报告 `.codex/tmp/fr-session-m10.json` |
 | 只留 P2，跳过第二条蛇与 P3 | 会话均 2030.204679（6/6 达标，0/6 更快，均值慢 15.87 秒，配对 SE 2.58） | 跳过第二条蛇与 P3 后整轮慢 15.87 秒。`Native/World.cs:3959` 骨头只看长度与恐龙等级；51.85 秒是基线 P2→P3 间隔，不是配对节省 | `early_companion_upgrade()` 的 `for level in [2, 3]` 改成 `[2]`；报告 `.codex/tmp/fr-session-m8.json` |
 | Maze2 → 八机 → 两蛇与 P2/P3 | seed83 完整 2004.05（快 2.09 秒，未做六轮会话） | 首田 20736 先付 Maze2 余 8736，八机从 1328.21 提前到 **1218.12（−110 秒）**，但两蛇与 P2/P3 推到 1230.69／1277.55／1329.41，16 机 1476.25（原 1476.86）、Mazes3 1430.94（原 1432.41）几乎不变。提前八机的时刻不是净收益 | 把 `buy(Unlocks.Mazes)` 与 `next_megafarm()` 提到 `early_companion_upgrade()` 之前；报告 `.codex/tmp/m9-s83.json` |
-| D1 单蛇付伴生2，跳过 D2 与 P3 | seed83 完整 3164.80（慢 1158.66 秒） | 失败点：终盘骨头要 2M 级，P3 的骨头倍率不能省；`Mazes4/D2..D5` 都在 1785 秒到手，之后筹骨用了约 1380 秒 | `companion_dinosaurs(1, 2000)`＋`companion_bones(2, False)`＋Maze2＋八机，不买 D2/P3；报告 `.codex/tmp/m16-s83.json` |
+| D1 单蛇付伴生2，跳过 D2 与 P3 | **未通关，3164.80 是退出时刻，不是成绩** | `goal_reached=false`、Leaderboard=0、总骨 1,172,896：第一条 D5 正常得 1,040,400，第二条约 1200 秒后报 `bone_incomplete_cycle`，只拿到 132,496（=91²×16）。**不是 D1/P2 方向被证伪**，要先查末蛇为何没到目标 245 节 | `companion_dinosaurs(1, 2000)`＋`companion_bones(2, False)`＋Maze2＋八机，不买 D2/P3；报告 `.codex/tmp/m16-s83.json` |
 | D1 单蛇付伴生2，八机后补 D2 与 P3 | seed83 完整 2110.40（慢 104.26 秒） | 更慢：P2 一条蛇实收 10,000 骨（设计达成），但到 P3 时余额不足，要跑两条蛇（40,898＋10,368）多花 42 秒；现版 P2 预筹 19,102 骨正好让 P3 一条蛇够用 | `companion_dinosaurs(1, 2000)`＋`companion_bones(2, False)`＋Maze2＋八机＋`companion_dinosaurs()`＋`companion_bones(3)`；报告 `.codex/tmp/m17-s83.json` |
 | 首田仙人掌先买 Maze2，再开 D1/D2 与蛇 | 会话均 2013.411389（6/6 达标，3/6 更快，均值快 0.93 秒，配对 SE 1.39） | 差异小于 1×SE，记未定不采用。Maze2 从 1279.49 提前到 1163.05（−116 秒），但 D1/D2 推到 1180.78、八机 1329.82（原 1328.21）、16 机 1474.72（原 1476.86）几乎不变——八机由金币门槛决定，提前 Maze2 不改变它的筹资路径 | 把 `cactus_stock(12000)` 与 `buy(Unlocks.Mazes)` 移到 `early_companion_upgrade()` 之前；报告 `.codex/tmp/fr-session-m7.json` |
 | 4×4 留 4 格草 | seed83 完整 2013.83（慢 7.69 秒） | 只说明这一版更慢：草格从 2 加到 4 后，Sunflowers 1 时的干草净库存从 277 到 297、木料从 1003 到 791。净库存含补种与消费，不等于产量或扫描次数，不能据此断定瓶颈在哪 | 在 `opening_stock` 加 `size == 4` 分支，4 格草 4 格胡萝卜 8 棵树；报告 `.codex/tmp/m5-s83.json` |
@@ -288,7 +288,7 @@
 
 「肥料1 提前 → 不等伴生先筹约 1.34k Weird → 双机/四机 → 再付南瓜」整包计价。榜前 12:48 四机、13:19 才伴生1；O5 只前移首机且更慢，不能照抄科技顺序。先列无伴生时的实际 Weird 吞吐、两次筹金预算和 4 机南瓜回报，再决定候选。开局预算：约 1.34k Weird 只够首机；第二次 8k Gold 现版另需约 2.06k Weird 库存，Expand 5 还要 1,000 南瓜，能推迟的是伴生1 的 3,000 南瓜。
 
-**机制核对（`Native/World.cs`、`Native/Farm.cs`）：Weird 只有两个来源。** 一是被 `Fertilize()` 标记为 `weird` 的作物，收割时额外掉 `trunc(0.5 × dropAmount × YieldFactor)`（`World.cs:1392`）；二是迷宫收获（`World.cs:1962`）。肥料是**被动产出**：`ReceiveFertilizer` 每 `20 / 2^level` 秒加 1 个（`Farm.cs:1337`，模拟器 `HarvestFactor=1`），即肥料1 为 0.05/秒、肥料3 为 0.4/秒。
+**机制核对（`Native/World.cs`、`Native/Farm.cs`）：Weird 只有两个来源。** 一是被 `Fertilize()` 标记为 `weird` 的作物，收割时额外掉 `trunc(0.5 × dropAmount × YieldFactor)`（`World.cs:1392`）；二是 `use_item(Weird_Substance)` 在灌木上开迷宫、收获迷宫时返还（`World.cs:311` 的 `GetDrops`，感染南瓜的掉落是另一条路径，不要混用）。肥料是**被动产出**：`ReceiveFertilizer` 每 `20 / (1 << level)` 秒加 1 个（`Farm.cs:1337`，模拟器 `HarvestFactor=1`），肥料1 的除数是 `1 << 1 = 2`，即 **10 秒一个、0.1/秒**，肥料2 为 0.2/秒、肥料3 为 0.4/秒。
 
 **实测（`.codex/tmp/m18-s83.json`，seed83）：`weird_flip` 94.28 秒产出 1,089 Weird，净增 2,275 木，即 11.5 Weird/秒。** 24:49 路线从肥料1（471 秒）到 Mazes 1（618 秒）的 147 秒里要凑 1000 Weird，需 6.8 Weird/秒；本机实测吞吐已高于该需求，且同步木入库为正。机制侧打通。
 
@@ -298,7 +298,7 @@
 
 本机现版没有任何一处用这个放大：`first_megafarm` 的 `use_item(Weird_Substance, size)` 是对灌木开迷宫（消耗 Weird），`boost_stock` 走伴生。**这是目前找到的最大单点缺口**，下一步实现 `weird_flip(target)` 步骤并测净 Weird/秒与同步木入库。
 
-**已测（seed83，`.codex/tmp/probe_weird.py`）：无伴生时本机 Weird 吞吐为 0。** 在开局供电（653.80，Trees 2）与伴生1 之后（952.66）两次打印 `num_items(Weird_Substance)` 都是 0——树收割不记 Weird，`boost_stock` 只有在伴生1 解锁后才靠伴生凑得出 1.4k（952.66→997.46 的 44.8 秒内凑够）。所以“不等伴生先筹 1.34k Weird”在本机没有来源；用户 24:49 路线本身也是先伴生1（695.87）再 Mazes1（733.51），不是这条路。该项关闭。
+**已撤回“无伴生时本机 Weird 吞吐为 0”。** 该结论只说明探针那两次采样是 0（普通树收割不记 Weird），不能推出“伴生1 之前没有来源”。现成本机反例：`.codex/tmp/o5-s83.json` 在伴生 0 的状态下 908.88 秒已双机、1036.13 秒才买伴生1，`goal_reached=true`。O5 之所以比现版慢，是它的翻转吞吐不够，不是方向不可行。
 
 ### 其他
 
