@@ -1837,7 +1837,9 @@ public class Execution
 			break;
 		}
 		case SideEffect.SetWorldSize:
-			if ((int)(double)(PyNumber)currentSideEffectArgument != sim.farm.grid.WorldSize.y)
+		{
+			int num13 = (int)(double)(PyNumber)currentSideEffectArgument;
+			if (num13 != sim.farm.grid.WorldSize.y && (num13 > 2 || sim.farm.grid.SizeLimit > 0))
 			{
 				foreach (Drone drone5 in sim.farm.drones)
 				{
@@ -1848,6 +1850,7 @@ public class Execution
 			programState.ReturnValue = new PyNone();
 			ops = sim.actionOps;
 			break;
+		}
 		case SideEffect.GetTime:
 			programState.ReturnValue = new PyNumber(sim.CurrentTime.Seconds);
 			ops = 0.0;
@@ -2057,7 +2060,7 @@ public class Execution
 			if (sim.farm.grid.IsWithinBounds(vector2Int3) && sim.farm.grid.CellAt(vector2Int3).depth < num10)
 			{
 				GroundData.Ground ground = sim.farm.grid.GroundAt(vector2Int3);
-				ops = Math.Ceiling((double)ground.hardness / sim.OpDuration.Seconds / sim.DiggingSpeedFactor);
+				ops = sim.GetDiggingOps(ground.hardness);
 				programState.ReturnValue = new PyBool(b: true);
 				if (ground.hardness < 10000000)
 				{

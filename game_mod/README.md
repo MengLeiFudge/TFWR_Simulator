@@ -105,7 +105,7 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --t
 | Advanced | `DefaultTargetScript` | `lb_start` | 请求未给 `target_script` 时使用的脚本窗口 |
 | Advanced | `StartupPollIntervalMs` | `250` | 状态文件同步间隔，最小生效值 50ms |
 | Advanced | `ScriptReadyTimeoutSeconds` | `0` | 等待工作区、空闲执行器或停止生效的现实秒上限，范围0～3600；0表示不限时，请求保持 `requested` |
-| Advanced | `MaxRunSeconds` | `0` | 单次 `run` 的现实秒兜底上限，范围0～86400；0表示不限时。只在客户端失联时避免无限运行 |
+| Advanced | `MaxRunSeconds` | `0` | 单次 `run` 无条件生效的现实秒上限，范围0～86400；0表示不限时。按运行时长判断，不检测客户端存活 |
 | Advanced | `SaveTimeoutSeconds` | `10` | 保存等待上限，范围0～60秒；0表示不限时 |
 | Advanced | `RequestStopGracePeriodSeconds` | `3` | 停止后等待 `StopMainExecution()` 生效的观察窗口 |
 
@@ -135,7 +135,7 @@ python3 game_control/tools/run_real_game_script.py --target-script my_script --t
 - 重复或落后的 `request_id` 不再静默丢弃：模组写 `failed`，`last_error` 说明当前已处理到哪个编号，客户端应改用更大的ID。
 - 工作区已就绪却没有目标窗口时立即 `failed`；其余等待（未进工作区、别的脚本在跑、确认弹窗未关闭）持续保持 `requested`，要兜底就把 `ScriptReadyTimeoutSeconds` 设为正数。
 - 终态 `done`/`failed`/`superseded` 不是活动请求，可直接被更大的新请求覆盖；`requested`/`running`/`stop_requested` 才是活动请求。模组不会自动归档旧结果，本仓库客户端在覆盖前要求旧结果已归档（见 [协调器说明](https://github.com/MengLeiFudge/TFWR_Simulator/blob/master/game_control/README.md)）。
-- 实时字段 `executing`、`leaderboard_running`、`leaderboard_screen`、`busy_windows` 每轮刷新，与请求字段互不覆盖；`busy_windows` 只报模组已知的运行窗口，手工运行其它窗口时可能为空。
+- 实时字段 `executing`、`leaderboard_running`、`leaderboard_screen`、`saving`、`busy_windows` 每轮刷新，与请求字段互不覆盖；`saving` 直接取原版 `Saver.IsSaving`，请求超时或取消后仍反映后台写盘，改写存档前必须等它为 `false`；`busy_windows` 只报模组已知的运行窗口，手工运行其它窗口时可能为空。
 - 配置 `AutoOkLeaderboardResult=true` 时，结果页一出现就按 OK，供等“运行结束”的外部脚本使用；不开启时仍只关闭属于本模组请求的结果页。
 - 脚本正常流转为 `idle → requested → running → done/failed`；回到 `idle` 是客户端为了让状态文件可读的自选动作，模组不强制。快速控制请求可直接从 `requested` 写回带起止时间的终态。
 - `requested` 或 `running` 可写入同一请求的 `stop_requested`；停止完成后进入 `failed`，`last_error` 保存停止原因。

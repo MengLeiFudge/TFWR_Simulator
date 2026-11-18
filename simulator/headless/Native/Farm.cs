@@ -356,7 +356,7 @@ public class Drone
 		}
 		Duration collectionDuration;
 		ItemBlock drops = groundSo.GetDrops(sim.farm, out collectionDuration);
-		ops = Math.Ceiling((double)reference.hardness / sim.OpDuration.Seconds / sim.DiggingSpeedFactor);
+		ops = sim.GetDiggingOps(reference.hardness);
 		if (cell.entity != null)
 		{
 			cell.entity.OnDig(this, drops, ref ops);
@@ -1305,7 +1305,7 @@ public class Farm
 
 	public double GetDiggingSpeed()
 	{
-		return Math.Pow(1.5, NumDiggingSpeedUpgrades);
+		return Math.Pow(1.5, Mathf.Max(NumDiggingSpeedUpgrades - 1, 0));
 	}
 
 	private void UsePower()

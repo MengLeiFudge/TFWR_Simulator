@@ -69,7 +69,7 @@ python3 game_control/tools/refresh_gamesave_link.py
 
 ### `sync_leaderboard_scripts.py`
 
-同步榜单脚本。写入 `gamesave/` 时，在同一状态锁内检查空闲状态并完成复制，覆盖前自动备份到 `.codex/tmp/leaderboard-sync/<唯一编号>/`，由 `.codex` 回收工具按临时产物清理；缺少已有目标文件时拒绝新增。协议3及以上（当前4）要求 `idle` 且实时执行、打榜和结果页字段均明确为 `false`；协议1/2（包括0.2.4）允许实时字段缺失，此时依赖 `idle`，已有忙碌标记仍会阻止覆盖。旧协议不能据此确认手动脚本是否运行，需先停止手动执行；同步期间不要手动启动脚本。活动请求、状态缺失或读取失败时均拒绝覆盖；协议3取结果后还需等模组刷新实时字段。`save2cur` 只读存档，不要求游戏空闲。默认只同步单个目标脚本：
+同步榜单脚本。写入 `gamesave/` 时，在同一状态锁内检查空闲状态并完成复制，覆盖前自动备份到 `.codex/tmp/leaderboard-sync/<唯一编号>/`，由 `.codex` 回收工具按临时产物清理；缺少已有目标文件时拒绝新增。协议3及以上（当前4）要求 `idle` 且实时执行、打榜、结果页与后台保存字段（`executing`、`leaderboard_running`、`leaderboard_screen`、`saving`）均明确为 `false`；协议1/2（包括0.2.4）允许实时字段缺失，此时依赖 `idle`，已有忙碌标记仍会阻止覆盖。旧协议不能据此确认手动脚本是否运行，需先停止手动执行；同步期间不要手动启动脚本。活动请求、状态缺失或读取失败时均拒绝覆盖；协议3取结果后还需等模组刷新实时字段。`save2cur` 只读存档，不要求游戏空闲。默认只同步单个目标脚本：
 
 ```bash
 python3 game_control/tools/sync_leaderboard_scripts.py cur2save --script lb_hay_single

@@ -177,7 +177,7 @@ def save_sync_transaction(target_dir: Path, names: list[str]) -> Iterator[None]:
         legacy_idle = state is not None and state.get('protocol_version', 1) in (1, 2)
         if state is None or state.get('status') != 'idle' or any(
             state.get(key, False if legacy_idle else None) is not False
-            for key in ('executing', 'leaderboard_running', 'leaderboard_screen')
+            for key in ('executing', 'leaderboard_running', 'leaderboard_screen', 'saving')
         ) or state.get('busy_windows'):
             raise RuntimeError('模组尚未确认空闲，不能覆盖存档脚本；先停止并回收请求，协议3还需等待实时空闲状态刷新。')
         for name in names:

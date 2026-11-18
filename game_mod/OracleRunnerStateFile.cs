@@ -24,6 +24,10 @@ public sealed class OracleRunnerStateFile
     [DataMember(Name = "protocol_version")]
     public int ProtocolVersion { get; set; } = RunnerStateProtocol.CurrentProtocolVersion;
 
+    /// <summary>游戏自己的后台保存是否仍在进行；与请求终态无关，客户端据此阻止覆盖可能被旧快照写回的存档脚本。</summary>
+    [DataMember(Name = "saving")]
+    public bool Saving { get; set; }
+
     /// <summary>run执行脚本，prepare准备工作区，quit保存后退出；缺省为run。</summary>
     [DataMember(Name = "command")]
     public string? Command { get; set; }

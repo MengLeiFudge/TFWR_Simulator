@@ -17,7 +17,7 @@ public sealed partial class Plugin : BaseUnityPlugin
 {
     internal const string PluginGuid = "mlj.tfwr.oracle-runner";
     internal const string PluginName = "TFWR Oracle Runner";
-    internal const string PluginVersion = "0.3.1";
+    internal const string PluginVersion = "0.3.2";
 
     private enum StopReason
     {
@@ -203,7 +203,7 @@ public sealed partial class Plugin : BaseUnityPlugin
                 busyWindows.Add(runningWindow);
             }
         }
-        stateStore.QueueLiveStatus(executing, leaderboardRunning, leaderboardScreen, busyWindows.ToArray());
+        stateStore.QueueLiveStatus(executing, leaderboardRunning, leaderboardScreen, Saver.IsSaving, busyWindows.ToArray());
 
         // 结果页打开时游戏仍报告执行中；外部队列等待结束会被卡住，按配置自动按 OK。
         if (!leaderboardScreen)
@@ -459,8 +459,15 @@ public sealed partial class Plugin : BaseUnityPlugin
 
         if (HasSimulationError(mainSim))
         {
-            MarkFailedWithOutput(activeRequest, "script runtime error; see output.txt Error block", DateTimeOffset.UtcNow);
-            stateStore.Write(activeRequest);
+            if (IsActiveRequestSuperseded())
+            {
+                Log.LogInfo($"旧请求已被更新的请求接替，不写错误终态 request_id={activeRequest.RequestId} last_handled={lastHandledRequestId}");
+            }
+            else
+            {
+                MarkFailedWithOutput(activeRequest, "script runtime error; see output.txt Error block", DateTimeOffset.UtcNow);
+                stateStore.Write(activeRequest);
+            }
             mainSim.StopMainExecution();
             activeRequest = null;
             stopReason = StopReason.None;
@@ -814,7 +821,8 @@ public sealed partial class Plugin : BaseUnityPlugin
             return;
         }
 
-        if (stopReason == StopReason.MaxRunExceeded || stopReason == StopReason.StopRequested)
+        if ((stopReason == StopReason.MaxRunExceeded || stopReason == StopReason.StopRequested) &&
+            !IsActiveRequestSuperseded())
         {
             MarkFailedWithOutput(
                 activeRequest,
@@ -836,10 +844,21 @@ public sealed partial class Plugin : BaseUnityPlugin
         // 替代请求必须由下一次 PollState 从文件重读，不能执行可能已经被取消的旧快照。
     }
 
+    /// <summary>活动请求是否已被更新的请求接替；被接替后不得再写旧终态。</summary>
+    private bool IsActiveRequestSuperseded() => activeRequest != null && lastHandledRequestId > activeRequest.RequestId;
+
     private void FinishDone()
     {
         if (activeRequest == null)
         {
+            return;
+        }
+
+        if (IsActiveRequestSuperseded())
+        {
+            // 即时命令已完成更新的请求；旧执行的终态会覆盖新请求，只能丢弃。
+            Log.LogInfo($"旧请求已被更新的请求接替，不写终态 request_id={activeRequest.RequestId} last_handled={lastHandledRequestId}");
+            activeRequest = null;
             return;
         }
 

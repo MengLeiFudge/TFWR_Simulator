@@ -149,6 +149,10 @@ public class AssignmentNode : Node
 				throw new ExecuteException("error_not_enough_values");
 			}
 			List<IPyObject> rightValues = ((IPySequence)rhs).ToList();
+			if (rhs is PyList && lhs.CheckIncrementOpCount(state, execution, execution.sim.operationOps))
+			{
+				yield return 0.0;
+			}
 			for (int i = 0; i < leftNodes.Count; i++)
 			{
 				foreach (double item3 in Assign(state, execution, depth, leftNodes[i], rightValues[i], op, currentFileName))
@@ -377,7 +381,10 @@ public class BinaryExprNode : Node
 				throw new ExecuteException("error_invalid_const2", slots[1].boxedParams.wordStart, slots[1].boxedParams.wordEnd);
 			}
 			Blink(state, execution);
-			yield return state.IsExpressionStatic ? 0.0 : execution.sim.operationOps;
+			if (CheckIncrementOpCount(state, execution, state.IsExpressionStatic ? 0.0 : execution.sim.operationOps))
+			{
+				yield return 0.0;
+			}
 			bool flag;
 			(state.ReturnValue, flag) = nameSpace.Evaluate(((ValueNode)slots[1]).value, slots[1].boxedParams.wordStart, slots[1].boxedParams.wordEnd);
 			state.IsExpressionStatic &= flag;
@@ -888,7 +895,7 @@ public class CallNode : Node
 		state.CurrentExecutingNode = this;
 		if (func.syntaxTree != null)
 		{
-			if (CheckIncrementOpCount(state, execution, (!isStatic) ? 1 : 0))
+			if (CheckIncrementOpCount(state, execution, isStatic ? 0.0 : execution.sim.operationOps))
 			{
 				yield return 0.0;
 			}
@@ -906,6 +913,10 @@ public class CallNode : Node
 		}
 		SimulationMonitor.Current?.Begin(state, func.functionName, parameters, execution.sim);
 		double ops = func.binding(parameters, execution.sim, execution, state.DroneId);
+		if (func.isFree && !isStatic)
+		{
+			ops = Math.Max(ops, execution.sim.operationOps);
+		}
 		if (state.currentSideEffect == SideEffect.None) SimulationMonitor.Current?.Complete(state, execution.sim, ops);
 		if (CheckIncrementOpCount(state, execution, ops, apiCall: true))
 		{
@@ -3817,6 +3828,10 @@ public class Scope
 
 	public void ImportVar(string varName, IPyObject value, bool isStatic = false)
 	{
+		if (vars.TryGetValue(varName, out (IPyObject, bool) value2) && !(value2.Item1 is PyUnassigned))
+		{
+			isStatic = false;
+		}
 		vars[varName] = (value, isStatic);
 	}
 

@@ -23,6 +23,7 @@ using Platforms;
 using Platforms.Handler;
 using Steamworks;
 using TMPro;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
@@ -8050,7 +8051,7 @@ public class Drone
 		}
 		Duration collectionDuration;
 		ItemBlock drops = groundSo.GetDrops(sim.farm, out collectionDuration);
-		ops = Math.Ceiling((double)reference.hardness / sim.OpDuration.Seconds / sim.DiggingSpeedFactor);
+		ops = sim.GetDiggingOps(reference.hardness);
 		if (cell.entity != null)
 		{
 			cell.entity.OnDig(this, drops, ref ops);
@@ -9000,7 +9001,7 @@ public class Farm
 
 	public double GetDiggingSpeed()
 	{
-		return Math.Pow(1.5, NumDiggingSpeedUpgrades);
+		return Math.Pow(1.5, Mathf.Max(NumDiggingSpeedUpgrades - 1, 0));
 	}
 
 	private void UsePower()
@@ -9812,8 +9813,13 @@ public class FarmRenderer : MonoBehaviour
 	private void AddDecorationMesh(GroundData groundData, int x, int y, int depth, int sizex, int sizey, FaceDirection faceDirection, double waterVolume = 0.0)
 	{
 		Vector3Int vector3Int = new Vector3Int(x, y, depth);
+		GroundSO groundSo = groundData.GroundAt(x, y, depth).groundSo;
+		if (groundSo == null)
+		{
+			return;
+		}
 		float rotation;
-		Mesh mesh = groundData.GroundAt(x, y, depth).groundSo.SampleDecoration(vector3Int.x, vector3Int.y, vector3Int.z, faceDirection, out rotation, waterVolume);
+		Mesh mesh = groundSo.SampleDecoration(vector3Int.x, vector3Int.y, vector3Int.z, faceDirection, out rotation, waterVolume);
 		if (mesh != null)
 		{
 			if (!decorationMeshes.ContainsKey(mesh))
@@ -12136,7 +12142,27 @@ public class MainSim : MonoBehaviour, ISimRunner
 		{
 			while (!disposed)
 			{
-				sim.RunNextStep(goalTime, lockSimulation, sim.leaderboardType != LeaderboardType.none);
+				Simulation simulation = sim;
+				try
+				{
+					simulation.RunNextStep(goalTime, lockSimulation, simulation.leaderboardType != LeaderboardType.none);
+				}
+				catch (Exception ex) when (!(ex is ThreadAbortException))
+				{
+					UnityEngine.Debug.LogException(ex);
+					lock (lockSimulation)
+					{
+						try
+						{
+							simulation.Execution?.StopWithUnexpectedError(ex);
+						}
+						catch (Exception ex2) when (!(ex2 is ThreadAbortException))
+						{
+							UnityEngine.Debug.LogException(ex2);
+							simulation.StopProgramExecution();
+						}
+					}
+				}
 			}
 		}
 		catch (ThreadAbortException)
@@ -12377,7 +12403,7 @@ public class MainSim : MonoBehaviour, ISimRunner
 			};
 			totalLeaderboardTime += sim.CurrentTime;
 			numLeaderboardRuns++;
-			if (leaderboardCancelled)
+			if (leaderboardCancelled || sim.LeaderboardCodeLimitExceeded)
 			{
 				leaderboardCancelled = false;
 				flag = false;
@@ -13208,6 +13234,8 @@ public class Simulation
 
 	public Duration CurrentTime { get; private set; }
 
+	public bool LeaderboardCodeLimitExceeded { get; internal set; }
+
 	public bool Paused { get; set; }
 
 	public bool RecordsAchievements => ShouldRecordAchievements(simRunner, leaderboardType);
@@ -13359,6 +13387,11 @@ public class Simulation
 	public void ChangeDiggingSpeed(double speedFactor)
 	{
 		DiggingSpeedFactor = speedFactor;
+	}
+
+	public double GetDiggingOps(int hardness)
+	{
+		return Math.Ceiling((double)hardness / OpDuration.Seconds / (DiggingSpeedFactor * 1.5));
 	}
 
 	public void RunNextStep(Duration goalTime, object lockSimulation, bool stopOnFinished = false)
@@ -13629,7 +13662,7 @@ public class UISim : MonoBehaviour, ISimRunner
 
 	public void StartMainExecution(Node syntaxTree)
 	{
-		if (sim == null)
+		if (sim == null || codeExample == null)
 		{
 			return;
 		}
@@ -13676,7 +13709,10 @@ public class UISim : MonoBehaviour, ISimRunner
 			{
 				sim.StopProgramExecution();
 			}
-			codeExample.UnsetExecutionVisuals();
+			if (codeExample != null)
+			{
+				codeExample.UnsetExecutionVisuals();
+			}
 			codeExample = null;
 			mainExecutionStarted = false;
 			mainProgramState = null;
@@ -15292,6 +15328,12 @@ public class Execution
 
 	public const double OPERATION_OPS = 1.0;
 
+	public const int MaxLeaderboardCodeNodes = 100000;
+
+	private readonly HashSet<string> leaderboardCodeModules = new HashSet<string>();
+
+	private int leaderboardCodeNodeCount;
+
 	public Simulation sim;
 
 	private List<ProgramState> states;
@@ -15326,6 +15368,16 @@ public class Execution
 		MainState = states[0];
 		Id = id;
 		NextExecutionTime = sim.CurrentTime;
+		try
+		{
+			RegisterLeaderboardCode(syntaxTree.boxedParams.codeWindow?.fileName, syntaxTree);
+		}
+		catch (ExecuteException currentExecuteException)
+		{
+			MainState.CurrentExecutingNode = syntaxTree;
+			MainState.currentExecuteException = currentExecuteException;
+			MainState.currentSideEffect = SideEffect.Error;
+		}
 	}
 
 	public void StopExecution()
@@ -15337,6 +15389,18 @@ public class Execution
 			{
 				sim.StopProgramExecution();
 			}
+		}
+	}
+
+	public void StopWithUnexpectedError(Exception e)
+	{
+		lock (lockExecution)
+		{
+			ProgramState mainState = MainState;
+			mainState.currentExecuteException = new ExecuteException(e.Message);
+			mainState.currentSideEffect = SideEffect.Error;
+			ApplySideEffect(mainState.DroneId);
+			mainState.currentSideEffect = SideEffect.None;
 		}
 	}
 
@@ -15356,6 +15420,35 @@ public class Execution
 		{
 			states[droneId] = programState;
 		}
+	}
+
+	public void RegisterLeaderboardCode(string moduleName, Node syntaxTree)
+	{
+		if (sim.leaderboardType == LeaderboardType.none || sim.leaderboardType == LeaderboardType.simulation || (leaderboardCodeNodeCount <= 100000 && !leaderboardCodeModules.Add(moduleName)))
+		{
+			return;
+		}
+		Stack<Node> stack = new Stack<Node>();
+		stack.Push(syntaxTree);
+		while (stack.Count > 0 && leaderboardCodeNodeCount <= 100000)
+		{
+			Node node = stack.Pop();
+			if (node == null)
+			{
+				continue;
+			}
+			leaderboardCodeNodeCount++;
+			foreach (Node slot in node.slots)
+			{
+				stack.Push(slot);
+			}
+		}
+		if (leaderboardCodeNodeCount <= 100000)
+		{
+			return;
+		}
+		sim.LeaderboardCodeLimitExceeded = true;
+		throw new ExecuteException("error_leaderboard_code_too_large");
 	}
 
 	private void RescheduleOngoingDigs(int executionSpeedDroneId)
@@ -15476,9 +15569,9 @@ public class Execution
 							{
 								ApplySideEffect(num6);
 							}
-							catch (ExecuteException currentExecuteException2)
+							catch (Exception ex2)
 							{
-								States[num6].currentExecuteException = currentExecuteException2;
+								States[num6].currentExecuteException = (ex2 as ExecuteException) ?? ProgramState.UnexpectedError(ex2);
 								States[num6].currentSideEffect = SideEffect.Error;
 								ApplySideEffect(num6);
 							}
@@ -15535,28 +15628,28 @@ public class Execution
 			break;
 		case SideEffect.Swap:
 		{
-			bool flag5 = sim.farm.drones[droneId].Swap((PyGridDirection)currentSideEffectArgument, programState);
-			programState.ReturnValue = new PyBool(flag5);
-			ops = (flag5 ? sim.actionOps : sim.operationOps);
+			bool flag6 = sim.farm.drones[droneId].Swap((PyGridDirection)currentSideEffectArgument, programState);
+			programState.ReturnValue = new PyBool(flag6);
+			ops = (flag6 ? sim.actionOps : sim.operationOps);
 			break;
 		}
 		case SideEffect.Plant:
 		{
-			EntitySO entitySO3 = (EntitySO)currentSideEffectArgument;
+			EntitySO entitySO2 = (EntitySO)currentSideEffectArgument;
 			if (sim.plantingDisabledDueToLeaderboard)
 			{
 				throw new ExecuteException(Localizer.Localize("error_plant_not_allowed"));
 			}
-			bool flag6 = entitySO3.canBePlanted && sim.farm.drones[droneId].Plant(entitySO3, programState);
-			programState.ReturnValue = new PyBool(flag6);
-			ops = (flag6 ? sim.actionOps : sim.operationOps);
+			bool flag5 = entitySO2.canBePlanted && sim.farm.drones[droneId].Plant(entitySO2, programState);
+			programState.ReturnValue = new PyBool(flag5);
+			ops = (flag5 ? sim.actionOps : sim.operationOps);
 			break;
 		}
 		case SideEffect.Move:
 		{
 			double ops2;
-			bool b2 = sim.farm.drones[droneId].Move((PyGridDirection)currentSideEffectArgument, programState, out ops2);
-			programState.ReturnValue = new PyBool(b2);
+			bool b3 = sim.farm.drones[droneId].Move((PyGridDirection)currentSideEffectArgument, programState, out ops2);
+			programState.ReturnValue = new PyBool(b3);
 			ops = ops2;
 			break;
 		}
@@ -15579,51 +15672,6 @@ public class Execution
 			break;
 		case SideEffect.GetPosZ:
 		{
-			Drone drone3 = sim.farm.drones[droneId];
-			Vector2Int pos6;
-			if (currentSideEffectArgument == null || currentSideEffectArgument is PyNone)
-			{
-				pos6 = drone3.pos;
-			}
-			else
-			{
-				GridDirection dir3 = (PyGridDirection)currentSideEffectArgument;
-				pos6 = sim.farm.grid.Wrap(drone3.pos + dir3.GetDirectionVector());
-			}
-			programState.ReturnValue = new PyNumber(-sim.farm.grid.CellAt(pos6).depth);
-			ops = sim.operationOps;
-			break;
-		}
-		case SideEffect.GetWorldSize:
-			programState.ReturnValue = new PyNumber(sim.farm.grid.WorldSize.y);
-			ops = sim.operationOps;
-			break;
-		case SideEffect.GetEntityType:
-		{
-			Vector2Int pos3;
-			if (currentSideEffectArgument == null || currentSideEffectArgument is PyNone)
-			{
-				pos3 = sim.farm.drones[droneId].pos;
-			}
-			else
-			{
-				GridDirection dir2 = (PyGridDirection)currentSideEffectArgument;
-				pos3 = sim.farm.grid.Wrap(sim.farm.drones[droneId].pos + dir2.GetDirectionVector());
-			}
-			Entity entity = sim.farm.grid.CellAt(pos3).entity;
-			if (entity != null)
-			{
-				programState.ReturnValue = entity.objectSO;
-			}
-			else
-			{
-				programState.ReturnValue = new PyNone();
-			}
-			ops = sim.operationOps;
-			break;
-		}
-		case SideEffect.GetGroundType:
-		{
 			Drone drone4 = sim.farm.drones[droneId];
 			Vector2Int pos7;
 			if (currentSideEffectArgument == null || currentSideEffectArgument is PyNone)
@@ -15635,64 +15683,109 @@ public class Execution
 				GridDirection dir4 = (PyGridDirection)currentSideEffectArgument;
 				pos7 = sim.farm.grid.Wrap(drone4.pos + dir4.GetDirectionVector());
 			}
-			programState.ReturnValue = sim.farm.grid.GroundAt(pos7).groundSo;
+			programState.ReturnValue = new PyNumber(-sim.farm.grid.CellAt(pos7).depth);
+			ops = sim.operationOps;
+			break;
+		}
+		case SideEffect.GetWorldSize:
+			programState.ReturnValue = new PyNumber(sim.farm.grid.WorldSize.y);
+			ops = sim.operationOps;
+			break;
+		case SideEffect.GetEntityType:
+		{
+			Vector2Int pos5;
+			if (currentSideEffectArgument == null || currentSideEffectArgument is PyNone)
+			{
+				pos5 = sim.farm.drones[droneId].pos;
+			}
+			else
+			{
+				GridDirection dir3 = (PyGridDirection)currentSideEffectArgument;
+				pos5 = sim.farm.grid.Wrap(sim.farm.drones[droneId].pos + dir3.GetDirectionVector());
+			}
+			Entity entity2 = sim.farm.grid.CellAt(pos5).entity;
+			if (entity2 != null)
+			{
+				programState.ReturnValue = entity2.objectSO;
+			}
+			else
+			{
+				programState.ReturnValue = new PyNone();
+			}
+			ops = sim.operationOps;
+			break;
+		}
+		case SideEffect.GetGroundType:
+		{
+			Drone drone = sim.farm.drones[droneId];
+			Vector2Int pos;
+			if (currentSideEffectArgument == null || currentSideEffectArgument is PyNone)
+			{
+				pos = drone.pos;
+			}
+			else
+			{
+				GridDirection dir = (PyGridDirection)currentSideEffectArgument;
+				pos = sim.farm.grid.Wrap(drone.pos + dir.GetDirectionVector());
+			}
+			programState.ReturnValue = sim.farm.grid.GroundAt(pos).groundSo;
 			ops = sim.operationOps;
 			break;
 		}
 		case SideEffect.UseItem:
 		{
-			ItemSO itemSO = (ItemSO)currentSideEffectArgument;
-			int num2 = (int)((PyNumber)currentSideEffectArgument2).num;
-			if (!sim.farm.Items.Contains(itemSO.itemId, num2))
+			ItemSO itemSO2 = (ItemSO)currentSideEffectArgument;
+			int num3 = (int)((PyNumber)currentSideEffectArgument2).num;
+			if (!sim.farm.Items.Contains(itemSO2.itemId, num3))
 			{
-				sim.simRunner.Logger.LogWarning(string.Format(Localizer.Localize("warning_no_item_to_use"), itemSO), States[droneId]);
+				sim.simRunner.Logger.LogWarning(string.Format(Localizer.Localize("warning_no_item_to_use"), itemSO2), States[droneId]);
 				programState.ReturnValue = new PyBool(b: false);
 				ops = sim.operationOps;
 				break;
 			}
 			bool flag4 = false;
 			bool useActionTicks = false;
-			switch (itemSO.itemName)
+			switch (itemSO2.itemName)
 			{
 			case "water":
-				flag4 = sim.farm.drones[droneId].Water(num2);
+				flag4 = sim.farm.drones[droneId].Water(num3);
 				useActionTicks = flag4;
 				break;
 			case "fertilizer":
-				flag4 = sim.farm.drones[droneId].Fertilize(num2);
+				flag4 = sim.farm.drones[droneId].Fertilize(num3);
 				useActionTicks = flag4;
 				break;
 			case "weird_substance":
 			{
-				Entity entity2 = sim.farm.drones[droneId].EntityUnderDrone();
-				if (entity2 is BushPlant bushPlant && sim.farm.IsUnlocked("mazes"))
+				Entity entity = sim.farm.drones[droneId].EntityUnderDrone();
+				if (entity is BushPlant bushPlant && sim.farm.IsUnlocked("mazes"))
 				{
-					int num3 = 1 << sim.farm.NumUnlocked("mazes") - 1;
-					if (num2 % num3 != 0)
+					int num4 = 1 << sim.farm.NumUnlocked("mazes") - 1;
+					if (num3 % num4 != 0)
 					{
 						sim.simRunner.Logger.LogWarning(Localizer.Localize("warning_weird_substance_not_divisible"), States[droneId]);
 					}
-					int num4 = num2 / num3;
-					if (num4 < 1)
+					int num5 = num3 / num4;
+					if (num5 < 1)
 					{
 						bushPlant.ToggleWeird();
 						break;
 					}
-					bushPlant.GenerateHedgeMaze(num4);
+					bushPlant.GenerateHedgeMaze(num5);
 					flag4 = true;
 					useActionTicks = flag4;
 				}
-				else if (entity2 is Treasure treasure && sim.farm.IsUnlocked("mazes"))
+				else if (entity is Treasure treasure && sim.farm.IsUnlocked("mazes"))
 				{
-					int num5 = num2 / (1 << sim.farm.NumUnlocked("mazes") - 1);
-					if (num5 >= 1)
+					int num6 = num3 / (1 << sim.farm.NumUnlocked("mazes") - 1);
+					if (num6 >= 1)
 					{
-						flag4 = treasure.RepositionTreasure(num5, out useActionTicks);
+						flag4 = treasure.RepositionTreasure(num6, out useActionTicks);
 					}
 				}
-				else if (entity2 is Growable growable2 && growable2.objectSO.canBeWeird)
+				else if (entity is Growable growable && growable.objectSO.canBeWeird)
 				{
-					growable2.ToggleWeird();
+					growable.ToggleWeird();
 					flag4 = true;
 					useActionTicks = flag4;
 				}
@@ -15700,18 +15793,18 @@ public class Execution
 			}
 			case "dynamite":
 			{
-				num2 = 1;
+				num3 = 1;
 				flag4 = true;
 				useActionTicks = true;
-				Vector2Int pos4 = sim.farm.drones[droneId].pos;
-				Dynamite.Explode(pos: new Vector3Int(pos4.x, pos4.y, sim.farm.grid.CellAt(pos4).depth), grid: sim.farm.grid, explosionEnergy: Dynamite.GetExplosionEnergy(sim.farm));
+				Vector2Int pos2 = sim.farm.drones[droneId].pos;
+				Dynamite.Explode(pos: new Vector3Int(pos2.x, pos2.y, sim.farm.grid.CellAt(pos2).depth), grid: sim.farm.grid, explosionEnergy: Dynamite.GetExplosionEnergy(sim.farm));
 				break;
 			}
 			}
 			programState.ReturnValue = new PyBool(flag4);
 			if (flag4)
 			{
-				sim.farm.Items.RemoveItem(itemSO.itemId, num2);
+				sim.farm.Items.RemoveItem(itemSO2.itemId, num3);
 			}
 			ops = (useActionTicks ? sim.actionOps : sim.operationOps);
 			break;
@@ -15736,8 +15829,8 @@ public class Execution
 			DesignConstants inst = DesignConstants.Inst;
 			GridManager grid = sim.farm.grid;
 			(float, int) tuple = grid.ComputeAverageAndMaxDepth();
-			int num = Mathf.RoundToInt(inst.farmRenderer.FarmDepthOffset(grid.WorldSize, tuple.Item1, tuple.Item2)) + inst.balancingDesignConstants.placeMinDepthBelowOffset;
-			if (sim.farm.drones[droneId].depth <= num)
+			int num2 = Mathf.RoundToInt(inst.farmRenderer.FarmDepthOffset(grid.WorldSize, tuple.Item1, tuple.Item2)) + inst.balancingDesignConstants.placeMinDepthBelowOffset;
+			if (sim.farm.drones[droneId].depth <= num2)
 			{
 				throw new ExecuteException(string.Format(Localizer.Localize("error_place_too_high"), -sim.farm.drones[droneId].depth));
 			}
@@ -15754,18 +15847,18 @@ public class Execution
 		case SideEffect.ChangeHat:
 		{
 			HatSO hatSO = (HatSO)currentSideEffectArgument;
-			Drone drone = sim.farm.drones[droneId];
-			bool flag2 = drone.hat.hatSO.preventHover && drone.fleightHeight == 1;
+			Drone drone2 = sim.farm.drones[droneId];
+			bool flag2 = drone2.hat.hatSO.preventHover && drone2.fleightHeight == 1;
 			if (hatSO.preventHover && !flag2)
 			{
-				if (drone.Hover(1, out ops))
+				if (drone2.Hover(1, out ops))
 				{
-					drone.ChangeHat(hatSO, programState);
+					drone2.ChangeHat(hatSO, programState);
 				}
 			}
 			else
 			{
-				drone.ChangeHat(hatSO, programState);
+				drone2.ChangeHat(hatSO, programState);
 				ops = sim.actionOps;
 			}
 			programState.ReturnValue = new PyNone();
@@ -15776,21 +15869,21 @@ public class Execution
 			ops = sim.operationOps;
 			break;
 		case SideEffect.GetCost:
-			if (currentSideEffectArgument is UnlockSO unlockSO2)
+			if (currentSideEffectArgument is UnlockSO unlockSO3)
 			{
 				int numUnlocked = ((!(currentSideEffectArgument2 is PyNumber pyNumber)) ? (-1) : ((int)(double)pyNumber));
-				States[droneId].ReturnValue = BuiltinFunctions.ItemsToNewDict(sim.farm.GetUnlockCost(unlockSO2, numUnlocked));
+				States[droneId].ReturnValue = BuiltinFunctions.ItemsToNewDict(sim.farm.GetUnlockCost(unlockSO3, numUnlocked));
 			}
-			else if (currentSideEffectArgument is EntitySO entitySO)
+			else if (currentSideEffectArgument is EntitySO entitySO3)
 			{
-				if (string.IsNullOrEmpty(entitySO.yieldUpgradeName))
+				if (string.IsNullOrEmpty(entitySO3.yieldUpgradeName))
 				{
-					States[droneId].ReturnValue = BuiltinFunctions.ItemsToNewDict(entitySO.cost);
+					States[droneId].ReturnValue = BuiltinFunctions.ItemsToNewDict(entitySO3.cost);
 				}
 				else
 				{
-					int num6 = Mathf.Max(0, sim.farm.NumUnlocked(entitySO.yieldUpgradeName) - 1);
-					States[droneId].ReturnValue = BuiltinFunctions.ItemsToNewDict(entitySO.cost * (1 << num6));
+					int num12 = Mathf.Max(0, sim.farm.NumUnlocked(entitySO3.yieldUpgradeName) - 1);
+					States[droneId].ReturnValue = BuiltinFunctions.ItemsToNewDict(entitySO3.cost * (1 << num12));
 				}
 			}
 			ops = sim.operationOps;
@@ -15814,7 +15907,7 @@ public class Execution
 			break;
 		case SideEffect.GetCompanion:
 		{
-			IPyObject returnValue = ((!(sim.farm.grid.CellAt(sim.farm.drones[droneId].pos).entity is Growable growable)) ? new PyNone() : growable.GetCompanion());
+			IPyObject returnValue = ((!(sim.farm.grid.CellAt(sim.farm.drones[droneId].pos).entity is Growable growable2)) ? new PyNone() : growable2.GetCompanion());
 			programState.ReturnValue = returnValue;
 			ops = sim.operationOps;
 			break;
@@ -15827,17 +15920,17 @@ public class Execution
 			break;
 		}
 		case SideEffect.NumUnlocked:
-			if (currentSideEffectArgument is UnlockSO unlockSO3)
+			if (currentSideEffectArgument is UnlockSO unlockSO2)
 			{
-				programState.ReturnValue = new PyNumber(sim.farm.NumUnlocked(unlockSO3));
+				programState.ReturnValue = new PyNumber(sim.farm.NumUnlocked(unlockSO2));
 			}
-			else if (currentSideEffectArgument is ItemSO itemSO2)
+			else if (currentSideEffectArgument is ItemSO itemSO)
 			{
-				programState.ReturnValue = new PyNumber(sim.farm.NumUnlocked(itemSO2.itemName));
+				programState.ReturnValue = new PyNumber(sim.farm.NumUnlocked(itemSO.itemName));
 			}
-			else if (currentSideEffectArgument is EntitySO entitySO2)
+			else if (currentSideEffectArgument is EntitySO entitySO)
 			{
-				programState.ReturnValue = new PyNumber(sim.farm.NumUnlocked(entitySO2.objectName));
+				programState.ReturnValue = new PyNumber(sim.farm.NumUnlocked(entitySO.objectName));
 			}
 			else if (currentSideEffectArgument is HatSO hatSO2)
 			{
@@ -15847,30 +15940,30 @@ public class Execution
 			break;
 		case SideEffect.Measure:
 		{
-			Drone drone2 = sim.farm.drones[droneId];
-			Vector2Int pos;
+			Drone drone3 = sim.farm.drones[droneId];
+			Vector2Int pos3;
 			if (currentSideEffectArgument == null || currentSideEffectArgument is PyNone)
 			{
-				pos = drone2.pos;
+				pos3 = drone3.pos;
 			}
 			else
 			{
-				GridDirection dir = (PyGridDirection)currentSideEffectArgument;
-				pos = sim.farm.grid.Wrap(drone2.pos + dir.GetDirectionVector());
+				GridDirection dir2 = (PyGridDirection)currentSideEffectArgument;
+				pos3 = sim.farm.grid.Wrap(drone3.pos + dir2.GetDirectionVector());
 			}
 			IPyObject pyObject = null;
-			GridManager.Cell cell = sim.farm.grid.CellAt(pos);
+			GridManager.Cell cell = sim.farm.grid.CellAt(pos3);
 			if (cell.entity != null)
 			{
 				pyObject = cell.entity.Measure();
 			}
 			else
 			{
-				Vector3Int pos2 = new Vector3Int(pos.x, pos.y, cell.depth);
-				GridController controller = sim.farm.grid.GroundAt(pos2).groundSo.GetController(sim.farm.grid);
+				Vector3Int pos4 = new Vector3Int(pos3.x, pos3.y, cell.depth);
+				GridController controller = sim.farm.grid.GroundAt(pos4).groundSo.GetController(sim.farm.grid);
 				if (controller != null)
 				{
-					pyObject = controller.Measure(drone2, pos2);
+					pyObject = controller.Measure(drone3, pos4);
 				}
 			}
 			programState.ReturnValue = pyObject ?? new PyNone();
@@ -15879,14 +15972,14 @@ public class Execution
 		}
 		case SideEffect.SetExecutionSpeed:
 		{
-			double num13 = (PyNumber)currentSideEffectArgument;
-			if (double.IsNaN(num13) || num13 > sim.farm.MaxSpeedFactor() || num13 < 0.1)
+			double num = (PyNumber)currentSideEffectArgument;
+			if (double.IsNaN(num) || num > sim.farm.MaxSpeedFactor() || num < 0.1)
 			{
 				sim.ChangeExecutionSpeed(sim.farm.MaxSpeedFactor());
 			}
 			else
 			{
-				sim.ChangeExecutionSpeed(num13);
+				sim.ChangeExecutionSpeed(num);
 			}
 			RescheduleOngoingDigs(droneId);
 			programState.ReturnValue = new PyNone();
@@ -15894,7 +15987,9 @@ public class Execution
 			break;
 		}
 		case SideEffect.SetWorldSize:
-			if ((int)(double)(PyNumber)currentSideEffectArgument != sim.farm.grid.WorldSize.y)
+		{
+			int num13 = (int)(double)(PyNumber)currentSideEffectArgument;
+			if (num13 != sim.farm.grid.WorldSize.y && (num13 > 2 || sim.farm.grid.SizeLimit > 0))
 			{
 				foreach (Drone drone5 in sim.farm.drones)
 				{
@@ -15905,15 +16000,16 @@ public class Execution
 			programState.ReturnValue = new PyNone();
 			ops = sim.actionOps;
 			break;
+		}
 		case SideEffect.GetTime:
 			programState.ReturnValue = new PyNumber(sim.CurrentTime.Seconds);
 			ops = 0.0;
 			break;
 		case SideEffect.SpawnDrone:
 		{
-			int num7 = States.Where((ProgramState s) => s != null).Count();
-			int num8 = Helper.NumDrones(sim.farm.NumUnlocked("megafarm"));
-			if (num7 >= num8)
+			int num9 = States.Where((ProgramState s) => s != null).Count();
+			int num10 = Helper.NumDrones(sim.farm.NumUnlocked("megafarm"));
+			if (num9 >= num10)
 			{
 				programState.ReturnValue = PyNone.Instance;
 				ops = sim.operationOps;
@@ -15921,25 +16017,25 @@ public class Execution
 			}
 			PyList obj = (PyList)currentSideEffectArgument;
 			PyFunction pyFunction = (PyFunction)obj[0];
-			Dictionary<object, object> copies2 = new Dictionary<object, object>();
-			pyFunction = (PyFunction)pyFunction.DeepCopy(copies2);
-			int num9 = sim.farm.AddDrone(droneId);
+			Dictionary<object, object> copies3 = new Dictionary<object, object>();
+			pyFunction = (PyFunction)pyFunction.DeepCopy(copies3);
+			int num11 = sim.farm.AddDrone(droneId);
 			FunctionNode functionNode = (FunctionNode)pyFunction.syntaxTree;
 			List<IPyObject> list2 = new List<IPyObject>();
 			foreach (IPyObject item in obj.list.Skip(1))
 			{
-				list2.Add(item.DeepCopy(copies2));
+				list2.Add(item.DeepCopy(copies3));
 			}
 			functionNode.Arguments = list2;
-			AddProgramState(num9, functionNode, GlobalOpCount + sim.actionOps);
-			States[num9].PushScope(new Scope(functionNode, null, pyFunction.parentScope, functionNode.Vars));
-			PyDroneHandle pyDroneHandle2 = new PyDroneHandle(num9, sim.farm.droneGeneration);
-			States[num9].DroneHandle = pyDroneHandle2;
-			States[num9].CurrentExecutingNode = programState.CurrentExecutingNode;
+			AddProgramState(num11, functionNode, GlobalOpCount + sim.actionOps);
+			States[num11].PushScope(new Scope(functionNode, null, pyFunction.parentScope, functionNode.Vars));
+			PyDroneHandle pyDroneHandle2 = new PyDroneHandle(num11, sim.farm.droneGeneration);
+			States[num11].DroneHandle = pyDroneHandle2;
+			States[num11].CurrentExecutingNode = programState.CurrentExecutingNode;
 			programState.ReturnValue = pyDroneHandle2;
 			ops = sim.actionOps;
 			sim.UnlockAchievement("USE_MULTIPLE_DRONES");
-			if (num7 + 1 == 32)
+			if (num9 + 1 == 32)
 			{
 				sim.UnlockAchievement("SWARM");
 			}
@@ -15962,8 +16058,8 @@ public class Execution
 			PyDroneHandle pyDroneHandle = (PyDroneHandle)currentSideEffectArgument;
 			if (pyDroneHandle.returnValue != null)
 			{
-				Dictionary<object, object> copies = new Dictionary<object, object>();
-				programState.ReturnValue = pyDroneHandle.returnValue.DeepCopy(copies);
+				Dictionary<object, object> copies2 = new Dictionary<object, object>();
+				programState.ReturnValue = pyDroneHandle.returnValue.DeepCopy(copies2);
 				ops = sim.operationOps;
 			}
 			else
@@ -15986,14 +16082,14 @@ public class Execution
 			break;
 		case SideEffect.Terminated:
 		{
-			for (int num12 = 0; num12 < States.Count; num12++)
+			for (int i = 0; i < States.Count; i++)
 			{
-				if (States[num12] != null && States[num12].awaitedDroneId == droneId)
+				if (States[i] != null && States[i].awaitedDroneId == droneId)
 				{
-					States[num12].awaitedDroneId = -1;
-					States[num12].OpCount = GlobalOpCount;
-					Dictionary<object, object> copies3 = new Dictionary<object, object>();
-					States[num12].ReturnValue = States[droneId].ReturnValue.DeepCopy(copies3);
+					States[i].awaitedDroneId = -1;
+					States[i].OpCount = GlobalOpCount;
+					Dictionary<object, object> copies = new Dictionary<object, object>();
+					States[i].ReturnValue = States[droneId].ReturnValue.DeepCopy(copies);
 				}
 			}
 			if (States[droneId].DroneHandle != null)
@@ -16019,17 +16115,21 @@ public class Execution
 		}
 		case SideEffect.Error:
 		{
-			ExecuteException currentExecuteException = States[droneId].currentExecuteException;
+			ExecuteException ex = States[droneId].currentExecuteException ?? new ExecuteException("Unexpected error");
 			Node currentExecutingNode = States[droneId].CurrentExecutingNode;
-			int startIndex = ((currentExecuteException.startIndex >= 0) ? currentExecuteException.startIndex : currentExecutingNode.boxedParams.wordStart);
-			int endIndex = ((currentExecuteException.endIndex >= 0) ? currentExecuteException.endIndex : currentExecutingNode.boxedParams.wordEnd);
-			States[droneId].CurrentExecutingNode?.boxedParams.codeWindow?.SetErrorMessage(currentExecuteException.Message, startIndex, endIndex);
-			sim.simRunner.Logger.LogError(Localizer.Localize(currentExecuteException.Message), States[droneId]);
+			int startIndex = ((ex.startIndex >= 0 || currentExecutingNode == null) ? ex.startIndex : currentExecutingNode.boxedParams.wordStart);
+			int endIndex = ((ex.endIndex >= 0 || currentExecutingNode == null) ? ex.endIndex : currentExecutingNode.boxedParams.wordEnd);
+			States[droneId].CurrentExecutingNode?.boxedParams.codeWindow?.SetErrorMessage(ex.Message, startIndex, endIndex);
+			sim.simRunner.Logger.LogError(Localizer.Localize(ex.Message), States[droneId]);
 			sim.Error();
 			IsPerformingAStep = false;
 			sim.farm.mainDroneId = droneId;
 			MainState = States[droneId];
 			sim.UnlockAchievement("CAUSE_A_RUNTIME_ERROR");
+			if (sim.LeaderboardCodeLimitExceeded)
+			{
+				StopExecution();
+			}
 			break;
 		}
 		case SideEffect.DoAFlip:
@@ -16099,7 +16199,7 @@ public class Execution
 			{
 				throw new ExecuteException(Localizer.Localize("error_dig_not_allowed"));
 			}
-			int num10 = sim.farm.grid.CellAt(sim.farm.drones[droneId].pos).depth;
+			int num7 = sim.farm.grid.CellAt(sim.farm.drones[droneId].pos).depth;
 			Vector2Int vector2Int3 = sim.farm.drones[droneId].pos;
 			DesignConstants.CaveInDesignConstants caveIn = DesignConstants.Inst.caveIn;
 			if (currentSideEffectArgument is PyGridDirection pyGridDirection5)
@@ -16108,33 +16208,33 @@ public class Execution
 			}
 			else
 			{
-				num10++;
+				num7++;
 			}
-			if (sim.farm.grid.IsWithinBounds(vector2Int3) && sim.farm.grid.CellAt(vector2Int3).depth < num10)
+			if (sim.farm.grid.IsWithinBounds(vector2Int3) && sim.farm.grid.CellAt(vector2Int3).depth < num7)
 			{
 				GroundData.Ground ground = sim.farm.grid.GroundAt(vector2Int3);
-				ops = Math.Ceiling((double)ground.hardness / sim.OpDuration.Seconds / sim.DiggingSpeedFactor);
+				ops = sim.GetDiggingOps(ground.hardness);
 				programState.ReturnValue = new PyBool(b: true);
 				if (ground.hardness < 10000000)
 				{
 					int maxUncoveredDepth = sim.farm.grid.maxUncoveredDepth;
 					sim.farm.drones[droneId].Dig(vector2Int3, out ops);
-					Vector3Int vector3Int = new Vector3Int(vector2Int3.x, vector2Int3.y, num10 - 1);
-					float num11 = (float)sim.GetActionTime(ops).Seconds;
+					Vector3Int vector3Int = new Vector3Int(vector2Int3.x, vector2Int3.y, num7 - 1);
+					float num8 = (float)sim.GetActionTime(ops).Seconds;
 					ISimRunner simRunner = sim.simRunner;
 					if (simRunner != null)
 					{
 						Vector3 localPos = GridManager.CellToLocal(vector3Int + new Vector3(0f, 0f, 0.5f));
-						float lifetime = num11;
+						float lifetime = num8;
 						simRunner.PlayEffect(VFXType.block_break, localPos, changeColor: false, default(Color), null, lifetime);
 					}
 					if (caveIn.doCaveins)
 					{
-						sim.farm.grid.ClearGroundWithCaveins(vector2Int3, num10);
+						sim.farm.grid.ClearGroundWithCaveins(vector2Int3, num7);
 					}
 					else
 					{
-						sim.farm.grid.ClearGround(vector2Int3, num10);
+						sim.farm.grid.ClearGround(vector2Int3, num7);
 					}
 					ground.groundSo.GetController(sim.farm.grid)?.OnAfterDig(sim.farm.drones[droneId], vector2Int3);
 					if (sim.farm.grid.maxUncoveredDepth > maxUncoveredDepth)
@@ -16145,11 +16245,11 @@ public class Execution
 					{
 						sim.UnlockAchievement("REACH_DEPTH");
 					}
-					Vector3Int pos5 = vector3Int + GridManager.down;
-					GroundData.Ground ground2 = sim.farm.grid.GroundAt(pos5);
+					Vector3Int pos6 = vector3Int + GridManager.down;
+					GroundData.Ground ground2 = sim.farm.grid.GroundAt(pos6);
 					if (sim.farm.grid.pyramidController.IsPyramidGround(ground2.groundSo))
 					{
-						PyramidController.Pyramid pyramidAtPos = sim.farm.grid.pyramidController.GetPyramidAtPos(pos5);
+						PyramidController.Pyramid pyramidAtPos = sim.farm.grid.pyramidController.GetPyramidAtPos(pos6);
 						if (pyramidAtPos != null)
 						{
 							sim.farm.grid.pyramidController.ClearPyramidIfComplete(pyramidAtPos);
@@ -16216,8 +16316,8 @@ public class Execution
 				programState.ReturnValue = new PyBool(b: false);
 				break;
 			}
-			bool b3 = sim.farm.drones[droneId].Push(pyGridDirection2.dir, out ops);
-			programState.ReturnValue = new PyBool(b3);
+			bool b2 = sim.farm.drones[droneId].Push(pyGridDirection2.dir, out ops);
+			programState.ReturnValue = new PyBool(b2);
 			break;
 		}
 		case SideEffect.CanPush:
@@ -16591,6 +16691,10 @@ public class AssignmentNode : Node
 				throw new ExecuteException("error_not_enough_values");
 			}
 			List<IPyObject> rightValues = ((IPySequence)rhs).ToList();
+			if (rhs is PyList && lhs.CheckIncrementOpCount(state, execution, execution.sim.operationOps))
+			{
+				yield return 0.0;
+			}
 			for (int i = 0; i < leftNodes.Count; i++)
 			{
 				foreach (double item3 in Assign(state, execution, depth, leftNodes[i], rightValues[i], op, currentFileName))
@@ -16819,7 +16923,10 @@ public class BinaryExprNode : Node
 				throw new ExecuteException("error_invalid_const2", slots[1].boxedParams.wordStart, slots[1].boxedParams.wordEnd);
 			}
 			Blink(state, execution);
-			yield return state.IsExpressionStatic ? 0.0 : execution.sim.operationOps;
+			if (CheckIncrementOpCount(state, execution, state.IsExpressionStatic ? 0.0 : execution.sim.operationOps))
+			{
+				yield return 0.0;
+			}
 			bool flag;
 			(state.ReturnValue, flag) = nameSpace.Evaluate(((ValueNode)slots[1]).value, slots[1].boxedParams.wordStart, slots[1].boxedParams.wordEnd);
 			state.IsExpressionStatic &= flag;
@@ -17330,7 +17437,7 @@ public class CallNode : Node
 		state.CurrentExecutingNode = this;
 		if (func.syntaxTree != null)
 		{
-			if (CheckIncrementOpCount(state, execution, (!isStatic) ? 1 : 0))
+			if (CheckIncrementOpCount(state, execution, isStatic ? 0.0 : execution.sim.operationOps))
 			{
 				yield return 0.0;
 			}
@@ -17346,8 +17453,12 @@ public class CallNode : Node
 		{
 			throw new ExecuteException(CodeUtilities.LocalizeAndFormat("error_name_not_defined", func.functionName));
 		}
-		double ops = func.binding(parameters, execution.sim, execution, state.DroneId);
-		if (CheckIncrementOpCount(state, execution, ops))
+		double num = func.binding(parameters, execution.sim, execution, state.DroneId);
+		if (func.isFree && !isStatic)
+		{
+			num = Math.Max(num, execution.sim.operationOps);
+		}
+		if (CheckIncrementOpCount(state, execution, num))
 		{
 			yield return 0.0;
 		}
@@ -17984,7 +18095,38 @@ public class FunctionNode : Node
 
 	public string GetSignature()
 	{
-		return GetSubstringWithComments(boxedParams.codeWindow.CodeInput.text, boxedParams.wordStart, boxedParams.wordEnd);
+		string text = boxedParams.codeWindow.CodeInput.text;
+		if (!DefinedAt(text, boxedParams.wordStart))
+		{
+			return funcName;
+		}
+		return GetSubstringWithComments(text, boxedParams.wordStart, boxedParams.wordEnd) ?? funcName;
+	}
+
+	private bool DefinedAt(string text, int index)
+	{
+		if (index < 0 || index + "def".Length > text.Length || string.CompareOrdinal(text, index, "def", 0, "def".Length) != 0)
+		{
+			return false;
+		}
+		int i;
+		for (i = index + "def".Length; i < text.Length && (text[i] == ' ' || text[i] == '\t'); i++)
+		{
+		}
+		if (i == index + "def".Length || i + funcName.Length > text.Length || string.CompareOrdinal(text, i, funcName, 0, funcName.Length) != 0)
+		{
+			return false;
+		}
+		int num = i + funcName.Length;
+		if (num != text.Length)
+		{
+			if (!char.IsLetterOrDigit(text[num]))
+			{
+				return text[num] != '_';
+			}
+			return false;
+		}
+		return true;
 	}
 
 	private static string GetSubstringWithComments(string input, int index1, int index2)
@@ -17992,6 +18134,10 @@ public class FunctionNode : Node
 		string[] array = input.Split('\n');
 		int lineIndexFromCharacterIndex = GetLineIndexFromCharacterIndex(array, index1);
 		int lineIndexFromCharacterIndex2 = GetLineIndexFromCharacterIndex(array, index2);
+		if (lineIndexFromCharacterIndex < 0 || lineIndexFromCharacterIndex2 < lineIndexFromCharacterIndex)
+		{
+			return null;
+		}
 		int num = lineIndexFromCharacterIndex;
 		while (num > 0 && array[num - 1].StartsWith('#'))
 		{
@@ -18108,6 +18254,7 @@ public class ImportNode : Node
 				{
 					throw new ExecuteException("error_syntax_error_in_import");
 				}
+				execution.RegisterLeaderboardCode(name, node);
 				if (state.DroneId > 0)
 				{
 					Dictionary<object, object> copies = new Dictionary<object, object>();
@@ -20089,10 +20236,16 @@ public class ProgramState
 			}
 			else
 			{
-				UnityEngine.Debug.LogError($"Unexpected exception during execution: {ex}");
+				currentExecuteException = UnexpectedError(ex);
 			}
 			currentSideEffect = SideEffect.Error;
 		}
+	}
+
+	public static ExecuteException UnexpectedError(Exception e)
+	{
+		UnityEngine.Debug.LogError($"Unexpected exception during execution: {e}");
+		return new ExecuteException(e.Message);
 	}
 
 	public void AddAndConsumeOps(double ops)
@@ -20254,6 +20407,10 @@ public class Scope
 
 	public void ImportVar(string varName, IPyObject value, bool isStatic = false)
 	{
+		if (vars.TryGetValue(varName, out (IPyObject, bool) value2) && !(value2.Item1 is PyUnassigned))
+		{
+			isStatic = false;
+		}
 		vars[varName] = (value, isStatic);
 	}
 
@@ -22059,6 +22216,10 @@ public class BlinkManager : MonoBehaviour
 					rects[node2] = num3 - num;
 				}
 			}
+			if (currentNode != null && currentNode.boxedParams.codeWindow == null)
+			{
+				currentNode = null;
+			}
 			if (stepByStepMode && currentNode != null && !currentNode.boxedParams.codeWindow.IsMinimized())
 			{
 				GUI.color = theme.code.ExecOverlayColor.MultiplyAlpha(fullLineAlpha);
@@ -22078,7 +22239,7 @@ public class BlinkManager : MonoBehaviour
 		{
 			FunctionNode item = ((i == callStack.Count - 1) ? null : callStack[i + 1].Item1);
 			Node item2 = callStack[i].Item2;
-			if (item2 == null || visitedFunctions.Contains(item))
+			if (item2 == null || item2.boxedParams.codeWindow == null || visitedFunctions.Contains(item))
 			{
 				continue;
 			}
@@ -22535,6 +22696,10 @@ public class CodeCompleter : MonoBehaviour
 
 	public TooltipInfo GetCompletionTooltip(int optionIndex)
 	{
+		if (optionStrings == null || optionIndex < 0 || optionIndex >= optionStrings.Count)
+		{
+			return null;
+		}
 		return TooltipUtils.GetWordTooltip(optionStrings[optionIndex], func);
 	}
 
@@ -22906,10 +23071,14 @@ public class CodeExample : MonoBehaviour
 	private void StartMainExecution()
 	{
 		isExpanding = false;
-		UISim.Inst.StartMainExecution(codeWindow.Parse());
-		if (settings.show_output)
+		Node node = codeWindow.Parse();
+		if (node != null)
 		{
-			outputText.CoupleToSim();
+			UISim.Inst.StartMainExecution(node);
+			if (settings.show_output)
+			{
+				outputText.CoupleToSim();
+			}
 		}
 	}
 
@@ -24255,6 +24424,54 @@ public class CodeWindow : MonoBehaviour, ITooltipHandler
 		tooltipUpdateCallback = null;
 	}
 }
+public static class ColorizeCursor
+{
+	private static Dictionary<Texture2D, (Color32 tintColor, Texture2D tintedTexture)> tintCache;
+
+	public static void SetCursor(Texture2D texture, Color32 tintColor, Vector2 hotspot, CursorMode mode)
+	{
+		if (texture == null)
+		{
+			Cursor.SetCursor(null, hotspot, mode);
+		}
+		else
+		{
+			Cursor.SetCursor(GetOrCreateTexture(texture, tintColor), hotspot, mode);
+		}
+	}
+
+	private static Texture2D GetOrCreateTexture(Texture2D input, Color32 tintColor)
+	{
+		Dictionary<Texture2D, (Color32 tintColor, Texture2D tintedTexture)> dictionary = tintCache;
+		if (dictionary != null && dictionary.TryGetValue(input, out (Color32, Texture2D) value))
+		{
+			if (value.Item1.Equals(tintColor))
+			{
+				return value.Item2;
+			}
+			UnityEngine.Object.Destroy(value.Item2);
+		}
+		Texture2D texture2D = new Texture2D(input.width, input.height, input.format, input.mipmapCount > 1);
+		NativeArray<Color32> pixelData = input.GetPixelData<Color32>(0);
+		NativeArray<Color32> pixelData2 = texture2D.GetPixelData<Color32>(0);
+		for (int i = 0; i < pixelData2.Length; i++)
+		{
+			Color32 value2 = pixelData[i];
+			value2.r = (byte)(value2.r * tintColor.r / 255);
+			value2.g = (byte)(value2.g * tintColor.g / 255);
+			value2.b = (byte)(value2.b * tintColor.b / 255);
+			value2.a = (byte)(value2.a * tintColor.a / 255);
+			pixelData2[i] = value2;
+		}
+		texture2D.Apply(input.mipmapCount > 1);
+		if (tintCache == null)
+		{
+			tintCache = new Dictionary<Texture2D, (Color32, Texture2D)>();
+		}
+		tintCache[input] = (tintColor, texture2D);
+		return texture2D;
+	}
+}
 public class ContainerScaler : MonoBehaviour
 {
 	[SerializeField]
@@ -24274,7 +24491,7 @@ public class ContainerScaler : MonoBehaviour
 		GetComponent<RectTransform>().sizeDelta = rectSize + vector * 1.4f;
 	}
 
-	public void UpdateSize()
+	public void UpdateSize(RectTransform windowContainer)
 	{
 		RectTransform component = base.transform.parent.GetComponent<RectTransform>();
 		List<RectTransform> list = new List<RectTransform>();
@@ -24285,23 +24502,30 @@ public class ContainerScaler : MonoBehaviour
 			list.Add(rectTransform);
 			rectTransform.transform.SetParent(component, worldPositionStays: true);
 		}
-		Vector2 vector = Vector2.zero;
-		Vector2 vector2 = Vector2.zero;
-		if (list.Count > 0)
+		List<RectTransform> list2 = new List<RectTransform>(list);
+		list2.Remove(windowContainer);
+		Window[] componentsInChildren = windowContainer.GetComponentsInChildren<Window>(includeInactive: true);
+		foreach (Window window in componentsInChildren)
 		{
-			vector = list[0].rect.min + list[0].anchoredPosition;
-			vector2 = list[0].rect.max + list[0].anchoredPosition;
-			foreach (RectTransform item in list)
+			list2.Add((RectTransform)window.transform);
+		}
+		Vector2 vector = Vector2.positiveInfinity;
+		Vector2 vector2 = Vector2.negativeInfinity;
+		Vector3[] array = new Vector3[4];
+		foreach (RectTransform item in list2)
+		{
+			item.GetWorldCorners(array);
+			Vector3[] array2 = array;
+			foreach (Vector3 position in array2)
 			{
-				vector = Vector2.Min(vector, item.rect.min + item.anchoredPosition);
-				Window window = item.GetComponent<Window>();
-				while (window?.DockedChild != null)
-				{
-					window = window.DockedChild;
-					vector.y += ((RectTransform)window.transform).rect.y;
-				}
-				vector2 = Vector2.Max(vector2, item.rect.max + item.anchoredPosition);
+				Vector2 rhs = component.InverseTransformPoint(position);
+				vector = Vector2.Min(vector, rhs);
+				vector2 = Vector2.Max(vector2, rhs);
 			}
+		}
+		if (list2.Count == 0)
+		{
+			vector = (vector2 = Vector2.zero);
 		}
 		Vector2 vector3 = new Vector2(Screen.width, Screen.height) / canvas.scaleFactor;
 		Rect rect = new Rect
@@ -24316,6 +24540,12 @@ public class ContainerScaler : MonoBehaviour
 		foreach (RectTransform item2 in list)
 		{
 			item2.SetParent(base.transform, worldPositionStays: true);
+		}
+		Vector3 localPosition = windowContainer.localPosition;
+		windowContainer.localPosition = Vector3.zero;
+		foreach (Transform item3 in windowContainer)
+		{
+			item3.localPosition += localPosition;
 		}
 	}
 }
@@ -24519,8 +24749,15 @@ public class DocsWindow : MonoBehaviour
 		if (history.TryDequeue(out var item))
 		{
 			DisplayDoc(item.doc);
-			await Awaitable.NextFrameAsync(base.destroyCancellationToken);
-			await Awaitable.NextFrameAsync(base.destroyCancellationToken);
+			try
+			{
+				await Awaitable.NextFrameAsync(base.destroyCancellationToken);
+				await Awaitable.NextFrameAsync(base.destroyCancellationToken);
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
 			if (!(item.doc != openDoc))
 			{
 				scrollView.verticalNormalizedPosition = item.scroll;
@@ -25299,6 +25536,12 @@ public class ItemUI : MonoBehaviour, ITooltipHandler
 		countText.text = stringBuilder.ToString();
 		countText.ForceMeshUpdate();
 		TMP_TextInfo textInfo = countText.textInfo;
+		if (!countText.isActiveAndEnabled || textInfo.characterCount != stringBuilder.Length)
+		{
+			countText.text = newText;
+			updateAnimStartTime = -1f;
+			return;
+		}
 		int materialReferenceIndex = textInfo.characterInfo[0].materialReferenceIndex;
 		Vector3[] vertices = textInfo.meshInfo[materialReferenceIndex].vertices;
 		updateAnimStartTime = Time.time;
@@ -30036,7 +30279,7 @@ public class Workspace : WorkspaceBase
 
 	private void UpdateContainerSizeInternal()
 	{
-		workspaceContainer.GetComponent<ContainerScaler>().UpdateSize();
+		workspaceContainer.GetComponent<ContainerScaler>().UpdateSize(container);
 		containerDirty = false;
 	}
 
@@ -30361,7 +30604,8 @@ public class WorkspaceBase : MonoBehaviour
 		}
 		if (texture2D != null)
 		{
-			Cursor.SetCursor(texture2D, new Vector2((float)texture2D.width / 2f, (float)texture2D.height / 2f), CursorMode.Auto);
+			Color32 caretColor = ThemeManager.Inst.Theme.ui.text.CaretColor;
+			ColorizeCursor.SetCursor(texture2D, caretColor, new Vector2((float)texture2D.width / 2f, (float)texture2D.height / 2f), CursorMode.Auto);
 		}
 		else
 		{
@@ -30546,7 +30790,7 @@ internal class UnitySourceGeneratedAssemblyMonoScriptTypes_v1
 	{
 		return new MonoScriptData
 		{
-			FilePathsData = new byte[8177]
+			FilePathsData = new byte[8226]
 			{
 				0, 0, 0, 2, 0, 0, 0, 36, 92, 65,
 				115, 115, 101, 116, 115, 92, 83, 99, 114, 105,
@@ -31169,205 +31413,210 @@ internal class UnitySourceGeneratedAssemblyMonoScriptTypes_v1
 				116, 115, 92, 83, 99, 114, 105, 112, 116, 115,
 				92, 67, 111, 114, 101, 92, 85, 73, 92, 67,
 				111, 100, 101, 87, 105, 110, 100, 111, 119, 46,
-				99, 115, 0, 0, 0, 1, 0, 0, 0, 42,
+				99, 115, 0, 0, 0, 1, 0, 0, 0, 41,
 				92, 65, 115, 115, 101, 116, 115, 92, 83, 99,
 				114, 105, 112, 116, 115, 92, 67, 111, 114, 101,
-				92, 85, 73, 92, 67, 111, 110, 116, 97, 105,
-				110, 101, 114, 83, 99, 97, 108, 101, 114, 46,
-				99, 115, 0, 0, 0, 1, 0, 0, 0, 42,
-				92, 65, 115, 115, 101, 116, 115, 92, 83, 99,
-				114, 105, 112, 116, 115, 92, 67, 111, 114, 101,
-				92, 85, 73, 92, 68, 76, 67, 83, 116, 97,
-				116, 117, 115, 66, 117, 116, 116, 111, 110, 46,
-				99, 115, 0, 0, 0, 1, 0, 0, 0, 37,
-				92, 65, 115, 115, 101, 116, 115, 92, 83, 99,
-				114, 105, 112, 116, 115, 92, 67, 111, 114, 101,
-				92, 85, 73, 92, 68, 111, 99, 115, 87, 105,
-				110, 100, 111, 119, 46, 99, 115, 0, 0, 0,
-				1, 0, 0, 0, 43, 92, 65, 115, 115, 101,
-				116, 115, 92, 83, 99, 114, 105, 112, 116, 115,
-				92, 67, 111, 114, 101, 92, 85, 73, 92, 68,
-				114, 111, 112, 100, 111, 119, 110, 84, 111, 111,
-				108, 116, 105, 112, 115, 46, 99, 115, 0, 0,
-				0, 1, 0, 0, 0, 39, 92, 65, 115, 115,
-				101, 116, 115, 92, 83, 99, 114, 105, 112, 116,
-				115, 92, 67, 111, 114, 101, 92, 85, 73, 92,
-				69, 114, 114, 111, 114, 77, 101, 115, 115, 97,
-				103, 101, 46, 99, 115, 0, 0, 0, 1, 0,
-				0, 0, 41, 92, 65, 115, 115, 101, 116, 115,
-				92, 83, 99, 114, 105, 112, 116, 115, 92, 67,
-				111, 114, 101, 92, 85, 73, 92, 70, 108, 97,
-				115, 104, 105, 110, 103, 66, 117, 116, 116, 111,
-				110, 46, 99, 115, 0, 0, 0, 1, 0, 0,
-				0, 35, 92, 65, 115, 115, 101, 116, 115, 92,
-				83, 99, 114, 105, 112, 116, 115, 92, 67, 111,
-				114, 101, 92, 85, 73, 92, 72, 97, 116, 80,
-				111, 112, 117, 112, 46, 99, 115, 0, 0, 0,
-				1, 0, 0, 0, 53, 92, 65, 115, 115, 101,
-				116, 115, 92, 83, 99, 114, 105, 112, 116, 115,
-				92, 67, 111, 114, 101, 92, 85, 73, 92, 72,
-				111, 114, 105, 122, 111, 110, 116, 97, 108, 70,
-				105, 116, 76, 97, 121, 111, 117, 116, 69, 108,
-				101, 109, 101, 110, 116, 46, 99, 115, 0, 0,
-				0, 1, 0, 0, 0, 38, 92, 65, 115, 115,
-				101, 116, 115, 92, 83, 99, 114, 105, 112, 116,
-				115, 92, 67, 111, 114, 101, 92, 85, 73, 92,
-				73, 109, 97, 103, 101, 76, 111, 97, 100, 101,
-				114, 46, 99, 115, 0, 0, 0, 1, 0, 0,
-				0, 36, 92, 65, 115, 115, 101, 116, 115, 92,
-				83, 99, 114, 105, 112, 116, 115, 92, 67, 111,
-				114, 101, 92, 85, 73, 92, 73, 110, 118, 101,
-				110, 116, 111, 114, 121, 46, 99, 115, 0, 0,
-				0, 1, 0, 0, 0, 33, 92, 65, 115, 115,
-				101, 116, 115, 92, 83, 99, 114, 105, 112, 116,
-				115, 92, 67, 111, 114, 101, 92, 85, 73, 92,
-				73, 116, 101, 109, 85, 73, 46, 99, 115, 0,
-				0, 0, 1, 0, 0, 0, 38, 92, 65, 115,
-				115, 101, 116, 115, 92, 83, 99, 114, 105, 112,
-				116, 115, 92, 67, 111, 114, 101, 92, 85, 73,
-				92, 76, 101, 97, 100, 101, 114, 98, 111, 97,
-				114, 100, 46, 99, 115, 0, 0, 0, 1, 0,
-				0, 0, 43, 92, 65, 115, 115, 101, 116, 115,
-				92, 83, 99, 114, 105, 112, 116, 115, 92, 67,
-				111, 114, 101, 92, 85, 73, 92, 76, 101, 97,
-				100, 101, 114, 98, 111, 97, 114, 100, 69, 110,
-				116, 114, 121, 46, 99, 115, 0, 0, 0, 1,
-				0, 0, 0, 45, 92, 65, 115, 115, 101, 116,
+				92, 85, 73, 92, 67, 111, 108, 111, 114, 105,
+				122, 101, 67, 117, 114, 115, 111, 114, 46, 99,
+				115, 0, 0, 0, 1, 0, 0, 0, 42, 92,
+				65, 115, 115, 101, 116, 115, 92, 83, 99, 114,
+				105, 112, 116, 115, 92, 67, 111, 114, 101, 92,
+				85, 73, 92, 67, 111, 110, 116, 97, 105, 110,
+				101, 114, 83, 99, 97, 108, 101, 114, 46, 99,
+				115, 0, 0, 0, 1, 0, 0, 0, 42, 92,
+				65, 115, 115, 101, 116, 115, 92, 83, 99, 114,
+				105, 112, 116, 115, 92, 67, 111, 114, 101, 92,
+				85, 73, 92, 68, 76, 67, 83, 116, 97, 116,
+				117, 115, 66, 117, 116, 116, 111, 110, 46, 99,
+				115, 0, 0, 0, 1, 0, 0, 0, 37, 92,
+				65, 115, 115, 101, 116, 115, 92, 83, 99, 114,
+				105, 112, 116, 115, 92, 67, 111, 114, 101, 92,
+				85, 73, 92, 68, 111, 99, 115, 87, 105, 110,
+				100, 111, 119, 46, 99, 115, 0, 0, 0, 1,
+				0, 0, 0, 43, 92, 65, 115, 115, 101, 116,
 				115, 92, 83, 99, 114, 105, 112, 116, 115, 92,
-				67, 111, 114, 101, 92, 85, 73, 92, 76, 101,
-				97, 100, 101, 114, 98, 111, 97, 114, 100, 77,
-				97, 110, 97, 103, 101, 114, 46, 99, 115, 0,
-				0, 0, 1, 0, 0, 0, 39, 92, 65, 115,
-				115, 101, 116, 115, 92, 83, 99, 114, 105, 112,
-				116, 115, 92, 67, 111, 114, 101, 92, 85, 73,
-				92, 77, 97, 114, 107, 100, 111, 119, 110, 76,
-				105, 110, 107, 46, 99, 115, 0, 0, 0, 4,
-				0, 0, 0, 39, 92, 65, 115, 115, 101, 116,
+				67, 111, 114, 101, 92, 85, 73, 92, 68, 114,
+				111, 112, 100, 111, 119, 110, 84, 111, 111, 108,
+				116, 105, 112, 115, 46, 99, 115, 0, 0, 0,
+				1, 0, 0, 0, 39, 92, 65, 115, 115, 101,
+				116, 115, 92, 83, 99, 114, 105, 112, 116, 115,
+				92, 67, 111, 114, 101, 92, 85, 73, 92, 69,
+				114, 114, 111, 114, 77, 101, 115, 115, 97, 103,
+				101, 46, 99, 115, 0, 0, 0, 1, 0, 0,
+				0, 41, 92, 65, 115, 115, 101, 116, 115, 92,
+				83, 99, 114, 105, 112, 116, 115, 92, 67, 111,
+				114, 101, 92, 85, 73, 92, 70, 108, 97, 115,
+				104, 105, 110, 103, 66, 117, 116, 116, 111, 110,
+				46, 99, 115, 0, 0, 0, 1, 0, 0, 0,
+				35, 92, 65, 115, 115, 101, 116, 115, 92, 83,
+				99, 114, 105, 112, 116, 115, 92, 67, 111, 114,
+				101, 92, 85, 73, 92, 72, 97, 116, 80, 111,
+				112, 117, 112, 46, 99, 115, 0, 0, 0, 1,
+				0, 0, 0, 53, 92, 65, 115, 115, 101, 116,
 				115, 92, 83, 99, 114, 105, 112, 116, 115, 92,
-				67, 111, 114, 101, 92, 85, 73, 92, 77, 97,
-				114, 107, 100, 111, 119, 110, 84, 101, 120, 116,
+				67, 111, 114, 101, 92, 85, 73, 92, 72, 111,
+				114, 105, 122, 111, 110, 116, 97, 108, 70, 105,
+				116, 76, 97, 121, 111, 117, 116, 69, 108, 101,
+				109, 101, 110, 116, 46, 99, 115, 0, 0, 0,
+				1, 0, 0, 0, 38, 92, 65, 115, 115, 101,
+				116, 115, 92, 83, 99, 114, 105, 112, 116, 115,
+				92, 67, 111, 114, 101, 92, 85, 73, 92, 73,
+				109, 97, 103, 101, 76, 111, 97, 100, 101, 114,
 				46, 99, 115, 0, 0, 0, 1, 0, 0, 0,
 				36, 92, 65, 115, 115, 101, 116, 115, 92, 83,
 				99, 114, 105, 112, 116, 115, 92, 67, 111, 114,
-				101, 92, 85, 73, 92, 77, 101, 110, 117, 92,
-				77, 101, 110, 117, 46, 99, 115, 0, 0, 0,
+				101, 92, 85, 73, 92, 73, 110, 118, 101, 110,
+				116, 111, 114, 121, 46, 99, 115, 0, 0, 0,
+				1, 0, 0, 0, 33, 92, 65, 115, 115, 101,
+				116, 115, 92, 83, 99, 114, 105, 112, 116, 115,
+				92, 67, 111, 114, 101, 92, 85, 73, 92, 73,
+				116, 101, 109, 85, 73, 46, 99, 115, 0, 0,
+				0, 1, 0, 0, 0, 38, 92, 65, 115, 115,
+				101, 116, 115, 92, 83, 99, 114, 105, 112, 116,
+				115, 92, 67, 111, 114, 101, 92, 85, 73, 92,
+				76, 101, 97, 100, 101, 114, 98, 111, 97, 114,
+				100, 46, 99, 115, 0, 0, 0, 1, 0, 0,
+				0, 43, 92, 65, 115, 115, 101, 116, 115, 92,
+				83, 99, 114, 105, 112, 116, 115, 92, 67, 111,
+				114, 101, 92, 85, 73, 92, 76, 101, 97, 100,
+				101, 114, 98, 111, 97, 114, 100, 69, 110, 116,
+				114, 121, 46, 99, 115, 0, 0, 0, 1, 0,
+				0, 0, 45, 92, 65, 115, 115, 101, 116, 115,
+				92, 83, 99, 114, 105, 112, 116, 115, 92, 67,
+				111, 114, 101, 92, 85, 73, 92, 76, 101, 97,
+				100, 101, 114, 98, 111, 97, 114, 100, 77, 97,
+				110, 97, 103, 101, 114, 46, 99, 115, 0, 0,
+				0, 1, 0, 0, 0, 39, 92, 65, 115, 115,
+				101, 116, 115, 92, 83, 99, 114, 105, 112, 116,
+				115, 92, 67, 111, 114, 101, 92, 85, 73, 92,
+				77, 97, 114, 107, 100, 111, 119, 110, 76, 105,
+				110, 107, 46, 99, 115, 0, 0, 0, 4, 0,
+				0, 0, 39, 92, 65, 115, 115, 101, 116, 115,
+				92, 83, 99, 114, 105, 112, 116, 115, 92, 67,
+				111, 114, 101, 92, 85, 73, 92, 77, 97, 114,
+				107, 100, 111, 119, 110, 84, 101, 120, 116, 46,
+				99, 115, 0, 0, 0, 1, 0, 0, 0, 36,
+				92, 65, 115, 115, 101, 116, 115, 92, 83, 99,
+				114, 105, 112, 116, 115, 92, 67, 111, 114, 101,
+				92, 85, 73, 92, 77, 101, 110, 117, 92, 77,
+				101, 110, 117, 46, 99, 115, 0, 0, 0, 1,
+				0, 0, 0, 42, 92, 65, 115, 115, 101, 116,
+				115, 92, 83, 99, 114, 105, 112, 116, 115, 92,
+				67, 111, 114, 101, 92, 85, 73, 92, 77, 101,
+				110, 117, 92, 79, 112, 116, 105, 111, 110, 77,
+				101, 110, 117, 46, 99, 115, 0, 0, 0, 1,
+				0, 0, 0, 43, 92, 65, 115, 115, 101, 116,
+				115, 92, 83, 99, 114, 105, 112, 116, 115, 92,
+				67, 111, 114, 101, 92, 85, 73, 92, 77, 101,
+				110, 117, 92, 83, 97, 118, 101, 67, 104, 111,
+				111, 115, 101, 114, 46, 99, 115, 0, 0, 0,
 				1, 0, 0, 0, 42, 92, 65, 115, 115, 101,
 				116, 115, 92, 83, 99, 114, 105, 112, 116, 115,
 				92, 67, 111, 114, 101, 92, 85, 73, 92, 77,
-				101, 110, 117, 92, 79, 112, 116, 105, 111, 110,
-				77, 101, 110, 117, 46, 99, 115, 0, 0, 0,
+				101, 110, 117, 92, 83, 97, 118, 101, 79, 112,
+				116, 105, 111, 110, 46, 99, 115, 0, 0, 0,
 				1, 0, 0, 0, 43, 92, 65, 115, 115, 101,
 				116, 115, 92, 83, 99, 114, 105, 112, 116, 115,
-				92, 67, 111, 114, 101, 92, 85, 73, 92, 77,
-				101, 110, 117, 92, 83, 97, 118, 101, 67, 104,
-				111, 111, 115, 101, 114, 46, 99, 115, 0, 0,
-				0, 1, 0, 0, 0, 42, 92, 65, 115, 115,
+				92, 67, 111, 114, 101, 92, 85, 73, 92, 79,
+				112, 101, 110, 70, 101, 101, 100, 98, 97, 99,
+				107, 70, 111, 114, 109, 46, 99, 115, 0, 0,
+				0, 1, 0, 0, 0, 37, 92, 65, 115, 115,
 				101, 116, 115, 92, 83, 99, 114, 105, 112, 116,
 				115, 92, 67, 111, 114, 101, 92, 85, 73, 92,
-				77, 101, 110, 117, 92, 83, 97, 118, 101, 79,
-				112, 116, 105, 111, 110, 46, 99, 115, 0, 0,
-				0, 1, 0, 0, 0, 43, 92, 65, 115, 115,
-				101, 116, 115, 92, 83, 99, 114, 105, 112, 116,
-				115, 92, 67, 111, 114, 101, 92, 85, 73, 92,
-				79, 112, 101, 110, 70, 101, 101, 100, 98, 97,
-				99, 107, 70, 111, 114, 109, 46, 99, 115, 0,
-				0, 0, 1, 0, 0, 0, 37, 92, 65, 115,
+				79, 117, 116, 112, 117, 116, 84, 101, 120, 116,
+				46, 99, 115, 0, 0, 0, 2, 0, 0, 0,
+				39, 92, 65, 115, 115, 101, 116, 115, 92, 83,
+				99, 114, 105, 112, 116, 115, 92, 67, 111, 114,
+				101, 92, 85, 73, 92, 82, 101, 115, 101, 97,
+				114, 99, 104, 77, 101, 110, 117, 46, 99, 115,
+				0, 0, 0, 1, 0, 0, 0, 43, 92, 65,
+				115, 115, 101, 116, 115, 92, 83, 99, 114, 105,
+				112, 116, 115, 92, 67, 111, 114, 101, 92, 85,
+				73, 92, 83, 99, 97, 108, 101, 100, 83, 99,
+				114, 111, 108, 108, 82, 101, 99, 116, 46, 99,
+				115, 0, 0, 0, 2, 0, 0, 0, 36, 92,
+				65, 115, 115, 101, 116, 115, 92, 83, 99, 114,
+				105, 112, 116, 115, 92, 67, 111, 114, 101, 92,
+				85, 73, 92, 83, 101, 97, 114, 99, 104, 66,
+				111, 120, 46, 99, 115, 0, 0, 0, 1, 0,
+				0, 0, 41, 92, 65, 115, 115, 101, 116, 115,
+				92, 83, 99, 114, 105, 112, 116, 115, 92, 67,
+				111, 114, 101, 92, 85, 73, 92, 83, 112, 111,
+				105, 108, 101, 114, 87, 97, 114, 110, 105, 110,
+				103, 46, 99, 115, 0, 0, 0, 1, 0, 0,
+				0, 38, 92, 65, 115, 115, 101, 116, 115, 92,
+				83, 99, 114, 105, 112, 116, 115, 92, 67, 111,
+				114, 101, 92, 85, 73, 92, 84, 105, 116, 108,
+				101, 87, 105, 110, 100, 111, 119, 46, 99, 115,
+				0, 0, 0, 1, 0, 0, 0, 41, 92, 65,
+				115, 115, 101, 116, 115, 92, 83, 99, 114, 105,
+				112, 116, 115, 92, 67, 111, 114, 101, 92, 85,
+				73, 92, 84, 105, 116, 108, 101, 87, 111, 114,
+				107, 115, 112, 97, 99, 101, 46, 99, 115, 0,
+				0, 0, 1, 0, 0, 0, 63, 92, 65, 115,
 				115, 101, 116, 115, 92, 83, 99, 114, 105, 112,
 				116, 115, 92, 67, 111, 114, 101, 92, 85, 73,
-				92, 79, 117, 116, 112, 117, 116, 84, 101, 120,
-				116, 46, 99, 115, 0, 0, 0, 2, 0, 0,
-				0, 39, 92, 65, 115, 115, 101, 116, 115, 92,
-				83, 99, 114, 105, 112, 116, 115, 92, 67, 111,
-				114, 101, 92, 85, 73, 92, 82, 101, 115, 101,
-				97, 114, 99, 104, 77, 101, 110, 117, 46, 99,
-				115, 0, 0, 0, 1, 0, 0, 0, 43, 92,
-				65, 115, 115, 101, 116, 115, 92, 83, 99, 114,
-				105, 112, 116, 115, 92, 67, 111, 114, 101, 92,
-				85, 73, 92, 83, 99, 97, 108, 101, 100, 83,
-				99, 114, 111, 108, 108, 82, 101, 99, 116, 46,
-				99, 115, 0, 0, 0, 2, 0, 0, 0, 36,
-				92, 65, 115, 115, 101, 116, 115, 92, 83, 99,
-				114, 105, 112, 116, 115, 92, 67, 111, 114, 101,
-				92, 85, 73, 92, 83, 101, 97, 114, 99, 104,
-				66, 111, 120, 46, 99, 115, 0, 0, 0, 1,
-				0, 0, 0, 41, 92, 65, 115, 115, 101, 116,
-				115, 92, 83, 99, 114, 105, 112, 116, 115, 92,
-				67, 111, 114, 101, 92, 85, 73, 92, 83, 112,
-				111, 105, 108, 101, 114, 87, 97, 114, 110, 105,
-				110, 103, 46, 99, 115, 0, 0, 0, 1, 0,
-				0, 0, 38, 92, 65, 115, 115, 101, 116, 115,
-				92, 83, 99, 114, 105, 112, 116, 115, 92, 67,
-				111, 114, 101, 92, 85, 73, 92, 84, 105, 116,
-				108, 101, 87, 105, 110, 100, 111, 119, 46, 99,
-				115, 0, 0, 0, 1, 0, 0, 0, 41, 92,
-				65, 115, 115, 101, 116, 115, 92, 83, 99, 114,
-				105, 112, 116, 115, 92, 67, 111, 114, 101, 92,
-				85, 73, 92, 84, 105, 116, 108, 101, 87, 111,
-				114, 107, 115, 112, 97, 99, 101, 46, 99, 115,
-				0, 0, 0, 1, 0, 0, 0, 63, 92, 65,
+				92, 116, 111, 111, 108, 116, 105, 112, 115, 92,
+				67, 117, 115, 116, 111, 109, 83, 116, 97, 110,
+				100, 97, 108, 111, 110, 101, 73, 110, 112, 117,
+				116, 77, 111, 100, 117, 108, 101, 46, 99, 115,
+				0, 0, 0, 1, 0, 0, 0, 43, 92, 65,
 				115, 115, 101, 116, 115, 92, 83, 99, 114, 105,
 				112, 116, 115, 92, 67, 111, 114, 101, 92, 85,
 				73, 92, 116, 111, 111, 108, 116, 105, 112, 115,
-				92, 67, 117, 115, 116, 111, 109, 83, 116, 97,
-				110, 100, 97, 108, 111, 110, 101, 73, 110, 112,
-				117, 116, 77, 111, 100, 117, 108, 101, 46, 99,
-				115, 0, 0, 0, 1, 0, 0, 0, 43, 92,
+				92, 84, 111, 111, 108, 116, 105, 112, 46, 99,
+				115, 0, 0, 0, 1, 0, 0, 0, 51, 92,
 				65, 115, 115, 101, 116, 115, 92, 83, 99, 114,
 				105, 112, 116, 115, 92, 67, 111, 114, 101, 92,
 				85, 73, 92, 116, 111, 111, 108, 116, 105, 112,
-				115, 92, 84, 111, 111, 108, 116, 105, 112, 46,
-				99, 115, 0, 0, 0, 1, 0, 0, 0, 51,
-				92, 65, 115, 115, 101, 116, 115, 92, 83, 99,
-				114, 105, 112, 116, 115, 92, 67, 111, 114, 101,
-				92, 85, 73, 92, 116, 111, 111, 108, 116, 105,
-				112, 115, 92, 84, 111, 111, 108, 116, 105, 112,
-				65, 99, 99, 101, 115, 115, 111, 114, 46, 99,
-				115, 0, 0, 0, 1, 0, 0, 0, 53, 92,
-				65, 115, 115, 101, 116, 115, 92, 83, 99, 114,
-				105, 112, 116, 115, 92, 67, 111, 114, 101, 92,
-				85, 73, 92, 116, 111, 111, 108, 116, 105, 112,
-				115, 92, 84, 111, 111, 108, 116, 105, 112, 80,
-				111, 115, 105, 116, 105, 111, 110, 101, 114, 46,
-				99, 115, 0, 0, 0, 1, 0, 0, 0, 48,
-				92, 65, 115, 115, 101, 116, 115, 92, 83, 99,
-				114, 105, 112, 116, 115, 92, 67, 111, 114, 101,
-				92, 85, 73, 92, 116, 111, 111, 108, 116, 105,
-				112, 115, 92, 84, 111, 111, 108, 116, 105, 112,
-				85, 116, 105, 108, 115, 46, 99, 115, 0, 0,
-				0, 1, 0, 0, 0, 36, 92, 65, 115, 115,
-				101, 116, 115, 92, 83, 99, 114, 105, 112, 116,
-				115, 92, 67, 111, 114, 101, 92, 85, 73, 92,
-				85, 110, 108, 111, 99, 107, 66, 111, 120, 46,
-				99, 115, 0, 0, 0, 1, 0, 0, 0, 34,
-				92, 65, 115, 115, 101, 116, 115, 92, 83, 99,
-				114, 105, 112, 116, 115, 92, 67, 111, 114, 101,
-				92, 85, 73, 92, 86, 105, 100, 101, 111, 85,
-				73, 46, 99, 115, 0, 0, 0, 1, 0, 0,
-				0, 38, 92, 65, 115, 115, 101, 116, 115, 92,
-				83, 99, 114, 105, 112, 116, 115, 92, 67, 111,
-				114, 101, 92, 85, 73, 92, 87, 97, 114, 110,
-				105, 110, 103, 73, 99, 111, 110, 46, 99, 115,
-				0, 0, 0, 1, 0, 0, 0, 33, 92, 65,
+				115, 92, 84, 111, 111, 108, 116, 105, 112, 65,
+				99, 99, 101, 115, 115, 111, 114, 46, 99, 115,
+				0, 0, 0, 1, 0, 0, 0, 53, 92, 65,
 				115, 115, 101, 116, 115, 92, 83, 99, 114, 105,
 				112, 116, 115, 92, 67, 111, 114, 101, 92, 85,
-				73, 92, 87, 105, 110, 100, 111, 119, 46, 99,
-				115, 0, 0, 0, 1, 0, 0, 0, 36, 92,
+				73, 92, 116, 111, 111, 108, 116, 105, 112, 115,
+				92, 84, 111, 111, 108, 116, 105, 112, 80, 111,
+				115, 105, 116, 105, 111, 110, 101, 114, 46, 99,
+				115, 0, 0, 0, 1, 0, 0, 0, 48, 92,
 				65, 115, 115, 101, 116, 115, 92, 83, 99, 114,
 				105, 112, 116, 115, 92, 67, 111, 114, 101, 92,
-				85, 73, 92, 87, 111, 114, 107, 115, 112, 97,
-				99, 101, 46, 99, 115, 0, 0, 0, 1, 0,
-				0, 0, 40, 92, 65, 115, 115, 101, 116, 115,
-				92, 83, 99, 114, 105, 112, 116, 115, 92, 67,
-				111, 114, 101, 92, 85, 73, 92, 87, 111, 114,
-				107, 115, 112, 97, 99, 101, 66, 97, 115, 101,
+				85, 73, 92, 116, 111, 111, 108, 116, 105, 112,
+				115, 92, 84, 111, 111, 108, 116, 105, 112, 85,
+				116, 105, 108, 115, 46, 99, 115, 0, 0, 0,
+				1, 0, 0, 0, 36, 92, 65, 115, 115, 101,
+				116, 115, 92, 83, 99, 114, 105, 112, 116, 115,
+				92, 67, 111, 114, 101, 92, 85, 73, 92, 85,
+				110, 108, 111, 99, 107, 66, 111, 120, 46, 99,
+				115, 0, 0, 0, 1, 0, 0, 0, 34, 92,
+				65, 115, 115, 101, 116, 115, 92, 83, 99, 114,
+				105, 112, 116, 115, 92, 67, 111, 114, 101, 92,
+				85, 73, 92, 86, 105, 100, 101, 111, 85, 73,
 				46, 99, 115, 0, 0, 0, 1, 0, 0, 0,
-				46, 92, 65, 115, 115, 101, 116, 115, 92, 83,
+				38, 92, 65, 115, 115, 101, 116, 115, 92, 83,
 				99, 114, 105, 112, 116, 115, 92, 67, 111, 114,
-				101, 92, 85, 73, 92, 87, 114, 97, 112, 112,
-				105, 110, 103, 76, 97, 121, 111, 117, 116, 71,
-				114, 111, 117, 112, 46, 99, 115
+				101, 92, 85, 73, 92, 87, 97, 114, 110, 105,
+				110, 103, 73, 99, 111, 110, 46, 99, 115, 0,
+				0, 0, 1, 0, 0, 0, 33, 92, 65, 115,
+				115, 101, 116, 115, 92, 83, 99, 114, 105, 112,
+				116, 115, 92, 67, 111, 114, 101, 92, 85, 73,
+				92, 87, 105, 110, 100, 111, 119, 46, 99, 115,
+				0, 0, 0, 1, 0, 0, 0, 36, 92, 65,
+				115, 115, 101, 116, 115, 92, 83, 99, 114, 105,
+				112, 116, 115, 92, 67, 111, 114, 101, 92, 85,
+				73, 92, 87, 111, 114, 107, 115, 112, 97, 99,
+				101, 46, 99, 115, 0, 0, 0, 1, 0, 0,
+				0, 40, 92, 65, 115, 115, 101, 116, 115, 92,
+				83, 99, 114, 105, 112, 116, 115, 92, 67, 111,
+				114, 101, 92, 85, 73, 92, 87, 111, 114, 107,
+				115, 112, 97, 99, 101, 66, 97, 115, 101, 46,
+				99, 115, 0, 0, 0, 1, 0, 0, 0, 46,
+				92, 65, 115, 115, 101, 116, 115, 92, 83, 99,
+				114, 105, 112, 116, 115, 92, 67, 111, 114, 101,
+				92, 85, 73, 92, 87, 114, 97, 112, 112, 105,
+				110, 103, 76, 97, 121, 111, 117, 116, 71, 114,
+				111, 117, 112, 46, 99, 115
 			},
-			TypesData = new byte[3873]
+			TypesData = new byte[3893]
 			{
 				0, 0, 0, 0, 13, 124, 65, 99, 104, 105,
 				101, 118, 101, 109, 101, 110, 116, 115, 0, 0,
@@ -31667,7 +31916,9 @@ internal class UnitySourceGeneratedAssemblyMonoScriptTypes_v1
 				116, 114, 121, 0, 0, 0, 0, 11, 124, 67,
 				111, 100, 101, 79, 112, 116, 105, 111, 110, 0,
 				0, 0, 0, 11, 124, 67, 111, 100, 101, 87,
-				105, 110, 100, 111, 119, 0, 0, 0, 0, 16,
+				105, 110, 100, 111, 119, 0, 0, 0, 0, 15,
+				124, 67, 111, 108, 111, 114, 105, 122, 101, 67,
+				117, 114, 115, 111, 114, 0, 0, 0, 0, 16,
 				124, 67, 111, 110, 116, 97, 105, 110, 101, 114,
 				83, 99, 97, 108, 101, 114, 0, 0, 0, 0,
 				16, 124, 68, 76, 67, 83, 116, 97, 116, 117,
@@ -31758,8 +32009,8 @@ internal class UnitySourceGeneratedAssemblyMonoScriptTypes_v1
 				110, 103, 76, 97, 121, 111, 117, 116, 71, 114,
 				111, 117, 112
 			},
-			TotalFiles = 151,
-			TotalTypes = 193,
+			TotalFiles = 152,
+			TotalTypes = 194,
 			IsEditorOnly = false
 		};
 	}

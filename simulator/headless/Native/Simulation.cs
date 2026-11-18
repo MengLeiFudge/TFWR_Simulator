@@ -265,6 +265,11 @@ public class Simulation
 		DiggingSpeedFactor = speedFactor;
 	}
 
+	public double GetDiggingOps(int hardness)
+	{
+		return Math.Ceiling((double)hardness / OpDuration.Seconds / (DiggingSpeedFactor * 1.5));
+	}
+
 	public void RunNextStep(Duration goalTime, object lockSimulation, bool stopOnFinished = false)
 	{
 		Duration priority2;

@@ -18,6 +18,7 @@ public sealed class RunnerStateStore
 
     // 实时状态由模组每轮刷新，独立于客户端拥有的请求字段。
     private bool? liveExecuting;
+    private bool liveSaving;
     private bool? liveLeaderboardRunning;
     private bool? liveLeaderboardScreen;
     private string[]? liveBusyWindows;
@@ -82,13 +83,14 @@ public sealed class RunnerStateStore
     }
 
     /// <summary>排队实时执行状态；下一次同步时合并进状态文件，不改客户端拥有的请求字段。</summary>
-    public void QueueLiveStatus(bool executing, bool leaderboardRunning, bool leaderboardScreen, string[] busyWindows)
+    public void QueueLiveStatus(bool executing, bool leaderboardRunning, bool leaderboardScreen, bool saving, string[] busyWindows)
     {
         lock (gate)
         {
             liveExecuting = executing;
             liveLeaderboardRunning = leaderboardRunning;
             liveLeaderboardScreen = leaderboardScreen;
+            liveSaving = saving;
             liveBusyWindows = busyWindows;
             livePending = true;
         }
@@ -113,11 +115,12 @@ public sealed class RunnerStateStore
             bool sameWindows = (current.BusyWindows ?? Array.Empty<string>())
                 .SequenceEqual(liveBusyWindows ?? Array.Empty<string>());
             if (current.Executing != liveExecuting || current.LeaderboardRunning != liveLeaderboardRunning ||
-                current.LeaderboardScreen != liveLeaderboardScreen || !sameWindows)
+                current.LeaderboardScreen != liveLeaderboardScreen || current.Saving != liveSaving || !sameWindows)
             {
                 current.Executing = liveExecuting;
                 current.LeaderboardRunning = liveLeaderboardRunning;
                 current.LeaderboardScreen = liveLeaderboardScreen;
+                current.Saving = liveSaving;
                 current.BusyWindows = liveBusyWindows;
                 changed = true;
             }
@@ -151,6 +154,7 @@ public sealed class RunnerStateStore
                 Executing = liveExecuting,
                 LeaderboardRunning = liveLeaderboardRunning,
                 LeaderboardScreen = liveLeaderboardScreen,
+                Saving = liveSaving,
                 BusyWindows = liveBusyWindows,
             };
         }

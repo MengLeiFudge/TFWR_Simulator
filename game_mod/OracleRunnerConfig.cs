@@ -38,7 +38,7 @@ internal sealed class OracleRunnerConfig
             "MaxRunSeconds",
             0f,
             new ConfigDescription(
-                "单次run的现实秒兜底上限（0至86400）；0表示不限时。只在客户端失联时避免无限运行，不参与成绩语义。",
+                "每次run无条件生效的现实秒上限（0至86400）；0表示不限时。按运行时长判断，不检测客户端是否存活，不参与成绩语义。",
                 new AcceptableValueRange<float>(0f, 86400f)));
         SaveTimeoutSeconds = config.Bind(
             "Advanced",
