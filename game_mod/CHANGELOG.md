@@ -4,9 +4,7 @@
 
 - 新增实时字段 `saving`（取原版 `Saver.IsSaving`），与请求终态无关；保存超时或取消后仍反映后台写盘，客户端据此阻止覆盖存档脚本，避免旧快照把旧代码写回。
 - 修复即时 `stop` 与旧请求收口相撞：活动请求已被更新请求接替时不再写旧终态，避免 `stop --replace` 的完成状态被覆盖成 `failed`。
-- `Advanced.MaxRunSeconds` 说明改为"每次 run 无条件生效的现实秒上限，0 不限时"；实现未变，不检测客户端存活。
-
-- 运行不再有时间语义：`run` 不要求 `timeout_seconds`，模组启动后一直观察到脚本自然结束；新增 `Advanced.MaxRunSeconds`（默认0，范围0～86400），只作客户端失联时的现实秒兜底，被它掐掉记 `failed`（`run exceeded MaxRunSeconds=<n>s`），不算完成。
+- 运行不再有时间语义：`run` 不要求 `timeout_seconds`，模组启动后一直观察到脚本自然结束；新增 `Advanced.MaxRunSeconds`（默认0，范围0～86400），是每次 run 都生效的现实秒上限，不检测客户端是否存活，被它掐掉记 `failed`（`run exceeded MaxRunSeconds=<n>s`），不算完成。
 - `Advanced.ScriptReadyTimeoutSeconds` 默认改为0并明确表示不限时（与 `SaveTimeoutSeconds` 一致），不再是"0即立即失败"；工作区已就绪但目标窗口不存在时立即判失败，不再等上限。
 - 重复或落后的 `request_id` 不再静默丢弃：写 `failed` 并在 `last_error` 说明已处理到哪个编号。
 - 取消请求字段 `timeout_seconds`；`protocol_version` 改为只由模组发布（升到4），客户端声明不再参与判定，已知命令按名字执行、未知命令写 `failed`。

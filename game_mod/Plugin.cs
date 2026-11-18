@@ -786,8 +786,7 @@ public sealed partial class Plugin : BaseUnityPlugin
                 DateTimeOffset.UtcNow
             );
         }
-        stateStore.Write(activeRequest);
-        activeRequest = null;
+        WriteTerminalState();
         wasLeaderboardRunning = false;
         observedLeaderboardRuns = 0;
         observedLeaderboardTotalTime = TimeSpan.Zero;
