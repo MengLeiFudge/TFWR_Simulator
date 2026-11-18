@@ -32,7 +32,7 @@ request138没有产生探针输出，不能算通过：探针用了游戏不接�
 
 仅用`simulate`验证语言，没有重新运行完整榜单。139/140都完成并回收到同ID idle，已有`test.py`、`simulate.py`、`lb_start.py`逐字节恢复。request141正常退出，最终health为idle141、进程ID为空；BepInEx和Unity日志没有新增Error/Exception。
 
-本机证据：`.codex/leaderboard-astra/interpreter-alignment/acceptance-final.json`（原始材料已于 2026-11-17 清理）。同目录保留实际脚本、依赖与备份哈希、每次原始请求报告、双日志、本地报告和比较器；`real-3/`对应request140。此专项证明上述操作的费用与返回值，不证明完整语言或任意策略无误差。普通通配导入、模块属性赋值等明确拒绝；完整浮点字符串格式化、地区相关字符串排序及全部切片边界仍未全面对齐，不应用这些未验证语义推断候选胜负。
+本机证据：`.codex/leaderboard-astra/interpreter-alignment/acceptance-final.json`（原始材料已于 2026-11-17 清理）。同目录保留实际脚本、依赖与备份哈希、每次原始请求报告、双日志、本地报告和比较器；`real-3/`对应request140。此专项证明上述操作的费用与返回值，不证明完整语言或任意策略无误差。普通通配导入、模块属性赋值等路径在当时的Python模型中明确拒绝；当前C#入口已支持这些路径，验收见[C#模拟器验收](../headless/validation.md)。旧模型下完整浮点字符串格式化、地区相关字符串排序及全部切片边界未全面对齐，不应用这些未验证语义推断候选胜负。
 
 ## 旧版单seed精度验收：记录场景通过
 
