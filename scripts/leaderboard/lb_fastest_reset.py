@@ -404,7 +404,7 @@ def parallel_solar_reserve(size, target=0):
     return True
 
 
-def step1():
+def opening_expand():
     while num_items(Items.Hay) < 80:
         if can_harvest():
             harvest()
@@ -414,8 +414,18 @@ def step1():
         if can_harvest():
             harvest()
         move(North)
-    if not unlock(Unlocks.Plant):
-        return False
+    return True
+
+
+def opening_plant():
+    while num_items(Items.Hay) < 50:
+        if can_harvest():
+            harvest()
+        move(North)
+    return unlock(Unlocks.Plant)
+
+
+def opening_speed():
     while num_unlocked(Unlocks.Speed) == 0 or num_items(Items.Wood) < 20:
         crop = Entities.Grass
         if get_pos_y() == 1 or (num_unlocked(Unlocks.Speed) > 0 and get_pos_y() == 0):
@@ -426,14 +436,28 @@ def step1():
             if not unlock(Unlocks.Speed):
                 return False
         move(North)
-    if not unlock(Unlocks.Expand):
-        return False
+    return unlock(Unlocks.Expand)
+
+
+def opening_technologies():
     for technology in [Unlocks.Speed, Unlocks.Carrots, Unlocks.Grass, Unlocks.Trees, Unlocks.Trees,
                        Unlocks.Expand, Unlocks.Carrots, Unlocks.Speed, Unlocks.Watering,
                        Unlocks.Expand, Unlocks.Watering, Unlocks.Carrots, Unlocks.Grass, Unlocks.Sunflowers]:
         if not opening_buy(technology):
             return False
     quick_print("opening_first_solar", get_time(), num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot))
+    return True
+
+
+def step1():
+    if not opening_expand():
+        return False
+    if not opening_plant():
+        return False
+    if not opening_speed():
+        return False
+    if not opening_technologies():
+        return False
     return solar_reserve()
 
 
