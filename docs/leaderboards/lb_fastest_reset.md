@@ -241,7 +241,9 @@
 
 **机制核对（`Native/World.cs`、`Native/Farm.cs`）：Weird 只有两个来源。** 一是被 `Fertilize()` 标记为 `weird` 的作物，收割时额外掉 `trunc(0.5 × dropAmount × YieldFactor)`（`World.cs:1392`）；二是迷宫收获（`World.cs:1962`）。肥料是**被动产出**：`ReceiveFertilizer` 每 `20 / 2^level` 秒加 1 个（`Farm.cs:1337`，模拟器 `HarvestFactor=1`），即肥料1 为 0.05/秒、肥料3 为 0.4/秒。
 
-据此核算：开伴生1 前要凑 1000 Weird，只能靠施肥树。Trees 3 下一棵施肥树给 `0.5×5×4=10` Weird，需 100 次施肥收割；24:49 路线肥料1 在 7:51（471 秒）、Mazes 1 在 10:18（618 秒），147 秒只产出约 7 个肥料、约 70 Weird，差一个数量级。**所以 24:49 表里 “Mazes 1 10:18 早于伴生1 13:19” 与本机核对过的机制不符**，需按原始来源重核该行，在此之前不据此设计候选。
+**关键机制：`use_item(Weird_Substance, 1)` 施在非灌木的 Growable 上会 `ToggleWeird()`，同时翻转该格与四个正交邻格**（`Execution.cs:1679–1683` → `World.cs:1432–1444`）。`canBeWeird` 对 grass/tree/bush/carrot/pumpkin/sunflower/cactus 全部为 1。因此“棋盘树＋草心”布局下，1 个 Weird 可翻转草心与四棵邻树，收割四棵树得 `4 × trunc(0.5 × 5 × YF)`：Trees 2 下 20、Trees 3 下 40，另有 20 木。**净收益 +19（Trees 2）／+39（Trees 3），是约 20～40 倍的放大**，且不依赖伴生。这解释了 24:49 路线如何在伴生1（13:19）之前就凑出 Mazes 1（10:18）：少量施肥树产出的头几十个 Weird 可以滚成上千。
+
+本机现版没有任何一处用这个放大：`first_megafarm` 的 `use_item(Weird_Substance, size)` 是对灌木开迷宫（消耗 Weird），`boost_stock` 走伴生。**这是目前找到的最大单点缺口**，下一步实现 `weird_flip(target)` 步骤并测净 Weird/秒与同步木入库。
 
 **已测（seed83，`.codex/tmp/probe_weird.py`）：无伴生时本机 Weird 吞吐为 0。** 在开局供电（653.80，Trees 2）与伴生1 之后（952.66）两次打印 `num_items(Weird_Substance)` 都是 0——树收割不记 Weird，`boost_stock` 只有在伴生1 解锁后才靠伴生凑得出 1.4k（952.66→997.46 的 44.8 秒内凑够）。所以“不等伴生先筹 1.34k Weird”在本机没有来源；用户 24:49 路线本身也是先伴生1（695.87）再 Mazes1（733.51），不是这条路。该项关闭。
 
