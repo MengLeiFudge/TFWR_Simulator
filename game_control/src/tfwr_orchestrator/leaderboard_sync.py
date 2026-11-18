@@ -176,11 +176,13 @@ def save_sync_transaction(target_dir: Path, names: list[str]) -> Iterator[None]:
         state = read_state_file(state_path)
         legacy_idle = state is not None and state.get('protocol_version', 1) in (1, 2)
         live_keys = ('executing', 'leaderboard_running', 'leaderboard_screen', 'saving')
+        # 旧模组发布的前三个实时字段；缺 saving 才说明是版本能力不足。
+        published_live_keys = live_keys[:3]
         if state is None or state.get('status') != 'idle' or any(
             state.get(key, False if legacy_idle else None) is not False for key in live_keys
         ) or state.get('busy_windows'):
             if (state is not None and state.get('status') == 'idle' and not legacy_idle
-                    and any(key not in state for key in live_keys)):
+                    and all(key in state for key in published_live_keys) and 'saving' not in state):
                 raise RuntimeError('模组版本过旧，未发布后台保存状态 saving，无法确认写盘已结束；'
                                    '先把 TFWR Oracle Runner 升级到 0.3.1 并重启游戏，再同步存档脚本。')
             raise RuntimeError('模组尚未确认空闲，不能覆盖存档脚本；先停止并回收请求，并等待实时空闲状态刷新。')
