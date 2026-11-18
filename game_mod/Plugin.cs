@@ -647,8 +647,7 @@ public sealed partial class Plugin : BaseUnityPlugin
                 {
                     MarkFailedWithOutput(activeRequest, "leaderboard cancelled", DateTimeOffset.UtcNow);
                 }
-                stateStore.Write(activeRequest);
-                activeRequest = null;
+                WriteTerminalState();
             }
 
             TryCloseExternalLeaderboardResultScreen(mainSim, "external_result_complete");
@@ -674,8 +673,7 @@ public sealed partial class Plugin : BaseUnityPlugin
                 {
                     leaderboardResultAutoCloseGate.MarkExternalLeaderboardObserved();
                     RunnerStateProtocol.MarkDone(activeRequest, DateTimeOffset.UtcNow);
-                    stateStore.Write(activeRequest);
-                    activeRequest = null;
+                    WriteTerminalState();
                 }
 
                 TryCloseExternalLeaderboardResultScreen(mainSim, "external_result_complete");
@@ -686,8 +684,7 @@ public sealed partial class Plugin : BaseUnityPlugin
                 {
                     leaderboardResultAutoCloseGate.MarkExternalLeaderboardObserved();
                     MarkFailedWithOutput(activeRequest, "leaderboard finished without completed runs", DateTimeOffset.UtcNow);
-                    stateStore.Write(activeRequest);
-                    activeRequest = null;
+                    WriteTerminalState();
                 }
 
                 TryCloseExternalLeaderboardResultScreen(mainSim, "external_result_cancelled");
@@ -842,6 +839,25 @@ public sealed partial class Plugin : BaseUnityPlugin
         observedLeaderboardTotalTime = TimeSpan.Zero;
         observedLeaderboardScriptName = string.Empty;
         // 替代请求必须由下一次 PollState 从文件重读，不能执行可能已经被取消的旧快照。
+    }
+
+    /// <summary>写活动请求终态并释放；被更新的请求接替时只记录日志，不覆盖排队中的新请求。</summary>
+    private void WriteTerminalState()
+    {
+        if (activeRequest == null)
+        {
+            return;
+        }
+
+        if (IsActiveRequestSuperseded())
+        {
+            Log.LogInfo($"旧请求已被更新的请求接替，不写终态 request_id={activeRequest.RequestId} last_handled={lastHandledRequestId}");
+        }
+        else
+        {
+            stateStore.Write(activeRequest);
+        }
+        activeRequest = null;
     }
 
     /// <summary>活动请求是否已被更新的请求接替；被接替后不得再写旧终态。</summary>

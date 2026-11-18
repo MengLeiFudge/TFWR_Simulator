@@ -175,11 +175,15 @@ def save_sync_transaction(target_dir: Path, names: list[str]) -> Iterator[None]:
     with state_transaction(state_path):
         state = read_state_file(state_path)
         legacy_idle = state is not None and state.get('protocol_version', 1) in (1, 2)
+        live_keys = ('executing', 'leaderboard_running', 'leaderboard_screen', 'saving')
         if state is None or state.get('status') != 'idle' or any(
-            state.get(key, False if legacy_idle else None) is not False
-            for key in ('executing', 'leaderboard_running', 'leaderboard_screen', 'saving')
+            state.get(key, False if legacy_idle else None) is not False for key in live_keys
         ) or state.get('busy_windows'):
-            raise RuntimeError('模组尚未确认空闲，不能覆盖存档脚本；先停止并回收请求，协议3还需等待实时空闲状态刷新。')
+            if (state is not None and state.get('status') == 'idle' and not legacy_idle
+                    and any(key not in state for key in live_keys)):
+                raise RuntimeError('模组版本过旧，未发布后台保存状态 saving，无法确认写盘已结束；'
+                                   '先把 TFWR Oracle Runner 升级到 0.3.2 并重启游戏，再同步存档脚本。')
+            raise RuntimeError('模组尚未确认空闲，不能覆盖存档脚本；先停止并回收请求，并等待实时空闲状态刷新。')
         for name in names:
             if not (target_dir / name).is_file():
                 raise FileNotFoundError(f'存档缺少已有脚本，不允许同步新增文件：{name}')

@@ -139,6 +139,11 @@ public sealed class RunnerStateStore
     {
         lock (gate)
         {
+            // 较新的请求已排队时，旧执行的终态到达不得覆盖它。
+            if (pendingState != null && pendingState.RequestId > state.RequestId)
+            {
+                return;
+            }
             pendingState = new OracleRunnerStateFile
             {
                 RequestId = state.RequestId,
