@@ -290,6 +290,12 @@
 
 **机制核对（`Native/World.cs`、`Native/Farm.cs`）：Weird 只有两个来源。** 一是被 `Fertilize()` 标记为 `weird` 的作物，收割时额外掉 `trunc(0.5 × dropAmount × YieldFactor)`（`World.cs:1392`）；二是 `use_item(Weird_Substance)` 在灌木上开迷宫、收获迷宫时返还（`World.cs:311` 的 `GetDrops`，感染南瓜的掉落是另一条路径，不要混用）。肥料是**被动产出**：`ReceiveFertilizer` 每 `20 / (1 << level)` 秒加 1 个（`Farm.cs:1337`，模拟器 `HarvestFactor=1`），肥料1 的除数是 `1 << 1 = 2`，即 **10 秒一个、0.1/秒**，肥料2 为 0.2/秒、肥料3 为 0.4/秒。
 
+**接线实测（`.codex/tmp/m20d-s83.json`，seed83）：整轮 2549.90，比现版慢 543.76 秒，方向未成立但结论具体。** 链路是 `weird_flip(1800)` → `unlock(Mazes)` → `next_megafarm()` → Pumpkins/P1 → 跳过 `first_megafarm` 的迷宫段。分段看：**首机 873.09，比现版 970.19 早 97.1 秒**，但 Polyculture 1 从 868.76 推到 1038.36（+169.6），四机 1176.60，`Mazes 2` 1508.17、`Mazes 4` 2126.75 全面落后。原因是 `weird_flip` 花了 **130.89 秒**——此刻只有 Trees 2，每棵感染树给 `trunc(0.5×5×2)=5`，一轮四心只净 +76，要 24 轮；榜前是先 Trees 3（5:59）再肥料1（7:51），每棵 10、一轮净 +156，同样 1800 只需约 12 轮。
+
+接线过程中修掉三个真实缺陷（均已回退，未进正式路径）：`small_maze_gold` 的 `boost_stock` 在伴生1 之前会调 `get_companion()` 报错，需先判已有库存；`first_megafarm` 里的 `unlock(Unlocks.Mazes)` 在已解锁时返回 False，会静默结束整轮；`next_megafarm` 的 `maze_size` 缺省为 `WORLD // 2 = 3`，此时 `required` 约 693，翻转必须备到 1693 以上。
+
+下一步按此结论做：把 `weird_flip` 排到 Trees 3 之后，把 130 秒压到 70 秒以内，并让它**替换**而非叠加 Pumpkins/P1 的支出。
+
 **实测（`.codex/tmp/m18-s83.json`，seed83）：`weird_flip` 94.28 秒产出 1,089 Weird，净增 2,275 木，即 11.5 Weird/秒。** 24:49 路线从肥料1（471 秒）到 Mazes 1（618 秒）的 147 秒里要凑 1000 Weird，需 6.8 Weird/秒；本机实测吞吐已高于该需求，且同步木入库为正。机制侧打通。
 
 接线时遇到两个具体障碍，均与 `next_megafarm()` 的默认迷宫边长有关：`small_maze_gold` 的 `n` 缺省为 `WORLD // 4`，6×6 下等于 **1**，于是 `required = (2000 + 0) // 1 + 8×1×1×1 + 2 = 2010` 个 Weird；而 `unlock(Mazes)` 已花掉 1000，翻转剩下的 521 不够，`boost_stock` 会去调 `get_companion()` 并在伴生1 之前直接 `error_missing_x_unlock [Polyculture]`。下一版把 `next_megafarm(maze_size=...)` 传下去（6×6 用 6），并按 `n=6` 重算 `required`（约 384）后再试；这一步不成立之前，翻转机制还不能接进正式路径。
