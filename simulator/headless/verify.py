@@ -1,4 +1,4 @@
-"""重放已归档的实机观测；只启动C#模拟器，不启动游戏或旧Python模型。"""
+"""重放已归档的实机观测；只启动C#模拟器，不启动游戏。"""
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import hashlib

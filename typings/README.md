@@ -16,7 +16,7 @@ ty LSP使用同一份游戏配置。历史代码库已在`ty.toml`的`src.exclud
 
 ## 声明来源与维护
 
-声明从游戏提供的类型模板提取，保留函数签名、泛型、枚举和贡献者信息，省略说明字符串与函数体；来源SHA256写在文件头。地下帽子、排行榜和科技按[资源快照](../simulator/local_simulator/underground_resources.json)并核对`Core.decompiled.cs`补齐，当前语言与导入边界见[原版语法检查](../simulator/headless/syntax-validation.md)。
+声明从游戏提供的类型模板提取，保留函数签名、泛型、枚举和贡献者信息，省略说明字符串与函数体；来源SHA256写在文件头。地下帽子、排行榜和科技按[资源快照](../simulator/headless/data/assets.json)并核对`Core.decompiled.cs`补齐，当前语言与导入边界见[原版语法检查](../simulator/headless/syntax-validation.md)。
 
 枚举与游戏冲突时先核资源注册表和实机，再同步声明及来源指纹。Windows挂载盘按[完整性要求](../docs/wsl-file-read.md#完整性要求)核对全部字节；彩色块声明校正与截断拦截见[既有证据](../docs/wsl-file-read.md#本次证据)。
 

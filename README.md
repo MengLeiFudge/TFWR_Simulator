@@ -18,7 +18,7 @@
 | [docs/](docs/README.md) | 六份核心文档、共用研究方法、30份单榜策略与进度总表 |
 | `gamesave/` | 指向本机真实 Save0 的链接，只是部署目标，不进 Git |
 
-本地模拟通过CLI手动运行，尚未自动接在部署命令前。默认[C#脚本模拟入口](simulator/headless/README.md)运行原版语言、调度及地上/地下机制，不依赖Python或游戏进程。当前版本归档重放、覆盖范围、性能与限制见[验收记录](simulator/headless/validation.md)。旧Python执行器已移除，历史对照资料保留；最终成绩仍由真实游戏验证。
+本地模拟通过CLI手动运行，尚未自动接在部署命令前。默认[C#脚本模拟入口](simulator/headless/README.md)运行原版语言、调度及地上/地下机制，不依赖Python或游戏进程。当前版本归档重放、覆盖范围、性能与限制见[验收记录](simulator/headless/validation.md)。最终成绩仍由真实游戏验证。
 
 所有准备在游戏内执行的脚本，必须先通过本地模拟的语法、正确性与效率验证。只有同条件效率严格高于存档现版，才覆盖对应已有文件；功能初版全科技，Fastest Reset用原版重置条件。要求见[脚本准入](docs/script-validation.md)，功能机制与成就条件见[算法和速率汇总](docs/script-rate-validation.md)。
 

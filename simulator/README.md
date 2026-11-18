@@ -1,11 +1,10 @@
 # 本地模拟器
 
-`simulator/` 的默认脚本执行器是 [C# 无界面模拟器](headless/README.md)，直接运行原版游戏语言、调度与世界机制。旧Python执行器已移除，仅保留历史证据；C# Dinosaur、Cactus、Companion简化动作模型另用于预算筛选。
+`simulator/` 的默认脚本执行器是 [C# 无界面模拟器](headless/README.md)，直接运行原版游戏语言、调度与世界机制。C# Dinosaur、Cactus、Companion简化动作模型另用于预算筛选。
 
 无需打开游戏即可运行，是脚本的主要验证方式。C#入口先用原版Tokenizer/Parser检查入口和全部静态导入，再执行脚本；CPython能力不能作为游戏语法依据。能力与精度分别说明：
 
 - [C#完整脚本模拟](headless/README.md)支持地上、地下、多无人机和30个原版排行榜场景。已验证的方法、归档实机重放、性能和剩余边界见[验收记录](headless/validation.md)。
-- [Python历史资料](local_simulator/README.md)仅保存对照记录、机制研究和来源快照，目录内没有旧执行代码。历史证据不自动转成C#已验收结论。
 - 下文C#动作模型只验证简化机制和动作预算，不执行脚本。随机序列对照范围见[随机数研究](randomness.md)。
 - 真实排名结论仍以 `game_control/` + `game_mod/` 跑出来的游戏结果为准。
 
@@ -15,7 +14,7 @@
 
 **成绩口径与公开榜对齐用全场均会话，不用单轮。** 公开榜的完整统计会话满约7200游戏秒（2小时）、上传各轮均值且仅在最后一轮成功时生效，单seed单轮既偏乐观（实测迷宫少算1.7秒）又带seed波动，所以正式对照统一用 [headless/session.py](headless/session.py) 跑满7200秒预算：轮数=⌈7200／单轮⌉，均分只算达成目标的轮，任一轮未达成即整场无效。报告必须带轮数、均值、标准差与标准误；单轮结果只能用于方向筛选。本机20核实测一个完整会话只需几秒到约30秒（迷宫84轮兡30秒，蘑菇单机12轮兡4秒，快速重置4轮兡9秒）。单seed长程逐步重放仍是模拟器**精度验收**的手段（首处分歧、900游戏秒内误差），两类口径不要互相替代。
 
-默认按游戏API/方法逐项检查返回值、状态变化、资源消耗、随机数和时间成本，再检查直接相关的边界与交互；不为验收模拟器逐榜运行完整打榜脚本。方法级覆盖不等于所有作物、所有参数和多无人机组合都已覆盖。C#范围见[验收记录](headless/validation.md)，Python旧模型清单见[历史API记录](local_simulator/api-coverage.md)。
+默认按游戏API/方法逐项检查返回值、状态变化、资源消耗、随机数和时间成本，再检查直接相关的边界与交互；不为验收模拟器逐榜运行完整打榜脚本。方法级覆盖不等于所有作物、所有参数和多无人机组合都已覆盖。范围见[验收记录](headless/validation.md)。
 
 已知误差须注明方向、场景和证据。先定位脚本操作、事件顺序和随机流的首处分歧，不用经验倍率校正整轮时间。误差或未覆盖语义可能改变候选排序时，模型结论不作为优劣依据；最终成绩仍须真实游戏打榜确认。C#简化动作模型继续只提供机制预算与分布筛选。
 
@@ -127,7 +126,7 @@ dotnet run --project simulator/TFWRMechanismModel.csproj -- companion --size 5 -
 
 模型依据：
 
-- 新版 `DinosaurHat.FindFreeCells()` 从头位置按N/E/S/W压栈、后进先出遍历平面农田，排除头、Dinosaur和Apple；`TryChooseTarget()` 按列表索引抽样，再排除新苹果自身。源码版本见[更新对齐记录](local_simulator/game-update-26385848.md)。
+- 新版 `DinosaurHat.FindFreeCells()` 从头位置按N/E/S/W压栈、后进先出遍历平面农田，排除头、Dinosaur和Apple；`TryChooseTarget()` 按列表索引抽样，再排除新苹果自身。源码版本见[反编译源清单](../references/DecompiledSource/source-manifest.json)。
 - `Apple.Measure()` 通常返回当前apple预选的 `nextPos`；末果预选格已被Dinosaur占据且只剩一格空地时返回该空地。
 - `DinosaurHat.OnMove()` 在离开当前 apple 格时才吃 apple、生成下一颗 apple，并执行 `ops -= floor(ops * 0.03)`。
 - `DinosaurHat.OnMove()` 每步末尾检查 `target.nextPos == oldPos`，使用身体变化之前的空格列表重选目标；动作代理保留同一候选快照。

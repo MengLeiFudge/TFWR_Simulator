@@ -37,6 +37,6 @@ mine(Items.Block, None, 16, None, target)
 
 原版还检查常量赋值、无意义or表达式、直接把游戏常量作条件，以及把物品/实体/科技常量当作数量比较。具体边界由 `Native/Language.cs` 中Parser和各Node的 `CheckForNonsensicalCode` 决定，不额外套用Python语法白名单。
 
-语法通过不代表运行时类型正确。例如原版乘法不支持 `[value] * count`，列表初始化应使用循环和append。历史三元表达式、关键字调用、列表乘法漏检及实机证据见[旧后端语法对照记录](../local_simulator/syntax-validation.md)。
+语法通过不代表运行时类型正确。例如原版乘法不支持 `[value] * count`，列表初始化应使用循环和append。
 
 实现入口为 `HeadlessHost.cs` 的 `Workspace.Load`、`CodeWindow.Parse`。脚本或依赖发生变化后须重新模拟，旧源码的效率报告不能继续放行。

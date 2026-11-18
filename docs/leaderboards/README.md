@@ -69,7 +69,7 @@ python3 game_control/tools/refresh_leaderboard_cache.py --offline
 
 ### 固定效率闭环
 
-所有游戏脚本先满足[语法、正确性、效率与替换要求](../script-validation.md)。功能初版全科技，重置榜用原版初始条件。已有模型优先用[C#完整模拟器](../../simulator/headless/README.md)；简化动作模型不计完整解释器费用，不能代替完整执行证据。当前模型覆盖、误差和未覆盖部分以[验收记录](../../simulator/headless/validation.md)为准，不沿用旧Python模型结论。
+所有游戏脚本先满足[语法、正确性、效率与替换要求](../script-validation.md)。功能初版全科技，重置榜用原版初始条件。已有模型优先用[C#完整模拟器](../../simulator/headless/README.md)；简化动作模型不计完整解释器费用，不能代替完整执行证据。当前模型覆盖、误差和未覆盖部分以[验收记录](../../simulator/headless/validation.md)为准。
 
 - 以当前#1反推核心预算：伴生有效收获周期与重抽／支撑、恐龙move/apple、仙人掌move/swap/measure、迷宫节点与宝藏路径；初始化、成熟、同步和结算均计入。
 - 理论枚举先剪枝，探针保存在`.codex/`并设置规模、时间、动作上限及早停。预计超过60秒有进度，30秒无有效输出停止缩小输入。阶段日志用0t的`quick_print()`，`print()`约耗1游戏秒，参数计算仍计费。廉价写法见[解释器费用](interpreter_cost_notes.md)。

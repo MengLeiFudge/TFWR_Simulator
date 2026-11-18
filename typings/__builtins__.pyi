@@ -1,7 +1,7 @@
 # TFWR 编辑器类型声明；从 Save0 的同源模板提取，省略说明字符串与函数体。
 # 来源 SHA256：a409abd47ad2442c5878f2ba917ad5da4d3bb4449fd31f500e5bd3df5cc5a7e7。
 # 原贡献者：Noon、KlingonDragon、dieckie、Flekay、Zoroark-Zwart、Rat、SCD-3。
-# 地下枚举补充依据 simulator/local_simulator/underground_resources.json。
+# 地下枚举补充依据 simulator/headless/data/assets.json。
 # 游戏不是 Python；模板对部分可选返回省略 None，详见 README.md。
 
 from typing import Any, Literal, overload

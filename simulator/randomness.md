@@ -1,10 +1,10 @@
 # 随机数对齐研究
 
-固定seed和调用轨迹的对齐范围是游戏`simulate`。正式资源榜与Reset在后续更新中改用系统加密随机源，salt相同也不能重放；版本和源码证据见[更新对齐记录](local_simulator/game-update-26385848.md)。本地模型只提供策略预期，候选须到真实游戏打榜验证。下文2026-10-22实机记录对应旧版Core。
+固定seed和调用轨迹的对齐范围是游戏`simulate`。正式资源榜与Reset在后续更新中改用系统加密随机源，salt相同也不能重放；版本和源码证据见[反编译源清单](../references/DecompiledSource/source-manifest.json)。本地模型只提供策略预期，候选须到真实游戏打榜验证。下文2026-10-22实机记录对应旧版Core。
 
 ## 当前本地流程
 
-`simulator/` 的 C# Dinosaur、Cactus、Companion 模型通过 CLI 手动估算动作数、完成率和命中率。[C#完整脚本模拟](headless/README.md)执行原版语言、世界与调度机制；两类模型都没有自动串入 `run_real_game_script.py`。Python旧执行器已移除，下文既有随机数对照仍按原版本保留。
+`simulator/` 的 C# Dinosaur、Cactus、Companion 模型通过 CLI 手动估算动作数、完成率和命中率。[C#完整脚本模拟](headless/README.md)执行原版语言、世界与调度机制；两类模型都没有自动串入 `run_real_game_script.py`。下文既有随机数对照仍按原版本保留。
 
 新增的 `rng` 命令只用于对照流初始化和初始抽样，不改变现有动作模型的采样口径：
 
@@ -50,17 +50,14 @@ dotnet run --project simulator/TFWRMechanismModel.csproj -- rng --seed 123 --sam
 - Core.dll：`b8ac8d22b614d9e48d3affa9a4de9c77e799b824ed8f50dc2e494cc2dd9f9082`
 - mscorlib.dll：`0e948cbd3c4fd36c10ed5bbbcf5ecab43d1a757a3afda30a662534cce7c6ec0f`
 
-本节初始序列实验验证了三台无人机各自的脚本流，以及固定单无人机种植轨迹下的 Cactus/Sunflower 流。该实验未覆盖负 seed 的游戏入口行为、共享随机流的并发种植、生长/浇水/伴生事件、迷宫、苹果生成与多轮 leaderboard 的完整世界轨迹；后续方法、机制和长程对照的范围见[历史验收](local_simulator/validation.md)。
+本节初始序列实验验证了三台无人机各自的脚本流，以及固定单无人机种植轨迹下的 Cactus/Sunflower 流。该实验未覆盖负 seed 的游戏入口行为、共享随机流的并发种植、生长/浇水/伴生事件、迷宫、苹果生成与多轮 leaderboard 的完整世界轨迹。
 
-## 旧 Python 偏差来自哪里
-
-历史记录 `.codex/drafts/2026-04-21-randompoly-initialization-parity.md` 曾在限定 companion 探针里逐行对齐；当时剩余偏差牵涉初始草、解锁顺序、计时器重排和解释器 tick。不能把历史情况概括成“游戏随机数无法复刻”。
+## 随机偏差来自哪里
 
 需要分别处理以下层次：
 
 | 层次 | 偏差来源 |
 | --- | --- |
-| 生成器 | Python 默认 RNG 与 Mono System.Random 不同 |
 | 流派生 | SHA256 字节序、八流顺序、每台无人机二次派生 |
 | 抽样轨迹 | 相同分布不保证消耗次数相同；旧版Apple先抽x/y再拒绝占用格；新版改为DFS空格列表索引，本地已同步选择规则 |
 | 初始化 | 解锁、初始实体、缩放地图等在脚本前已消费部分流 |
@@ -73,4 +70,4 @@ dotnet run --project simulator/TFWRMechanismModel.csproj -- rng --seed 123 --sam
 
 快速优化优先用现有动作模型做分布和预算筛选，成本低于重建完整解释器。若某条策略确实需要 seed 精确回放，应按“初始世界 → 单个 API → 重启/生长事件 → 单无人机 → 多无人机 → 多轮”逐层比较首次分歧，记录流名、调用序号、实体和 tick。
 
-模型通过只表示预测口径成立；真实 leaderboard 完成轮、均值和波动才支持更新最快策略。2026-10-23的后续实现已覆盖全部公开作物的主要机制并通过662条方法/机制观测对照，见[历史验收](local_simulator/validation.md)。脚本计时与共享随机事件随后按原版执行规则实现，已通过记录中的单seed长程门槛；本文初始随机序列对齐不能单独推导整轮时间精度。
+模型通过只表示预测口径成立；真实 leaderboard 完成轮、均值和波动才支持更新最快策略。2026-10-23的后续实现已覆盖全部公开作物的主要机制并通过662条方法/机制观测对照。脚本计时与共享随机事件随后按原版执行规则实现，已通过记录中的单seed长程门槛；本文初始随机序列对齐不能单独推导整轮时间精度。

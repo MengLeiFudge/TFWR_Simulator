@@ -8,7 +8,7 @@
 
 2026-10-27核对当时安装文件：Core.dll SHA256 `b8ac8d22b614d9e48d3affa9a4de9c77e799b824ed8f50dc2e494cc2dd9f9082`；Utils.dll SHA256 `e2bec8c874a94bd24c5c73e1f967c1f30b2c90912dc83474b77cbf7c6448f9b3`。本页费用来自Core的`UnaryExprNode`、`CallNode`、`BinaryExprNode`、`ImportNode`、`StringConstructor`和Utils的`PyString.Size/Contains`、`CodeUtilities.ToNiceString`。
 
-同源脚本在实机request140与本地模型产生139条完全一致的输出，包含返回值和逐段累计tick，最后检查点为1008t。另有32条历史实机输出回归一致，17个正式策略通过编译转换。当时对照范围见[历史对照记录](../../simulator/local_simulator/validation.md)，当前执行入口的范围见[模拟验收](../../simulator/headless/validation.md)。这组证据验证下列具体写法；不替代完整策略的实机计时。
+同源脚本在实机request140与本地模型产生139条完全一致的输出，包含返回值和逐段累计tick，最后检查点为1008t。另有32条历史实机输出回归一致，17个正式策略通过编译转换。范围见[模拟验收](../../simulator/headless/validation.md)。这组证据验证下列具体写法；不替代完整策略的实机计时。
 
 ## 常用操作费用
 
@@ -33,7 +33,7 @@
 | 字符串`left + right` | `max(1, len(left) + len(right))` | `+=`按结果长度收费，空串加空串为0t |
 | 字符串索引 / 切片 | 1t / `max(1, 结果长度)` | 长度与索引按UTF-16单元 |
 
-build26385848的四榜残差修复补充了枚举键与并发调度边界，见[四榜对照](../../simulator/local_simulator/four-residual-alignment.md)。子机耗尽执行栈与提交Terminated分属两次调度；同刻`wait_for`是否先进入等待会影响累计tick，不能把正常已完成句柄的1t查询统一改成免费。
+build26385848的四榜残差修复补充了枚举键与并发调度边界。子机耗尽执行栈与提交Terminated分属两次调度；同刻`wait_for`是否先进入等待会影响累计tick，不能把正常已完成句柄的1t查询统一改成免费。
 
 `not`节省的是一次比较，并不是删掉分支成本。需要保留真假含义，例如“无人机句柄不存在”和“计数为零”应分别确认返回值约定。
 

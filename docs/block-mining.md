@@ -38,7 +38,7 @@
 - `prospect_quartz()`付1 Iron，返回当前位置至最近石英的三维直线距离或`None`，原版搜索范围32格。例如10只表示距离10格，不直接给x／y／z或水平方向。
 - 开挖改变当前位置高度、地形及最近矿。比较多点距离必须用各点实际高度，在全部锚点准备后重读；最近距离可能属于不同矿，三点几何只能选下一钻孔，实际开采与有界回退仍必需。
 
-依据为原版`Drone.ProspectIron`、`Drone.ProspectQuartz`及`FindClosestOre*`；当前C#原生实现见[World.cs](../simulator/headless/Native/World.cs)。旧Python接口名仅属历史资料，不作为当前调用入口。
+依据为原版`Drone.ProspectIron`、`Drone.ProspectQuartz`及`FindClosestOre*`；当前C#原生实现见[World.cs](../simulator/headless/Native/World.cs)。
 
 早期普通田煤方向追铁的60秒三seed均值498.0529→669.4077 Iron／秒，提高34.4049%，有限5000目标9.389848秒实际5104并回收；后由连续爆破替代。石英的单机贪心、三点定位和主机准备后32机分区等七个代表均慢于当时237.4331／秒稀疏爆破，原因包括多次开孔、距离变化、深孔陷阱和最慢工人回收。113.929873秒预算样本按实际时长计算，不补成120秒。
 

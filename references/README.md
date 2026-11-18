@@ -17,4 +17,4 @@
 
 旧正式版按日期、版本号、成绩和提交号命名，候选按日期、方向及有效时间命名。档名时间可能只是局部窗口或停止时刻，以对应单榜文档的口径为准。能从母版／转换器Git版本及参数复现的临时变体，只在单榜文档保留结果、参数和淘汰原因，不重复归档整份展开代码；旧正式可执行版仍保留归档及提交映射。`leaderboards/`仅保留公开缓存与快照，不保存日期实验JSON。原始实验回执留`.codex/`，长期结论写回既有正式文档。
 
-C#模拟所需资源表归`simulator/headless/data/assets.json`；`simulator/local_simulator/`仅保留历史来源快照与对照资料。
+C#模拟所需资源表归`simulator/headless/data/assets.json`。
