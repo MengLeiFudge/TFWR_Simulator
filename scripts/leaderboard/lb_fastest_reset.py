@@ -587,6 +587,11 @@ def stock_cell(cost, bounds, deadline):
     for attempt in range(128):
         if get_time() > deadline:
             return False
+        if not affordable(get_cost(crop)):
+            # 胡萝卜等作物成本随等级上涨，草见底时改种草补草，不要结束整轮。
+            crop = Entities.Grass
+            if get_ground_type() != Grounds.Grassland:
+                till()
         if not affordable(get_cost(crop)) or not plant(crop):
             quick_print("persistent_failed", "plant", crop, get_time())
             return False
