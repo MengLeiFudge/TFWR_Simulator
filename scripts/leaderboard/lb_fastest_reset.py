@@ -961,7 +961,7 @@ def ensure_power(target):
     return True
 
 
-def early_companion_upgrade():
+def companion_dinosaurs():
     size = get_world_size()
     if not cactus_stock(14000 + size * size * 8):
         return False
@@ -971,38 +971,50 @@ def early_companion_upgrade():
     if not ensure_power(200):
         return False
     clear()
+    return True
+
+
+def companion_bones(level):
+    size = get_world_size()
     maximum = size * size - 1
     factor = 2 ** (num_unlocked(Unlocks.Dinosaurs) - 1)
-    for level in [2, 3]:
-        target = get_cost(Unlocks.Polyculture)[Items.Bone]
-        if level == 2:
-            target = max(target, 60000 - maximum * maximum * factor)
-        for cycle in range(3):
-            if num_items(Items.Bone) >= target:
-                break
-            if get_time() > 7000:
-                return False
-            origin()
-            needed = target - num_items(Items.Bone)
-            length = 1
-            while length * length * factor < needed and length < maximum:
-                length += 1
-            floor = -1
-            if length < maximum:
-                floor = num_items(Items.Cactus) - (length + 1) * get_cost(Entities.Apple)[Items.Cactus]
-            before = num_items(Items.Bone)
-            change_hat(Hats.Dinosaur_Hat)
-            run_dinosaur_chase_loop(size, floor)
-            change_hat(Hats.Straw_Hat)
-            if num_items(Items.Bone) - before < length * length * factor:
-                quick_print("early_companion_failed", level, get_time())
-                return False
-            quick_print("early_companion_bone", level, get_time(), num_items(Items.Bone) - before)
-            clear()
-        if not unlock(Unlocks.Polyculture):
+    target = get_cost(Unlocks.Polyculture)[Items.Bone]
+    if level == 2:
+        target = max(target, 60000 - maximum * maximum * factor)
+    for cycle in range(3):
+        if num_items(Items.Bone) >= target:
+            break
+        if get_time() > 7000:
             return False
-        quick_print("early_companion_upgrade", get_time(), level, num_items(Items.Bone))
+        origin()
+        needed = target - num_items(Items.Bone)
+        length = 1
+        while length * length * factor < needed and length < maximum:
+            length += 1
+        floor = -1
+        if length < maximum:
+            floor = num_items(Items.Cactus) - (length + 1) * get_cost(Entities.Apple)[Items.Cactus]
+        before = num_items(Items.Bone)
+        change_hat(Hats.Dinosaur_Hat)
+        run_dinosaur_chase_loop(size, floor)
+        change_hat(Hats.Straw_Hat)
+        if num_items(Items.Bone) - before < length * length * factor:
+            quick_print("early_companion_failed", level, get_time())
+            return False
+        quick_print("early_companion_bone", level, get_time(), num_items(Items.Bone) - before)
+        clear()
+    if not unlock(Unlocks.Polyculture):
+        return False
+    quick_print("early_companion_upgrade", get_time(), level, num_items(Items.Bone))
     return True
+
+
+def early_companion_upgrade():
+    if not companion_dinosaurs():
+        return False
+    if not companion_bones(2):
+        return False
+    return companion_bones(3)
 
 
 def staged_supply():
