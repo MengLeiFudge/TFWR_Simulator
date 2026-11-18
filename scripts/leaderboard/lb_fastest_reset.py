@@ -133,11 +133,11 @@ def tick_cell(cost):
     hay = missing(cost, Items.Hay)
     carrot = missing(cost, Items.Carrot)
     desired = Entities.Grass
-    if wood > 0:
+    # 常驻混种：棋盘位始终是树（种树不耗料），缺木时才退化成灌木；不再因木料够了就把树翻成整田胡萝卜。
+    if (get_pos_x() + get_pos_y()) % 2 == 0:
         if num_unlocked(Unlocks.Trees) > 0:
-            if (get_pos_x() + get_pos_y()) % 2 == 0:
-                desired = Entities.Tree
-        elif (get_pos_x() + get_pos_y()) % 2 == 0:
+            desired = Entities.Tree
+        elif wood > 0:
             desired = Entities.Bush
     if desired == Entities.Grass and carrot > 0:
         if affordable(get_cost(Entities.Carrot)):
