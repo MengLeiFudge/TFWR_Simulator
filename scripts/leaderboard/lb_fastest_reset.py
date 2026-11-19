@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得；C#原目标7200秒会话6轮均值2012.023秒（2026-11-18，seed1..6，当前版未实机）。
+# 完整轮时间：未取得；C#原目标7200秒会话6轮均值1987.719秒（2026-11-18，seed1..6，当前版未实机）。
 # 恐龙路径Copyright (c) [2026] [lywlucas]，MIT许可见lywlucas_LICENSE.txt。
 # 小迷宫沿用lb_maze的zzlg-git方案；来源与许可边界见同名策略文档。
 
@@ -7,11 +7,26 @@ from __builtins__ import *
 def lb_fastest_reset():
     if not step1():
         return
-    for technology in [Unlocks.Speed, Unlocks.Watering, Unlocks.Pumpkins, Unlocks.Pumpkins, Unlocks.Polyculture]:
+    for technology in [Unlocks.Speed, Unlocks.Watering]:
+        if not buy(technology):
+            return
+    while num_unlocked(Unlocks.Trees) < 3:
+        if not buy(Unlocks.Trees):
+            return
+    if not weird_flip(1384):
+        return
+    if not unlock(Unlocks.Mazes):
+        return
+    if not next_megafarm(6):
+        return
+    for technology in [Unlocks.Pumpkins, Unlocks.Pumpkins, Unlocks.Polyculture]:
         if not buy(technology):
             return
     quick_print("directed", "polyculture", get_time(), num_items(Items.Power))
-    if not first_megafarm():
+    while num_unlocked(Unlocks.Speed) < 5:
+        if not buy(Unlocks.Speed):
+            return
+    if not solar_reserve():
         return
     # 固定补到 Trees 3；不按当前等级顺延，否则提前买过 T3 的路线会多花 4800 草买 T4。
     while num_unlocked(Unlocks.Trees) < 3:
@@ -168,6 +183,8 @@ def tick_cell(cost):
 def basic(cost):
     if num_unlocked(Unlocks.Polyculture) > 0:
         return boost_stock(cost)
+    if max_drones() > 1:
+        return boost_stock(cost, False)
     for passes in range(1500):
         if affordable(cost):
             return True
@@ -468,7 +485,51 @@ def step1():
     return solar_reserve()
 
 
-def boost_stock(cost):
+def weird_flip(target):
+    size = get_world_size()
+    if size != 6:
+        return False
+    if num_items(Items.Weird_Substance) < 1:
+        if num_items(Items.Fertilizer) < 1:
+            return False
+        origin()
+        if not opening_cell(Entities.Tree):
+            return False
+        use_item(Items.Fertilizer, 1)
+        while not can_harvest():
+            if get_time() > 7000:
+                return False
+        harvest()
+    centers = [(0, 0), (1, 3), (4, 4), (3, 1)]
+    while num_items(Items.Weird_Substance) < target:
+        if get_time() > 7000:
+            return False
+        if num_items(Items.Weird_Substance) < 4:
+            return False
+        origin()
+        for x in range(size):
+            for y in range(size):
+                crop = Entities.Grass
+                if (x + y) % 2 == 1:
+                    crop = Entities.Tree
+                if not opening_cell(crop):
+                    return False
+                move(North)
+            move(East)
+        for center in centers:
+            go(center[0], center[1])
+            use_item(Items.Weird_Substance, 1)
+        for x in range(size):
+            for y in range(size):
+                go(x, y)
+                if can_harvest():
+                    harvest()
+                move(North)
+            move(East)
+    return True
+
+
+def boost_stock(cost, companions=True):
     # 原料订单复用现成田；所有工人回收后才允许调用方切换机制。
     if affordable(cost):
         return True
@@ -486,12 +547,12 @@ def boost_stock(cost):
     handles = []
     passed = True
     for worker in range(1, workers):
-        handle = spawn_drone(stock_worker, worker, workers, cost, deadline)
+        handle = spawn_drone(stock_worker, worker, workers, cost, deadline, companions)
         if handle == None:
             passed = False
             break
         handles.append(handle)
-    if passed and not stock_worker(0, workers, cost, deadline):
+    if passed and not stock_worker(0, workers, cost, deadline, companions):
         passed = False
     for handle in handles:
         if not wait_for(handle):
@@ -502,7 +563,7 @@ def boost_stock(cost):
     return passed and affordable(cost)
 
 
-def stock_worker(worker, workers, cost, deadline):
+def stock_worker(worker, workers, cost, deadline, companions=True):
     size = get_world_size()
     columns = 1
     while columns * columns < workers:
@@ -534,7 +595,7 @@ def stock_worker(worker, workers, cost, deadline):
             return False
         x, y = anchors[index]
         go(x, y)
-        if not stock_cell(cost, bounds, deadline):
+        if not stock_cell(cost, bounds, deadline, companions):
             return False
         if len(anchors) > 1:
             if index + step < 0 or index + step >= len(anchors):
@@ -554,14 +615,16 @@ def stock_crop(cost):
     return Entities.Tree
 
 
-def stock_cell(cost, bounds, deadline):
+def stock_cell(cost, bounds, deadline, companions=True):
     entity = get_entity_type()
     if entity in [Entities.Grass, Entities.Bush, Entities.Tree, Entities.Carrot]:
         if not can_harvest():
             if get_water() < 0.5 and num_items(Items.Water) >= 2:
                 use_item(Items.Water, 2)
             return True
-        companion = get_companion()
+        companion = None
+        if companions:
+            companion = get_companion()
         if companion != None:
             kind, position = companion
             if stock_companion_inside(position, bounds):
@@ -599,6 +662,8 @@ def stock_cell(cost, bounds, deadline):
         if not plant(crop):
             quick_print("persistent_failed", "plant", crop, get_time())
             return False
+        if not companions:
+            return True
         companion = get_companion()
         if companion != None and stock_companion_inside(companion[1], bounds):
             return True
@@ -1687,8 +1752,9 @@ def small_maze_gold(target, n=None):
     deadline = min(7000, get_time() + 800)
     # 金币/Weird比为宫边长；另付创建、到位登记和并行超收的完整储备。
     required = (max(0, target - num_items(Items.Gold)) + n - 1) // n + 8 * n * MULT * DRONES + 2 * DRONES
-    if not boost_stock({Items.Weird_Substance: required}):
-        return False
+    if num_items(Items.Weird_Substance) < required:
+        if not boost_stock({Items.Weird_Substance: required}):
+            return False
     clear()
     start_stock = num_items(Items.Weird_Substance)
     jobs = []
