@@ -248,6 +248,7 @@
 | 先买 Cactus 4 再磨末段仙人掌 | seed83 筛选 2078.363（慢 69.80 秒） | 720000 南瓜约 15 轮，抵不上仙人掌轮数减半省下的 6 轮 | `staged_supply` 的 Cactus 上限改 4；报告 `.codex/tmp/reset-fast/screen-cactus4-83.json` |
 | 翻转中心由 4 个加到 5／6 个 | seed83 筛选 2017.878／2022.318（慢 9.32／13.76 秒） | 新增中心主要翻转草格，树覆盖没增加，每轮多付 Weird | `weird_flip` 的 `centers` 改成 5／6 项；报告 `.codex/tmp/reset-fast/screen-flip{5,6}-83.json` |
 | 开局供料改成按缺口分配种植比例 | seed83 筛选 2411.278（纯比例）／2220.522（树≥半个田、草≥六分之一） | 两版都慢 400／215 秒。纯比例版把自己锁死：胡萝卜种子要草或木，配方把整田都算成胡萝卜后种子买不起，胡萝卜停在 300 左右；留料格后不再锁死但更慢。当前 6×6 板是 18 树＋18 胡萝卜＋0 草（C≥3），草料靠 `opening_stock` 末尾那 4 秒双列草场单独供，换格子比省下的多 | `opening_stock`／`tick_cell` 的固定棋盘换成 `opening_mix` 按 `missing()` 算格数；报告 `.codex/tmp/reset-fast/screen-mix{,-half,-pure,2,3}-83.json`，生成物已移入 `.codex/trash/20261119-reset-fast-mix/` |
+| 开局购买改成三笔一批备料 | seed83 筛选 2237.637（慢 231.70 秒） | 按批备料会把早到的科技压在手里：Speed 1、Carrots 1 这些每早一秒就多产一秒，逐笔“够就买”优于少走几趟田 | `opening_technologies` 改成每批三笔取逐项最大值后一次 `opening_stock`，再循环买入；报告 `.codex/tmp/reset-fast/screen-batch3-83.json` |
 2026-11-15这批比较均为原版重置初始条件和目标，每例15墙钟秒、最多两进程；原版Parser、正常终态、实际目标、依赖与程序集/资源指纹逐项核对。最终源仅剩主机，报告索引`.codex/gemini-reset-maze-20261115/results.json`（原始材料已于 2026-11-17 清理）。ty与冻结父版同为14处既有类型错误及15条提示，新增代码无诊断；没有将LSP写成零错。
 2026-11-19 这批为原版重置初始条件与目标、原版 Parser、无输入覆盖；除标注 seed83 单轮筛选者外均为同 seed1..6 会话对照，每轮正常终态并实际解锁 Leaderboard。脚本改动只在 `scripts/leaderboard/lb_fastest_reset.py` 的 `early_companion_upgrade`／`eight_drones`／`four_drones`／`lb_fastest_reset` 入口处，`--syntax-only` 通过；未实机。
 
