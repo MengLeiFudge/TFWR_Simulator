@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "app_id": 2060160,
-  "last_attempt_at": "2026-11-19T06:31:58.290970+00:00",
+  "last_attempt_at": "2026-11-19T07:45:21.102013+00:00",
   "boards": [
     {
       "script": "lb_cactus",
@@ -2101,7 +2101,7 @@
     {
       "script": "lb_fastest_reset",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869903/",
-      "retrieved_at": "2026-11-19T06:32:09.285866+00:00",
+      "retrieved_at": "2026-11-19T07:45:23.055910+00:00",
       "total_entries": 4733,
       "entries": [
         {
@@ -2508,7 +2508,7 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-19T06:32:09.285904+00:00",
+        "retrieved_at": "2026-11-19T07:45:23.055947+00:00",
         "rank": 39,
         "time_ms": 2507696,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",

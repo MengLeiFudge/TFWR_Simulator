@@ -938,6 +938,7 @@
     },
     "lb_fastest_reset": {
       "committed": [
+        {"file": "20261119_v37_sim_28m24.835s_2bb2d3f.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v37_sim_28m24.835s_2bb2d3f.py", "date": "2026-11-19", "commit": "2bb2d3f", "time_tag": "28m24.835s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 28:24.835"},
         {"file": "20261119_v36_sim_28m48.801s_1ce7270.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v36_sim_28m48.801s_1ce7270.py", "date": "2026-11-19", "commit": "1ce7270", "time_tag": "28m48.801s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 28:48.801"},
         {"file": "20261119_v35_sim_29m11.154s_77a7fbf.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v35_sim_29m11.154s_77a7fbf.py", "date": "2026-11-19", "commit": "77a7fbf", "time_tag": "29m11.154s（本地模拟）", "message": "十六机阶梯仙人掌与异物联产，按批备电"},
         {"file": "20261119_v34_sim_30m10.131s_ee4caa0.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v34_sim_30m10.131s_ee4caa0.py", "date": "2026-11-19", "commit": "ee4caa0", "time_tag": "30m10.131s（本地模拟）", "message": "按24:49实付全部60笔，整田联产仙人掌与异物"},
@@ -5959,6 +5960,7 @@
     ".codex/reset-under-combinations-20261117/four-small-rice4/lb_fastest_underground_reset.py": "references/leaderboard_history/lb_fastest_underground_reset/20261117_rejected_small_maze_rice4_seed8_failure.py"
   },
   "commit_to_archive": {
+    "lb_fastest_reset:2bb2d3f": "references/leaderboard_history/lb_fastest_reset/20261119_v37_sim_28m24.835s_2bb2d3f.py",
     "lb_fastest_reset:1ce7270": "references/leaderboard_history/lb_fastest_reset/20261119_v36_sim_28m48.801s_1ce7270.py",
     "lb_fastest_reset:77a7fbf": "references/leaderboard_history/lb_fastest_reset/20261119_v35_sim_29m11.154s_77a7fbf.py",
     "lb_fastest_reset:ee4caa0": "references/leaderboard_history/lb_fastest_reset/20261119_v34_sim_30m10.131s_ee4caa0.py",

@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：本地原版重置场均 28:24.835（seed1..6，实机待验证）。
+# 完整轮时间：本地原版重置场均 28:05.245（seed1..6，实机待验证）。
 # 恐龙路径 Copyright (c) [2026] [lywlucas]，MIT 见 lywlucas_LICENSE.txt。小迷宫沿用 zzlg-git 的合法独立收取实现。
 
 
@@ -424,7 +424,7 @@ def pumpkin_stock(target):
         if not basic({Items.Carrot: cost[Items.Carrot] * size * size * 2}):
             return False
         origin()
-        if not pumpkin_strip(0, 1, size):
+        if not pumpkin_strip(0, 1, size, -1):
             return False
         before = num_items(Items.Pumpkin)
         harvest()
@@ -432,7 +432,7 @@ def pumpkin_stock(target):
     return True
 
 
-def pumpkin_strip(worker, workers, size):
+def pumpkin_strip(worker, workers, size, start_stock):
     # 相邻矩形只归一台机，坏苗复查不横穿其他区。所有区域汇合后仍一次收整田。
     columns = 1
     while columns * columns < workers:
@@ -452,6 +452,8 @@ def pumpkin_strip(worker, workers, size):
     while pending and get_time() < deadline:
         retry = []
         for x, y in pending:
+            if start_stock >= 0 and num_items(Items.Pumpkin) > start_stock:
+                return True
             go(x, y)
             crop = get_entity_type()
             if crop != Entities.Pumpkin:
@@ -473,40 +475,61 @@ def pumpkin_strip(worker, workers, size):
 
 
 def parallel_pumpkin_stock(target):
+    # 同一块田的连续批次由同一组工人种到交货，主机在田角检查大南瓜是否已经连到对角。
     size = get_world_size()
     workers = min(size, max_drones())
-    while num_items(Items.Pumpkin) < target:
-        if get_time() > 7000:
-            return False
-        price = get_cost(Entities.Pumpkin)[Items.Carrot]
-        if not basic({Items.Carrot: (price * size * size * 3 + 1) // 2}):
-            return False
-        handles = []
-        success = True
-        for worker in range(1, workers):
-            handle = spawn_drone(pumpkin_strip, worker, workers, size)
-            if handle == None:
-                success = False
-                break
-            handles.append(handle)
-        if success:
-            success = pumpkin_strip(0, workers, size)
-        for handle in handles:
-            if not wait_for(handle):
-                success = False
-        if not success:
-            quick_print("directed_failed", "pumpkin_workers", get_time())
-            return False
-        origin()
-        before = num_items(Items.Pumpkin)
-        weird_before = num_items(Items.Weird_Substance)
+    price = get_cost(Entities.Pumpkin)[Items.Carrot]
+    gain = size * size * min(size, 6) * 2 ** (num_unlocked(Unlocks.Pumpkins) - 1)
+    fee = size * size * price * 3 // 2
+
+    def harvest_full_pumpkin(before, expected):
+        weird = num_items(Items.Weird_Substance)
         if not harvest():
             return False
-        expected = size * size * min(6, size) * 2 ** (num_unlocked(Unlocks.Pumpkins) - 1)
-        if num_items(Items.Pumpkin) - before + num_items(Items.Weird_Substance) - weird_before != expected:
-            quick_print("directed_failed", "pumpkin_group", get_time(), expected, num_items(Items.Pumpkin) - before)
+        return num_items(Items.Pumpkin) - before + num_items(Items.Weird_Substance) - weird == expected
+
+    def pumpkin_batch_worker(w, count):
+        for batch in range(count):
+            initial = num_items(Items.Pumpkin)
+            if not pumpkin_strip(w, workers, size, initial):
+                return False
+            if batch + 1 == count:
+                # 最后一批由主机在所有分区退出后收割，给下一项生产交付空田。
+                return True
+            deadline = get_time() + 30
+            if w == 0:
+                go(0, size - 1)
+                while get_time() < deadline:
+                    key = measure(North)
+                    if key != None and measure(West) == key and can_harvest():
+                        if not harvest_full_pumpkin(initial, gain):
+                            return False
+                        break
+            while num_items(Items.Pumpkin) == initial and get_time() < deadline:
+                pass
+            if num_items(Items.Pumpkin) == initial:
+                quick_print('pumpkin_timeout', w, get_time())
+                return False
+        return True
+
+    while num_items(Items.Pumpkin) < target:
+        if not basic({Items.Carrot: fee}):
             return False
-        quick_print("directed_parallel_pumpkin", get_time(), workers, num_items(Items.Pumpkin) - before, num_items(Items.Power))
+        count = min((target - num_items(Items.Pumpkin) + gain - 1) // gain, num_items(Items.Carrot) // fee)
+        jobs = []
+        for w in range(1, workers):
+            h = spawn_drone(pumpkin_batch_worker, w, count)
+            if h == None:
+                break
+            jobs.append(h)
+        ok = len(jobs) == workers - 1 and pumpkin_batch_worker(0, count)
+        for h in jobs:
+            if not wait_for(h):
+                ok = False
+        if not ok:
+            return False
+        if not harvest_full_pumpkin(num_items(Items.Pumpkin), gain):
+            return False
     return True
 
 
@@ -716,7 +739,67 @@ def cactus_stock(target):
     global cactus_size
     size = get_world_size()
     workers = min(size, max_drones())
+    def mid_chain(target):
+        global chain_cells
+        if not chain_cells:
+            pos = 1
+            chain_cells.append(pos)
+            for d in chain_directions[1:]:
+                pos += [1, 16, -1, -16][d]
+                chain_cells.append(pos)
+        length = len(chain_cells)
+        grade = 2
+        converted = 3 * length * grade // 2
+        gross = length * length * grade
+        fee = get_cost(Entities.Cactus)[Items.Pumpkin] * length
+        while num_items(Items.Cactus) < target or num_items(Items.Weird_Substance) < 33040:
+            if not ensure_power(120) or not pumpkin_stock(fee):
+                return False
+            flips = min(length // 3, (max(0, 33040 - num_items(Items.Weird_Substance)) + converted - 2) // (converted - 1))
+            # 三个连续位置为一组，各中心的十字不重叠。第一趟完成播种及段内排序。
+            for planting in [True, False]:
+                handles = []
+                for w in range(1, 8):
+                    h = spawn_drone(mid_chain_strip, w, planting, flips)
+                    if h == None:
+                        break
+                    handles.append(h)
+                ok = len(handles) == 7 and mid_chain_strip(0, planting, flips)
+                for h in handles:
+                    if not wait_for(h):
+                        ok = False
+                if not ok:
+                    return False
+            p = chain_cells[0]
+            go(p // 16, p % 16)
+            cactus, weird = num_items(Items.Cactus), num_items(Items.Weird_Substance)
+            if not harvest() or num_items(Items.Cactus) - cactus + num_items(Items.Weird_Substance) - weird != gross:
+                return False
+        return True
+
+
+    def mid_chain_strip(w, planting, flips):
+        length = len(chain_cells)
+        s, e = chain_cuts[2 * w], chain_cuts[2 * w + 2]
+        if planting:
+            ready = sp_pass(chain_cells, chain_directions, 0, s, e, True, length, get_time() + 30)
+            if not ready:
+                return False
+            while get_time() < ready:
+                pass
+            return True
+        if not chain_join(chain_directions, 0, s, e, False, length):
+            return False
+        for group in range(w * flips // 8, (w + 1) * flips // 8):
+            p = chain_cells[3 * group + 1]
+            go(p // 16, p % 16)
+            if not use_item(Items.Weird_Substance):
+                return False
+        return True
+
     while num_items(Items.Cactus) < target:
+        if size == 16 and workers == 8 and num_unlocked(Unlocks.Cactus) == 2:
+            return mid_chain(target)
         if workers == 16 and num_unlocked(Unlocks.Cactus) == 3:
             return chain_harvest(target)
         if not ensure_power(300):

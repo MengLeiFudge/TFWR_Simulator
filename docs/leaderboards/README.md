@@ -130,6 +130,8 @@ python3 game_control/tools/refresh_leaderboard_cache.py --offline
 
 先读入口、依赖、目标和许可，记录版本及已读范围；入口错误、缺收获或目标不符先适配，再判断策略。外部依赖迁入仓库实现，不能在真实存档新增依赖文件。打榜适配已有`lb_xxx`／`lb_start`，探针适配已有`test.py`。
 
+对仅限个人使用的私有仓库，获授权后可在本地模拟原文件。项目里的实现从游戏机制出发独立编写、验证。正式记录只保留通用思路和本项目的实测数据。
+
 用本地语法、正确性和完整费用对照筛选，再按上述实机准入运行。更快候选须解释打破了哪个假设，并在迁入源码后核对执行副本；新版本正式成绩取迁入复验，作者自述成绩不算本机实测。来源汇总见[GitHub](github_strategy_research.md)和[B站](bilibili_strategy_research.md)。
 
 ## `lb_xxx.md` 推荐模板
