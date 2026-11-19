@@ -33,6 +33,14 @@
           "commit": "d30b5f59",
           "time_tag": "34.634s",
           "message": "多机行列派发与单向三格窗口排序"
+        },
+        {
+          "file": "20261119_v05_12.898s_a477c05.py",
+          "path": "references/leaderboard_history/lb_cactus/20261119_v05_12.898s_a477c05.py",
+          "date": "2026-11-19",
+          "commit": "a477c05",
+          "time_tag": "12.898s",
+          "message": "稀疏阶梯单链（本地模拟12.898秒，未实机），被每架数据入函数、开局省1.1秒的版本取代"
         }
       ],
       "rejected": [
