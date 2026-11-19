@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：本地原版重置场均 28:48.801（seed1..6，实机待验证）。
+# 完整轮时间：本地原版重置场均 28:24.835（seed1..6，实机待验证）。
 # 恐龙路径 Copyright (c) [2026] [lywlucas]，MIT 见 lywlucas_LICENSE.txt。小迷宫沿用 zzlg-git 的合法独立收取实现。
 
 
@@ -199,6 +199,8 @@ def mixed_stock(cost, stage):
 
 def mixed_worker(w, workers, cost, stage, deadline):
     size = get_world_size()
+    if workers==1 and size in (4,6) and stage in range(14,22):
+        return orchard_lane(cost,stage,deadline)
     if size == 3:
         return nursery(cost, stage, deadline)
     tree = Entities.Tree
@@ -306,7 +308,10 @@ def bones_stock(target):
         while length < maximum and length * length * factor < target - num_items(Items.Bone):
             length += 1
         apple = get_cost(Entities.Apple)[Items.Cactus]
-        if not cactus_stock((length + 2) * apple) or not ensure_power(220):
+        battery = 220
+        if size == 16 and num_unlocked(Unlocks.Dinosaurs) == 5:
+            battery = 115
+        if not cactus_stock((length+2)*apple) or not ensure_power(battery):
             return False
         clear()
         floor = -1
@@ -554,14 +559,14 @@ def solar_reserve():
     return True
 
 
-def solar_plant_strip(worker, workers, size, deadline):
+def solar_plant_strip(worker, workers, size, deadline, width):
     buckets = {}
     for petals in range(7, 16):
         buckets[petals] = []
     first = worker * size // workers
     last = (worker + 1) * size // workers
     for y in range(first, last):
-        for x in range(size):
+        for x in range(width):
             if get_time() > deadline:
                 return None
             go(x, y)
@@ -599,14 +604,17 @@ def parallel_solar_reserve(size, target=0):
     handles = []
     passed = True
     batches = []
+    width = size
+    if target > 0 and workers == size:
+        width = min(size, max(2, (target-num_items(Items.Power)+184+8*size-1)//(8*size)+1))
     for worker in range(1, workers):
-        handle = spawn_drone(solar_plant_strip, worker, workers, size, deadline)
+        handle = spawn_drone(solar_plant_strip, worker, workers, size, deadline, width)
         if handle == None:
             passed = False
             break
         handles.append(handle)
     if passed:
-        own = solar_plant_strip(0, workers, size, deadline)
+        own = solar_plant_strip(0, workers, size, deadline, width)
         if own == None:
             passed = False
         else:
@@ -623,7 +631,16 @@ def parallel_solar_reserve(size, target=0):
     if workers >= 4:
         fee = get_cost(Entities.Carrot)[Items.Wood]
         if num_items(Items.Wood) >= 9*workers*fee and num_items(Items.Hay) >= 9*workers*fee:
-            if not solar_wave(0,workers,batches,num_items(Items.Wood),fee,workers,target,deadline):
+            lowest = 7
+            if target > 0:
+                count = 0
+                for rank in range(15, 6, -1):
+                    for buckets in batches:
+                        count += len(buckets[rank])
+                    if num_items(Items.Power) + 8 * count >= target + 75:
+                        lowest = rank
+                        break
+            if not solar_wave(0,workers,batches,num_items(Items.Wood),fee,workers,lowest,deadline):
                 return False
             quick_print('solar_wave',get_time()-started,num_items(Items.Power))
             return True
@@ -1890,7 +1907,7 @@ def chain_harvest(target):
     plan = []
     while cactus < target:
         infected = min(16, max(0,(254128 + 32 - bank + converted - 1) // converted))
-        toggles = 32 - infected
+        toggles = 32 + infected
         cactus += gross - infected * converted
         bank = bank - toggles + infected * converted
         plan.append((infected, toggles, cactus))
@@ -1920,22 +1937,31 @@ def chain_group(w, half, plan, weird, seeds, planting, converted, deadline):
     for r in range(len(plan)):
         take, flips, expected = plan[r]
         fwd = r % 2 == 0
-        if not sp_pass(chain_cells, chain_directions, 0, s, e, fwd, len(chain_cells), deadline):
+        ready = sp_pass(chain_cells, chain_directions, 0, s, e, fwd, len(chain_cells), deadline)
+        if not ready:
             ok = False
             break
-        mid = e-3
+        mid = s+2
         if not fwd:
-            mid = s+2
+            mid = e-3
         pos = chain_cells[mid]
         go(pos//16, pos%16)
-        if not use_item(Items.Weird_Substance) or (w >= take and not use_item(Items.Weird_Substance)):
+        while get_time()<ready and get_time() < deadline:
+            pass
+        if not use_item(Items.Weird_Substance):
+            return False
+        while num_items(Items.Weird_Substance)>weird-16 and get_time() < deadline:
+            pass
+        if get_time() >= deadline or not chain_join(chain_directions, 0, s, e, not fwd, len(chain_cells)):
+            return False
+        go(pos//16, pos%16)
+        if not use_item(Items.Weird_Substance) or (w < take and not use_item(Items.Weird_Substance)):
             ok = False
             break
         if w == 0:
             while num_items(Items.Pumpkin) > seeds - planting * (r+1) and get_time() < deadline:
                 pass
-            mature = get_time()+1
-            while (num_items(Items.Weird_Substance) > weird - flips or get_time()<mature) and get_time() < deadline:
+            while num_items(Items.Weird_Substance) > weird - flips and get_time() < deadline:
                 pass
             if get_time() >= deadline or not harvest():
                 ok = False
@@ -1972,6 +1998,15 @@ def sp_pass(cells, dirs, base, s, e, fwd, L, deadline):
             harvest()
         if not plant(Entities.Cactus):
             return False
+        i += st
+    ripe_at = get_time() + 1
+    i0, i1 = i1 - st, i0 - st
+    st = -st
+    fwd = not fwd
+    i = i0
+    while i != i1:
+        if i != i0:
+            move(sp_dir(dirs, base, i-st, i))
         j = i
         while j != i0:
             p = j - st
@@ -1999,29 +2034,7 @@ def sp_pass(cells, dirs, base, s, e, fwd, L, deadline):
             move(sp_dir(dirs, base, j, j + st))
             j += st
         i += st
-    # 与相邻块交界的边由后种完的一侧补一次交换。
-    nb = -1
-    if fwd and e < L:
-        nb = e
-        cur = e - 1
-    if not fwd and s > 0:
-        nb = s - 1
-        cur = s
-    if nb >= 0:
-        d = sp_dir(dirs, base, cur, nb)
-        while measure(d) == None:
-            if get_time() >= deadline:
-                return False
-        lo = cur
-        vlo = measure()
-        vhi = measure(d)
-        if nb < cur:
-            lo = nb
-            vlo = vhi
-            vhi = measure()
-        if edge_asc(dirs, base, lo) != (vlo <= vhi) and vlo != vhi:  # ty: ignore[unsupported-operator]  已播种的相邻仙人掌大小均为整数。
-            swap(d)
-    return True
+    return ripe_at
 
 
 def sp_dir(dirs, base, a, b):
@@ -2043,18 +2056,18 @@ def is_mid(dirs, base, i):
     return (dirs[i + 1 - base] < 2) == (dirs[i - base] < 2)
 
 
-def solar_wave(first, count, batches, start_wood, fee, rows, target, deadline):
+def solar_wave(first, count, batches, start_wood, fee, rows, lowest, deadline):
     jobs = []
     while count > 1:
         split = count//2
-        h = spawn_drone(solar_wave, first+split, count-split, batches, start_wood, fee, rows, target, deadline)
+        h = spawn_drone(solar_wave, first+split, count-split, batches, start_wood, fee, rows, lowest, deadline)
         if h==None:
             return False
         jobs.append(h)
         count=split
     marker_y = first * get_world_size() // rows
     ok=True
-    for rank in range(15, 6,-1):
+    for rank in range(15, lowest-1,-1):
         ready = start_wood - (16-rank)*rows*fee
         for x, y in batches[first][rank]:
             go(x, y)
@@ -2064,8 +2077,9 @@ def solar_wave(first, count, batches, start_wood, fee, rows, target, deadline):
             if not can_harvest() or not harvest():
                 ok=False
                 break
-        # 第 0 列第一格专门作同步。整田已播完，木材只有这些胡萝卜种费会变。
-        go(0, marker_y)
+        # 最后一株收割后就地种胡萝卜。首波空桶的工人先到自己留下的空位。
+        if rank == 15 and len(batches[first][rank]) == 0:
+            go(0, marker_y)
         if get_entity_type()!=None and get_entity_type()!=Entities.Grass:
             harvest()
         if get_ground_type()!=Grounds.Soil:
@@ -2118,6 +2132,72 @@ def mark_crop_loan(target, grade, keep, stock):
         if h==None or not wait_for(h):
             ok=False
     return ok
+
+
+def orchard_lane(cost, stage, deadline):
+    size = get_world_size()
+    go(0, 0)
+    wet = num_unlocked(Unlocks.Watering) > 0
+    fee = get_cost(Entities.Carrot)[Items.Hay]
+    while get_time() < deadline:
+        for y in range(2):
+            xs = range(size)
+            step = East
+            if y == 1:
+                xs = range(size-1,-1,-1)
+                step = West
+            for x in xs:
+                if affordable(cost):
+                    return True
+                crop = Entities.Carrot
+                if x == 0 and y == 0:
+                    crop = Entities.Grass
+                elif (x+y)%2 == 1:
+                    if stage<=17 or x%3 != 1:
+                        crop = Entities.Tree
+                if not tend(crop, False, stage>=19 and num_items(Items.Weird_Substance)<1384):
+                    return False
+                if wet and get_water()<0.54 and num_items(Items.Water)>1:
+                    use_item(Items.Water, 2)
+                if crop == Entities.Grass:
+                    end = get_time() + 3
+                    while num_items(Items.Hay) < fee*size*2 and get_time()<end:
+                        if can_harvest():
+                            harvest()
+                if y==0 and x==size-1:
+                    move(North)
+                elif y==1 and x==0:
+                    move(South)
+                else:
+                    move(step)
+    return affordable(cost)
+
+
+def chain_join(dirs, base, s, e, fwd, L):
+    # 与相邻块交界的边由后种完的一侧补一次交换。
+    nb = -1
+    if fwd and e < L:
+        nb = e
+        cur = e - 1
+    if not fwd and s > 0:
+        nb = s - 1
+        cur = s
+    if nb >= 0:
+        pos = chain_cells[cur]
+        go(pos//16, pos%16)
+        d = sp_dir(dirs, base, cur, nb)
+        if measure(d)==None:
+            return False
+        lo = cur
+        vlo = measure()
+        vhi = measure(d)
+        if nb < cur:
+            lo = nb
+            vlo = vhi
+            vhi = measure()
+        if edge_asc(dirs, base, lo) != (vlo <= vhi) and vlo != vhi:  # ty: ignore[unsupported-operator]  已播种的相邻仙人掌大小均为整数。
+            swap(d)
+    return True
 
 
 if __name__ == "__main__":
