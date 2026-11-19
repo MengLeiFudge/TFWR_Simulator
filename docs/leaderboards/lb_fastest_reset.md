@@ -256,6 +256,8 @@
 | 两格草场改成每趟都走 | 4 秒窗 2051.843（慢 85 秒）；12 趟 2319.185（慢 352 秒） | 草场本身没问题：实测 Grass 2 两格 4.68 秒出 44～52 草（约 10 草/秒），但这是拿几乎全部动作预算换的；整田 36 格走一趟约 6.5 秒，已经等于树成熟（约 7 秒），插草场就是直接推迟木料。现状只在当前订单缺草时跑，平均约 1.6 草/秒 | 把 `opening_stock` 末尾的草场循环移到整田遍历之前并去掉 `missing(Hay) > 0` 门控；报告 `.codex/tmp/reset-fast/screen-grassfarm{,4}-*.json` |
 | 草场备到 800 草就停 | 会话均 2021.632（慢 55 秒） | 先把草垫起来再专心种木，账算不平：垫草那几十秒把 Trees 1/2 整体推后，后面每一笔都跟着推 | 同上，但草场条件改成 `num_items(Hay) < 800`；报告 `.codex/tmp/reset-fast/screen-hayreserve-*.json` |
 | 6×6 非树格拆一半草（对应视频“棋盘式树草混合”） | 会话均 1978.797（慢 12 秒） | 接近但不划算：6×6 阶段胡萝卜比草更紧，9 个胡萝卜格换成草后 Carrots 2/3 与 Sunflowers 1 都推后 | `size == 6` 分支改成 `x % 2 == 0` 种草地；报告 `.codex/tmp/reset-fast/screen-board-grass-*.json` |
+| 草场去掉缺草门控但保持原位（遍历后再跑 4 秒） | 会话均 2031.015（慢 64 秒） | 与把草场提到遍历前（慢 85 秒）同一结论：草场多跑的时间就是木料少产的时间，与它在遍历前后无关 | 把 `if missing(cost, Items.Hay) > 0:` 改成 `if True:`；报告 `.codex/tmp/reset-fast/screen-hayalways-*.json` |
+| 3×3 加两格常驻草（2 树＋3 胡萝卜＋4 草） | 会话均 1982.128（慢 15 秒） | 顺路免费收草的思路本身成立（差距从 6×6 拆草的 12 秒缩到 15 秒量级），但 3×3 只剩两格种木，Trees 1/2 的 50＋50 木反而变慢 | 3×3 分支把 `(2,0)`、`(2,1)` 也从灌木改成草；报告 `.codex/tmp/reset-fast/screen-board3g-*.json` |
 2026-11-15这批比较均为原版重置初始条件和目标，每例15墙钟秒、最多两进程；原版Parser、正常终态、实际目标、依赖与程序集/资源指纹逐项核对。最终源仅剩主机，报告索引`.codex/gemini-reset-maze-20261115/results.json`（原始材料已于 2026-11-17 清理）。ty与冻结父版同为14处既有类型错误及15条提示，新增代码无诊断；没有将LSP写成零错。
 2026-11-19 这批为原版重置初始条件与目标、原版 Parser、无输入覆盖；除标注 seed83 单轮筛选者外均为同 seed1..6 会话对照，每轮正常终态并实际解锁 Leaderboard。脚本改动只在 `scripts/leaderboard/lb_fastest_reset.py` 的 `early_companion_upgrade`／`eight_drones`／`four_drones`／`lb_fastest_reset` 入口处，`--syntax-only` 通过；未实机。
 
