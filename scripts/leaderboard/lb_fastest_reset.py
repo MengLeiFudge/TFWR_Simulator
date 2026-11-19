@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：本地原版重置场均 27:18.765（seed1..6，实机待验证）。
+# 完整轮时间：本地原版重置场均 27:13.206（seed1..6，实机待验证）。
 # 恐龙路径 Copyright (c) [2026] [lywlucas]，MIT 见 lywlucas_LICENSE.txt。小迷宫沿用 zzlg-git 的合法独立收取实现。
 
 
@@ -556,7 +556,10 @@ def parallel_pumpkin_stock(target):
 
 def solar_reserve():
     size = get_world_size()
-    if not basic({Items.Carrot: size * size}):
+    if max_drones() == 1 and size == 6:
+        if not orchard_lane({Items.Carrot: size * size}, 21, get_time() + 60):
+            return False
+    elif not basic({Items.Carrot: size * size}):
         return False
     if max_drones() > 1:
         return parallel_solar_reserve(size)
