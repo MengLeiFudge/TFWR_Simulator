@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：本地原版重置场均 27:30.744（seed1..6，实机待验证）。
+# 完整轮时间：本地原版重置场均 27:27.237（seed1..6，实机待验证）。
 # 恐龙路径 Copyright (c) [2026] [lywlucas]，MIT 见 lywlucas_LICENSE.txt。小迷宫沿用 zzlg-git 的合法独立收取实现。
 
 
@@ -306,6 +306,22 @@ def bones_stock(target):
     if num_items(Items.Bone) >= target:
         return True
     size = get_world_size()
+    if size == 12 and num_unlocked(Unlocks.Dinosaurs) == 1 and target == 10000:
+        # 首蛇满十格边长收 99² 骨，第二条在四格边长收 15² 骨。按实际差额选择第二张田。
+        price = get_cost(Entities.Apple)[Items.Cactus]
+        if not cactus_stock(120 * price) or not ensure_power(170):
+            return False
+        for side in (10, 4):
+            if side == 4 and target - num_items(Items.Bone) > 225:
+                break
+            set_world_size(side)
+            clear()
+            change_hat(Hats.Dinosaur_Hat)
+            run_dinosaur_chase_loop(side, -1)
+            change_hat(Hats.Straw_Hat)
+        set_world_size(0)  # ty: ignore[invalid-argument-type]  原版以 0 解除临时边长限制，后续扩田恢复生效。
+        if num_items(Items.Bone) >= target:
+            return True
     maximum = size * size - 1
     factor = 2 ** (num_unlocked(Unlocks.Dinosaurs) - 1)
     while num_items(Items.Bone) < target and get_time() < 6800:
@@ -972,6 +988,8 @@ def run_dinosaur_chase_loop(size, cactus_floor):
     cycle_deadline = min(7000, get_time() + 12)
     A = size ** 2
     turn_point = A // 2
+    if size == 10:
+        turn_point = 32
     main_area = ((1, size - 1), size - 1, West, North)
     main_move = {}
     for xi in range(size):

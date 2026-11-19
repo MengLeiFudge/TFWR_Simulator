@@ -938,6 +938,7 @@
     },
     "lb_fastest_reset": {
       "committed": [
+        {"file": "20261119_v40_sim_27m30.744s_5b261f6.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v40_sim_27m30.744s_5b261f6.py", "date": "2026-11-19", "commit": "5b261f6", "time_tag": "27m30.744s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 27:30.744"},
         {"file": "20261119_v39_sim_27m38.469s_f3ed162.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v39_sim_27m38.469s_f3ed162.py", "date": "2026-11-19", "commit": "f3ed162", "time_tag": "27m38.469s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 27:38.469"},
         {"file": "20261119_v38_sim_28m05.245s_68e912f.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v38_sim_28m05.245s_68e912f.py", "date": "2026-11-19", "commit": "68e912f", "time_tag": "28m05.245s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 28:05.245"},
         {"file": "20261119_v37_sim_28m24.835s_2bb2d3f.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v37_sim_28m24.835s_2bb2d3f.py", "date": "2026-11-19", "commit": "2bb2d3f", "time_tag": "28m24.835s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 28:24.835"},
@@ -5962,6 +5963,7 @@
     ".codex/reset-under-combinations-20261117/four-small-rice4/lb_fastest_underground_reset.py": "references/leaderboard_history/lb_fastest_underground_reset/20261117_rejected_small_maze_rice4_seed8_failure.py"
   },
   "commit_to_archive": {
+    "lb_fastest_reset:5b261f6": "references/leaderboard_history/lb_fastest_reset/20261119_v40_sim_27m30.744s_5b261f6.py",
     "lb_fastest_reset:f3ed162": "references/leaderboard_history/lb_fastest_reset/20261119_v39_sim_27m38.469s_f3ed162.py",
     "lb_fastest_reset:68e912f": "references/leaderboard_history/lb_fastest_reset/20261119_v38_sim_28m05.245s_68e912f.py",
     "lb_fastest_reset:2bb2d3f": "references/leaderboard_history/lb_fastest_reset/20261119_v37_sim_28m24.835s_2bb2d3f.py",
