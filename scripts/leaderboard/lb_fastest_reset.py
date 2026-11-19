@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得；C#原目标12000秒会话6轮均值1984.360秒（2026-11-19，seed1..6，当前版未实机）。
+# 完整轮时间：未取得；C#原目标7200秒会话6轮均值1966.794秒（2026-11-19，seed1..6，当前版未实机）。
 # 恐龙路径Copyright (c) [2026] [lywlucas]，MIT许可见lywlucas_LICENSE.txt。
 # 小迷宫沿用lb_maze的zzlg-git方案；来源与许可边界见同名策略文档。
 
@@ -7,13 +7,7 @@ from __builtins__ import *
 def lb_fastest_reset():
     if not step1():
         return
-    for technology in [Unlocks.Speed, Unlocks.Watering]:
-        if not buy(technology):
-            return
-    while num_unlocked(Unlocks.Trees) < 3:
-        if not buy(Unlocks.Trees):
-            return
-    if not weird_flip(1384):
+    if not maze_supplies(1384):
         return
     if not unlock(Unlocks.Mazes):
         return
@@ -485,48 +479,63 @@ def step1():
     return solar_reserve()
 
 
-def weird_flip(target):
+def maze_supplies(target):
     size = get_world_size()
     if size != 6:
         return False
-    if num_items(Items.Weird_Substance) < 1:
-        if num_items(Items.Fertilizer) < 1:
-            return False
-        origin()
-        if not opening_cell(Entities.Tree):
-            return False
-        use_item(Items.Fertilizer, 1)
-        while not can_harvest():
-            if get_time() > 7000:
-                return False
-        harvest()
-    centers = [(0, 0), (1, 3), (4, 4), (3, 1)]
-    while num_items(Items.Weird_Substance) < target:
-        if get_time() > 7000:
-            return False
-        if num_items(Items.Weird_Substance) < 4:
-            return False
-        origin()
+    deadline = get_time() + 400
+    speed = get_cost(Unlocks.Speed)
+    water = get_cost(Unlocks.Watering)
+    tree = get_cost(Unlocks.Trees)
+    carrot = get_cost(Entities.Carrot)
+    speed_paid = False
+    water_paid = False
+    tree_paid = False
+    origin()
+    while get_time() < deadline:
         for x in range(size):
             for y in range(size):
-                crop = Entities.Grass
-                if (x + y) % 2 == 1:
-                    crop = Entities.Tree
-                if not opening_cell(crop):
-                    return False
-                move(North)
-            move(East)
-        for center in centers:
-            go(center[0], center[1])
-            use_item(Items.Weird_Substance, 1)
-        for x in range(size):
-            for y in range(size):
-                go(x, y)
+                kind = get_entity_type()
                 if can_harvest():
+                    # 只在收树时感染，正常木料减半，另一半换成开首宫用的 Weird。
+                    if kind == Entities.Tree and num_items(Items.Weird_Substance) < target:
+                        if num_items(Items.Fertilizer) > 0:
+                            use_item(Items.Fertilizer)
+                        elif num_items(Items.Weird_Substance) > 0:
+                            use_item(Items.Weird_Substance)
                     harvest()
+                    kind = None
+                if kind == None or kind == Entities.Grass:
+                    if (x + y) % 2 == 1:
+                        plant(Entities.Tree)
+                    elif x % 3 != 0 and affordable(carrot):
+                        if get_ground_type() != Grounds.Soil:
+                            till()
+                        plant(Entities.Carrot)
+                    elif get_ground_type() != Grounds.Grassland:
+                        till()
                 move(North)
+            if not speed_paid and affordable(speed):
+                if not unlock(Unlocks.Speed):
+                    return False
+                speed_paid = True
+                quick_print("directed_upgrade", Unlocks.Speed, 4, get_time())
+            if not water_paid and affordable(water):
+                if not unlock(Unlocks.Watering):
+                    return False
+                water_paid = True
+                quick_print("directed_upgrade", Unlocks.Watering, 3, get_time())
+            # 草自然攒够才提前买 Trees3；不够由伴生后的订单补，不拦住首机。
+            if not tree_paid and affordable(tree):
+                if not unlock(Unlocks.Trees):
+                    return False
+                tree_paid = True
+                quick_print("directed_upgrade", Unlocks.Trees, 3, get_time())
+            if speed_paid and water_paid and num_items(Items.Weird_Substance) >= target:
+                quick_print("maze_supplies", get_time(), num_items(Items.Weird_Substance), num_items(Items.Hay), num_items(Items.Wood), num_items(Items.Carrot))
+                return True
             move(East)
-    return True
+    return False
 
 
 def boost_stock(cost, companions=True):
