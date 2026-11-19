@@ -4,7 +4,7 @@
 
 当前脚本：[lb_fastest_reset.py](../../scripts/leaderboard/lb_fastest_reset.py)。公开账号最高 **41:47.696（#36）**；本轮已采用视频开局、提前伴生3及16机/Pumpkins6/Cactus3/D5，尚未实机。当前有效本地场均 **33:32.023**（2012.023 秒，SD 28.698、SE 11.716；相对上一版 2019.066 快 7.04 秒，同 seed 配对 5/6 更快，配对 SE 2.31，约 3.0×SE）。
 
-公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17869903/)，2026-11-16T16:08:17.450130+00:00刷新；账号核对时间16:08:17.450192+00:00。#1为22:47.800，本地均值距#1 **+47.3%**；#3、#10及账号来源见[进度总表](leaderboard_progress.md)和[公开快照](../../references/leaderboards/status_snapshot.md)。
+公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17869903/)，2026-11-16T16:08:17.450130+00:00刷新；账号核对时间16:08:17.450192+00:00。#1为22:47.800，本地均值距#1 **+47.1%**；#3、#10及账号来源见[进度总表](leaderboard_progress.md)和[公开快照](../../references/leaderboards/status_snapshot.md)。
 
 `step1`先筹Expand/Plant，再按录屏的3×3草／灌木／胡萝卜布局及6×6棋盘树、胡萝卜配比推进；`opening_stock`保留长周期作物，用两格草短回访覆盖等待。供电后买首次伴生与双机，再补Trees3/Grass4。12×12先跑D2两条蛇，实际筹60000 Bone买伴生2/3；保留Trees5/Carrots6，利用Weird/Wood联产筹后续投资。C2先付M3，以合法小迷宫筹128000 Gold买16机；Pumpkins6供Cactus3，再全额支付M4/D5。末段16座4×4小迷宫正常筹百万Gold，两条D5蛇按骨头缺口结算；末蛇前按220 Power目标补电，不再补整田。最终实付2M Bone＋1M Gold。
 
