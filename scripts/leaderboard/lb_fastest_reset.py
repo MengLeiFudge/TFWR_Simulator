@@ -823,6 +823,10 @@ def cactus_stock(target):
             return mid_chain(target)
         if workers == 16 and num_unlocked(Unlocks.Cactus) == 3:
             if not chain_harvest(target):
+                # 一批只收回部分仙人掌时，库存已经能付款就清走残株交货。
+                if num_items(Items.Cactus) >= target:
+                    clear()
+                    return True
                 return False
             continue
         if not ensure_power(300):
