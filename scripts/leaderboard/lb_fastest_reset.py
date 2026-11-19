@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：本地原版重置场均 29:11.154（seed1..6，实机待验证）。
+# 完整轮时间：本地原版重置场均 28:48.801（seed1..6，实机待验证）。
 # 恐龙路径 Copyright (c) [2026] [lywlucas]，MIT 见 lywlucas_LICENSE.txt。小迷宫沿用 zzlg-git 的合法独立收取实现。
 
 
@@ -88,9 +88,9 @@ def pay_materials(cost, i):
             return False
     # Carrots5 前的采购准备。
     if i == 43:
-        # 八机同批供 Carrots5、Watering6、Fertilizer3/4 的木材和下次合法取金；库存支付按原表顺序。
+        # 八机一次备齐胡萝卜 5、浇水 6 和两级肥料要付的木材。下次筹金的异物来自仙人掌。
         timber = get_cost(Unlocks.Carrots)[Items.Wood] + get_cost(Unlocks.Watering)[Items.Wood] + 63000
-        if not stock_anchors({Items.Wood: timber, Items.Weird_Substance: 33040}):
+        if not stock_anchors({Items.Wood: timber}):
             return False
     # 肥料4是终点前最后一笔；同批备齐百万金的开宫及迁移材料。
     if i == 58:
@@ -740,7 +740,15 @@ def cactus_stock(target):
         origin()
         expected = size * size * size * size * 2 ** (num_unlocked(Unlocks.Cactus) - 1)
         before = num_items(Items.Cactus)
-        if not can_harvest() or not harvest() or num_items(Items.Cactus) - before != expected:
+        if size == 12 and num_unlocked(Unlocks.Cactus) == 1:
+            if not mark_crop_loan(5760, 1, 14210, before):
+                return False
+        if size == 16 and num_unlocked(Unlocks.Cactus) == 2:
+            if not mark_crop_loan(33040, 2, 72000, before):
+                return False
+        go(0, 0)
+        previous_weird = num_items(Items.Weird_Substance)
+        if not can_harvest() or not harvest() or num_items(Items.Cactus) - before + num_items(Items.Weird_Substance) - previous_weird != expected:
             quick_print("directed_failed", "cactus_gain", get_time(), expected, num_items(Items.Cactus) - before)
             return False
         quick_print("directed_cactus", get_time(), num_items(Items.Cactus), num_items(Items.Power))
@@ -1642,10 +1650,10 @@ def stock_cell(cost, bounds, deadline, companions=True):
 
 
 def stock_companion_inside(position, bounds):
-    # 支撑位不能占用本机主种植位，也不能进入其他工人的矩形。
+    # 偶行偶列留给主作物。其余格子可以跨分区种伴生植物。
     x, y = position
     x0, x1, y0, y1 = bounds
-    return x >= x0 and x < x1 and y >= y0 and y < y1 and (x % 2 != 0 or y % 2 != 0)
+    return x % 2 != 0 or y % 2 != 0
 
 
 def stock_seed_budget(cost, margin):
@@ -1665,14 +1673,14 @@ def stock_support(kind, position):
     px, py = position
     go(px, py)
     if get_entity_type() != kind:
-        if get_entity_type() != None and not harvest():
-            return False
+        if get_entity_type() != None:
+            harvest()
         if kind == Entities.Grass and get_ground_type() != Grounds.Grassland:
             till()
         elif kind == Entities.Carrot and get_ground_type() != Grounds.Soil:
             till()
-        if not affordable(get_cost(kind)) or not plant(kind):
-            return False
+        if affordable(get_cost(kind)):
+            plant(kind)
     go(x, y)
     return True
 
@@ -2072,6 +2080,42 @@ def solar_wave(first, count, batches, start_wood, fee, rows, target, deadline):
             break
     for h in jobs:
         if not wait_for(h):
+            ok=False
+    return ok
+
+
+def mark_crop_loan(target, grade, keep, stock):
+    # 一个十字转产五株。先保留下一笔科技与苹果所需的仙人掌，再给迷宫备异物。
+    size = get_world_size()
+    repay = 5 * size * size * grade // 2
+    need = (max(0, target - num_items(Items.Weird_Substance)) + repay - 2) // (repay-1)
+    surplus = max(0, stock + size**4 * grade - keep)
+    count = min(need, surplus//repay)
+    if not count:
+        return True
+    points = []
+    for y in range(1, size-1):
+        for x in range(1, size-1):
+            if (x + 2 * y) % 5 == 0 and len(points) < count:
+                points.append((x, y))
+    if num_items(Items.Weird_Substance)<len(points):
+        return False
+    workers = max_drones()
+
+    def mark(k):
+        for i in range(k, len(points), workers):
+            x, y = points[i]
+            go(x, y)
+            if not use_item(Items.Weird_Substance):
+                return False
+        return True
+
+    jobs = []
+    for k in range(1, workers):
+        jobs.append(spawn_drone(mark, k))
+    ok = mark(0)
+    for h in jobs:
+        if h==None or not wait_for(h):
             ok=False
     return ok
 
