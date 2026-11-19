@@ -4,7 +4,7 @@
 
 当前脚本：[lb_fastest_underground_reset.py](../../scripts/leaderboard/lb_fastest_underground_reset.py)。公开账号最高 **51:58.780（#6）**，来自request550的3轮官方完整统计；本轮已采用四机独立小迷宫筹金并备份同步已有存档脚本，尚未实机。当前有效本地同条件21轮均值 **43:41.735**。
 
-公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444633/)，2026-11-16T19:50:23.853106+00:00刷新，账号核对19:50:23.853137+00:00。#1为21:25.151，本地均值距#1 **+104.0%**；#3已更新为40:39.297。其余名次及来源见[进度总表](leaderboard_progress.md)和[公开快照](../../references/leaderboards/status_snapshot.md)。
+公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444633/)，2026-11-19T06:32:23.469460+00:00刷新，账号核对06:32:23.469488+00:00。#1为21:25.151，本地均值距#1 **+104.0%**；#3已更新为36:21.646（原#3 40:39.297 已不在榜）。其余名次及来源见[进度总表](leaderboard_progress.md)和[公开快照](../../references/leaderboards/status_snapshot.md)。
 
 `ur_s_step1`保留视频开局的固定混种和两格草短回访，相关画面见[普通重置的逐格复现](lb_fastest_reset.md#开局种植与移动的复现)。`ur_s_next_megafarm`与`ur_need`的金币分支改用`ur_route_gold(goal, 4)`：每机一座独占4×4小迷宫，正常探路、重定位及耗尽后重建，结束回收全部工人再清场。第二次买机及后续蘑菇／炸药升级均使用这套筹金方式。仍保持四机、原矿物科技链、Mining8/Dynamite4/Bamboo4/Rice5，末段扩到12格，真实支付200000 Bamboo＋20000 Dynamite。没有将普通榜的恐龙、高阶伴生或16机投资直接套入。
 
