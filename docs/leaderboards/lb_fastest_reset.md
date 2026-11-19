@@ -238,6 +238,7 @@
 | 同瓣最近邻贪心选点 | 三seed完整均2480.776315973秒，比共同父版慢1.670秒 | 单seed领先不足代表整轮平均收益；本实现不采用 | 在上行版本中，每瓣反复按环绕曼哈顿距离选最近点、`pop(best)`后`go`；原源`solar-nearest/lb_fastest_reset.py`与报告留同一`.codex`目录 |
 
 | 单机南瓜浇水开关 | 会话均 2028.294336（4/6 快，配对 SE 4.18） | 约 1.2×SE，未达替换门槛；视频“漏浇水”并非主要缺口 | 将 `pumpkin_strip` 的 `watering = max_drones() > 1` 改为 `True` 即可重建；报告 `.codex/tmp/fr-session-c1.json` |
+| 南瓜复查改成原地等苗熟 | 会话均 2507.177（6/6 达标，慢 822 秒） | `pumpkin_strip` 每格平均被走 6.63 趟（142 批共 941 趟 pending>1 的实走，17,500 次 `go` 对 4,696 次播种），苗只差零点几秒，直觉上原地等更便宜；但 `pass` 紧循环会吃满解释器，把同一进程里其他机的进度一起拖住，等待的代价远大于走路。要等只能用带游戏 tick 的动作，那又不比走一趟便宜 | 把 `pumpkin_strip` 的 `if not can_harvest(): retry.append((x, y))` 改成先 `until = get_time() + 2` 原地 `pass` 再回填 retry；报告 `.codex/tmp/reset-fast/screen-pwait-*.json`，逐趟探针 `.codex/tmp/reset-fast/pstrip1.json` |
 | 南瓜前一次备 600 胡萝卜 | 会话均 2036.922841（1/6 快） | 提前扫田补料把解锁推后，收益为负 | 在 `step1` 买二级 Pumpkins 前插 `basic({Items.Carrot: 600})`；报告 `.codex/tmp/fr-session-c2.json` |
 | 供电后五项前置改混种供货 | 会话均 2031.426880（4/6 快） | 落在噪声内；`boost_stock` 版直接报 `error_missing_x_unlock[Polyculture]` | 把 `step1` 的 `buy` 换 `opening_stock` 供货；报告 `.codex/tmp/fr-session-s2a.json` |
 | 解锁向日葵前多备整田葵花籽 | 会话均 2041.820307（慢 8.48 秒） | 推后解锁的代价大于省下的无电两轮 | 胡萝卜目标改 `get_cost + size*size + 36`；未保留源 |
