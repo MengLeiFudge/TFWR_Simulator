@@ -7,7 +7,7 @@ from __builtins__ import *
 def lb_fastest_reset():
     if not step1():
         return
-    for technology in [Unlocks.Fertilizer, Unlocks.Speed, Unlocks.Watering, Unlocks.Pumpkins, Unlocks.Pumpkins, Unlocks.Polyculture]:
+    for technology in [Unlocks.Speed, Unlocks.Watering, Unlocks.Pumpkins, Unlocks.Pumpkins, Unlocks.Polyculture]:
         if not buy(technology):
             return
     quick_print("directed", "polyculture", get_time(), num_items(Items.Power))
@@ -461,6 +461,9 @@ def step1():
     if not opening_speed_expand2():
         return False
     if not opening_technologies():
+        return False
+    # 向日葵1 到手时木料已过 500，当场付肥料1 让肥料更早开始被动累计，不必等主循环。
+    if not opening_buy(Unlocks.Fertilizer):
         return False
     return solar_reserve()
 
