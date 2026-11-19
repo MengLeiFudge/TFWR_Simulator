@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：未取得；C#原目标7200秒会话6轮均值1987.719秒（2026-11-18，seed1..6，当前版未实机）。
+# 完整轮时间：未取得；C#原目标12000秒会话6轮均值1984.360秒（2026-11-19，seed1..6，当前版未实机）。
 # 恐龙路径Copyright (c) [2026] [lywlucas]，MIT许可见lywlucas_LICENSE.txt。
 # 小迷宫沿用lb_maze的zzlg-git方案；来源与许可边界见同名策略文档。
 
@@ -983,7 +983,7 @@ def eight_drones():
     # 先用一田C1实付Maze2，再筹32000 Gold；不提前读取下一宝藏。
     if not buy(Unlocks.Cactus):
         return False
-    if not early_companion_upgrade() or not buy(Unlocks.Mazes):
+    if not early_companion_upgrade():
         return False
     quick_print("early_maze2", get_time(), num_items(Items.Cactus), num_items(Items.Power))
     return next_megafarm()
@@ -1125,7 +1125,10 @@ def companion_bones(level, prefund=True):
 
 
 def early_companion_upgrade():
-    if not companion_dinosaurs():
+    # D1/D2 与 Maze2 的仙人掌一次备齐，少跑一轮仙人掌和一次清场重建。
+    if not companion_dinosaurs(2, 14000 + get_world_size() ** 2 * 8 + 12000):
+        return False
+    if not buy(Unlocks.Mazes):
         return False
     if not companion_bones(2):
         return False
