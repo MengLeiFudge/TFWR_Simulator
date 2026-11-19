@@ -97,10 +97,16 @@ foreach ($entry in Get-ChildItem -LiteralPath $codexRoot -Force) {
 $totalBytes = ($targets | Measure-Object Bytes -Sum).Sum
 if (-not $totalBytes) { $totalBytes = 0 }
 Write-Output ("仓库 {0}（apply={1}）" -f $codexRoot, $Apply.IsPresent)
+# 本次研究单独允许：Josh 28:03 视频整段及逐帧分析不计入 .codex 容量，也不参与回收。
 $sourceRoot = Join-Path $codexRoot 'sources'
-$sourceBytes = ($files | Where-Object { $_.FullName.StartsWith("$sourceRoot\", [StringComparison]::OrdinalIgnoreCase) } | Measure-Object Length -Sum).Sum
-$currentBytes = (Get-ChildItem -LiteralPath $codexRoot -Recurse -File -Force | Measure-Object Length -Sum).Sum
-Write-Output ("当前 .codex {0:N1} MiB，其中来源证据 {1:N1} MiB" -f ($currentBytes / 1MB), ($sourceBytes / 1MB))
+$exemptRoot = Join-Path $sourceRoot 'videos\youtube-hdBSvuOim74'
+$sourceBytes = ($files | Where-Object {
+    $_.FullName.StartsWith("$sourceRoot\", [StringComparison]::OrdinalIgnoreCase) -and
+    -not $_.FullName.StartsWith("$exemptRoot\", [StringComparison]::OrdinalIgnoreCase) } | Measure-Object Length -Sum).Sum
+$currentBytes = (Get-ChildItem -LiteralPath $codexRoot -Recurse -File -Force |
+    Where-Object { -not $_.FullName.StartsWith("$exemptRoot\", [StringComparison]::OrdinalIgnoreCase) } |
+    Measure-Object Length -Sum).Sum
+Write-Output ("当前 .codex {0:N1} MiB，其中来源证据 {1:N1} MiB（已排除 youtube-hdBSvuOim74）" -f ($currentBytes / 1MB), ($sourceBytes / 1MB))
 if ($sourceBytes -gt 250MB) { Write-Warning '来源证据超过 250 MiB；请精简重复帧和可重建产物后再保存新素材。' }
 if ($currentBytes -gt 512MB) { Write-Warning '.codex 超过 512 MiB；请先回收临时产物，再检查来源证据、部署备份和发布回执。' }
 Write-Output ("待清理 {0} 项，共 {1:N1} MB；保留跳过 {2} 个文件" -f $targets.Count, ($totalBytes / 1MB), $kept)
