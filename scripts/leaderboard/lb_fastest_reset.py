@@ -13,9 +13,12 @@ def lb_fastest_reset():
     quick_print("directed", "polyculture", get_time(), num_items(Items.Power))
     if not first_megafarm():
         return
-    for technology in [Unlocks.Trees, Unlocks.Grass]:
-        if not buy(technology):
+    # 固定补到 Trees 3；不按当前等级顺延，否则提前买过 T3 的路线会多花 4800 草买 T4。
+    while num_unlocked(Unlocks.Trees) < 3:
+        if not buy(Unlocks.Trees):
             return
+    if not buy(Unlocks.Grass):
+        return
     if not eight_drones():
         return
     if staged_supply() and finish_gold():
@@ -588,11 +591,9 @@ def stock_cell(cost, bounds, deadline):
         if get_time() > deadline:
             return False
         if not affordable(get_cost(crop)):
-            # 胡萝卜等作物成本随等级上涨，草见底时改种草补草，不要结束整轮。
-            crop = Entities.Grass
-            if get_ground_type() != Grounds.Grassland:
-                till()
-        if not affordable(get_cost(crop)) or not plant(crop):
+            # 胡萝卜成本随等级上涨，草见底时本格重抽无意义：结束本格，回外层按缺草/木重选作物。
+            return True
+        if not plant(crop):
             quick_print("persistent_failed", "plant", crop, get_time())
             return False
         companion = get_companion()
