@@ -25,6 +25,14 @@
           "commit": "0224fb21",
           "time_tag": "37.265s",
           "message": "调整：收敛 leaderboard 脚本真源"
+        },
+        {
+          "file": "20261119_v04_34.634s_d30b5f59.py",
+          "path": "references/leaderboard_history/lb_cactus/20261119_v04_34.634s_d30b5f59.py",
+          "date": "2026-11-19",
+          "commit": "d30b5f59",
+          "time_tag": "34.634s",
+          "message": "多机行列派发与单向三格窗口排序"
         }
       ],
       "rejected": [
