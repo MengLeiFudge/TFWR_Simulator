@@ -930,6 +930,7 @@
     },
     "lb_fastest_reset": {
       "committed": [
+        {"file": "20261119_v33_sim_32m46.794s_6148bf3.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v33_sim_32m46.794s_6148bf3.py", "date": "2026-11-19", "commit": "6148bf3", "time_tag": "32m46.794s（本地模拟）", "message": "首电后混产首宫材料，合并中期仙人掌供料"},
         {"file": "20261119_v32_sim_33m04.360s_43c4409.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v32_sim_33m04.360s_43c4409.py", "date": "2026-11-19", "commit": "43c4409", "time_tag": "seed1..6均1984.360301秒，累计11906.162游戏秒，未满自设12000秒", "message": "首宫仍走专用翻转，D1/D2与Mazes2仙人掌合单"},
         {"file": "20261118_v31_sim_33m07.719s_636b9e0.py", "path": "references/leaderboard_history/lb_fastest_reset/20261118_v31_sim_33m07.719s_636b9e0.py", "date": "2026-11-18", "commit": "636b9e0", "time_tag": "7200游戏秒会话6轮均1987.718948秒", "message": "感染翻转前置、6×6首宫、首次伴生前双机分区供料"},
         {"file": "20261116_v30_sim_41m24.599s_3973de2.py", "path": "references/leaderboard_history/lb_fastest_reset/20261116_v30_sim_41m24.599s_3973de2.py", "date": "2026-11-16", "commit": "3973de2", "time_tag": "7200游戏秒会话4轮均2484.598921194秒", "message": "采用视频开局前冻结的正式源"},
@@ -5947,6 +5948,7 @@
     ".codex/reset-under-combinations-20261117/four-small-rice4/lb_fastest_underground_reset.py": "references/leaderboard_history/lb_fastest_underground_reset/20261117_rejected_small_maze_rice4_seed8_failure.py"
   },
   "commit_to_archive": {
+    "lb_fastest_reset:6148bf3": "references/leaderboard_history/lb_fastest_reset/20261119_v33_sim_32m46.794s_6148bf3.py",
     "lb_fastest_reset:43c4409": "references/leaderboard_history/lb_fastest_reset/20261119_v32_sim_33m04.360s_43c4409.py",
     "lb_fastest_reset:636b9e0": "references/leaderboard_history/lb_fastest_reset/20261118_v31_sim_33m07.719s_636b9e0.py",
     "lb_fastest_reset:3973de2": "references/leaderboard_history/lb_fastest_reset/20261116_v30_sim_41m24.599s_3973de2.py",
