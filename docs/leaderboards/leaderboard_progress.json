@@ -108,8 +108,8 @@
     },
     "lb_fastest_reset": {
       "label": "快速重置",
-      "simulation_seconds": 1658.468722,
-      "simulation_basis": "原版 1×1 零库存，六轮共 9950.812 游戏秒，均 1658.468722，SD 37.955、SE 15.495。两组 1～12 共 12 轮逐项实付 60 笔，全部达标。会话 .codex/tmp/reset-2449/session-latest.json。",
+      "simulation_seconds": 1650.74439,
+      "simulation_basis": "原版 1×1 零库存，六轮共 9904.466 游戏秒，均 1650.744390，SD 42.672、SE 17.421。两组 1～12 共 12 轮逐项实付 60 笔，全部达标。会话 .codex/tmp/reset-2449/session-latest.json。",
       "evidence": "lb_fastest_reset.md",
       "direction": "复刻 24:49。沿付款记录比较开局混采、四至十六机的供料和合法取金、终盘两条恐龙。"
     },

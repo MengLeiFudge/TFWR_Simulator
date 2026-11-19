@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：本地原版重置场均 27:38.469（seed1..6，实机待验证）。
+# 完整轮时间：本地原版重置场均 27:30.744（seed1..6，实机待验证）。
 # 恐龙路径 Copyright (c) [2026] [lywlucas]，MIT 见 lywlucas_LICENSE.txt。小迷宫沿用 zzlg-git 的合法独立收取实现。
 
 
@@ -107,10 +107,15 @@ def pay_materials(cost, i):
             n = size // 2
         if max_drones() >= 8:
             n = 4
+            if max_drones() == 8 and size == 16:
+                n = 5
         if i == 59 and num_items(Items.Power) < 1740:
             if not parallel_solar_reserve(size, 1740):
                 return False
-        if not ensure_power(80 * max_drones()):
+        power = 80 * max_drones()
+        if i == 51:
+            power = 160
+        if not ensure_power(power):
             return False
         if not small_maze_gold(cost[Items.Gold], n):
             return False
@@ -752,10 +757,10 @@ def cactus_stock(target):
         converted = 3 * length * grade // 2
         gross = length * length * grade
         fee = get_cost(Entities.Cactus)[Items.Pumpkin] * length
-        while num_items(Items.Cactus) < target or num_items(Items.Weird_Substance) < 33040:
+        while num_items(Items.Cactus) < target or num_items(Items.Weird_Substance) < 27000:
             if not ensure_power(120) or not pumpkin_stock(fee):
                 return False
-            flips = min(length // 3, (max(0, 33040 - num_items(Items.Weird_Substance)) + converted - 2) // (converted - 1))
+            flips = min(length // 3, (max(0, 27000 - num_items(Items.Weird_Substance)) + converted - 2) // (converted - 1))
             # 三个连续位置为一组，各中心的十字不重叠。第一趟完成播种及段内排序。
             for planting in [True, False]:
                 handles = []
@@ -846,7 +851,7 @@ def cactus_stock(target):
             if not mark_crop_loan(5760, 1, 14210, before):
                 return False
         if size == 16 and num_unlocked(Unlocks.Cactus) == 2:
-            if not mark_crop_loan(33040, 2, 72000, before):
+            if not mark_crop_loan(27000, 2, 72000, before):
                 return False
         go(0, 0)
         previous_weird = num_items(Items.Weird_Substance)
@@ -1367,6 +1372,10 @@ def small_maze_gold(target, n=None):
     for index in range(DRONES):
         jobs.append((n, n // 2 + n * (index % cols), n // 2 + n * (index // cols)))
 
+    if n == 5 and WORLD == 16 and DRONES == 8:
+        # 前七个中心留给独立迷宫，第八台在右上角供电，也参加全员到位检查。
+        jobs[-1] = (0, 7, 10)
+
     def go_empty(tx, ty):
         # 仅在迷宫生成前使用农场环绕，分别走较短的横、纵位移。
         dx = (tx - get_pos_x()) % WORLD
@@ -1585,6 +1594,44 @@ def small_maze_gold(target, n=None):
             relocations += 1
         return relocations
 
+    def margin_sunflowers():
+        # 本机已在七座迷宫之外。花田在右上角，采花路线始终留在同一块空地。
+        start = get_time()
+        power = num_items(Items.Power)
+        while num_items(Items.Gold) < TARGET_GOLD and get_time() < deadline:
+            buckets = []
+            for _ in range(16):
+                buckets.append([])
+            for y in range(10, 16):
+                xs = range(7, 15)
+                if y % 2:
+                    xs = range(14, 6, -1)
+                for x in xs:
+                    if num_items(Items.Gold) >= TARGET_GOLD or num_items(Items.Carrot) < 1:
+                        return
+                    go(x, y)
+                    if get_entity_type() not in (None, Entities.Grass):
+                        harvest()
+                    if get_ground_type() != Grounds.Soil:
+                        till()
+                    if not plant(Entities.Sunflower):
+                        return
+                    petals = measure()
+                    buckets[petals].append((x, y))  # ty: ignore[invalid-argument-type]  已种向日葵，measure返回整数瓣数。
+                    if get_water() < 0.45 and num_items(Items.Water) >= 2:
+                        use_item(Items.Water, 2)
+            for petals in range(15, 6, -1):
+                for x, y in buckets[petals]:
+                    if num_items(Items.Gold) >= TARGET_GOLD:
+                        quick_print('maze_solar', get_time()-start, power, num_items(Items.Power))
+                        return
+                    go(x, y)
+                    while not can_harvest() and get_time() < deadline:
+                        pass
+                    if get_time() >= deadline or not harvest():
+                        return
+        return
+
     def worker(job, start_stock):
         n, cx, cy = job
         generations = 0
@@ -1610,6 +1657,9 @@ def small_maze_gold(target, n=None):
                 change_hat(Hats.Straw_Hat)
             else:
                 can_harvest()
+        if n == 0:
+            margin_sunflowers()
+            return (0, 0, 0)
         while num_items(Items.Gold) < TARGET_GOLD and get_time() <= deadline:
             go_home(cx, cy)
             if get_entity_type() != None:
