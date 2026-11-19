@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：本地原版重置场均 27:27.237（seed1..6，实机待验证）。
+# 完整轮时间：本地原版重置场均 27:18.765（seed1..6，实机待验证）。
 # 恐龙路径 Copyright (c) [2026] [lywlucas]，MIT 见 lywlucas_LICENSE.txt。小迷宫沿用 zzlg-git 的合法独立收取实现。
 
 
@@ -991,17 +991,32 @@ def run_dinosaur_chase_loop(size, cactus_floor):
     if size == 10:
         turn_point = 32
     main_area = ((1, size - 1), size - 1, West, North)
-    main_move = {}
-    for xi in range(size):
-        for yi in range(size):
-            i = cycle_index(xi, yi)
-            if i < size:
-                main_move[i] = South
-            elif i == size:
-                main_move[i] = East
+    global cycle_rows
+    cycle_rows = []
+    main_move = []
+    for _ in range(A):
+        main_move.append(North)
+    for x in range(size):
+        row = []
+        for y in range(size):
+            if x == 0:
+                pos = size - y
+                direction = South
+                if y == 0:
+                    direction = East
+            elif y % 2 == 0:
+                pos = size + (size-1)*y + x
+                direction = East
+                if x == size-1:
+                    direction = North
             else:
-                i = i % A
-                main_move[i] = region_step(main_area, (xi, yi))
+                pos = size + (size-1)*y + size-x
+                direction = West
+                if x == 1 and y < size-1:
+                    direction = North
+            row.append(pos)
+            main_move[pos % A] = direction
+        cycle_rows.append(row)
     cnt = 1
     next_x, next_y = measure()  # ty: ignore[not-iterable]  此处位于Apple上，measure返回下一苹果坐标。
     next_id = cycle_index(next_x, next_y)
@@ -1043,20 +1058,14 @@ def run_dinosaur_chase_loop(size, cactus_floor):
 
 
 def cycle_index(x, y):
-    n = farm_size
-    if x == 0:
-        return n - y
-    elif y % 2 == 0:
-        return n + (n - 1) * y + x
-    else:
-        return n + (n - 1) * y + n - x
+    return cycle_rows[x][y]
 
 
 def in_region(location, area, upper=False, can_equal=True):
     size = farm_size
     (x_n, y_n), width, dir, up = area
     x, y = location
-    if area == main_area:
+    if width == farm_size - 1:
         if upper == False:
             return x != 0
         else:
@@ -1177,66 +1186,36 @@ def reach_in_region(target, area):
         reach_in_region((x_n, y_n), area)
         region_step(area)
         return None
+    horizontal = dir == East or dir == West
+    u, v, across, along = y, x, b, a
+    positive, negative = North, South
+    if horizontal:
+        u, v, across, along = x, y, a, b
+        positive, negative = East, West
     while get_time() < cycle_deadline:
-        x, y = (get_pos_x(), get_pos_y())
-        if x == a and y == b:
-            if break_point == None:
-                break_point = (a, b)
-            return break_point
-        if dir == East or dir == West:
-            if x == a:
-                break_point = (x, y)
-                for _ in range(abs(y - b)):
-                    if not move(up):
-                        return None
-                continue
-            temp = region_step(area, (x, y))
-            if temp == East:
-                if x > a:
-                    if not move(up):
-                        return None
-                else:
-                    for _ in range(a - x):
-                        if not move(East):
-                            return None
-            elif temp == West:
-                if x < a:
-                    if not move(up):
-                        return None
-                else:
-                    for _ in range(x - a):
-                        if not move(West):
-                            return None
-            else:
-                if not move(temp):
+        if u == across:
+            for _ in range(abs(along - v)):
+                if not move(up):
                     return None
+            if horizontal:
+                return (u,v)
+            return (v,u)
+        if horizontal:
+            direction = region_step(area, (u,v))
         else:
-            if y == b:
-                break_point = (x, y)
-                for _ in range(abs(x - a)):
-                    if not move(up):
-                        return None
-                continue
-            temp = region_step(area, (x, y))
-            if temp == North:
-                if y > b:
-                    if not move(up):
-                        return None
-                else:
-                    for _ in range(b - y):
-                        if not move(North):
-                            return None
-            elif temp == South:
-                if y < b:
-                    if not move(up):
-                        return None
-                else:
-                    for _ in range(y - b):
-                        if not move(South):
-                            return None
-            else:
-                if not move(temp):
+            direction = region_step(area, (v,u))
+        if direction == positive and u < across or direction == negative and u > across:
+            for _ in range(abs(across-u)):
+                if not move(direction):
                     return None
+            u = across
+        else:
+            if not move(up):
+                return None
+            if up == East or up == North:
+                v += 1
+            else:
+                v -= 1
     return None
 
 
@@ -1613,42 +1592,58 @@ def small_maze_gold(target, n=None):
         return relocations
 
     def margin_sunflowers():
-        # 本机已在七座迷宫之外。花田在右上角，采花路线始终留在同一块空地。
-        start = get_time()
-        power = num_items(Items.Power)
+        # 常驻九株低瓣花，另外十六株按瓣收割。收到最后一株时，田里仍有十株。
+        for y in range(10, 13):
+            for x in range(7, 10):
+                go(x, y)
+                if get_ground_type() != Grounds.Soil:
+                    till()
+                for attempt in range(65):
+                    if num_items(Items.Gold) >= TARGET_GOLD or num_items(Items.Carrot) < 1:
+                        return
+                    if not plant(Entities.Sunflower):
+                        return
+                    if measure() <= 9:  # ty: ignore[unsupported-operator]  刚种好的向日葵返回整数瓣数。
+                        break
+                    harvest()
+        coords = []
+        for y in range(10, 14):
+            xs = range(10,14)
+            if y % 2:
+                xs = range(13,9,-1)
+            for x in xs:
+                coords.append((x, y))
+        began = get_time()
         while num_items(Items.Gold) < TARGET_GOLD and get_time() < deadline:
             buckets = []
             for _ in range(16):
                 buckets.append([])
-            for y in range(10, 16):
-                xs = range(7, 15)
-                if y % 2:
-                    xs = range(14, 6, -1)
-                for x in xs:
-                    if num_items(Items.Gold) >= TARGET_GOLD or num_items(Items.Carrot) < 1:
-                        return
-                    go(x, y)
-                    if get_entity_type() not in (None, Entities.Grass):
-                        harvest()
-                    if get_ground_type() != Grounds.Soil:
-                        till()
+            for x,y in coords:
+                if num_items(Items.Gold) >= TARGET_GOLD or num_items(Items.Carrot) < 5:
+                    return
+                go(x,y)
+                if get_ground_type() != Grounds.Soil:
+                    till()
+                for attempt in range(16):
                     if not plant(Entities.Sunflower):
                         return
-                    petals = measure()
-                    buckets[petals].append((x, y))  # ty: ignore[invalid-argument-type]  已种向日葵，measure返回整数瓣数。
-                    if get_water() < 0.45 and num_items(Items.Water) >= 2:
-                        use_item(Items.Water, 2)
-            for petals in range(15, 6, -1):
-                for x, y in buckets[petals]:
+                    rank = measure()
+                    if rank >= 9:  # ty: ignore[unsupported-operator]  已种向日葵的花瓣数。
+                        buckets[rank].append((x, y))  # ty: ignore[invalid-argument-type]
+                        break
+                    harvest()
+                if get_water() < 0.55 and num_items(Items.Water) >= 2:
+                    use_item(Items.Water, 2)
+            for rank in range(15,8,-1):
+                for x,y in buckets[rank]:
                     if num_items(Items.Gold) >= TARGET_GOLD:
-                        quick_print('maze_solar', get_time()-start, power, num_items(Items.Power))
+                        quick_print('margin_power',get_time()-began,num_items(Items.Power))
                         return
-                    go(x, y)
-                    while not can_harvest() and get_time() < deadline:
+                    go(x,y)
+                    while not can_harvest() and get_time()<deadline:
                         pass
-                    if get_time() >= deadline or not harvest():
+                    if get_time()>=deadline or not harvest():
                         return
-        return
 
     def worker(job, start_stock):
         n, cx, cy = job
