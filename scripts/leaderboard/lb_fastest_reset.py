@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：本地原版重置场均 28:05.245（seed1..6，实机待验证）。
+# 完整轮时间：本地原版重置场均 27:38.469（seed1..6，实机待验证）。
 # 恐龙路径 Copyright (c) [2026] [lywlucas]，MIT 见 lywlucas_LICENSE.txt。小迷宫沿用 zzlg-git 的合法独立收取实现。
 
 
@@ -801,7 +801,9 @@ def cactus_stock(target):
         if size == 16 and workers == 8 and num_unlocked(Unlocks.Cactus) == 2:
             return mid_chain(target)
         if workers == 16 and num_unlocked(Unlocks.Cactus) == 3:
-            return chain_harvest(target)
+            if not chain_harvest(target):
+                return False
+            continue
         if not ensure_power(300):
             return False
         price = get_cost(Entities.Cactus)[Items.Pumpkin]
@@ -1661,6 +1663,9 @@ def stock_worker(worker, workers, cost, deadline, companions=True):
                 anchors.append((x, y))
     if len(anchors) == 0:
         return True
+    prepared = None
+    if companions and workers >= 4 and Items.Weird_Substance not in cost:
+        prepared = set()
     index = 0
     step = 1
     for visit in range(20000):
@@ -1671,7 +1676,7 @@ def stock_worker(worker, workers, cost, deadline, companions=True):
             return False
         x, y = anchors[index]
         go(x, y)
-        if not stock_cell(cost, bounds, deadline, companions):
+        if not stock_cell(cost, bounds, deadline, companions, prepared):
             return False
         if len(anchors) > 1:
             if index + step < 0 or index + step >= len(anchors):
@@ -1691,7 +1696,8 @@ def stock_crop(cost):
     return Entities.Tree
 
 
-def stock_cell(cost, bounds, deadline, companions=True):
+def stock_cell(cost, bounds, deadline, companions, prepared):
+    point = (get_pos_x(), get_pos_y())
     entity = get_entity_type()
     if entity in [Entities.Grass, Entities.Bush, Entities.Tree, Entities.Carrot]:
         if not can_harvest():
@@ -1699,13 +1705,13 @@ def stock_cell(cost, bounds, deadline, companions=True):
                 use_item(Items.Water, 2)
             return True
         companion = None
-        if companions:
+        if companions and (prepared == None or point not in prepared):
             companion = get_companion()
         if companion != None:
             kind, position = companion
             if stock_companion_inside(position, bounds):
                 hay, wood = stock_seed_budget(cost, 2 * max_drones() + 2)
-                if kind != Entities.Carrot or (num_items(Items.Hay) >= hay and num_items(Items.Wood) >= wood):
+                if kind != Entities.Carrot or (prepared == None and num_items(Items.Hay) >= hay and num_items(Items.Wood) >= wood):
                     if not stock_support(kind, position):
                         return False
         if entity == Entities.Tree and missing(cost, Items.Weird_Substance) > 0:
@@ -1729,7 +1735,10 @@ def stock_cell(cost, bounds, deadline, companions=True):
         till()
     elif crop == Entities.Carrot and get_ground_type() != Grounds.Soil:
         till()
-    for attempt in range(128):
+    tries = 128
+    if prepared != None:
+        tries = 10
+    for attempt in range(tries):
         if get_time() > deadline:
             return False
         if not affordable(get_cost(crop)):
@@ -1742,9 +1751,17 @@ def stock_cell(cost, bounds, deadline, companions=True):
             return True
         companion = get_companion()
         if companion != None and stock_companion_inside(companion[1], bounds):
+            if prepared != None:
+                if get_water() < 0.6 and num_items(Items.Water) >= 2:
+                    use_item(Items.Water, 2)
+                prepared.add(point)
+                kind, position = companion
+                stock_support(kind, position, False)
             return True
         if not harvest():
             return False
+    if prepared != None:
+        return True
     quick_print("persistent_failed", "companion", get_time())
     return False
 
@@ -1768,7 +1785,7 @@ def stock_seed_budget(cost, margin):
     return hay, wood
 
 
-def stock_support(kind, position):
+def stock_support(kind, position, return_home=True):
     x, y = get_pos_x(), get_pos_y()
     px, py = position
     go(px, py)
@@ -1781,7 +1798,8 @@ def stock_support(kind, position):
             till()
         if affordable(get_cost(kind)):
             plant(kind)
-    go(x, y)
+    if return_home:
+        go(x, y)
     return True
 
 
@@ -1981,7 +1999,6 @@ def chain_harvest(target):
     length = len(chain_cells)
     grade = 4
     gross = length * length * grade
-    # 每个分区中心及相邻两株共转出三份异物。其余格保持相同的收割顺序。
     # 从链内翻转一株会连同相邻两株转产异物。未分配转产的工人翻转两次恢复原状，用实际异物支出同步。
     converted = 3 * length * grade // 2
     price = get_cost(Entities.Cactus)[Items.Pumpkin]
@@ -1990,7 +2007,7 @@ def chain_harvest(target):
     plan = []
     while cactus < target:
         infected = min(16, max(0,(254128 + 32 - bank + converted - 1) // converted))
-        toggles = 32 + infected
+        toggles = 32 - infected
         cactus += gross - infected * converted
         bank = bank - toggles + infected * converted
         plan.append((infected, toggles, cactus))
@@ -2004,6 +2021,10 @@ def chain_harvest(target):
     start = get_time()
     ok = chain_group(0, 8, plan, weird, num_items(Items.Pumpkin), length*price, converted, start+200)
     quick_print('chain_mixed', len(plan), get_time()-start, num_items(Items.Cactus)-cactus, num_items(Items.Weird_Substance)-weird)
+    if not ok and num_items(Items.Cactus) < target:
+        # 该批已回收所有子机。余料保留在库存，下一次按实际缺口重建。
+        clear()
+        return num_items(Items.Cactus) > cactus
     return ok and num_items(Items.Cactus) >= target
 
 
@@ -2019,38 +2040,36 @@ def chain_group(w, half, plan, weird, seeds, planting, converted, deadline):
     s, e = chain_cuts[w], chain_cuts[w+1]
     for r in range(len(plan)):
         take, flips, expected = plan[r]
-        fwd = r % 2 == 0
+        fwd = True
         ready = sp_pass(chain_cells, chain_directions, 0, s, e, fwd, len(chain_cells), deadline)
         if not ready:
             ok = False
             break
-        mid = s+2
-        if not fwd:
-            mid = e-3
-        pos = chain_cells[mid]
-        go(pos//16, pos%16)
-        while get_time()<ready and get_time() < deadline:
+        # 收获以本轮的实物收据为准。子机在本区的链上等待，发生部分收获也能在本轮退出。
+        settle_by = min(deadline, get_time() + 6)
+        while num_items(Items.Pumpkin) > seeds - planting * (r + 1) and get_time() < settle_by:
             pass
-        if not use_item(Items.Weird_Substance):
-            return False
-        while num_items(Items.Weird_Substance)>weird-16 and get_time() < deadline:
+        if get_time() >= settle_by or not chain_join(chain_directions, 0, s, e, False, len(chain_cells)):
+            ok = False
+            break
+        pos = chain_cells[s + 2]
+        go(pos // 16, pos % 16)
+        while get_time() < ready and get_time() < settle_by:
             pass
-        if get_time() >= deadline or not chain_join(chain_directions, 0, s, e, not fwd, len(chain_cells)):
-            return False
-        go(pos//16, pos%16)
-        if not use_item(Items.Weird_Substance) or (w < take and not use_item(Items.Weird_Substance)):
+        if not use_item(Items.Weird_Substance) or (w >= take and not use_item(Items.Weird_Substance)):
             ok = False
             break
         if w == 0:
-            while num_items(Items.Pumpkin) > seeds - planting * (r+1) and get_time() < deadline:
+            while num_items(Items.Weird_Substance) > weird - flips and get_time() < settle_by:
                 pass
-            while num_items(Items.Weird_Substance) > weird - flips and get_time() < deadline:
-                pass
-            if get_time() >= deadline or not harvest():
+            if get_time() >= settle_by or not harvest():
                 ok = False
-        while num_items(Items.Cactus) < expected and get_time() < deadline:
+        previous = expected + take * converted - len(chain_cells) ** 2 * 4
+        while num_items(Items.Cactus) <= previous and get_time() < settle_by:
             pass
-        if get_time() >= deadline or not ok:
+        if num_items(Items.Cactus) != expected or not ok:
+            if w == 0:
+                quick_print('chain_partial', r, expected, num_items(Items.Cactus), num_items(Items.Weird_Substance), get_time())
             ok = False
             break
         weird += take*converted-flips
@@ -2070,6 +2089,7 @@ def sp_pass(cells, dirs, base, s, e, fwd, L, deadline):
         i0 = e - 1
         i1 = s - 1
         st = -1
+    low_water = 1
     go(cells[i0 - base] // 16, cells[i0 - base] % 16)
     i = i0
     while i != i1:
@@ -2079,10 +2099,15 @@ def sp_pass(cells, dirs, base, s, e, fwd, L, deadline):
             till()
         if get_entity_type() != None and get_entity_type() != Entities.Grass:
             harvest()
+        moisture = get_water()
+        if moisture < 0.38 and num_items(Items.Water) > 10:
+            use_item(Items.Water, 2)
+            moisture = get_water()
+        low_water = min(low_water, moisture)
         if not plant(Entities.Cactus):
             return False
         i += st
-    ripe_at = get_time() + 1
+    ripe_at = get_time() + 1 / (1 + 3.5 * low_water) + 0.025
     i0, i1 = i1 - st, i0 - st
     st = -st
     fwd = not fwd
