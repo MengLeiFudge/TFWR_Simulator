@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Text.Json.Nodes;
 
 public sealed class SimulationOptions
 {
@@ -96,7 +97,17 @@ public sealed class SimulationOptions
         }
         if (seen.Contains("--seed") && seen.Contains("--seeds")) throw new ArgumentException("Use seed or seeds, not both");
         bool seedGiven = seen.Contains("--seed") || seen.Contains("--seeds");
-        if (result.LeaderboardRandom.Length == 0) result.LeaderboardRandom = result.Leaderboard != null && !seedGiven ? "game" : "seeded";
+        if (result.Jobs is < 1 or > 64 && seen.Contains("--jobs"))
+            throw new ArgumentException("Jobs must be between 1 and 64");
+        if (result.LeaderboardRandom.Length == 0)
+        {
+            bool hasBoard = result.Leaderboard != null;
+            if (!hasBoard && !seedGiven && !result.SyntaxOnly && result.Scenario != null)
+                hasBoard = JsonNode.Parse(File.ReadAllText(result.Scenario))?["leaderboard"] != null;
+            result.LeaderboardRandom = hasBoard && !seedGiven ? "game" : "seeded";
+        }
+        if (result.LeaderboardRandom is not ("game" or "seeded"))
+            throw new ArgumentException("Leaderboard random mode must be game or seeded");
         if (result.Seeds.Length == 0)
             result.Seeds = result.LeaderboardRandom == "game"
                 ? Enumerable.Range(0, seen.Contains("--jobs") ? result.Jobs : 1).Select(_ => RandomNumberGenerator.GetInt32(int.MaxValue)).ToArray()
