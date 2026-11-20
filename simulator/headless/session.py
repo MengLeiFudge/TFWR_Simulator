@@ -16,8 +16,7 @@ import time
 
 
 MIN_GAME_SECONDS = 7200.0
-TARGET_RELATIVE_MARGIN = 0.005
-TARGET_ABSOLUTE_MARGIN_SECONDS = 0.1
+MIN_SAMPLE_RUNS = 12
 ADAPTIVE_CONFIDENCE_LEVEL = 0.99
 FIXED_CONFIDENCE_LEVEL = 0.95
 DEFAULT_FIXED_SAMPLE_RUNS = 30
@@ -239,17 +238,13 @@ def main():
     if {'--jobs', '--worker'}.intersection(args.extra):
         parser.error('抽样器自行分配工作进程')
     stream = adaptive_reports(root, assemblies, script, args) if adaptive else fixed_reports(root, assemblies, script, args, temp_root)
-    checkpoint = 0
     confidence = ADAPTIVE_CONFIDENCE_LEVEL if adaptive else FIXED_CONFIDENCE_LEVEL
-    alpha = 1 - confidence
-    margin = None
     runs = []
     times = []
     total = 0.0
     wall = 0.0
 
     reason = None
-    precision_met = None
     modes = set()
     with closing(stream) as reports_stream:
         for reports, elapsed in reports_stream:
@@ -281,46 +276,31 @@ def main():
             if modes != {'game_leaderboard_random'}:
                 reason = '自动抽样需要游戏随机模式，固定种子筛选请指定 --seed-start 或 --sample-runs'
                 break
-            if len(times) < 2:
-                continue
-            checkpoint += 1
-            # 各次检查的错误概率预算之和为 alpha。
-            check_alpha = alpha / (checkpoint * (checkpoint + 1))
-            mean = statistics.fmean(times)
-            se = statistics.stdev(times) / math.sqrt(len(times))
-            margin = student_t_critical(check_alpha, len(times) - 1) * se
-            target_margin = TARGET_ABSOLUTE_MARGIN_SECONDS
-            if total >= MIN_GAME_SECONDS:
-                target_margin = max(target_margin, TARGET_RELATIVE_MARGIN * mean)
-            precision_met = margin <= target_margin
-            if precision_met or len(runs) % args.jobs == 0:
-                print(f'轮数={len(runs)} 均值={mean:.3f}游戏秒 区间半宽={margin:.3f} 目标半宽={target_margin:.3f}', file=sys.stderr)
-            if precision_met:
+            if len(times) >= MIN_SAMPLE_RUNS and total >= MIN_GAME_SECONDS:
                 break
     valid = reason is None
     mean = statistics.fmean(times) if times else None
     sd = statistics.stdev(times) if len(times) > 1 else None
     se = sd / math.sqrt(len(times)) if sd is not None else None
     mode = next(iter(modes)) if len(modes) == 1 else None
-    if not valid:
-        margin = None
-    elif not adaptive and se is not None and mode == 'game_leaderboard_random':
-        margin = student_t_critical(alpha, len(times) - 1) * se
-    margin95 = margin
-    if adaptive and margin is not None:
-        alpha95 = (1 - FIXED_CONFIDENCE_LEVEL) / (checkpoint * (checkpoint + 1))
-        margin95 = student_t_critical(alpha95, len(times) - 1) * se
+    margin = margin95 = None
+    if valid and se is not None and mode == 'game_leaderboard_random':
+        count = len(times)
+        # 按累计时长停采时，对所有可能的停止轮数分配错误概率。
+        alpha_weight = (MIN_SAMPLE_RUNS - 1) / ((count - 1) * count) if adaptive else 1
+        margin = student_t_critical((1 - confidence) * alpha_weight, count - 1) * se
+        margin95 = margin
+        if adaptive:
+            margin95 = student_t_critical((1 - FIXED_CONFIDENCE_LEVEL) * alpha_weight, count - 1) * se
     summary = {
         'script': str(script), 'leaderboard': board, 'random_mode': mode,
         'mode': 'sample', 'sample_runs': args.sample_runs,
         'sampling_policy': 'adaptive' if adaptive else 'fixed',
         'jobs': args.jobs if adaptive else min(args.jobs, 64, args.sample_runs or DEFAULT_FIXED_SAMPLE_RUNS),
         'minimum_game_seconds': MIN_GAME_SECONDS if adaptive else None,
+        'minimum_runs': MIN_SAMPLE_RUNS if adaptive else None,
         'first_7200_wall_seconds': first_7200_wall_seconds,
-        'target_relative_margin': TARGET_RELATIVE_MARGIN if adaptive else None,
-        'target_absolute_margin_game_seconds': TARGET_ABSOLUTE_MARGIN_SECONDS if adaptive else None,
         'confidence_level': confidence if margin is not None else None,
-        'precision_met': precision_met if adaptive and margin is not None else None,
         'runs': len(runs), 'runs_reached': len(times), 'total_game_seconds': round(total, 6),
         'valid': valid, 'invalid_reason': reason,
         'runs_with_warnings': sum(bool(run['warnings']) for run in runs),
