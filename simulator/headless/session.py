@@ -12,9 +12,10 @@ import time
 
 
 MIN_GAME_SECONDS = 7200.0
-TARGET_RELATIVE_MARGIN = 0.01
+TARGET_RELATIVE_MARGIN = 0.005
+ADAPTIVE_CONFIDENCE_LEVEL = 0.99
+FIXED_CONFIDENCE_LEVEL = 0.95
 DEFAULT_FIXED_SAMPLE_RUNS = 30
-CONFIDENCE_LEVEL = 0.95
 
 
 def clocktext(seconds):
@@ -146,7 +147,8 @@ def main():
         parser.error('固定种子筛选请使用 --seed-start 或显式指定 --sample-runs')
     limit = args.sample_runs or DEFAULT_FIXED_SAMPLE_RUNS
     checkpoint = 0
-    alpha = 1 - CONFIDENCE_LEVEL
+    confidence = ADAPTIVE_CONFIDENCE_LEVEL if adaptive else FIXED_CONFIDENCE_LEVEL
+    alpha = 1 - confidence
     margin = None
     runs = []
     times = []
@@ -216,6 +218,10 @@ def main():
         margin = None
     elif not adaptive and se is not None and mode == 'game_leaderboard_random':
         margin = student_t_critical(alpha, len(times) - 1) * se
+    margin95 = margin
+    if adaptive and margin is not None:
+        alpha95 = (1 - FIXED_CONFIDENCE_LEVEL) / (checkpoint * (checkpoint + 1))
+        margin95 = student_t_critical(alpha95, len(times) - 1) * se
     summary = {
         'script': str(script), 'leaderboard': board, 'random_mode': mode,
         'mode': 'sample', 'sample_runs': args.sample_runs,
@@ -223,7 +229,7 @@ def main():
         'minimum_game_seconds': MIN_GAME_SECONDS if adaptive else None,
         'first_7200_wall_seconds': first_7200_wall_seconds,
         'target_relative_margin': TARGET_RELATIVE_MARGIN if adaptive else None,
-        'confidence_level': CONFIDENCE_LEVEL if margin is not None else None,
+        'confidence_level': confidence if margin is not None else None,
         'precision_met': precision_met if adaptive and margin is not None else None,
         'runs': len(runs), 'runs_reached': len(times), 'total_game_seconds': round(total, 6),
         'valid': valid, 'invalid_reason': reason,
@@ -232,7 +238,8 @@ def main():
         'mean_game_seconds': mean if valid else None,
         'successful_mean_game_seconds': mean,
         'stdev_game_seconds': sd, 'stderr_game_seconds': se,
-        'mean_ci95_half_width_game_seconds': margin,
+        'mean_ci_half_width_game_seconds': margin,
+        'mean_ci95_half_width_game_seconds': margin95,
         'min_game_seconds': min(times) if times else None, 'max_game_seconds': max(times) if times else None,
         'mean_clock': clocktext(mean) if valid and mean is not None else None,
         'wall_seconds': round(wall, 2), 'detail': runs}
