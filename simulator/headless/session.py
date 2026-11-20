@@ -1,4 +1,4 @@
-"""用固定数量的完整模拟轮次估计单轮期望时间。"""
+"""用完整模拟轮次估计单轮期望时间。"""
 import argparse
 import json
 import math
@@ -9,6 +9,12 @@ import subprocess
 import sys
 import tempfile
 import time
+
+
+MIN_GAME_SECONDS = 7200.0
+TARGET_RELATIVE_MARGIN = 0.01
+INITIAL_SAMPLE_RUNS = 30
+CONFIDENCE_LEVEL = 0.95
 
 
 def clocktext(seconds):
@@ -56,7 +62,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('script', type=Path, help='入口脚本，相对于仓库根目录')
     parser.add_argument('--leaderboard', help='排行榜盘面名，省略则用preset')
-    parser.add_argument('--sample-runs', type=int, default=30, help='完整抽样轮数，默认30轮')
+    parser.add_argument('--sample-runs', type=int, help='指定固定轮数用于筛选，排行榜默认自动决定轮数')
     parser.add_argument('--jobs', type=int, default=None, help='并行工作进程数，默认取CPU核数与目标轮数的较小值')
     parser.add_argument('--seed-start', type=int, default=None,
                         help='给定起始种子时按其重放随机（配对筛选）；默认不给，由模拟器按游戏方式随机取种子')
@@ -72,7 +78,7 @@ def main():
     args.jobs = args.jobs or min(os.cpu_count() or 1, 64)
     if not 1 <= args.jobs <= 64:
         parser.error('--jobs 须在1～64之间（模拟器单批并行上限）')
-    if args.sample_runs < 1:
+    if args.sample_runs is not None and args.sample_runs < 1:
         parser.error('--sample-runs 须为正整数')
     root = Path(__file__).resolve().parents[2]
     warn_stale_source(root)
@@ -101,12 +107,21 @@ def main():
         args.output = None
     elif args.output is None:
         args.output = temp_root / f'{args.leaderboard or script.stem}-sample.json'
-    limit = args.sample_runs
+    adaptive = bool(board) and args.sample_runs is None and args.seed_start is None
+    if adaptive and {'--seed', '--seeds'}.intersection(args.extra):
+        parser.error('固定种子筛选请使用 --seed-start 或显式指定 --sample-runs')
+    limit = args.sample_runs or INITIAL_SAMPLE_RUNS
+    checkpoint = 0
+    normal = statistics.NormalDist()
+    critical_value = normal.inv_cdf((1 + CONFIDENCE_LEVEL) / 2)
     runs = []
+    times = []
     total = 0.0
     wall = 0.0
     seed = args.seed_start if args.seed_start is not None else (None if board else 1)
     reason = None
+    precision_met = None
+    modes = set()
     while len(runs) < limit:
         want = min(args.jobs, limit - len(runs))
         seeds = list(range(seed, seed + want)) if seed is not None else []
@@ -124,24 +139,47 @@ def main():
                          'error': report.get('error'),
                          'warnings': [m for m in report.get('messages', []) if m.startswith('Warning: ')],
                          'output_dropped': report.get('output_dropped', 0)})
+            modes.add(report.get('random_mode'))
             if reached:
-                total += report.get('game_seconds') or 0.0
+                times.append(report['game_seconds'])
+                total += times[-1]
             elif reason is None:
                 reason = (f"seed={report.get('seed')} stop_reason={report.get('stop_reason')} "
                           f"error={report.get('error')}")
         label = f'seed={seeds[0]}..{seeds[-1]}' if seeds else '游戏随机'
-        print(f'批次 {label} 墙钟={elapsed:.1f}秒 抽样={len(runs)}/{limit}轮', file=sys.stderr)
-    times = [run['game_seconds'] for run in runs if run['goal_reached']]
+        print(f'批次 {label} 墙钟={elapsed:.1f}秒 已抽样={len(runs)}轮 累计={total:.1f}游戏秒', file=sys.stderr)
+        if not adaptive:
+            continue
+        if reason is not None:
+            break
+        if modes != {'game_leaderboard_random'}:
+            reason = '自动抽样需要游戏随机模式，固定种子筛选请指定 --seed-start 或 --sample-runs'
+            break
+        if len(runs) == limit:
+            mean = statistics.fmean(times)
+            se = statistics.stdev(times) / math.sqrt(len(times))
+            checkpoint += 1
+            # 各次检查的错误概率上限之和为 1 - CONFIDENCE_LEVEL。
+            alpha = (1 - CONFIDENCE_LEVEL) / (checkpoint * (checkpoint + 1))
+            critical_value = -normal.inv_cdf(alpha / 2)
+            precision_met = critical_value * se <= TARGET_RELATIVE_MARGIN * mean
+            if total >= MIN_GAME_SECONDS and precision_met:
+                break
+            limit *= 2
     valid = reason is None
     mean = statistics.fmean(times) if times else None
     sd = statistics.stdev(times) if len(times) > 1 else None
     se = sd / math.sqrt(len(times)) if sd is not None else None
-    modes = {run['random_mode'] for run in runs if run['random_mode'] is not None}
     mode = next(iter(modes)) if len(modes) == 1 else None
-    margin = 1.96 * se if valid and len(times) >= 30 and mode == 'game_leaderboard_random' else None
+    margin = critical_value * se if valid and len(times) >= INITIAL_SAMPLE_RUNS and mode == 'game_leaderboard_random' else None
     summary = {
         'script': str(script), 'leaderboard': board, 'random_mode': mode,
         'mode': 'sample', 'sample_runs': args.sample_runs,
+        'sampling_policy': 'adaptive' if adaptive else 'fixed',
+        'minimum_game_seconds': MIN_GAME_SECONDS if adaptive else None,
+        'target_relative_margin': TARGET_RELATIVE_MARGIN if adaptive else None,
+        'confidence_level': CONFIDENCE_LEVEL if margin is not None else None,
+        'precision_met': precision_met if adaptive and margin is not None else None,
         'runs': len(runs), 'runs_reached': len(times), 'total_game_seconds': round(total, 6),
         'valid': valid, 'invalid_reason': reason,
         'runs_with_warnings': sum(bool(run['warnings']) for run in runs),

@@ -31,19 +31,19 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 
 ## 估计单轮期望时间
 
-用 `--leaderboard` 选择排行榜场景，用 `--sample-runs` 指定抽样轮数（默认 30）。默认使用原版排行榜随机流，每轮重新初始化并完整运行至目标。`--jobs` 只决定并行数。显式使用 `--seed-start` 的结果用于配对筛选。
+用 `--leaderboard` 选择排行榜场景。默认使用原版排行榜随机流，每轮重新初始化并完整运行至目标。程序自动增加轮数，直到累计至少 7200 游戏秒，且均值约 95% 置信区间的半宽不超过均值的 1%。`--jobs` 只决定并行数。指定 `--sample-runs` 可做固定轮数筛选，搭配 `--seed-start` 可用同一批种子对照；只给 `--seed-start` 时固定跑 30 轮。
 
 ```bash
-python3 simulator/headless/session.py scripts/leaderboard/lb_maze.py --leaderboard maze --sample-runs 100 --jobs 20
+python3 simulator/headless/session.py scripts/leaderboard/lb_maze.py --leaderboard maze --jobs 20
 ```
 
 报告默认写入 `.codex/tmp/sessions/<榜单或脚本>-sample.json`，同名重跑会覆盖文件。加 `--no-output` 只打印摘要。`--run-seconds` 是每轮的游戏时间上限，默认 7200 秒。报告中的累计游戏秒用于记录样本规模。
 
-先抽 30 轮，再用样本标准差 `s` 估算达到目标误差所需的轮数。若目标是约 95% 置信区间半宽 `e`，预先定下下一组样本量 `n = ceil((1.96 × s / e)²)`。随机样本全部成功且至少 30 轮时，报告给出 `mean_ci95_half_width_game_seconds`。遇到失败仍记录计划内各轮，正式均值留空，并单列成功轮的描述性均值。长尾或偶发失败明显时需扩大样本，同时看失败轮和逐轮分布。这个区间衡量本地抽样误差，模拟与实机的系统偏差需用同版实机对照。
+自动抽样在第 30、60、120、240 轮等翻倍节点检查是否达标。用单轮样本标准差除以轮数的平方根计算标准误，再用均值的正态近似计算区间半宽。第 `k` 次检查的显著性水平分配为 `0.05 / (k × (k+1))`，所有检查合计为 5%。报告字段为 `mean_ci95_half_width_game_seconds`。遇到失败时记录该批明细并结束自动抽样，正式均值留空，保留成功轮的描述统计。长尾明显时应结合逐轮分布解读区间。模拟与实机的系统偏差通过同版实机对照衡量。
 
 `runs_with_warnings` 统计有已记录警告的轮数，逐轮 `detail[].warnings` 保留警告原文。检查模拟结果时同时核对这些警告和 `output_dropped`。缺料警告列出物品、请求量、实际库存、无人机、源码行与调用链。库存不足时游戏返回 `False`，本轮仍可能完成目标。
 
-历史快速重置六轮固定种子样本的均值是 1633.2 秒，样本标准差 44.1 秒。最快的 1586.8、1587.5 秒对应种子 3、5。按这个波动规划，约 ±10 秒需 75 轮，约 ±5 秒需 299 轮。
+以历史快速重置的六轮固定种子样本为例，均值为 1633.2 秒、样本标准差为 44.1 秒。如果游戏随机样本的波动相近，1% 对应约 16.3 秒半宽，第 30 轮预计精度不足，第 60 轮预计能达标，实际以累计时间和测得波动为准。
 
 `--preset max` 为基础游戏满科技，`all` 包含地下DLC，`reset` 为重置初始条件。满科技默认只有Pumpkin和Power各10亿，其余库存为0；具体实验应明确提供材料。`--scenario` 接受 `preset/items/unlocks/goal/leaderboard`；命令行 `--item`、`--unlock` 最后覆盖。`--save` 只读导入科技和库存，不恢复存档地形或运行状态；同一科技的多条等级记录取最高级。排行榜、preset与save作为初始条件来源不能混用，这也适用于场景JSON中的preset。
 
