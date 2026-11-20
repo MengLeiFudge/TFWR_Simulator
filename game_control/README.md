@@ -218,6 +218,8 @@ python3 game_control/tools/extract_unlock_snapshot.py --format markdown --output
 - BepInEx `LogOutput.log`：模组生命周期、完成轮/汇总、每秒 `item_snapshot`、取消和超时原因。
 - Unity `Player.log`：引擎异常和堆栈，与模组日志共同诊断。
 
+整场实机排行榜预计还需多少现实秒，直接读 `item_snapshot` 的 `leaderboard_eta_real_seconds`。字段含义与出现时机见[模组日志说明](../game_mod/README.md#输出)。
+
 等待模式每 5 秒输出进度；`--status-only` 也能查看。首轮的 `progress_percent` 是当前库存/目标量，`prediction=true basis=inventory_linear` 明确标识线性预测：
 
 - `eta_game_seconds` / `eta_game_time`：预计剩余游戏时间。

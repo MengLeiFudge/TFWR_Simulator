@@ -71,6 +71,7 @@ public sealed partial class Plugin : BaseUnityPlugin
     private int observedLeaderboardRuns;
     private TimeSpan observedLeaderboardTotalTime = TimeSpan.Zero;
     private string observedLeaderboardScriptName = string.Empty;
+    private (double GameSeconds, float RealSeconds)? leaderboardEtaSample;
 
     private ManualLogSource Log => Logger;
 
@@ -423,6 +424,7 @@ public sealed partial class Plugin : BaseUnityPlugin
         activeRequest = requestedState;
         pendingRequest = null;
         activeRequestStartedAt = Time.realtimeSinceStartup;
+        leaderboardEtaSample = null;
         lastHandledRequestId = Math.Max(lastHandledRequestId, requestedState.RequestId);
         stopReason = StopReason.None;
         Log.LogInfo($"已启动脚本 {targetWindow.fileName} request_id={requestedState.RequestId}");
@@ -523,10 +525,10 @@ public sealed partial class Plugin : BaseUnityPlugin
         }
 
         lastItemSnapshotLogAt = now;
-        Log.LogInfo(BuildItemSnapshotLine(mainSim, status, detail));
+        Log.LogInfo(BuildItemSnapshotLine(mainSim, status, detail, now));
     }
 
-    private string BuildItemSnapshotLine(MainSim mainSim, string status, string detail)
+    private string BuildItemSnapshotLine(MainSim mainSim, string status, string detail, float now)
     {
         StringBuilder builder = new StringBuilder();
         builder.Append("item_snapshot request_id=");
@@ -539,7 +541,7 @@ public sealed partial class Plugin : BaseUnityPlugin
             builder.Append(detail);
         }
         builder.Append(" real_elapsed=");
-        builder.Append((Time.realtimeSinceStartup - activeRequestStartedAt).ToString("0.0", CultureInfo.InvariantCulture));
+        builder.Append((now - activeRequestStartedAt).ToString("0.0", CultureInfo.InvariantCulture));
         Simulation? sim = SimRef(mainSim);
         if (sim != null)
         {
@@ -551,10 +553,27 @@ public sealed partial class Plugin : BaseUnityPlugin
                 builder.Append(sim.Execution.GlobalOpCount.ToString("0.###", CultureInfo.InvariantCulture));
             }
         }
+        int completedRuns = mainSim.numLeaderboardRuns;
+        double completedSeconds = mainSim.totalLeaderboardTime.Seconds;
         builder.Append(" leaderboard_runs=");
-        builder.Append(mainSim.numLeaderboardRuns.ToString(CultureInfo.InvariantCulture));
+        builder.Append(completedRuns.ToString(CultureInfo.InvariantCulture));
         builder.Append(" leaderboard_total_time=");
-        builder.Append(mainSim.totalLeaderboardTime.Seconds.ToString("0.###", CultureInfo.InvariantCulture));
+        builder.Append(completedSeconds.ToString("0.###", CultureInfo.InvariantCulture));
+        if (status == "running" && mainSim.leaderboardManager != null && mainSim.leaderboardManager.IsRunning &&
+            sim != null && !sim.Paused &&
+            (sim.leaderboardType == LeaderboardType.farm_resources || sim.leaderboardType == LeaderboardType.reset))
+        {
+            double? eta = EstimateLeaderboardRemainingSeconds(completedRuns, completedSeconds, sim.CurrentTime.Seconds, now);
+            if (eta.HasValue)
+            {
+                builder.Append(" leaderboard_eta_real_seconds=");
+                builder.Append(eta.Value.ToString("0.0", CultureInfo.InvariantCulture));
+            }
+        }
+        else
+        {
+            leaderboardEtaSample = null;
+        }
         if (!string.IsNullOrWhiteSpace(observedLeaderboardScriptName))
         {
             builder.Append(" leaderboard_script=");
@@ -571,6 +590,31 @@ public sealed partial class Plugin : BaseUnityPlugin
         }
 
         return builder.ToString();
+    }
+
+    private double? EstimateLeaderboardRemainingSeconds(int completedRuns, double completedSeconds, double currentSeconds, float now)
+    {
+        const double fullStatisticsGameSeconds = 7200.0;
+        double gameSeconds = completedSeconds + currentSeconds;
+        var previous = leaderboardEtaSample;
+        leaderboardEtaSample = (gameSeconds, now);
+        if (!previous.HasValue || completedRuns == 0 || completedSeconds <= 0 || completedSeconds >= fullStatisticsGameSeconds)
+        {
+            return null;
+        }
+
+        double gameDelta = gameSeconds - previous.Value.GameSeconds;
+        double realDelta = now - previous.Value.RealSeconds;
+        if (gameDelta <= 0 || realDelta <= 0)
+        {
+            return null;
+        }
+
+        double meanRunSeconds = completedSeconds / completedRuns;
+        double currentRunEstimate = Math.Max(currentSeconds, meanRunSeconds);
+        double additionalRuns = Math.Ceiling(Math.Max(0, fullStatisticsGameSeconds - completedSeconds - currentRunEstimate) / meanRunSeconds);
+        double remainingGameSeconds = currentRunEstimate - currentSeconds + additionalRuns * meanRunSeconds;
+        return remainingGameSeconds > 0 ? remainingGameSeconds * realDelta / gameDelta : null;
     }
 
     private void ObserveLeaderboardTiming(MainSim mainSim)
