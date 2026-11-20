@@ -140,15 +140,15 @@ public sealed class SimulationScenario
         return result;
     }
 
-    public Simulation Create(HeadlessRunner runner, int seed, int size)
+    public Simulation Create(HeadlessRunner runner, int seed, int size, bool seededLeaderboardRandom = false)
     {
         var board = Leaderboard;
-        // 用种子重放；正式排行榜的加密随机源不能据此预测。
+        // 排行榜默认用加密随机，同游戏无法据种子预测；seeded仅供同一随机的配对筛选。
         var sim = new Simulation(runner, board != null && board.dlc == EDlcType.None ? EDlcMask.None : EDlcMask.All, UnlockStrings, Items,
             board?.leaderboardName ?? "", board?.steamLeaderboardName ?? "", board?.leaderboardType ?? LeaderboardType.simulation,
             board?.fullyGenerateUnderground ?? true, seed, worldSizeOverride: size == 0 ? default : new Vector2Int(size, size),
             whitelistedGroundFeatureUnlocks: board?.whitelistedGroundFeatureUnlocks,
-            pretendedFeatureChunks: board?.pretendedFeatureChunks, pretendedChunkDepths: board?.pretendedChunkDepths, useSeededLeaderboardRandom: true);
+            pretendedFeatureChunks: board?.pretendedFeatureChunks, pretendedChunkDepths: board?.pretendedChunkDepths, useSeededLeaderboardRandom: seededLeaderboardRandom);
         sim.singleDrone = board?.singleDrone ?? false;
         return sim;
     }

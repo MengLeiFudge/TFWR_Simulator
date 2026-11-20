@@ -24,7 +24,7 @@ public static class SimulationWorker
         var runner = new HeadlessRunner();
         using var monitor = new SimulationMonitor(watch, options.WallSeconds, options.MaxCalls, options.MaxNodes, options.Trace, options.HotSpots);
         SimulationMonitor.Current = monitor;
-        var sim = scenario.Create(runner, options.Seed, options.Size);
+        var sim = scenario.Create(runner, options.Seed, options.Size, options.LeaderboardRandom == "seeded");
         var farm = sim.farm;
         var initialState = new
         {
@@ -67,7 +67,7 @@ public static class SimulationWorker
             schema_version = 1, backend = "csharp-native", kind = "local_prediction",
             script = options.Script, seed = options.Seed, preset = scenario.Preset,
             leaderboard = scenario.Leaderboard?.leaderboardName,
-            random_mode = scenario.Leaderboard == null ? "seeded_simulate" : "seeded_leaderboard_screening",
+            random_mode = scenario.Leaderboard == null ? "seeded_simulate" : options.LeaderboardRandom == "game" ? "game_leaderboard_random" : "seeded_leaderboard_screening",
             dependencies = workspace.SourceHashes, input_hashes = scenario.InputHashes,
             goal = scenario.Goal,
             leaderboard_has_overrides = scenario.Leaderboard == null ? (bool?)null : scenario.HasOverrides || options.Size > 0,

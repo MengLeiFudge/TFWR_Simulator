@@ -17,8 +17,11 @@ WSL 中构建和执行使用 Windows `dotnet.exe`，例如 `"/mnt/c/Program File
 # 只检查入口及其全部静态导入，包括未执行分支中的导入。
 dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/functional/resources.py --syntax-only
 
-# 独立进程并行；所有seed共享10秒墙钟预算。
+# 指定seed时按其重放随机，并行轮数与seed数一致，共享墙钟预算。
 dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderboard/lb_cactus_single.py --seeds 0,1,123 --jobs 3 --seconds 30 --wall-seconds 10
+
+# 只给jobs时按游戏方式随机取3个种子，并行跑3轮，随机机制同游戏。
+dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderboard/lb_cactus_single.py --leaderboard cactus_single --jobs 3 --seconds 30 --wall-seconds 10
 
 # 使用原版排行榜盘面、材料、科技、单机限制和地下特征配置。
 dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderboard/lb_mushrooms_single.py --leaderboard mushrooms_single --seconds 30 --wall-seconds 10
@@ -57,7 +60,7 @@ python3 simulator/headless/session.py scripts/leaderboard/lb_maze.py --leaderboa
 - 原版Tokenizer、Parser、AST和内置函数：游戏语言、模块导入、作用域、容器、错误和操作计费。不会把游戏脚本交给CPython执行。
 - 原版199t调度、纳秒事件、无人机状态及随机流；等待子机返回、取消子机和资源竞争沿用原版实现。
 - 地上作物、伴生、水肥、南瓜合并、仙人掌、恐龙、迷宫；地下生成、开采、爆炸、塌方、矿物、蘑菇、金字塔、扫雷和藏宝图。
-- 30个原版排行榜资源场景。正式排行榜使用加密随机源，本工具明确使用seed作本地筛选，报告标记 `seeded_leaderboard_screening`，不承诺预测正式打榜轨迹。
+- 30个原版排行榜资源场景。原版对资源榜和Reset使用加密随机源；本工具默认与之一致，不给seed时按游戏方式随机取种子、逐轮独立，报告标记 `game_leaderboard_random`。给 `--seed` 或 `--seeds` 才改为按种子重放，报告标记 `seeded_leaderboard_screening`，该模式只用于同一随机下的配对筛选。
 - 不模拟画面、音效、鼠标拾取或Steam成就到账。原版模拟内部的递归 `simulate/leaderboard_run` 保留警告行为；由CLI选择要模拟的脚本和场景。`tap` 保留模拟内计时，不发送外部点击。
 - 警告和错误以原版消息键报告，不载入游戏的中文本地化资源。图形变换只服务不影响机制的显示调用；不支持的拾取/加权动画求值明确抛错。世界生成内部异常也会使运行失败，不静默产出有效报告。
 

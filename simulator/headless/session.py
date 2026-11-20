@@ -35,10 +35,11 @@ def warn_stale_source(root):
 
 
 def runbatch(root, assemblies, script, args, seeds, output):
-    command = [args.dotnet, str(assemblies), str(script), '--seeds', ','.join(str(seed) for seed in seeds),
-               '--jobs', str(min(args.jobs, len(seeds))), '--seconds', f'{args.run_seconds:g}',
-               '--wall-seconds', f'{args.wall_seconds:g}', '--max-api-calls', str(args.max_api_calls),
-               '--max-nodes', str(args.max_nodes), '--json', output]
+    command = [args.dotnet, str(assemblies), str(script), '--jobs', str(min(args.jobs, len(seeds)) if seeds else args.jobs)]
+    if seeds:
+        command += ['--seeds', ','.join(str(seed) for seed in seeds)]
+    command += ['--seconds', f'{args.run_seconds:g}', '--wall-seconds', f'{args.wall_seconds:g}',
+                '--max-api-calls', str(args.max_api_calls), '--max-nodes', str(args.max_nodes), '--json', output]
     for item in args.extra:
         command.extend(item.split())
     started = time.monotonic()
@@ -59,7 +60,8 @@ def main():
     parser.add_argument('--leaderboard', help='排行榜盘面名，省略则用preset')
     parser.add_argument('--session-seconds', type=float, default=7200.0, help='会话预算，默认7200游戏秒')
     parser.add_argument('--jobs', type=int, default=None, help='并行工作进程数，默认取CPU核数与目标轮数的较小值')
-    parser.add_argument('--seed-start', type=int, default=1)
+    parser.add_argument('--seed-start', type=int, default=None,
+                        help='给定起始种子时按其重放随机（配对筛选）；默认不给，由模拟器按游戏方式随机取种子')
     parser.add_argument('--max-runs', type=int, default=1200, help='轮数上限，防止短轮无限续跑')
     parser.add_argument('--run-seconds', type=float, default=7200.0, help='单轮游戏时间上限，默认与会话预算相同')
     parser.add_argument('--wall-seconds', type=float, default=300.0, help='每一批的墙钟上限，默认300秒')
@@ -92,7 +94,8 @@ def main():
     runs = []
     total = 0.0
     wall = 0.0
-    seed = args.seed_start
+    seed = args.seed_start if args.seed_start is not None else (None if args.leaderboard else 1)
+    batch = 0
     reason = None
     while total < args.session_seconds and len(runs) < args.max_runs:
         # 首轮按会话预算的八分之一估轮数，之后按实测均值只补差额。
@@ -104,9 +107,11 @@ def main():
             want = max(1, min(want, int(args.session_seconds / max(args.expect_seconds, 1e-6)) + 1))
         if runs:
             want = max(1, min(want, int((args.session_seconds - total) / max(mean, 1e-6)) + 1))
-        seeds = list(range(seed, seed + want))
-        seed += want
-        reports, elapsed = runbatch(root, assemblies, script, args, seeds, f'.codex/session-batch-{seeds[0]}.json')
+        seeds = list(range(seed, seed + want)) if seed is not None else []
+        if seed is not None:
+            seed += want
+        batch += 1
+        reports, elapsed = runbatch(root, assemblies, script, args, seeds, f'.codex/session-batch-{batch}.json')
         wall += elapsed
         for report in reports:
             reached = report.get('goal_reached') is True and report.get('stop_reason') == 'finished'
@@ -120,7 +125,8 @@ def main():
             elif reason is None:
                 reason = (f"seed={report.get('seed')} stop_reason={report.get('stop_reason')} "
                           f"error={report.get('error')}")
-        print(f'批次 seed={seeds[0]}..{seeds[-1]} 墙钟={elapsed:.1f}秒 累计={total:.1f}/{args.session_seconds:.0f}游戏秒 '
+        label = f'seed={seeds[0]}..{seeds[-1]}' if seeds else '游戏随机'
+        print(f'批次 {label} 墙钟={elapsed:.1f}秒 累计={total:.1f}/{args.session_seconds:.0f}游戏秒 '
               f'轮数={len(runs)}', file=sys.stderr)
         if reason is not None:
             break

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security.Cryptography;
 
 public sealed class SimulationOptions
 {
@@ -16,6 +17,7 @@ public sealed class SimulationOptions
     public string? Preset { get; private set; }
     public string? Scenario { get; private set; }
     public string? Leaderboard { get; private set; }
+    public string LeaderboardRandom { get; private set; } = "";
     public string? Save { get; private set; }
     public string? Output { get; private set; }
     public string? Trace { get; private set; }
@@ -26,13 +28,14 @@ public sealed class SimulationOptions
         TFWRSimulator <script.py> [options]
           --preset max|all|reset   基础满科技 / 含DLC满科技 / 重置初始条件
           --scenario file.json    初始科技、库存和目标；preset/save与排行榜互斥
-          --leaderboard name      排行榜盘面；seed只用于本地筛选
+          --leaderboard name      排行榜盘面；不给种子时按游戏加密随机跑一轮
           --save save.json        只读导入科技和库存，不恢复地形
           --item NAME=AMOUNT      覆盖初始库存，可重复
           --unlock NAME=LEVEL     覆盖科技等级，可重复
           --size 0                固定地图边长1..32；0按Expand科技决定
-          --seed 1                单个随机种子
-          --seeds 1,2,3 --jobs 3   独立进程并行，共享墙钟预算
+          --seed 1                用种子1跑一轮，排行榜据此重放随机
+          --seeds 1,2,3           用种子1到3各跑一轮，默认按核数并行
+          --jobs 8                并行轮数；只给jobs时按游戏方式随机取8个种子
           --seconds 30            游戏时间上限（别名 --game-seconds）
           --wall-seconds 10       墙钟上限，最大600秒（别名 --timeout）
           --max-api-calls 2000000 内置函数调用上限
@@ -63,6 +66,7 @@ public sealed class SimulationOptions
             switch (option)
             {
                 case "--seed": result.Seed = Int(value); break;
+                case "--leaderboard-random": result.LeaderboardRandom = value; break;
                 case "--seeds": result.Seeds = value.Split(',').Select(Int).ToArray(); break;
                 case "--jobs": result.Jobs = Int(value); break;
                 case "--size": result.Size = Int(value); break;
@@ -91,7 +95,12 @@ public sealed class SimulationOptions
             }
         }
         if (seen.Contains("--seed") && seen.Contains("--seeds")) throw new ArgumentException("Use seed or seeds, not both");
-        if (result.Seeds.Length == 0) result.Seeds = [result.Seed];
+        bool seedGiven = seen.Contains("--seed") || seen.Contains("--seeds");
+        if (result.LeaderboardRandom.Length == 0) result.LeaderboardRandom = result.Leaderboard != null && !seedGiven ? "game" : "seeded";
+        if (result.Seeds.Length == 0)
+            result.Seeds = result.LeaderboardRandom == "game"
+                ? Enumerable.Range(0, seen.Contains("--jobs") ? result.Jobs : 1).Select(_ => RandomNumberGenerator.GetInt32(int.MaxValue)).ToArray()
+                : [result.Seed];
         if (!seen.Contains("--jobs")) result.Jobs = Math.Max(1, Math.Min(Math.Min(Environment.ProcessorCount, result.Seeds.Length), 64));
         if (result.Seeds.Length > 100 || result.Seeds.Distinct().Count() != result.Seeds.Length || result.Seeds.Any(s => s < 0)
             || result.Jobs < 1 || result.Jobs > 64 || result.MaxCalls < 1 || result.MaxNodes < 1 || result.Size is < 0 or > 32
@@ -116,7 +125,7 @@ public sealed class SimulationOptions
             ("--seed",seed.ToString()), ("--wall-seconds",seconds.ToString("R",CultureInfo.InvariantCulture)),
             ("--seconds",GameSeconds.ToString("R",CultureInfo.InvariantCulture)), ("--max-api-calls",MaxCalls.ToString()),
             ("--max-nodes",MaxNodes.ToString()), ("--size",Size.ToString()), ("--preset",Preset),
-            ("--scenario",Scenario), ("--leaderboard",Leaderboard), ("--save",Save),
+            ("--scenario",Scenario), ("--leaderboard",Leaderboard), ("--leaderboard-random",LeaderboardRandom), ("--save",Save),
             ("--trace",SeedOutput(Trace, seed)), ("--hot-spots",SeedOutput(HotSpots, seed)) })
             if (pair.value != null) { yield return pair.name; yield return pair.value; }
         foreach (var item in Items) { yield return "--item"; yield return $"{item.Key}={item.Value.ToString("R",CultureInfo.InvariantCulture)}"; }
