@@ -1,21 +1,28 @@
 """用完整模拟轮次估计单轮期望时间。"""
 import argparse
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from contextlib import closing
 import json
 import math
 import os
 from pathlib import Path
+import secrets
 import statistics
 import subprocess
 import sys
 import tempfile
+from threading import Lock
 import time
 
 
 MIN_GAME_SECONDS = 7200.0
 TARGET_RELATIVE_MARGIN = 0.005
+TARGET_ABSOLUTE_MARGIN_SECONDS = 0.1
 ADAPTIVE_CONFIDENCE_LEVEL = 0.99
 FIXED_CONFIDENCE_LEVEL = 0.95
 DEFAULT_FIXED_SAMPLE_RUNS = 30
+BACKGROUND_WORKER_FLAGS = (getattr(subprocess, 'CREATE_NO_WINDOW', 0) |
+                           getattr(subprocess, 'BELOW_NORMAL_PRIORITY_CLASS', 0))
 
 
 def clocktext(seconds):
@@ -79,7 +86,7 @@ def runbatch(root, assemblies, script, args, count, seeds, output):
     started = time.monotonic()
     process = subprocess.run(command, cwd=root, capture_output=True, text=True, encoding='utf-8-sig',
                              timeout=args.wall_seconds * 2 + 60,
-                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+                             creationflags=BACKGROUND_WORKER_FLAGS)
     elapsed = time.monotonic() - started
     path = root / output
     if not path.is_file():
@@ -91,6 +98,90 @@ def runbatch(root, assemblies, script, args, count, seeds, output):
     return reports, elapsed
 
 
+def fixed_reports(root, assemblies, script, args, temp_root):
+    remaining = args.sample_runs or DEFAULT_FIXED_SAMPLE_RUNS
+    seed = args.seed_start if args.seed_start is not None else (None if args.board else 1)
+    while remaining:
+        count = min(args.jobs, remaining, 64)
+        seeds = list(range(seed, seed + count)) if seed is not None else []
+        if seed is not None:
+            seed += count
+        with tempfile.TemporaryDirectory(prefix='batch-', dir=temp_root) as directory:
+            yield runbatch(root, assemblies, script, args, count, seeds, str(Path(directory) / 'report.json'))
+        remaining -= count
+
+
+def adaptive_reports(root, assemblies, script, args):
+    command = [args.dotnet, str(assemblies), str(script), '--worker',
+               '--seconds', f'{args.run_seconds:g}', '--wall-seconds', f'{args.wall_seconds:g}',
+               '--max-api-calls', str(args.max_api_calls), '--max-nodes', str(args.max_nodes)]
+    if '--leaderboard-random' not in args.extra:
+        command += ['--leaderboard-random', 'game']
+    lock = Lock()
+    active = set()
+    stopped = False
+
+    def run_one(seed):
+        extra = args.extra.copy()
+        for option in ('--trace', '--hot-spots', '--json', '--output'):
+            if option in extra:
+                index = extra.index(option) + 1
+                if index < len(extra):
+                    path = Path(extra[index])
+                    extra[index] = str(path.with_name(f'{path.stem}.seed-{seed}{path.suffix}'))
+        argv = [*command, '--seed', str(seed), *extra]
+        with lock:
+            if stopped:
+                return None
+            process = subprocess.Popen(argv, cwd=root, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                       text=True, encoding='utf-8-sig', creationflags=BACKGROUND_WORKER_FLAGS)
+            active.add(process)
+        try:
+            try:
+                output, errors = process.communicate(timeout=args.wall_seconds + 1)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.communicate()
+                return {'seed': seed, 'stop_reason': 'hard_timeout', 'error': '模拟进程超过单轮墙钟上限'}
+            try:
+                report = json.loads(output)
+            except ValueError:
+                return {'seed': seed, 'stop_reason': 'worker_error', 'error': (output + errors)[-800:]}
+            report.setdefault('seed', seed)
+            return report
+        finally:
+            with lock:
+                active.remove(process)
+
+    last = time.monotonic()
+    pending = {}
+    ready = {}
+    submitted = taken = 0
+    with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+        try:
+            while True:
+                while len(pending) < args.jobs and submitted - taken < 2 * args.jobs:
+                    future = pool.submit(run_one, secrets.randbelow(2_147_483_647))
+                    pending[future] = submitted
+                    submitted += 1
+                if taken not in ready:
+                    completed, _ = wait(pending, return_when=FIRST_COMPLETED)
+                    for future in completed:
+                        ready[pending.pop(future)] = future.result()
+                    continue
+                # 先跑完的短轮可能更快。按抽取顺序计入可避免完成顺序改变样本。
+                report = ready.pop(taken)
+                taken += 1
+                now = time.monotonic()
+                yield [report], now - last
+                last = now
+        finally:
+            with lock:
+                stopped = True
+                for process in active:
+                    process.kill()
+
+
 def main():
     started = time.monotonic()
     first_7200_wall_seconds = None
@@ -98,11 +189,11 @@ def main():
     parser.add_argument('script', type=Path, help='入口脚本，相对于仓库根目录')
     parser.add_argument('--leaderboard', help='排行榜盘面名，省略则用preset')
     parser.add_argument('--sample-runs', type=int, help='指定固定轮数用于筛选，排行榜默认自动决定轮数')
-    parser.add_argument('--jobs', type=int, default=None, help='并行工作进程数，默认取CPU核数与目标轮数的较小值')
+
     parser.add_argument('--seed-start', type=int, default=None,
                         help='给定起始种子时按其重放随机（配对筛选）；默认不给，由模拟器按游戏方式随机取种子')
     parser.add_argument('--run-seconds', type=float, default=7200.0, help='单轮游戏时间上限，默认7200秒')
-    parser.add_argument('--wall-seconds', type=float, default=300.0, help='每一批的墙钟上限，默认300秒')
+    parser.add_argument('--wall-seconds', type=float, default=300.0, help='单轮墙钟上限，默认300秒')
     parser.add_argument('--max-api-calls', type=int, default=100000000, help='单轮内置调用上限，默认1亿次')
     parser.add_argument('--max-nodes', type=int, default=5000000000, help='单轮解释器节点上限，默认50亿')
     parser.add_argument('--extra', action='append', default=[], help='透传给模拟器的额外参数，如 "--size 32"')
@@ -110,9 +201,8 @@ def main():
     parser.add_argument('--output', type=Path, help='报告路径，默认写 .codex/tmp/sessions/<榜单或脚本>-sample.json')
     parser.add_argument('--no-output', action='store_true', help='只在标准输出打印结论，不写报告文件')
     args = parser.parse_args()
-    args.jobs = args.jobs or min(os.cpu_count() or 1, 64)
-    if not 1 <= args.jobs <= 64:
-        parser.error('--jobs 须在1～64之间（模拟器单批并行上限）')
+    cpu_count = getattr(os, 'process_cpu_count', os.cpu_count)
+    args.jobs = cpu_count() or 1
     if args.sample_runs is not None and args.sample_runs < 1:
         parser.error('--sample-runs 须为正整数')
     root = Path(__file__).resolve().parents[2]
@@ -143,9 +233,12 @@ def main():
     elif args.output is None:
         args.output = temp_root / f'{args.leaderboard or script.stem}-sample.json'
     adaptive = bool(board) and args.sample_runs is None and args.seed_start is None
+    args.board = board
     if adaptive and {'--seed', '--seeds'}.intersection(args.extra):
         parser.error('固定种子筛选请使用 --seed-start 或显式指定 --sample-runs')
-    limit = args.sample_runs or DEFAULT_FIXED_SAMPLE_RUNS
+    if {'--jobs', '--worker'}.intersection(args.extra):
+        parser.error('抽样器自行分配工作进程')
+    stream = adaptive_reports(root, assemblies, script, args) if adaptive else fixed_reports(root, assemblies, script, args, temp_root)
     checkpoint = 0
     confidence = ADAPTIVE_CONFIDENCE_LEVEL if adaptive else FIXED_CONFIDENCE_LEVEL
     alpha = 1 - confidence
@@ -154,61 +247,56 @@ def main():
     times = []
     total = 0.0
     wall = 0.0
-    seed = args.seed_start if args.seed_start is not None else (None if board else 1)
+
     reason = None
     precision_met = None
     modes = set()
-    while adaptive or len(runs) < limit:
-        want = args.jobs if adaptive else min(args.jobs, limit - len(runs))
-        seeds = list(range(seed, seed + want)) if seed is not None else []
-        if seed is not None:
-            seed += want
-        with tempfile.TemporaryDirectory(prefix='batch-', dir=temp_root) as directory:
-            reports, elapsed = runbatch(root, assemblies, script, args, want, seeds,
-                                        str(Path(directory) / 'report.json'))
-        wall += elapsed
-        for report in reports:
-            reached = report.get('goal_reached') is True and report.get('stop_reason') == 'finished'
-            runs.append({'seed': report.get('seed'), 'game_seconds': report.get('game_seconds'),
-                         'goal_reached': reached, 'stop_reason': report.get('stop_reason'),
-                         'random_mode': report.get('random_mode'),
-                         'error': report.get('error'),
-                         'warnings': [m for m in report.get('messages', []) if m.startswith('Warning: ')],
-                         'output_dropped': report.get('output_dropped', 0)})
-            modes.add(report.get('random_mode'))
-            if reached:
-                times.append(report['game_seconds'])
-                total += times[-1]
-                if first_7200_wall_seconds is None and reason is None and total >= MIN_GAME_SECONDS:
-                    first_7200_wall_seconds = round(time.monotonic() - started, 3)
-                    print(f'累计7200游戏秒 墙钟={first_7200_wall_seconds:.3f}秒', file=sys.stderr)
-            elif reason is None:
-                reason = (f"seed={report.get('seed')} stop_reason={report.get('stop_reason')} "
-                          f"error={report.get('error')}")
-        label = f'seed={seeds[0]}..{seeds[-1]}' if seeds else '游戏随机'
-        print(f'批次 {label} 墙钟={elapsed:.1f}秒 已抽样={len(runs)}轮 累计={total:.1f}游戏秒', file=sys.stderr)
-        if not adaptive:
-            continue
-        if reason is not None:
-            break
-        if modes != {'game_leaderboard_random'}:
-            reason = '自动抽样需要游戏随机模式，固定种子筛选请指定 --seed-start 或 --sample-runs'
-            break
-        if len(times) < 2:
-            continue
-        checkpoint += 1
-        # 各次检查的错误概率预算之和为 alpha。
-        check_alpha = alpha / (checkpoint * (checkpoint + 1))
-        if total < MIN_GAME_SECONDS:
-            continue
-        mean = statistics.fmean(times)
-        se = statistics.stdev(times) / math.sqrt(len(times))
-        margin = student_t_critical(check_alpha, len(times) - 1) * se
-        target_margin = TARGET_RELATIVE_MARGIN * mean
-        precision_met = margin <= target_margin
-        print(f'均值={mean:.3f}游戏秒 区间半宽={margin:.3f} 目标半宽={target_margin:.3f}', file=sys.stderr)
-        if precision_met:
-            break
+    with closing(stream) as reports_stream:
+        for reports, elapsed in reports_stream:
+            wall += elapsed
+            for report in reports:
+                reached = report.get('goal_reached') is True and report.get('stop_reason') == 'finished'
+                runs.append({'seed': report.get('seed'), 'game_seconds': report.get('game_seconds'),
+                             'goal_reached': reached, 'stop_reason': report.get('stop_reason'),
+                             'random_mode': report.get('random_mode'),
+                             'error': report.get('error'),
+                             'warnings': [m for m in report.get('messages', []) if m.startswith('Warning: ')],
+                             'output_dropped': report.get('output_dropped', 0)})
+                modes.add(report.get('random_mode'))
+                if reached:
+                    times.append(report['game_seconds'])
+                    total += times[-1]
+                    if first_7200_wall_seconds is None and reason is None and total >= MIN_GAME_SECONDS:
+                        first_7200_wall_seconds = round(time.monotonic() - started, 3)
+                        print(f'累计7200游戏秒 墙钟={first_7200_wall_seconds:.3f}秒 轮数={len(runs)}', file=sys.stderr)
+                elif reason is None:
+                    reason = (f"seed={report.get('seed')} stop_reason={report.get('stop_reason')} "
+                              f"error={report.get('error')}")
+            if not adaptive or len(runs) % args.jobs == 0:
+                print(f'模拟墙钟={wall:.1f}秒 已抽样={len(runs)}轮 累计={total:.1f}游戏秒', file=sys.stderr)
+            if not adaptive:
+                continue
+            if reason is not None:
+                break
+            if modes != {'game_leaderboard_random'}:
+                reason = '自动抽样需要游戏随机模式，固定种子筛选请指定 --seed-start 或 --sample-runs'
+                break
+            if len(times) < 2:
+                continue
+            checkpoint += 1
+            # 各次检查的错误概率预算之和为 alpha。
+            check_alpha = alpha / (checkpoint * (checkpoint + 1))
+            mean = statistics.fmean(times)
+            se = statistics.stdev(times) / math.sqrt(len(times))
+            margin = student_t_critical(check_alpha, len(times) - 1) * se
+            target_margin = TARGET_ABSOLUTE_MARGIN_SECONDS
+            if total >= MIN_GAME_SECONDS:
+                target_margin = max(target_margin, TARGET_RELATIVE_MARGIN * mean)
+            precision_met = margin <= target_margin
+            if precision_met or len(runs) % args.jobs == 0:
+                print(f'轮数={len(runs)} 均值={mean:.3f}游戏秒 区间半宽={margin:.3f} 目标半宽={target_margin:.3f}', file=sys.stderr)
+            if precision_met:
+                break
     valid = reason is None
     mean = statistics.fmean(times) if times else None
     sd = statistics.stdev(times) if len(times) > 1 else None
@@ -226,9 +314,11 @@ def main():
         'script': str(script), 'leaderboard': board, 'random_mode': mode,
         'mode': 'sample', 'sample_runs': args.sample_runs,
         'sampling_policy': 'adaptive' if adaptive else 'fixed',
+        'jobs': args.jobs if adaptive else min(args.jobs, 64, args.sample_runs or DEFAULT_FIXED_SAMPLE_RUNS),
         'minimum_game_seconds': MIN_GAME_SECONDS if adaptive else None,
         'first_7200_wall_seconds': first_7200_wall_seconds,
         'target_relative_margin': TARGET_RELATIVE_MARGIN if adaptive else None,
+        'target_absolute_margin_game_seconds': TARGET_ABSOLUTE_MARGIN_SECONDS if adaptive else None,
         'confidence_level': confidence if margin is not None else None,
         'precision_met': precision_met if adaptive and margin is not None else None,
         'runs': len(runs), 'runs_reached': len(times), 'total_game_seconds': round(total, 6),
