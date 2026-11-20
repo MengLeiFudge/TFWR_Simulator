@@ -3,7 +3,7 @@ from __builtins__ import *
 
 GOAL = 33554432
 L0 = 644
-LAST = 469
+LAST = 512
 ROUNDS = 3
 YF = 32
 DRONES = 32
@@ -111,6 +111,8 @@ def c31():
 
 def lb_cactus():
     # 整链一株的产量是 YF*L*L，L=644 时两轮不够目标，第三轮只需前 LAST 格。
+    # LAST 比最小解多留 4% 余量：整轮漏收一格就少 32*1287，最小解的余量连一格都不够，
+    # 一旦某轮没整块弹开就会掉到目标以下、白跑一整轮。
     cost = get_cost(Entities.Cactus)[Items.Pumpkin]
     tstart(0, 16, [ROUNDS, LAST, cost, num_items(Items.Pumpkin)])
     while num_items(Items.Cactus) < GOAL:
@@ -204,12 +206,11 @@ def sp_task(k, arg):
             L = last_len
         else:
             L = L0
-        if L == L0:
-            s = cuts[0]
-            e = cuts[1]
-        else:
-            s = cuts[2]
-            e = cuts[3]
+        # 末轮沿用整链分段、只截到 L：重新均分会让每架先走位到新地块。
+        s = cuts[0]
+        e = cuts[1]
+        if e > L:
+            e = L
         if s < e:
             sp_pass(cells, dirs, base, s, e, r % 2 == 0, L)
             if k == 0:
