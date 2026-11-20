@@ -37,7 +37,7 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 python3 simulator/headless/session.py scripts/leaderboard/lb_maze.py --leaderboard maze --jobs 20
 ```
 
-报告默认写入 `.codex/tmp/sessions/<榜单或脚本>-sample.json`，同名重跑会覆盖文件。加 `--no-output` 只打印摘要。`--run-seconds` 是每轮的游戏时间上限，默认 7200 秒。报告中的累计游戏秒用于记录样本规模。
+报告默认写入 `.codex/tmp/sessions/<榜单或脚本>-sample.json`，同名重跑会覆盖文件。加 `--no-output` 只打印摘要。`--run-seconds` 是每轮的游戏时间上限，默认 7200 秒。`first_7200_wall_seconds` 记录从命令开始到首批成功轮次累计达到 7200 游戏秒的现实秒数。并行批次在整批返回后计时，后续为收窄区间而增加的轮次不计入该字段。
 
 自动抽样在第 30、60、120、240 轮等翻倍节点检查是否达标。用单轮样本标准差除以轮数的平方根计算标准误，再用均值的正态近似计算区间半宽。第 `k` 次检查的显著性水平分配为 `0.05 / (k × (k+1))`，所有检查合计为 5%。报告字段为 `mean_ci95_half_width_game_seconds`。遇到失败时记录该批明细并结束自动抽样，正式均值留空，保留成功轮的描述统计。长尾明显时应结合逐轮分布解读区间。模拟与实机的系统偏差通过同版实机对照衡量。
 

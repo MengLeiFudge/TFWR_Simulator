@@ -29,7 +29,8 @@ def warn_stale_source(root):
     if not checker.is_file():
         return
     result = subprocess.run([sys.executable, str(checker), '--check'], cwd=root,
-                            capture_output=True, text=True, encoding='utf-8', errors='replace')
+                            capture_output=True, text=True, encoding='utf-8', errors='replace',
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode == 0:
         return
     for line in result.stdout.splitlines():
@@ -46,7 +47,8 @@ def runbatch(root, assemblies, script, args, count, seeds, output):
     command.extend(args.extra)
     started = time.monotonic()
     process = subprocess.run(command, cwd=root, capture_output=True, text=True, encoding='utf-8-sig',
-                             timeout=args.wall_seconds * 2 + 60)
+                             timeout=args.wall_seconds * 2 + 60,
+                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     elapsed = time.monotonic() - started
     path = root / output
     if not path.is_file():
@@ -59,6 +61,8 @@ def runbatch(root, assemblies, script, args, count, seeds, output):
 
 
 def main():
+    started = time.monotonic()
+    first_7200_wall_seconds = None
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('script', type=Path, help='入口脚本，相对于仓库根目录')
     parser.add_argument('--leaderboard', help='排行榜盘面名，省略则用preset')
@@ -143,6 +147,9 @@ def main():
             if reached:
                 times.append(report['game_seconds'])
                 total += times[-1]
+                if first_7200_wall_seconds is None and reason is None and total >= MIN_GAME_SECONDS:
+                    first_7200_wall_seconds = round(time.monotonic() - started, 3)
+                    print(f'累计7200游戏秒 墙钟={first_7200_wall_seconds:.3f}秒', file=sys.stderr)
             elif reason is None:
                 reason = (f"seed={report.get('seed')} stop_reason={report.get('stop_reason')} "
                           f"error={report.get('error')}")
@@ -177,6 +184,7 @@ def main():
         'mode': 'sample', 'sample_runs': args.sample_runs,
         'sampling_policy': 'adaptive' if adaptive else 'fixed',
         'minimum_game_seconds': MIN_GAME_SECONDS if adaptive else None,
+        'first_7200_wall_seconds': first_7200_wall_seconds,
         'target_relative_margin': TARGET_RELATIVE_MARGIN if adaptive else None,
         'confidence_level': CONFIDENCE_LEVEL if margin is not None else None,
         'precision_met': precision_met if adaptive and margin is not None else None,

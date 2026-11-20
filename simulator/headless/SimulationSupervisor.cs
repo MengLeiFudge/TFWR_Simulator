@@ -34,7 +34,7 @@ public static class SimulationSupervisor
         string executable = Environment.ProcessPath ?? throw new InvalidOperationException("Cannot locate the simulator process");
         var start = new ProcessStartInfo(executable)
         {
-            UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true,
+            UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true,
             StandardOutputEncoding = System.Text.Encoding.UTF8, StandardErrorEncoding = System.Text.Encoding.UTF8
         };
         if (Path.GetFileNameWithoutExtension(executable).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
