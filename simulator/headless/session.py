@@ -1,4 +1,4 @@
-"""按游戏会话口径累计轮时，或用固定轮数估计单轮期望时间。"""
+"""用固定数量的完整模拟轮次估计单轮期望时间。"""
 import argparse
 import json
 import math
@@ -56,30 +56,24 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('script', type=Path, help='入口脚本，相对于仓库根目录')
     parser.add_argument('--leaderboard', help='排行榜盘面名，省略则用preset')
-    duration = parser.add_mutually_exclusive_group()
-    duration.add_argument('--session-seconds', type=float, default=7200.0, help='会话预算，默认7200游戏秒')
-    duration.add_argument('--sample-runs', type=int, help='固定抽样轮数，用完整轮估算单轮期望时间')
+    parser.add_argument('--sample-runs', type=int, default=30, help='完整抽样轮数，默认30轮')
     parser.add_argument('--jobs', type=int, default=None, help='并行工作进程数，默认取CPU核数与目标轮数的较小值')
     parser.add_argument('--seed-start', type=int, default=None,
                         help='给定起始种子时按其重放随机（配对筛选）；默认不给，由模拟器按游戏方式随机取种子')
-    parser.add_argument('--max-runs', type=int, default=1200, help='轮数上限，防止短轮无限续跑')
-    parser.add_argument('--run-seconds', type=float, default=7200.0, help='单轮游戏时间上限，默认与会话预算相同')
+    parser.add_argument('--run-seconds', type=float, default=7200.0, help='单轮游戏时间上限，默认7200秒')
     parser.add_argument('--wall-seconds', type=float, default=300.0, help='每一批的墙钟上限，默认300秒')
     parser.add_argument('--max-api-calls', type=int, default=100000000, help='单轮内置调用上限，默认1亿次')
     parser.add_argument('--max-nodes', type=int, default=5000000000, help='单轮解释器节点上限，默认50亿')
     parser.add_argument('--extra', action='append', default=[], help='透传给模拟器的额外参数，如 "--size 32"')
-    parser.add_argument('--expect-seconds', type=float, help='单轮预估游戏秒，用来限制首批并发')
     parser.add_argument('--dotnet', default='dotnet')
-    parser.add_argument('--output', type=Path, help='报告路径，默认写 .codex/tmp/sessions/<榜单或脚本>-{session,sample}.json')
+    parser.add_argument('--output', type=Path, help='报告路径，默认写 .codex/tmp/sessions/<榜单或脚本>-sample.json')
     parser.add_argument('--no-output', action='store_true', help='只在标准输出打印结论，不写报告文件')
     args = parser.parse_args()
     args.jobs = args.jobs or min(os.cpu_count() or 1, 64)
     if not 1 <= args.jobs <= 64:
         parser.error('--jobs 须在1～64之间（模拟器单批并行上限）')
-    if args.max_runs < 1 or (args.sample_runs is not None and not 1 <= args.sample_runs <= args.max_runs):
-        parser.error('--sample-runs 须在 1 到 --max-runs 之间，--max-runs 须为正数')
-    if not math.isfinite(args.session_seconds) or args.session_seconds <= 0:
-        parser.error('--session-seconds 须为有限正数')
+    if args.sample_runs < 1:
+        parser.error('--sample-runs 须为正整数')
     root = Path(__file__).resolve().parents[2]
     warn_stale_source(root)
     assembly = Path(__file__).resolve().parent / 'bin/Release/net10.0/TFWRSimulator.dll'
@@ -103,24 +97,18 @@ def main():
             parser.error(f'无法读取 --scenario：{error}')
     temp_root = root / '.codex/tmp/sessions'
     temp_root.mkdir(parents=True, exist_ok=True)
-    sample = args.sample_runs is not None
-    mode_name = 'sample' if sample else 'session'
     if args.no_output:
         args.output = None
     elif args.output is None:
-        args.output = temp_root / f'{args.leaderboard or script.stem}-{mode_name}.json'
-    limit = args.sample_runs if sample else args.max_runs
+        args.output = temp_root / f'{args.leaderboard or script.stem}-sample.json'
+    limit = args.sample_runs
     runs = []
     total = 0.0
     wall = 0.0
     seed = args.seed_start if args.seed_start is not None else (None if board else 1)
     reason = None
-    while len(runs) < limit and (sample or total < args.session_seconds):
+    while len(runs) < limit:
         want = min(args.jobs, limit - len(runs))
-        if not sample:
-            estimate = total / len(runs) if runs else args.expect_seconds
-            if estimate and estimate > 0:
-                want = min(want, max(1, math.ceil((args.session_seconds - total) / estimate)))
         seeds = list(range(seed, seed + want)) if seed is not None else []
         if seed is not None:
             seed += want
@@ -141,28 +129,21 @@ def main():
             elif reason is None:
                 reason = (f"seed={report.get('seed')} stop_reason={report.get('stop_reason')} "
                           f"error={report.get('error')}")
-            if not sample and (not reached or total >= args.session_seconds):
-                break
         label = f'seed={seeds[0]}..{seeds[-1]}' if seeds else '游戏随机'
-        progress = f'抽样={len(runs)}/{limit}轮' if sample else f'累计={total:.1f}/{args.session_seconds:.0f}游戏秒'
-        print(f'批次 {label} 墙钟={elapsed:.1f}秒 {progress} 轮数={len(runs)}', file=sys.stderr)
-        if not sample and reason is not None:
-            break
+        print(f'批次 {label} 墙钟={elapsed:.1f}秒 抽样={len(runs)}/{limit}轮', file=sys.stderr)
     times = [run['game_seconds'] for run in runs if run['goal_reached']]
-    enough = len(runs) == limit if sample else total >= args.session_seconds
-    valid = reason is None and enough
+    valid = reason is None
     mean = statistics.fmean(times) if times else None
     sd = statistics.stdev(times) if len(times) > 1 else None
     se = sd / math.sqrt(len(times)) if sd is not None else None
     modes = {run['random_mode'] for run in runs if run['random_mode'] is not None}
     mode = next(iter(modes)) if len(modes) == 1 else None
-    margin = 1.96 * se if sample and valid and len(times) >= 30 and mode == 'game_leaderboard_random' else None
+    margin = 1.96 * se if valid and len(times) >= 30 and mode == 'game_leaderboard_random' else None
     summary = {
         'script': str(script), 'leaderboard': board, 'random_mode': mode,
-        'mode': mode_name,
-        'session_seconds': None if sample else args.session_seconds, 'sample_runs': args.sample_runs,
+        'mode': 'sample', 'sample_runs': args.sample_runs,
         'runs': len(runs), 'runs_reached': len(times), 'total_game_seconds': round(total, 6),
-        'valid': valid, 'invalid_reason': reason or (None if enough else '达到轮数上限，未跑满会话'),
+        'valid': valid, 'invalid_reason': reason,
         'runs_with_warnings': sum(bool(run['warnings']) for run in runs),
         'output_dropped': sum(run['output_dropped'] for run in runs),
         'mean_game_seconds': mean if valid else None,

@@ -29,29 +29,19 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 
 `--help` 显示完整参数。默认窗口为30游戏秒、10墙钟秒、200万次内置调用和5000万个解释器节点。墙钟上限最多600秒，不随seed数相乘；优先从短窗口开始，只有单轮本身很长（重置榜）才抬高。父进程给报告回收保留最多1秒宽限，超过后终止自己的工作进程并报告 `hard_timeout`。每约2墙钟秒输出进度到stderr；stdout只输出JSON。
 
-## 会话口径（与公开榜完整统计对齐）
+## 估计单轮期望时间
 
-会话摘要的 `runs_with_warnings` 统计有已记录警告的轮数，逐轮 `detail[].warnings` 保留警告原文。检查模拟结果时同时核对这些警告和 `output_dropped`。缺料警告列出物品、请求量、实际库存、无人机、源码行与调用链。库存不足时游戏返回 `False`，本轮仍可继续完成目标。
-
-公开榜只认游戏内满约7200秒（2小时）的完整统计会话成绩：会话内每轮从同一初始条件重新开始，上传分数是各轮时间的**均值**，且只在最后一轮成功时生效。本地因此统一用 [session.py](session.py) 跑满同样预算再比较，不拿单seed单轮数字当对照成绩：
+用 `--leaderboard` 选择排行榜场景，用 `--sample-runs` 指定抽样轮数（默认 30）。默认使用原版排行榜随机流，每轮重新初始化并完整运行至目标。`--jobs` 只决定并行数。显式使用 `--seed-start` 的结果用于配对筛选。
 
 ```bash
-python3 simulator/headless/session.py scripts/leaderboard/lb_maze.py --leaderboard maze --session-seconds 7200 --jobs 20
-
-会话结论同时打印到标准输出；报告默认写 `.codex/tmp/sessions/<榜单>-session.json`，同一榜单重跑直接覆盖，加 `--no-output` 则只打印。
+python3 simulator/headless/session.py scripts/leaderboard/lb_maze.py --leaderboard maze --sample-runs 100 --jobs 20
 ```
 
-工具用 `--jobs` 控制并行数，按轮序累计用时，首次达到预算或遇到失败即结束会话。并行预跑的后续轮不计入。报告给出实际随机模式、轮数、累计游戏秒、均值、样本标准差、标准误及逐轮明细。无效会话只保留已成功轮的描述统计，正式均值留空。
+报告默认写入 `.codex/tmp/sessions/<榜单或脚本>-sample.json`，同名重跑会覆盖文件。加 `--no-output` 只打印摘要。`--run-seconds` 是每轮的游戏时间上限，默认 7200 秒。报告中的累计游戏秒用于记录样本规模。
 
-### 估计单轮期望时间
+先抽 30 轮，再用样本标准差 `s` 估算达到目标误差所需的轮数。若目标是约 95% 置信区间半宽 `e`，预先定下下一组样本量 `n = ceil((1.96 × s / e)²)`。随机样本全部成功且至少 30 轮时，报告给出 `mean_ci95_half_width_game_seconds`。遇到失败仍记录计划内各轮，正式均值留空，并单列成功轮的描述性均值。长尾或偶发失败明显时需扩大样本，同时看失败轮和逐轮分布。这个区间衡量本地抽样误差，模拟与实机的系统偏差需用同版实机对照。
 
-用 `--sample-runs` 固定抽样轮数，默认使用原版排行榜随机流，每轮仍须跑完目标。固定轮数便于判断均值的抽样误差，`--jobs` 只决定并行数。显式使用 `--seed-start` 的结果用于配对筛选。
-
-```bash
-python3 simulator/headless/session.py scripts/leaderboard/lb_fastest_reset.py --leaderboard fastest_reset --sample-runs 30 --jobs 8
-```
-
-先抽 30 轮，再用样本标准差 `s` 估算达到目标误差所需的轮数。若目标是约 95% 置信区间半宽 `e`，预先定下下一组样本量 `n = ceil((1.96 × s / e)²)`。随机样本全部成功且至少 30 轮时，报告给出 `mean_ci95_half_width_game_seconds`。遇到失败仍记录计划内各轮，并单列成功轮的描述性均值。长尾或偶发失败明显时需扩大样本，同时看失败轮和逐轮分布。这个区间衡量本地抽样误差，模拟与实机的系统偏差需用同版实机对照。
+`runs_with_warnings` 统计有已记录警告的轮数，逐轮 `detail[].warnings` 保留警告原文。检查模拟结果时同时核对这些警告和 `output_dropped`。缺料警告列出物品、请求量、实际库存、无人机、源码行与调用链。库存不足时游戏返回 `False`，本轮仍可能完成目标。
 
 历史快速重置六轮固定种子样本的均值是 1633.2 秒，样本标准差 44.1 秒。最快的 1586.8、1587.5 秒对应种子 3、5。按这个波动规划，约 ±10 秒需 75 轮，约 ±5 秒需 299 轮。
 
