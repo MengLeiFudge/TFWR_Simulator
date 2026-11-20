@@ -93,7 +93,21 @@ public class Logger {
     private HashSet<Node> warnings=new();
     public int Dropped { get; private set; }
     public void Log(string message) { if (Messages.Count < 10000) Messages.Add(message); else Dropped++; }
-    public void LogWarning(string message,ProgramState state) { if(warnings.Add(state.CurrentExecutingNode)) Log("Warning: "+message); }
+    public void LogWarning(string message,ProgramState state)
+    {
+        var node = state?.CurrentExecutingNode;
+        if (!warnings.Add(node)) return;
+        var window = node?.boxedParams?.codeWindow;
+        if (window == null) { Log("Warning: " + message); return; }
+        string text = window.CodeInput.text;
+        int offset = Math.Clamp(node.boxedParams.wordStart, 0, text.Length);
+        int line = 1 + text.AsSpan(0, offset).Count('\n');
+        string path = string.Join(" -> ", state.moduleState.callStack.Reverse().Select(frame => frame.functionNode.FuncName));
+        int start = offset == 0 ? 0 : text.LastIndexOf('\n', offset - 1) + 1;
+        int end = text.IndexOf('\n', offset);
+        string source = text[start..(end < 0 ? text.Length : end)].Trim();
+        Log($"Warning: {message} [{window.SourcePath}:{line}, drone={state.DroneId}, {path}] {source}");
+    }
     public void LogError(string message,ProgramState state) { Error=message+"\n"+state.GetTrace(); Log(Error); }
     public void Close() { }
 }

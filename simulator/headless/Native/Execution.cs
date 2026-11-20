@@ -1634,7 +1634,7 @@ public class Execution
 			int num2 = (int)((PyNumber)currentSideEffectArgument2).num;
 			if (!sim.farm.Items.Contains(itemSO.itemId, num2))
 			{
-				sim.simRunner.Logger.LogWarning(string.Format(Localizer.Localize("warning_no_item_to_use"), itemSO), States[droneId]);
+				sim.simRunner.Logger.LogWarning($"warning_no_item_to_use: {itemSO.itemName} (required={num2}, available={sim.farm.Items.GetNumber(itemSO.itemId)})", States[droneId]);
 				programState.ReturnValue = new PyBool(b: false);
 				ops = sim.operationOps;
 				break;
@@ -1717,7 +1717,7 @@ public class Execution
 			}
 			if (!sim.farm.Items.Contains(StringIds.BlockItemId, 1.0))
 			{
-				sim.simRunner.Logger.LogWarning(string.Format(Localizer.Localize("warning_no_item_to_use"), ResourceManager.GetItem(StringIds.BlockItemId)), States[droneId]);
+				sim.simRunner.Logger.LogWarning($"warning_no_item_to_use: block (required=1, available={sim.farm.Items.GetNumber(StringIds.BlockItemId)})", States[droneId]);
 				programState.ReturnValue = new PyBool(b: false);
 				ops = sim.operationOps;
 				break;

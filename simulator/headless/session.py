@@ -112,7 +112,9 @@ def main():
             reached = report.get('goal_reached') is True and report.get('stop_reason') == 'finished'
             runs.append({'seed': report.get('seed'), 'game_seconds': report.get('game_seconds'),
                          'goal_reached': report.get('goal_reached'), 'stop_reason': report.get('stop_reason'),
-                         'error': report.get('error')})
+                         'error': report.get('error'),
+                         'warnings': [m for m in report.get('messages', []) if m.startswith('Warning: ')],
+                         'output_dropped': report.get('output_dropped', 0)})
             if reached:
                 total += report.get('game_seconds') or 0.0
             elif reason is None:
@@ -128,6 +130,8 @@ def main():
         'script': str(script), 'leaderboard': args.leaderboard, 'session_seconds': args.session_seconds,
         'runs': len(runs), 'runs_reached': len(times), 'total_game_seconds': round(total, 6),
         'valid': valid, 'invalid_reason': reason,
+        'runs_with_warnings': sum(bool(run['warnings']) for run in runs),
+        'output_dropped': sum(run['output_dropped'] for run in runs),
         'mean_game_seconds': statistics.fmean(times) if times else None,
         'stdev_game_seconds': statistics.pstdev(times) if len(times) > 1 else None,
         'stderr_game_seconds': statistics.pstdev(times) / len(times) ** 0.5 if len(times) > 1 else None,

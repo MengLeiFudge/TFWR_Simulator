@@ -28,6 +28,8 @@ dotnet simulator/headless/bin/Release/net10.0/TFWRSimulator.dll scripts/leaderbo
 
 ## 会话口径（与公开榜完整统计对齐）
 
+会话摘要的 `runs_with_warnings` 统计有已记录警告的轮数，逐轮 `detail[].warnings` 保留警告原文。检查模拟结果时同时核对这些警告和 `output_dropped`。缺料警告列出物品、请求量、实际库存、无人机、源码行与调用链。库存不足时游戏返回 `False`，本轮仍可继续完成目标。
+
 公开榜只认游戏内满约7200秒（2小时）的完整统计会话成绩：会话内每轮从同一初始条件重新开始，上传分数是各轮时间的**均值**，且只在最后一轮成功时生效。本地因此统一用 [session.py](session.py) 跑满同样预算再比较，不拿单seed单轮数字当对照成绩：
 
 ```bash
