@@ -13,7 +13,7 @@ import time
 
 MIN_GAME_SECONDS = 7200.0
 TARGET_RELATIVE_MARGIN = 0.01
-INITIAL_SAMPLE_RUNS = 30
+DEFAULT_FIXED_SAMPLE_RUNS = 30
 CONFIDENCE_LEVEL = 0.95
 
 
@@ -21,6 +21,36 @@ def clocktext(seconds):
     """把秒数写成 分:秒.毫秒，便于和公开成绩直接对照。"""
     total = round(seconds, 3)
     return f'{int(total // 60)}:{total % 60:06.3f}'
+
+
+def student_t_critical(alpha, degrees):
+    def two_sided_tail(t):
+        # 代换 x = √df · cot(角度)，双尾概率化为 sin^(df-1) 积分之比。
+        angle = math.atan2(math.sqrt(degrees), t)
+        sine = math.sin(angle)
+        cosine = math.cos(angle)
+        power = degrees - 1
+        base = power % 2
+        partial = 2 * math.sin(angle / 2) ** 2 if base else angle
+        full = 1.0 if base else math.pi / 2
+        boundary = sine ** (base + 1) * cosine
+        for exponent in range(base + 2, power + 1, 2):
+            factor = (exponent - 1) / exponent
+            partial = factor * partial - boundary / exponent
+            full *= factor
+            boundary *= sine * sine
+        return partial / full
+
+    low, high = 0.0, 1.0
+    while two_sided_tail(high) > alpha:
+        high *= 2
+    for _ in range(40):
+        middle = (low + high) / 2
+        if two_sided_tail(middle) > alpha:
+            low = middle
+        else:
+            high = middle
+    return high
 
 
 def warn_stale_source(root):
@@ -114,10 +144,10 @@ def main():
     adaptive = bool(board) and args.sample_runs is None and args.seed_start is None
     if adaptive and {'--seed', '--seeds'}.intersection(args.extra):
         parser.error('固定种子筛选请使用 --seed-start 或显式指定 --sample-runs')
-    limit = args.sample_runs or INITIAL_SAMPLE_RUNS
+    limit = args.sample_runs or DEFAULT_FIXED_SAMPLE_RUNS
     checkpoint = 0
-    normal = statistics.NormalDist()
-    critical_value = normal.inv_cdf((1 + CONFIDENCE_LEVEL) / 2)
+    alpha = 1 - CONFIDENCE_LEVEL
+    margin = None
     runs = []
     times = []
     total = 0.0
@@ -126,8 +156,8 @@ def main():
     reason = None
     precision_met = None
     modes = set()
-    while len(runs) < limit:
-        want = min(args.jobs, limit - len(runs))
+    while adaptive or len(runs) < limit:
+        want = args.jobs if adaptive else min(args.jobs, limit - len(runs))
         seeds = list(range(seed, seed + want)) if seed is not None else []
         if seed is not None:
             seed += want
@@ -162,23 +192,30 @@ def main():
         if modes != {'game_leaderboard_random'}:
             reason = '自动抽样需要游戏随机模式，固定种子筛选请指定 --seed-start 或 --sample-runs'
             break
-        if len(runs) == limit:
-            mean = statistics.fmean(times)
-            se = statistics.stdev(times) / math.sqrt(len(times))
-            checkpoint += 1
-            # 各次检查的错误概率上限之和为 1 - CONFIDENCE_LEVEL。
-            alpha = (1 - CONFIDENCE_LEVEL) / (checkpoint * (checkpoint + 1))
-            critical_value = -normal.inv_cdf(alpha / 2)
-            precision_met = critical_value * se <= TARGET_RELATIVE_MARGIN * mean
-            if total >= MIN_GAME_SECONDS and precision_met:
-                break
-            limit *= 2
+        if len(times) < 2:
+            continue
+        checkpoint += 1
+        # 各次检查的错误概率预算之和为 alpha。
+        check_alpha = alpha / (checkpoint * (checkpoint + 1))
+        if total < MIN_GAME_SECONDS:
+            continue
+        mean = statistics.fmean(times)
+        se = statistics.stdev(times) / math.sqrt(len(times))
+        margin = student_t_critical(check_alpha, len(times) - 1) * se
+        target_margin = TARGET_RELATIVE_MARGIN * mean
+        precision_met = margin <= target_margin
+        print(f'均值={mean:.3f}游戏秒 区间半宽={margin:.3f} 目标半宽={target_margin:.3f}', file=sys.stderr)
+        if precision_met:
+            break
     valid = reason is None
     mean = statistics.fmean(times) if times else None
     sd = statistics.stdev(times) if len(times) > 1 else None
     se = sd / math.sqrt(len(times)) if sd is not None else None
     mode = next(iter(modes)) if len(modes) == 1 else None
-    margin = critical_value * se if valid and len(times) >= INITIAL_SAMPLE_RUNS and mode == 'game_leaderboard_random' else None
+    if not valid:
+        margin = None
+    elif not adaptive and se is not None and mode == 'game_leaderboard_random':
+        margin = student_t_critical(alpha, len(times) - 1) * se
     summary = {
         'script': str(script), 'leaderboard': board, 'random_mode': mode,
         'mode': 'sample', 'sample_runs': args.sample_runs,
