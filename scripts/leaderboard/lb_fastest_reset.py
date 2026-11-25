@@ -1,5 +1,5 @@
 from __builtins__ import *
-# 完整轮时间：本地原版重置场均 27:13.206（seed1..6，实机待验证）。
+# 完整轮时间：本地游戏随机12轮均值 27:26.759（SD 30.417s，95% CI ±19.326s，12/12达标；seed1..6均 27:03.377，实机待验证）。
 # 恐龙路径 Copyright (c) [2026] [lywlucas]，MIT 见 lywlucas_LICENSE.txt。小迷宫沿用 zzlg-git 的合法独立收取实现。
 
 
@@ -167,8 +167,11 @@ def tend(crop, water, infect):
             return False
         kind = None
     if kind == None or kind == Entities.Grass:
-        if crop == Entities.Carrot and not affordable(get_cost(Entities.Carrot)):
-            crop = Entities.Grass
+        if crop == Entities.Carrot:
+            cc = get_cost(Entities.Carrot)
+            w_cnt = max_drones()
+            if num_items(Items.Hay) < cc[Items.Hay] * w_cnt or num_items(Items.Wood) < cc[Items.Wood] * w_cnt:
+                crop = Entities.Grass
         if crop == Entities.Carrot and get_ground_type() != Grounds.Soil:
             till()
         if crop == Entities.Grass:
@@ -179,7 +182,7 @@ def tend(crop, water, infect):
                 return False
             if get_ground_type() == Grounds.Soil:
                 till()
-    if water and get_water() < 0.45 and num_items(Items.Water) > 0:
+    if water and get_water() < 0.45 and num_items(Items.Water) >= max_drones():
         use_item(Items.Water)
     return True
 
@@ -220,6 +223,7 @@ def mixed_worker(w, workers, cost, stage, deadline):
             infect_at = max(infect_at, cost[Items.Weird_Substance])
     start = w * size // workers
     end = (w + 1) * size // workers
+    c_wood = get_cost(Entities.Carrot)[Items.Wood]
     go(start, 0)
     while get_time() < deadline:
         for x in range(start, end):
@@ -231,7 +235,11 @@ def mixed_worker(w, workers, cost, stage, deadline):
                     crop = tree
                 elif x % 3 != 0 or (Items.Carrot in cost and num_items(Items.Hay) >= 35):
                     crop = Entities.Carrot
-                if not tend(crop, wet and crop != Entities.Grass, num_items(Items.Weird_Substance) < infect_at):
+                want_weird = num_items(Items.Weird_Substance) < infect_at
+                if crop == tree and Items.Wood not in cost and not want_weird and num_items(Items.Wood) >= c_wood * size * 2 and get_entity_type() == tree:
+                    move(North)
+                    continue
+                if not tend(crop, wet and crop != Entities.Grass, want_weird):
                     return False
                 move(North)
             if x + 1 == end:
@@ -280,11 +288,18 @@ def nursery(cost, stage, deadline):
             else:
                 crop = wood
                 if carrots and wood == Entities.Bush:
-                    if (x + y) % 2 == 1:
+                    if x == 1 or (x == 0 and y == 1):
                         crop = Entities.Carrot
                 elif carrots:
-                    if y != (x + 1) % 3:
+                    if y == (x + 1) % 3:
+                        crop = Entities.Tree
+                    elif (x == 0 and y == 2) or (x == 2 and y == 2):
+                        crop = Entities.Bush
+                    else:
                         crop = Entities.Carrot
+                if crop == Entities.Bush and wood == Entities.Tree and get_entity_type() == Entities.Bush:
+                    move(direction)
+                    continue
                 if crop == Entities.Carrot and stage >= 7 and num_items(Items.Carrot) >= 78 and get_entity_type() == crop:
                     move(direction)
                     continue
@@ -340,10 +355,15 @@ def bones_stock(target):
             floor = num_items(Items.Cactus) - (length + 1) * apple
         before = num_items(Items.Bone)
         change_hat(Hats.Dinosaur_Hat)
-        run_dinosaur_chase_loop(size, floor)
+        run_dinosaur_chase_loop(size, floor, False)
         change_hat(Hats.Straw_Hat)
         if num_items(Items.Bone) == before:
-            return False
+            clear()
+            change_hat(Hats.Dinosaur_Hat)
+            run_dinosaur_chase_loop(size, floor, True)
+            change_hat(Hats.Straw_Hat)
+            if num_items(Items.Bone) == before:
+                return False
     return num_items(Items.Bone) >= target
 
 
@@ -484,8 +504,11 @@ def pumpkin_strip(worker, workers, size, start_stock):
                     till()
                 if not plant(Entities.Pumpkin):
                     return False
-                if get_water() < 0.45 and num_items(Items.Water) >= 2:
-                    use_item(Items.Water, 2)
+                if get_water() < 0.45:
+                    if num_items(Items.Water) >= 2 * workers:
+                        use_item(Items.Water, 2)
+                    elif num_items(Items.Water) >= workers:
+                        use_item(Items.Water)
                 if not first and len(pending) <= 3 and num_items(Items.Fertilizer) > 1:
                     use_item(Items.Fertilizer)
             if not can_harvest():
@@ -586,7 +609,7 @@ def solar_reserve():
             while not can_harvest():
                 if get_time() > 7000:
                     return False
-                if get_water() < 0.5 and num_items(Items.Water) > 0:
+                if get_water() < 0.5 and num_items(Items.Water) >= max_drones():
                     use_item(Items.Water)
             harvest()
             remaining -= 1
@@ -602,6 +625,7 @@ def solar_reserve():
                         rolls += 1
                         break
                     harvest()
+    clear()
     quick_print("directed_solar", get_time(), num_items(Items.Power))
     return True
 
@@ -637,7 +661,7 @@ def solar_harvest_rank(points, deadline):
         while not can_harvest():
             if get_time() > deadline:
                 return False
-            if get_water() < 0.5 and num_items(Items.Water) > 0:
+            if get_water() < 0.5 and num_items(Items.Water) >= max_drones():
                 use_item(Items.Water)
         if not harvest():
             return False
@@ -987,7 +1011,7 @@ def move_cactus_line_to(forward, backward, target, deadline):
     return get_time() < deadline
 
 
-def run_dinosaur_chase_loop(size, cactus_floor):
+def run_dinosaur_chase_loop(size, cactus_floor, safe_cycle=False):
     global farm_size
     global cycle_deadline
     global main_area
@@ -997,6 +1021,10 @@ def run_dinosaur_chase_loop(size, cactus_floor):
     turn_point = A // 2
     if size == 10:
         turn_point = 32
+    elif size == 16:
+        turn_point = 100
+    if safe_cycle:
+        turn_point = 1
     main_area = ((1, size - 1), size - 1, West, North)
     global cycle_rows
     cycle_rows = []
@@ -1771,7 +1799,7 @@ def stock_cell(cost, bounds, deadline, companions, prepared):
     entity = get_entity_type()
     if entity in [Entities.Grass, Entities.Bush, Entities.Tree, Entities.Carrot]:
         if not can_harvest():
-            if get_water() < 0.5 and num_items(Items.Water) >= 2:
+            if get_water() < 0.5 and num_items(Items.Water) >= 2 * max_drones():
                 use_item(Items.Water, 2)
             return True
         companion = None
@@ -1822,7 +1850,7 @@ def stock_cell(cost, bounds, deadline, companions, prepared):
         companion = get_companion()
         if companion != None and stock_companion_inside(companion[1], bounds):
             if prepared != None:
-                if get_water() < 0.6 and num_items(Items.Water) >= 2:
+                if get_water() < 0.6 and num_items(Items.Water) >= 2 * max_drones():
                     use_item(Items.Water, 2)
                 prepared.add(point)
                 kind, position = companion
@@ -2170,7 +2198,7 @@ def sp_pass(cells, dirs, base, s, e, fwd, L, deadline):
         if get_entity_type() != None and get_entity_type() != Entities.Grass:
             harvest()
         moisture = get_water()
-        if moisture < 0.38 and num_items(Items.Water) > 10:
+        if moisture < 0.38 and num_items(Items.Water) >= 2 * max_drones():
             use_item(Items.Water, 2)
             moisture = get_water()
         low_water = min(low_water, moisture)
@@ -2250,8 +2278,11 @@ def solar_wave(first, count, batches, start_wood, fee, rows, lowest, deadline):
         for x, y in batches[first][rank]:
             go(x, y)
             while not can_harvest() and get_time() < deadline:
-                if get_water()<0.5 and num_items(Items.Water)>1:
-                    use_item(Items.Water, 2)
+                if get_water() < 0.5:
+                    if num_items(Items.Water) >= 2 * rows:
+                        use_item(Items.Water, 2)
+                    elif num_items(Items.Water) >= rows:
+                        use_item(Items.Water)
             if not can_harvest() or not harvest():
                 ok=False
                 break
@@ -2314,6 +2345,15 @@ def mark_crop_loan(target, grade, keep, stock):
 
 def orchard_lane(cost, stage, deadline):
     size = get_world_size()
+    if size == 4:
+        go(0, 2)
+        if get_entity_type() == Entities.Grass:
+            for ax, ay in [(0, 2), (1, 2), (3, 2), (3, 3), (2, 3), (1, 3), (0, 3)]:
+                if affordable(cost):
+                    return True
+                go(ax, ay)
+                if get_entity_type() == Entities.Grass:
+                    plant(Entities.Bush)
     go(0, 0)
     wet = num_unlocked(Unlocks.Watering) > 0
     fee = get_cost(Entities.Carrot)[Items.Hay]

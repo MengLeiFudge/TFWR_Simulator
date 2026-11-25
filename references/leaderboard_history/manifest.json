@@ -938,19 +938,110 @@
     },
     "lb_fastest_reset": {
       "committed": [
-        {"file": "20261119_v42_sim_27m18.765s_a6ca00c.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v42_sim_27m18.765s_a6ca00c.py", "date": "2026-11-19", "commit": "a6ca00c", "time_tag": "27m18.765s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 27:18.765"},
-        {"file": "20261119_v41_sim_27m27.237s_5017c62.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v41_sim_27m27.237s_5017c62.py", "date": "2026-11-19", "commit": "5017c62", "time_tag": "27m27.237s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 27:27.237"},
-        {"file": "20261119_v40_sim_27m30.744s_5b261f6.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v40_sim_27m30.744s_5b261f6.py", "date": "2026-11-19", "commit": "5b261f6", "time_tag": "27m30.744s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 27:30.744"},
-        {"file": "20261119_v39_sim_27m38.469s_f3ed162.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v39_sim_27m38.469s_f3ed162.py", "date": "2026-11-19", "commit": "f3ed162", "time_tag": "27m38.469s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 27:38.469"},
-        {"file": "20261119_v38_sim_28m05.245s_68e912f.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v38_sim_28m05.245s_68e912f.py", "date": "2026-11-19", "commit": "68e912f", "time_tag": "28m05.245s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 28:05.245"},
-        {"file": "20261119_v37_sim_28m24.835s_2bb2d3f.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v37_sim_28m24.835s_2bb2d3f.py", "date": "2026-11-19", "commit": "2bb2d3f", "time_tag": "28m24.835s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 28:24.835"},
-        {"file": "20261119_v36_sim_28m48.801s_1ce7270.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v36_sim_28m48.801s_1ce7270.py", "date": "2026-11-19", "commit": "1ce7270", "time_tag": "28m48.801s（本地模拟）", "message": "普通重置完整 60 笔，六轮均 28:48.801"},
-        {"file": "20261119_v35_sim_29m11.154s_77a7fbf.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v35_sim_29m11.154s_77a7fbf.py", "date": "2026-11-19", "commit": "77a7fbf", "time_tag": "29m11.154s（本地模拟）", "message": "十六机阶梯仙人掌与异物联产，按批备电"},
-        {"file": "20261119_v34_sim_30m10.131s_ee4caa0.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v34_sim_30m10.131s_ee4caa0.py", "date": "2026-11-19", "commit": "ee4caa0", "time_tag": "30m10.131s（本地模拟）", "message": "按24:49实付全部60笔，整田联产仙人掌与异物"},
-        {"file": "20261119_v33_sim_32m46.794s_6148bf3.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v33_sim_32m46.794s_6148bf3.py", "date": "2026-11-19", "commit": "6148bf3", "time_tag": "32m46.794s（本地模拟）", "message": "首电后混产首宫材料，合并中期仙人掌供料"},
-        {"file": "20261119_v32_sim_33m04.360s_43c4409.py", "path": "references/leaderboard_history/lb_fastest_reset/20261119_v32_sim_33m04.360s_43c4409.py", "date": "2026-11-19", "commit": "43c4409", "time_tag": "seed1..6均1984.360301秒，累计11906.162游戏秒，未满自设12000秒", "message": "首宫仍走专用翻转，D1/D2与Mazes2仙人掌合单"},
-        {"file": "20261118_v31_sim_33m07.719s_636b9e0.py", "path": "references/leaderboard_history/lb_fastest_reset/20261118_v31_sim_33m07.719s_636b9e0.py", "date": "2026-11-18", "commit": "636b9e0", "time_tag": "7200游戏秒会话6轮均1987.718948秒", "message": "感染翻转前置、6×6首宫、首次伴生前双机分区供料"},
-        {"file": "20261116_v30_sim_41m24.599s_3973de2.py", "path": "references/leaderboard_history/lb_fastest_reset/20261116_v30_sim_41m24.599s_3973de2.py", "date": "2026-11-16", "commit": "3973de2", "time_tag": "7200游戏秒会话4轮均2484.598921194秒", "message": "采用视频开局前冻结的正式源"},
+        {
+          "file": "20261119_v42_sim_27m18.765s_a6ca00c.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v42_sim_27m18.765s_a6ca00c.py",
+          "date": "2026-11-19",
+          "commit": "a6ca00c",
+          "time_tag": "27m18.765s（本地模拟）",
+          "message": "普通重置完整 60 笔，六轮均 27:18.765"
+        },
+        {
+          "file": "20261119_v41_sim_27m27.237s_5017c62.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v41_sim_27m27.237s_5017c62.py",
+          "date": "2026-11-19",
+          "commit": "5017c62",
+          "time_tag": "27m27.237s（本地模拟）",
+          "message": "普通重置完整 60 笔，六轮均 27:27.237"
+        },
+        {
+          "file": "20261119_v40_sim_27m30.744s_5b261f6.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v40_sim_27m30.744s_5b261f6.py",
+          "date": "2026-11-19",
+          "commit": "5b261f6",
+          "time_tag": "27m30.744s（本地模拟）",
+          "message": "普通重置完整 60 笔，六轮均 27:30.744"
+        },
+        {
+          "file": "20261119_v39_sim_27m38.469s_f3ed162.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v39_sim_27m38.469s_f3ed162.py",
+          "date": "2026-11-19",
+          "commit": "f3ed162",
+          "time_tag": "27m38.469s（本地模拟）",
+          "message": "普通重置完整 60 笔，六轮均 27:38.469"
+        },
+        {
+          "file": "20261119_v38_sim_28m05.245s_68e912f.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v38_sim_28m05.245s_68e912f.py",
+          "date": "2026-11-19",
+          "commit": "68e912f",
+          "time_tag": "28m05.245s（本地模拟）",
+          "message": "普通重置完整 60 笔，六轮均 28:05.245"
+        },
+        {
+          "file": "20261119_v37_sim_28m24.835s_2bb2d3f.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v37_sim_28m24.835s_2bb2d3f.py",
+          "date": "2026-11-19",
+          "commit": "2bb2d3f",
+          "time_tag": "28m24.835s（本地模拟）",
+          "message": "普通重置完整 60 笔，六轮均 28:24.835"
+        },
+        {
+          "file": "20261119_v36_sim_28m48.801s_1ce7270.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v36_sim_28m48.801s_1ce7270.py",
+          "date": "2026-11-19",
+          "commit": "1ce7270",
+          "time_tag": "28m48.801s（本地模拟）",
+          "message": "普通重置完整 60 笔，六轮均 28:48.801"
+        },
+        {
+          "file": "20261119_v35_sim_29m11.154s_77a7fbf.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v35_sim_29m11.154s_77a7fbf.py",
+          "date": "2026-11-19",
+          "commit": "77a7fbf",
+          "time_tag": "29m11.154s（本地模拟）",
+          "message": "十六机阶梯仙人掌与异物联产，按批备电"
+        },
+        {
+          "file": "20261119_v34_sim_30m10.131s_ee4caa0.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v34_sim_30m10.131s_ee4caa0.py",
+          "date": "2026-11-19",
+          "commit": "ee4caa0",
+          "time_tag": "30m10.131s（本地模拟）",
+          "message": "按24:49实付全部60笔，整田联产仙人掌与异物"
+        },
+        {
+          "file": "20261119_v33_sim_32m46.794s_6148bf3.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v33_sim_32m46.794s_6148bf3.py",
+          "date": "2026-11-19",
+          "commit": "6148bf3",
+          "time_tag": "32m46.794s（本地模拟）",
+          "message": "首电后混产首宫材料，合并中期仙人掌供料"
+        },
+        {
+          "file": "20261119_v32_sim_33m04.360s_43c4409.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261119_v32_sim_33m04.360s_43c4409.py",
+          "date": "2026-11-19",
+          "commit": "43c4409",
+          "time_tag": "seed1..6均1984.360301秒，累计11906.162游戏秒，未满自设12000秒",
+          "message": "首宫仍走专用翻转，D1/D2与Mazes2仙人掌合单"
+        },
+        {
+          "file": "20261118_v31_sim_33m07.719s_636b9e0.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261118_v31_sim_33m07.719s_636b9e0.py",
+          "date": "2026-11-18",
+          "commit": "636b9e0",
+          "time_tag": "7200游戏秒会话6轮均1987.718948秒",
+          "message": "感染翻转前置、6×6首宫、首次伴生前双机分区供料"
+        },
+        {
+          "file": "20261116_v30_sim_41m24.599s_3973de2.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261116_v30_sim_41m24.599s_3973de2.py",
+          "date": "2026-11-16",
+          "commit": "3973de2",
+          "time_tag": "7200游戏秒会话4轮均2484.598921194秒",
+          "message": "采用视频开局前冻结的正式源"
+        },
         {
           "file": "20260418_v01_5bf0cea6.py",
           "path": "references/leaderboard_history/lb_fastest_reset/20260418_v01_5bf0cea6.py",
@@ -1182,12 +1273,45 @@
           "commit": "56b4d84d",
           "time_tag": "44m42.885s",
           "message": "优化：迁入恐龙递归追果并完成快速重置实机"
+        },
+        {
+          "file": "20261120_v43_sim_27m37.302s_5346631.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261120_v43_sim_27m37.302s_5346631.py",
+          "date": "2026-11-20",
+          "commit": "5346631",
+          "time_tag": "27m37.302s（游戏随机30轮；seed1..6均27m13.206s；实机28m13.498s #10）",
+          "message": "优化：沿原有胡萝卜田筹首批葵花籽，快速重置场均27分13秒",
+          "sha256": "0fd729b69c2483c4a17bd6be37fc69beac68e90fbac1ead44b22448b0babd8c5"
         }
       ],
       "rejected": [
-        {"file": "20261116_rejected_poly3_reduced_yields.py", "path": "references/leaderboard_history/lb_fastest_reset/20261116_rejected_poly3_reduced_yields.py", "date": "2026-11-16", "time_tag": "seed1完整2505.143631734秒；缩减基础等级抵消了伴生倍率", "source_codex": ".codex/reset-global-20261116/ground-poly3-eight/lb_fastest_reset.py", "base_commit": "3973de2", "explicitly_cited": true},
-        {"file": "20261116_rejected_poly1_16_c3_d5.py", "path": "references/leaderboard_history/lb_fastest_reset/20261116_rejected_poly1_16_c3_d5.py", "date": "2026-11-16", "time_tag": "7200游戏秒会话4轮均2336.066660125秒；被P3/P6及视频前缀组合替代", "source_codex": ".codex/reset-global-20261116/ground-combined-sixteen/lb_fastest_reset.py", "base_commit": "3973de2", "explicitly_cited": true},
-        {"file": "20261116_rejected_poly3_16_p6_without_video_layout.py", "path": "references/leaderboard_history/lb_fastest_reset/20261116_rejected_poly3_16_p6_without_video_layout.py", "date": "2026-11-16", "time_tag": "7200游戏秒会话4轮均2290.415902259秒；被视频布局组合替代", "source_codex": ".codex/reset-global-20261116/ground-p6/lb_fastest_reset.py", "base_commit": "3973de2", "explicitly_cited": true},
+        {
+          "file": "20261116_rejected_poly3_reduced_yields.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261116_rejected_poly3_reduced_yields.py",
+          "date": "2026-11-16",
+          "time_tag": "seed1完整2505.143631734秒；缩减基础等级抵消了伴生倍率",
+          "source_codex": ".codex/reset-global-20261116/ground-poly3-eight/lb_fastest_reset.py",
+          "base_commit": "3973de2",
+          "explicitly_cited": true
+        },
+        {
+          "file": "20261116_rejected_poly1_16_c3_d5.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261116_rejected_poly1_16_c3_d5.py",
+          "date": "2026-11-16",
+          "time_tag": "7200游戏秒会话4轮均2336.066660125秒；被P3/P6及视频前缀组合替代",
+          "source_codex": ".codex/reset-global-20261116/ground-combined-sixteen/lb_fastest_reset.py",
+          "base_commit": "3973de2",
+          "explicitly_cited": true
+        },
+        {
+          "file": "20261116_rejected_poly3_16_p6_without_video_layout.py",
+          "path": "references/leaderboard_history/lb_fastest_reset/20261116_rejected_poly3_16_p6_without_video_layout.py",
+          "date": "2026-11-16",
+          "time_tag": "7200游戏秒会话4轮均2290.415902259秒；被视频布局组合替代",
+          "source_codex": ".codex/reset-global-20261116/ground-p6/lb_fastest_reset.py",
+          "base_commit": "3973de2",
+          "explicitly_cited": true
+        },
         {
           "file": "20261028_rejected_reset_cactus_overlap_overlap_component.py",
           "path": "references/leaderboard_history/lb_fastest_reset/20261028_rejected_reset_cactus_overlap_overlap_component.py",
@@ -4723,7 +4847,14 @@
     },
     "lb_fastest_underground_reset": {
       "committed": [
-        {"file": "20261116_v17_sim_49m51.607s_3973de2.py", "path": "references/leaderboard_history/lb_fastest_underground_reset/20261116_v17_sim_49m51.607s_3973de2.py", "date": "2026-11-16", "commit": "3973de2", "time_tag": "7200游戏秒会话3轮均2991.607494878秒", "message": "采用视频开局前冻结的正式源"},
+        {
+          "file": "20261116_v17_sim_49m51.607s_3973de2.py",
+          "path": "references/leaderboard_history/lb_fastest_underground_reset/20261116_v17_sim_49m51.607s_3973de2.py",
+          "date": "2026-11-16",
+          "commit": "3973de2",
+          "time_tag": "7200游戏秒会话3轮均2991.607494878秒",
+          "message": "采用视频开局前冻结的正式源"
+        },
         {
           "file": "20261106_v01_525m35.109s_87447cee.py",
           "path": "references/leaderboard_history/lb_fastest_underground_reset/20261106_v01_525m35.109s_87447cee.py",
@@ -4860,10 +4991,27 @@
           "sha256": "bde65f63adaca05144b8ca5f55c7510df9271cdfdfba7ba18f5ee42bd8e84bc8",
           "commit": "8e6be61",
           "message": "复现视频开局混种路径并重排双重置科技投资"
+        },
+        {
+          "file": "20261117_v19_sim_43m41.735s_4ee5f51.py",
+          "path": "references/leaderboard_history/lb_fastest_underground_reset/20261117_v19_sim_43m41.735s_4ee5f51.py",
+          "date": "2026-11-17",
+          "commit": "4ee5f51",
+          "time_tag": "43m41.735s（seed1..21均；实机43m21.273s #4；2026-11-21随机复测19/20失败）",
+          "message": "优化：地下重置采用四机小迷宫筹金并记录路线组合对照",
+          "sha256": "c657c0f74a5ea32429abf7f0ce394b112460378fa7280215bfe13ec15e4a10f5"
         }
       ],
       "rejected": [
-        {"file": "20261116_rejected_carrot_forecast_prefix.py", "path": "references/leaderboard_history/lb_fastest_underground_reset/20261116_rejected_carrot_forecast_prefix.py", "date": "2026-11-16", "time_tag": "7200游戏秒会话3轮均3057.933734792秒；前缀领先但整轮回吐", "source_codex": ".codex/reset-global-20261116/under-near-plan/lb_fastest_underground_reset.py", "base_commit": "3973de2", "explicitly_cited": true},
+        {
+          "file": "20261116_rejected_carrot_forecast_prefix.py",
+          "path": "references/leaderboard_history/lb_fastest_underground_reset/20261116_rejected_carrot_forecast_prefix.py",
+          "date": "2026-11-16",
+          "time_tag": "7200游戏秒会话3轮均3057.933734792秒；前缀领先但整轮回吐",
+          "source_codex": ".codex/reset-global-20261116/under-near-plan/lb_fastest_underground_reset.py",
+          "base_commit": "3973de2",
+          "explicitly_cited": true
+        },
         {
           "file": "20261111_rejected_sim_55m42.212s_balanced_ore_i3_q2.py",
           "path": "references/leaderboard_history/lb_fastest_underground_reset/20261111_rejected_sim_55m42.212s_balanced_ore_i3_q2.py",
