@@ -54,7 +54,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Maze_Single, "lb_maze_single", 10000)
 # 成功条件：num_items(Items.Gold) >= 616_448
-# 用时（#1/最近完整统计）：1:35.630 / 2:06.355
+# 用时（#1/最近完整统计）：1:35.630 / 1:59.281
 
 # leaderboard_run(Leaderboards.Sunflowers, "lb_sunflowers", 10000)
 # 成功条件：num_items(Items.Power) >= 100_000
@@ -66,11 +66,11 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Bamboo, "lb_bamboo", 10000)
 # 成功条件：num_items(Items.Bamboo) >= 500_000_000
-# 用时（#1/最近完整统计）：2:49.942 / 3:50.962
+# 用时（#1/最近完整统计）：2:49.942 / 3:01.444
 
 # leaderboard_run(Leaderboards.Bamboo_Single, "lb_bamboo_single", 10000)
 # 成功条件：num_items(Items.Bamboo) >= 25_000_000
-# 用时（#1/最近完整统计）：2:33.304 / 3:16.698
+# 用时（#1/最近完整统计）：2:33.304 / 2:50.908
 
 # leaderboard_run(Leaderboards.Rice, "lb_rice", 10000)
 # 成功条件：num_items(Items.Rice) >= 2_000_000
@@ -82,7 +82,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Ores, "lb_ores", 10000)
 # 成功条件：num_items(Items.Quartz) >= 20_000
-# 用时（#1/最近完整统计）：1:27.932 / 2:31.307
+# 用时（#1/最近完整统计）：1:27.932 / 1:30.487
 
 # leaderboard_run(Leaderboards.Ores_Single, "lb_ores_single", 10000)
 # 成功条件：num_items(Items.Quartz) >= 4_000
@@ -90,11 +90,11 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Mushrooms, "lb_mushrooms", 10000)
 # 成功条件：num_items(Items.Mushroom) >= 240_000
-# 用时（#1/最近完整统计）：1:34.538 / 5:14.194
+# 用时（#1/最近完整统计）：1:34.538 / 1:53.890
 
 # leaderboard_run(Leaderboards.Mushrooms_Single, "lb_mushrooms_single", 10000)
 # 成功条件：num_items(Items.Mushroom) >= 30_000
-# 用时（#1/最近完整统计）：4:22.952 / 12:37.850
+# 用时（#1/最近完整统计）：4:22.952 / 5:24.838
 
 # leaderboard_run(Leaderboards.Dynamite, "lb_dynamite", 10000)
 # 成功条件：num_items(Items.Dynamite) >= 10_000_000
@@ -102,7 +102,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Dynamite_Single, "lb_dynamite_single", 10000)
 # 成功条件：num_items(Items.Dynamite) >= 100_000
-# 用时（#1/最近完整统计）：2:10.815 / 4:20.318
+# 用时（#1/最近完整统计）：2:10.815 / 3:19.527
 
 # leaderboard_run(Leaderboards.Pyramids, "lb_pyramids", 10000)
 # 成功条件：num_items(Items.Power) >= 150_000
@@ -110,7 +110,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Pyramids_Single, "lb_pyramids_single", 10000)
 # 成功条件：num_items(Items.Power) >= 30_000
-# 用时（#1/最近完整统计）：11:57.898 / 17:51.530
+# 用时（#1/最近完整统计）：11:57.898 / 12:02.773
 
 # leaderboard_run(Leaderboards.Treasure_Map, "lb_treasure_map", 10000)
 # 成功条件：num_items(Items.Gold) >= 115_000
