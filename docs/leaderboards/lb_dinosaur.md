@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_dinosaur.py](../../scripts/leaderboard/lb_dinosaur.py)。账号公开记录 **11:34.941（#28）**，为 2026-11-16 请求 `551` 的 11 轮完整统计均值。新版游戏随机模拟 **10:37.741**，公开 #1 **5:14.900**，差距 **+102.5%**。最新排名见[公开快照](../../references/leaderboards/status_snapshot.md)。
+当前脚本：[lb_dinosaur.py](../../scripts/leaderboard/lb_dinosaur.py)。账号公开纪录 **10:57.023（#20）**。2026-11-25 请求 `581` 的 11 轮完整统计均值 **10:57.023**，实际用时 333.2 秒。本地随机模拟均值 **10:37.741**。[进度总表](leaderboard_progress.md) · [公开快照](../../references/leaderboards/status_snapshot.md)
 
 单机戴恐龙帽，前半程用交错网格追果，先走朝向目标的边，碰到蛇身或边界时转向。到 500 果后沿同一组边回到固定梳形环，再沿整行一次走完。整行固定移动由[母版及配方](../../scripts/templates/leaderboard/lb_dinosaur.codegen.json)生成。满盘换帽结算 33488928 Bone。
 
@@ -45,7 +45,7 @@
 | 2026-10-30 | 13:20.066（2026-10-30，官方完整9轮，request226）；十果追果后西列整形交接。 | 恐龙短蛇追果与西列整形完成正式打榜 | [20261030_v12_13m20.066s_f66370a4.py](../../references/leaderboard_history/lb_dinosaur/20261030_v12_13m20.066s_f66370a4.py) |
 | 2026-11-12 | 本版本尚未取得实机完整统计；仅有本地模拟对照。 | 迁入恐龙递归分区并提高骨头生产速率 | [20261112_v13_13bcd149.py](../../references/leaderboard_history/lb_dinosaur/20261112_v13_13bcd149.py) |
 | 2026-11-12 | 同模型固定 seed 1、2 完成于 684.086／704.019 秒，seed 3 到 API 调用上限 | 递归矩形追果和后半盘固定回路 | [旧存档同版 ead31f5](../../references/leaderboard_history/lb_dinosaur/20261112_v14_ead31f5.py) |
-| 2026-11-25 | 随机模拟 10:37.741（12/12） | 交错网格追果、固定梳形环收尾 | 当前 [lb_dinosaur.py](../../scripts/leaderboard/lb_dinosaur.py) |
+| 2026-11-25 | 实机 10:57.023（11 轮，请求 581），模拟 10:37.741 | 交错网格追果与梳形回路 | 当前 [lb_dinosaur.py](../../scripts/leaderboard/lb_dinosaur.py) |
 
 ## 下一步优化方向
 

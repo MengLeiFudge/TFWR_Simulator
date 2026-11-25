@@ -46,11 +46,11 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Dinosaur, "lb_dinosaur", 10000)
 # 成功条件：num_items(Items.Bone) >= 33_488_928
-# 用时（#1/最近完整统计）：4:53.223 / 11:34.941
+# 用时（#1/最近完整统计）：4:53.223 / 10:57.023
 
 # leaderboard_run(Leaderboards.Maze, "lb_maze", 10000)
 # 成功条件：num_items(Items.Gold) >= 9_863_168
-# 用时（#1/最近完整统计）：0:29.894 / 1:26.965
+# 用时（#1/最近完整统计）：0:29.894 / 0:38.713
 
 # leaderboard_run(Leaderboards.Maze_Single, "lb_maze_single", 10000)
 # 成功条件：num_items(Items.Gold) >= 616_448

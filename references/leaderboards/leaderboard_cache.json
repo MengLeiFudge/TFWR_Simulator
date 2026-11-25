@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "app_id": 2060160,
-  "last_attempt_at": "2026-11-25T16:17:23.610773+00:00",
+  "last_attempt_at": "2026-11-25T19:47:54.800633+00:00",
   "boards": [
     {
       "script": "lb_cactus",
@@ -1682,7 +1682,7 @@
     {
       "script": "lb_dinosaur",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869889/",
-      "retrieved_at": "2026-11-25T15:58:46.079304+00:00",
+      "retrieved_at": "2026-11-25T19:47:56.868988+00:00",
       "total_entries": 1933,
       "entries": [
         {
@@ -1763,39 +1763,39 @@
         },
         {
           "rank": 20,
-          "time_ms": 666483
+          "time_ms": 657023
         },
         {
           "rank": 21,
-          "time_ms": 676329
+          "time_ms": 666483
         },
         {
           "rank": 22,
-          "time_ms": 677355
+          "time_ms": 676329
         },
         {
           "rank": 23,
-          "time_ms": 678611
+          "time_ms": 677355
         },
         {
           "rank": 24,
-          "time_ms": 684089
+          "time_ms": 678611
         },
         {
           "rank": 25,
-          "time_ms": 690285
+          "time_ms": 684089
         },
         {
           "rank": 26,
-          "time_ms": 693412
+          "time_ms": 690285
         },
         {
           "rank": 27,
-          "time_ms": 693433
+          "time_ms": 693412
         },
         {
           "rank": 28,
-          "time_ms": 694941
+          "time_ms": 693433
         },
         {
           "rank": 29,
@@ -2089,9 +2089,9 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-25T15:58:46.079350+00:00",
-        "rank": 28,
-        "time_ms": 694941,
+        "retrieved_at": "2026-11-25T19:47:56.869019+00:00",
+        "rank": 20,
+        "time_ms": 657023,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
       },
@@ -3358,7 +3358,7 @@
     {
       "script": "lb_maze",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/17869891/",
-      "retrieved_at": "2026-11-25T15:15:36.143397+00:00",
+      "retrieved_at": "2026-11-25T19:47:56.706628+00:00",
       "total_entries": 1987,
       "entries": [
         {
@@ -3379,59 +3379,59 @@
         },
         {
           "rank": 5,
-          "time_ms": 42777
+          "time_ms": 38713
         },
         {
           "rank": 6,
-          "time_ms": 46435
+          "time_ms": 42777
         },
         {
           "rank": 7,
-          "time_ms": 46860
+          "time_ms": 46435
         },
         {
           "rank": 8,
-          "time_ms": 57855
+          "time_ms": 46860
         },
         {
           "rank": 9,
-          "time_ms": 61093
+          "time_ms": 57855
         },
         {
           "rank": 10,
-          "time_ms": 69927
+          "time_ms": 61093
         },
         {
           "rank": 11,
-          "time_ms": 71880
+          "time_ms": 69927
         },
         {
           "rank": 12,
-          "time_ms": 77599
+          "time_ms": 71880
         },
         {
           "rank": 13,
-          "time_ms": 78974
+          "time_ms": 77599
         },
         {
           "rank": 14,
-          "time_ms": 81900
+          "time_ms": 78974
         },
         {
           "rank": 15,
-          "time_ms": 84917
+          "time_ms": 81900
         },
         {
           "rank": 16,
-          "time_ms": 85218
+          "time_ms": 84917
         },
         {
           "rank": 17,
-          "time_ms": 86290
+          "time_ms": 85218
         },
         {
           "rank": 18,
-          "time_ms": 86965
+          "time_ms": 86290
         },
         {
           "rank": 19,
@@ -3459,7 +3459,7 @@
         },
         {
           "rank": 25,
-          "time_ms": 91297
+          "time_ms": 91256
         },
         {
           "rank": 26,
@@ -3765,9 +3765,9 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-25T15:15:36.143442+00:00",
-        "rank": 18,
-        "time_ms": 86965,
+        "retrieved_at": "2026-11-25T19:47:56.706659+00:00",
+        "rank": 5,
+        "time_ms": 38713,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
       },
