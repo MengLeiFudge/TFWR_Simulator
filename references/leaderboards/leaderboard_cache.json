@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "app_id": 2060160,
-  "last_attempt_at": "2026-11-25T16:01:36.569799+00:00",
+  "last_attempt_at": "2026-11-25T16:17:23.610773+00:00",
   "boards": [
     {
       "script": "lb_cactus",
@@ -8058,7 +8058,7 @@
     {
       "script": "lb_dynamite",
       "source": "https://steamcommunity.com/stats/2060160/leaderboards/21444631/",
-      "retrieved_at": "2026-11-25T15:15:34.730612+00:00",
+      "retrieved_at": "2026-11-25T16:17:26.231225+00:00",
       "total_entries": 93,
       "entries": [
         {
@@ -8067,23 +8067,23 @@
         },
         {
           "rank": 2,
-          "time_ms": 519688
+          "time_ms": 475942
         },
         {
           "rank": 3,
-          "time_ms": 638097
+          "time_ms": 519688
         },
         {
           "rank": 4,
-          "time_ms": 753849
+          "time_ms": 638097
         },
         {
           "rank": 5,
-          "time_ms": 754107
+          "time_ms": 753849
         },
         {
           "rank": 6,
-          "time_ms": 861783
+          "time_ms": 754107
         },
         {
           "rank": 7,
@@ -8437,9 +8437,9 @@
       "limit": 100,
       "account": {
         "status": "listed",
-        "retrieved_at": "2026-11-25T15:15:34.730662+00:00",
-        "rank": 6,
-        "time_ms": 861783,
+        "retrieved_at": "2026-11-25T16:17:26.231258+00:00",
+        "rank": 2,
+        "time_ms": 475942,
         "identity": "d800321ca8f75334de6e2b0a422deefdb4d5e6b6d78fcf48006ea192a2c7d33b",
         "refresh_error": null
       },
