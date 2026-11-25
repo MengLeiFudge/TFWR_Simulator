@@ -1799,6 +1799,14 @@
           "commit": "997625ae",
           "time_tag": "1m26.969s",
           "message": "优化：迷宫对称建表并迁入单机增量路由"
+        },
+        {
+          "file": "20261109_v12_1m24.744s_45bb434.py",
+          "path": "references/leaderboard_history/lb_maze/20261109_v12_1m24.744s_45bb434.py",
+          "date": "2026-11-09",
+          "commit": "45bb434",
+          "time_tag": "1m24.744s",
+          "message": "优化：迁入蘑菇配对和迷宫达标收尾并同步存档"
         }
       ],
       "rejected": [
@@ -2213,6 +2221,14 @@
           "commit": "9d2d3c31",
           "time_tag": "2m25.112s",
           "message": "优化：迁入七项实机上榜策略并记录完整统计"
+        },
+        {
+          "file": "20261107_v11_2m06.355s_d30b5f5.py",
+          "path": "references/leaderboard_history/lb_maze_single/20261107_v11_2m06.355s_d30b5f5.py",
+          "date": "2026-11-07",
+          "commit": "d30b5f5",
+          "time_tag": "2m06.355s",
+          "message": "重构：按模拟器、游戏控制和脚本用途整理项目结构（实机57轮2:06.355）"
         }
       ],
       "rejected": [
