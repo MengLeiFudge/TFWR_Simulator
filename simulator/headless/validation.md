@@ -30,6 +30,8 @@
 
 这两组覆盖完整榜单策略的游戏随机均值。构建 26732695 的固定种子采矿轨迹待取得，逐条输出和纳秒计时仍以对应构建的归档重放为准。单榜证据见[单机](../../docs/leaderboards/lb_ores_single.md)和[多机](../../docs/leaderboards/lb_ores.md)。
 
+本地已用当前程序集准备固定种子对照。原 `ore-methods` 场景（Mining 5、seed 1）仍与旧归档的 82 条输出及 `334205213850 ns` 完全一致。保持地形与动作不变，Mining 1／2 都完成 1152 次 `dig()`，挖掘计费分别为 8760150／5840100 tick，恰为 1.5 倍。Mining 0 在第一次 `dig()` 返回 `error_missing_x_unlock`，该分支用来检验解锁约束。原始本地报告见 `.codex/tmp/leaderboard-closeout/ore-methods-*.json`。
+
 ## 本地覆盖和错误边界
 
 - 当前原版注册的60个函数和5个容器方法，全部在本次本地案例中实际执行过。65/65是调用覆盖，不表示所有参数分支或组合都经过实机对照；部分包含失败返回路径。没有把源码中未注册的Send/Receive等内部方法声称为可调用API。
