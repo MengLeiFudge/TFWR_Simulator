@@ -23,6 +23,7 @@
 | 仅改真实半盘计数 | 完整778.249秒，对旧775.380秒 | 该seed观察计数与真实尾长一致，额外统计未带来路线收益 | [20261108_rejected_actual_half_v1.py](../../references/leaderboard_history/lb_dinosaur/20261108_rejected_actual_half_v1.py) |
 | 递归追果延后到3/4盘 | seed1完整866.18325213秒、33488928 Bone，对同条件684.08607339秒 | 到切换点已794.37秒；原递归恢复费用上升，不能仅延后阈值 | 从Git `0102d33:scripts/leaderboard/lb_dinosaur.py`把 `turn_point = A // 2` 改为 `A * 3 // 4` 可重建 |
 | 真实尾事件表＋后段向北短切 | seed1到1200.05秒仅697实体，换帽结算15545888 Bone；补跑原路线到15墙钟秒仍未达目标 | 包含1024步身体整形、真实尾跳跃和64格余量；1498次短切未兑现完整周期，不计模拟成绩 | [20261116_rejected_tail_shortcuts.py](../../references/leaderboard_history/lb_dinosaur/20261116_rejected_tail_shortcuts.py) |
+| 交错网格 v3（整行展开，未合并前段连续直行） | seed 1～12 均满盘。v3 均值 661.981 秒，v4 652.732 秒 | v4 在 11/12 个配对种子上更快，平均节省 9.248 秒，配对标准误 3.592 秒。seed 5 的 v4 慢 28.719 秒 | `.codex/tmp/leaderboard-closeout/dinosaur-v{3,4}-seeds*.json` 与两份 seed 1～3 报告 |
 
 ## 历史正式版本演进
 
