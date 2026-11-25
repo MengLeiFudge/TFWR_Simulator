@@ -86,7 +86,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Ores_Single, "lb_ores_single", 10000)
 # 成功条件：num_items(Items.Quartz) >= 4_000
-# 用时（#1/最近完整统计）：6:24.764 / 8:54.068
+# 用时（#1/最近完整统计）：6:24.764 / 5:42.752
 
 # leaderboard_run(Leaderboards.Mushrooms, "lb_mushrooms", 10000)
 # 成功条件：num_items(Items.Mushroom) >= 240_000
