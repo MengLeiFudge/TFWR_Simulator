@@ -1,6 +1,6 @@
 # 排行榜公开成绩与当前账号快照
 
-本次联网刷新 30/30 榜。事实真源为[公开缓存](leaderboard_cache.json)（仅存名次、毫秒成绩、查询时间与账号摘要），模拟与改进方向见[排行榜进度](../../docs/leaderboards/leaderboard_progress.md)。
+公开缓存离线重建。事实真源为[公开缓存](leaderboard_cache.json)（仅存名次、毫秒成绩、查询时间与账号摘要），模拟与改进方向见[排行榜进度](../../docs/leaderboards/leaderboard_progress.md)。
 
 | 脚本 | 公开来源 | 公开查询UTC | 公开人数 | #1 | #3 | #10 | 账号最高 | 账号核对UTC |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
