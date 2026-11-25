@@ -1,374 +1,929 @@
 from __builtins__ import *
-# 完整轮时间：未取得（本地已验证六层场筛选；当前版本尚未实机）。
+# 完整轮时间：5:22.248（本地7200游戏秒完整抽样23轮，游戏随机，SD=6.848s，95%自适应CI±5.366s，0失败0警告；尚无本版实机）。
 
 def lb_mushrooms_single():
-    began = get_time()
-    blocks = make_blocks()
-    for batch in range(128):
-        if num_items(Items.Mushroom) >= 30000:
-            quick_print("mushrooms_done", True, get_time(), num_items(Items.Mushroom))
-            return
+    init_topo()
+    h_min = 5
+    early_stop = 96
+    max_idle = 10
+
+    rem_matches = 1875
+    for batch in range(512):
+        if rem_matches <= 0:
+            if num_items(Items.Mushroom) >= 30000:
+                return
+            rem_matches = (30000 - num_items(Items.Mushroom) + 15) // 16
         clear()
-        for covers in range(256):
-            if get_ground_type() == Grounds.Mushroom:
-                break
-            if get_time() - began > 7200 or not dig():
-                quick_print("mushrooms_failed", "find", batch)
-                return
-        if get_ground_type() != Grounds.Mushroom:
-            quick_print("mushrooms_failed", "find_limit", batch)
-            return
-        top = get_pos_z()
-        height = 0
-        for step in range(7):
-            if get_ground_type() != Grounds.Mushroom:
-                break
+        while get_ground_type() != Grounds.Mushroom:
             if not dig():
-                quick_print("mushrooms_failed", "probe", batch)
                 return
-            height += 1
-        if not height or height > 6:
-            quick_print("mushrooms_failed", "height", batch, height)
-            return
-        quick_print("mushrooms_selected", batch, height, get_time())
-        if height != 6:
-            continue
-        levels = max(1, height - 1)
-        quick_print("mushrooms_probe", batch, height, levels, get_time())
-        handles = []
-        results = []
-        for k in range(1, len(blocks)):
-            handle = spawn_drone(work_patch, blocks[k], top, levels)
-            if handle == None:
-                results.append(work_patch(blocks[k], top, levels))
-            else:
-                handles.append(handle)
-        results.append(work_patch(blocks[0], top, levels))
-        for handle in handles:
-            results.append(wait_for(handle))
-        for result in results:
-            if not result:
-                quick_print("mushrooms_failed", "patch", batch)
-                return
-        quick_print("mushrooms_batch", batch, get_time(), num_items(Items.Mushroom))
-    quick_print("mushrooms_failed", "batch_limit", get_time(), num_items(Items.Mushroom))
-
-
-def work_patch(block, top, levels):
-    x0, x1, y0, y1 = block
-    for y in range(y0, y1):
-        for offset in range(x1 - x0):
-            x = x0 + offset
-            if (y - y0) % 2 != 0:
-                x = x1 - 1 - offset
-            if not move_to(x, y):
-                return False
-            while get_pos_z() > top:
-                if not dig():
-                    return False
-    cells = patch_cells(block)
-    for layer in range(levels):
-        if num_items(Items.Mushroom) >= 30000:
-            return True
-        result = work_layer(block, top - layer, cells)
-        if result == None:
-            return False
-        if result[2] == 0:
-            return True
-    return True
-
-
-# 路线和邻格只建立一次；匹配动作返回原格后，下一格直接走一步。
-def patch_cells(block):
-    x0, x1, y0, y1 = block
-    cells = []
-    previous_x = -1
-    for y in range(y0, y1):
-        for offset in range(x1 - x0):
-            x = x0 + offset
-            if (y - y0) % 2 != 0:
-                x = x1 - 1 - offset
-            if x == 0 and y == 0:
-                continue
-            neighbors = []
-            if y + 1 < y1:
-                neighbors.append(0)
-            if x + 1 < x1:
-                neighbors.append(1)
-            if y > y0 and (x != 0 or y != 1):
-                neighbors.append(2)
-            if x > x0 and (x != 1 or y != 0):
-                neighbors.append(3)
-            direction = None
-            if previous_x >= 0:
-                direction = North
-                if x > previous_x:
-                    direction = East
-                elif x < previous_x:
-                    direction = West
-            cells.append((x, y, neighbors, direction))
-            previous_x = x
-    return cells
-
-
-# 主机只创建少量矩形边界，逐格坐标和邻格交给各子机就地计算。
-def make_blocks():
-    size = get_world_size()
-    limit = max(1, size // 4)
-    capacity = max_drones()
-    gx = 1
-    gy = 1
-    best = 1
-    for ty in range(1, limit + 1):
-        tx = min(limit, capacity // ty)
-        if tx * ty > best:
-            best = tx * ty
-            gx = tx
-            gy = ty
-    blocks = []
-    for k in range(best):
-        bx = k % gx
-        by = k // gx
-        blocks.append((bx * size // gx, (bx + 1) * size // gx,
-                       by * size // gy, (by + 1) * size // gy))
-    return blocks
-
-
-# 蛇形遍历本分区，直接或中转配对后再挖掘，必要时接收邻柱。
-# 各工人独立推进本分区；以实际柱顶处理塌方后的高度变化。
-def work_layer(block, ceiling, cells):
-    cache = {}
-    floor = ceiling - 6
-    pairs = 0
-    digs = 0
-    mushrooms = 0
-    for x, y, neighbors, direction in cells:
-        if direction == None:
-            if not move_to(x, y):
-                return None
-        elif not move(direction):
-            return None
-        z = get_pos_z()
-        if z < floor:
-            continue
-        # 已公开柱可能高于上次计划高度；仍以当前柱顶处理。
-        mushroom = get_ground_type() == Grounds.Mushroom
-        if mushroom:
-            mushrooms += 1
-        if z >= ceiling and mushroom:
-            count = carry_match(cache, x, y, neighbors, floor)
-            if count == None:
-                return None
-            pairs += count
-            if count == 0:
-                if get_hardness() >= 10000000 or not dig():
-                    return None
-                digs += 1
-        cache["ready"] = False
-        count = feed_column(neighbors, floor, cache, x, y)
-        if count == None:
-            return None
-        pairs += count
-        if not cache["ready"]:
-            read_column(cache, x, y)
-            for i in neighbors:
-                dx, dy = OFFSETS[i]
-                read_column(cache, x + dx, y + dy, DIRECTIONS[i])
-    return pairs, digs, mushrooms
-
-
-# 直接从脚下推送省去前往邻格再返回的两次移动。
-def push_match(neighbors, floor):
-    if get_ground_type() != Grounds.Mushroom:
-        return 0
-    t = measure()
-    z = get_pos_z()
-    for i in neighbors:
-        direction = DIRECTIONS[i]
-        if get_ground_type(direction) == Grounds.Mushroom:
-            target = get_pos_z(direction)
-            if floor < target and target < z and measure(direction) == t:
-                if not push(direction):
-                    return None
-                return 1
-    return 0
-
-
-# 从邻格推向当前格并返回，移动或推送失败交给主机停止本轮。
-def push_neighbor(i):
-    if not move(DIRECTIONS[i]):
-        return False
-    pushed = push(BACKS[i])
-    if not move(BACKS[i]):
-        return False
-    return pushed
-
-
-# 直接匹配会使目标下降一格；双邻配对保持目标高度，但不能提前同型消除。
-def feed_column(neighbors, floor, cache, x, y):
-    matched = 0
-    while True:
-        z = get_pos_z()
-        if z < floor:
-            return matched
-        mushroom = get_ground_type() == Grounds.Mushroom
-        t = -1
-        if mushroom:
-            t = measure()
-        types = [-1, -1, -1, -1]
-        heights = [0, 0, 0, 0]
-        hit = -1
-        for i in neighbors:
-            direction = DIRECTIONS[i]
-            heights[i] = get_pos_z(direction)
-            if get_ground_type(direction) == Grounds.Mushroom:
-                types[i] = measure(direction)
-                if mushroom and z > floor and types[i] == t and heights[i] > z:
-                    hit = i
-                    break
-        if hit >= 0:
-            if not push_neighbor(hit):
-                return None
-            matched += 1
-            continue
-        # 非蘑菇柱只有确认两块同色且都高于floor至少两格后才准备。
-        target = z
-        cands = []
-        for i in neighbors:
-            if types[i] >= 0 and types[i] != t and heights[i] >= target + 2:
-                cands.append(i)
-        pair_a = -1
-        pair_b = -1
-        for i in cands:
-            for j in cands:
-                if j > i and types[j] == types[i]:
-                    pair_a = i
-                    pair_b = j
-                    break
-            if pair_a >= 0:
+        top = get_pos_z()
+        ok_h = True
+        for _ in range(h_min - 1):
+            if get_ground_type() != Grounds.Mushroom:
+                ok_h = False
                 break
-        if pair_a < 0:
-            cache[(x, y)] = (z, t)
-            for i in neighbors:
-                dx, dy = OFFSETS[i]
-                cache[(x + dx, y + dy)] = (heights[i], types[i])
-            cache["ready"] = True
-            return matched
-        if not push_neighbor(pair_a):
-            return None
-        if not push_neighbor(pair_b):
-            return None
-        matched += 1
-
-
-# 利用边界环绕走较短路径，坐标只读一次。
-def move_to(tx, ty):
-    size = get_world_size()
-    dx = (tx - get_pos_x()) % size
-    dy = (ty - get_pos_y()) % size
-    horizontal = East
-    vertical = North
-    if dx > size // 2:
-        dx = size - dx
-        horizontal = West
-    if dy > size // 2:
-        dy = size - dy
-        vertical = South
-    for _ in range(dx):
-        if not move(horizontal):
-            return False
-    for _ in range(dy):
-        if not move(vertical):
-            return False
-    return True
-
-
-# 缓存只保存本分区已公开的柱顶；每次修改后更新涉及的柱。
-def read_column(cache, x, y, direction=None):
-    if direction == None:
-        z = get_pos_z()
-        ground = get_ground_type()
-        t = -1
-        if ground == Grounds.Mushroom:
-            t = measure()
-    else:
-        z = get_pos_z(direction)
-        ground = get_ground_type(direction)
-        t = -1
-        if ground == Grounds.Mushroom:
-            t = measure(direction)
-    cache[(x, y)] = (z, t)
-
-
-# 直接匹配优先；两步搬运只经过已公开的同高低台，不建立搜索队列。
-def carry_match(cache, x, y, neighbors, floor):
-    direct = push_match(neighbors, floor)
-    if direct != 0:
-        return direct
-    read_column(cache, x, y)
-    z, t = cache[(x, y)]
-    if t < 0 or z - 1 <= floor:
-        return 0
-    for i in neighbors:
-        dx, dy = OFFSETS[i]
-        read_column(cache, x + dx, y + dy, DIRECTIONS[i])
-    for i in neighbors:
-        dx, dy = OFFSETS[i]
-        mx = x + dx
-        my = y + dy
-        height = cache[(mx, my)][0]
-        if height >= z:
+            dig()
+        if not ok_h or get_ground_type() != Grounds.Mushroom:
             continue
-        for j in range(4):
-            ex, ey = OFFSETS[j]
-            end = (mx + ex, my + ey)
-            if end not in cache:
+        dig()
+        if get_ground_type() == Grounds.Mushroom:
+            h_actual = 6
+        else:
+            h_actual = 5
+        bottom = top - h_actual
+        min_stack_z = bottom + 2
+
+        z_arr = []
+        c_arr = []
+        buried = []
+        for _ in range(64):
+            z_arr.append(0)
+            c_arr.append(-1)
+            buried.append([])
+
+        rem_blocks = 0
+        zc = get_pos_z()
+        z_arr[0] = zc
+        if zc > bottom:
+            c_arr[0] = measure()
+            rem_blocks += zc - bottom
+        for nb, d in SPINE_READS[0]:
+            zn = get_pos_z(d)
+            z_arr[nb] = zn
+            if zn > bottom:
+                c_arr[nb] = measure(d)
+                rem_blocks += zn - bottom
+
+        for idx in range(1, 28):
+            move(SPINE_DIRS[idx - 1])
+            sc = SPINE_CELLS[idx]
+            zc = get_pos_z()
+            if zc == top:
+                dig()
+                zc -= 1
+            elif idx == 1:
+                if get_pos_z(East) > top or get_pos_z(North) > top:
+                    dig()
+                    zc = get_pos_z()
+            elif zc > top:
+                while get_pos_z() > top:
+                    dig()
+                dig()
+                zc = top - 1
+            z_arr[sc] = zc
+            if zc > bottom:
+                c_arr[sc] = measure()
+                rem_blocks += zc - bottom
+            for nb, d in SPINE_READS[idx]:
+                zn = get_pos_z(d)
+                if zn > top:
+                    dig()
+                    zc = get_pos_z()
+                    z_arr[sc] = zc
+                    if zc > bottom:
+                        c_arr[sc] = measure()
+                    else:
+                        c_arr[sc] = -1
+                    zn = get_pos_z(d)
+                z_arr[nb] = zn
+                if zn <= top and zn > bottom:
+                    c_arr[nb] = measure(d)
+                    rem_blocks += zn - bottom
+
+        cur = 55
+
+        ready = []
+        for a in range(64):
+            ca = c_arr[a]
+            if ca < 0:
                 continue
-            target, color = cache[end]
-            if target > height or target <= floor or color != t:
+            za = z_arr[a]
+            nb = N0[a]
+            if c_arr[nb] == ca:
+                zn = z_arr[nb]
+                if za > zn:
+                    ready.append((a, nb, North))
+                elif zn > za:
+                    ready.append((nb, a, South))
+            nb = N1[a]
+            if c_arr[nb] == ca:
+                zn = z_arr[nb]
+                if za > zn:
+                    ready.append((a, nb, East))
+                elif zn > za:
+                    ready.append((nb, a, West))
+
+        idle = 0
+        scan_cur = 0
+        while rem_blocks > early_stop and rem_matches > 0:
+            cu = c_arr[cur]
+            zu = z_arr[cur]
+
+            # 1+2：原地四邻直推（200t）与邻格反推（400t）合并一次扫描。
+            if cu >= 0:
+                v = -1
+                rv = -1
+                nb = N0[cur]
+                if c_arr[nb] == cu:
+                    zn = z_arr[nb]
+                    if zn < zu:
+                        v = nb
+                        d = North
+                    elif zn > zu:
+                        rv = nb
+                        rd = North
+                        rbd = South
+                if v < 0:
+                    nb = N1[cur]
+                    if c_arr[nb] == cu:
+                        zn = z_arr[nb]
+                        if zn < zu:
+                            v = nb
+                            d = East
+                        elif rv < 0 and zn > zu:
+                            rv = nb
+                            rd = East
+                            rbd = West
+                if v < 0:
+                    nb = N2[cur]
+                    if c_arr[nb] == cu:
+                        zn = z_arr[nb]
+                        if zn < zu:
+                            v = nb
+                            d = South
+                        elif rv < 0 and zn > zu:
+                            rv = nb
+                            rd = South
+                            rbd = North
+                if v < 0:
+                    nb = N3[cur]
+                    if c_arr[nb] == cu:
+                        zn = z_arr[nb]
+                        if zn < zu:
+                            v = nb
+                            d = West
+                        elif rv < 0 and zn > zu:
+                            rv = nb
+                            rd = West
+                            rbd = East
+                if v >= 0:
+                    push(d)
+                    zu -= 1
+                    z_arr[cur] = zu
+                    zv = z_arr[v] - 1
+                    z_arr[v] = zv
+                    bu = buried[cur]
+                    if bu:
+                        nc = bu.pop()
+                    elif zu > bottom:
+                        nc = measure()
+                    else:
+                        nc = -1
+                    c_arr[cur] = nc
+                    bv = buried[v]
+                    if bv:
+                        nv = bv.pop()
+                    elif zv > bottom:
+                        nv = measure(d)
+                    else:
+                        nv = -1
+                    c_arr[v] = nv
+                    rem_blocks -= 2
+                    rem_matches -= 1
+                    idle = 0
+                    if nv >= 0:
+                        add_edges(v, nv, zv, z_arr, c_arr, ready)
+                    continue
+
+                if rv >= 0:
+                    old = cur
+                    move(rd)
+                    cur = rv
+                    push(rbd)
+                    zc = z_arr[cur] - 1
+                    z_arr[cur] = zc
+                    zu -= 1
+                    z_arr[old] = zu
+                    bu = buried[cur]
+                    if bu:
+                        nc = bu.pop()
+                    elif zc > bottom:
+                        nc = measure()
+                    else:
+                        nc = -1
+                    c_arr[cur] = nc
+                    bv = buried[old]
+                    if bv:
+                        nv = bv.pop()
+                    elif zu > bottom:
+                        nv = measure(rbd)
+                    else:
+                        nv = -1
+                    c_arr[old] = nv
+                    rem_blocks -= 2
+                    rem_matches -= 1
+                    idle = 0
+                    if nv >= 0:
+                        add_edges(old, nv, zu, z_arr, c_arr, ready)
+                    continue
+
+            # 3：一步移至邻格前推（400t）。
+            fv = -1
+            nb = N0[cur]
+            cv = c_arr[nb]
+            if cv >= 0:
+                zv = z_arr[nb]
+                w = N0[nb]
+                if c_arr[w] == cv and z_arr[w] < zv:
+                    fv = nb
+                    fw = w
+                    md = North
+                    pd = North
+                else:
+                    w = N1[nb]
+                    if c_arr[w] == cv and z_arr[w] < zv:
+                        fv = nb
+                        fw = w
+                        md = North
+                        pd = East
+                    else:
+                        w = N3[nb]
+                        if c_arr[w] == cv and z_arr[w] < zv:
+                            fv = nb
+                            fw = w
+                            md = North
+                            pd = West
+            if fv < 0:
+                nb = N1[cur]
+                cv = c_arr[nb]
+                if cv >= 0:
+                    zv = z_arr[nb]
+                    w = N0[nb]
+                    if c_arr[w] == cv and z_arr[w] < zv:
+                        fv = nb
+                        fw = w
+                        md = East
+                        pd = North
+                    else:
+                        w = N1[nb]
+                        if c_arr[w] == cv and z_arr[w] < zv:
+                            fv = nb
+                            fw = w
+                            md = East
+                            pd = East
+                        else:
+                            w = N2[nb]
+                            if c_arr[w] == cv and z_arr[w] < zv:
+                                fv = nb
+                                fw = w
+                                md = East
+                                pd = South
+            if fv < 0:
+                nb = N2[cur]
+                cv = c_arr[nb]
+                if cv >= 0:
+                    zv = z_arr[nb]
+                    w = N1[nb]
+                    if c_arr[w] == cv and z_arr[w] < zv:
+                        fv = nb
+                        fw = w
+                        md = South
+                        pd = East
+                    else:
+                        w = N2[nb]
+                        if c_arr[w] == cv and z_arr[w] < zv:
+                            fv = nb
+                            fw = w
+                            md = South
+                            pd = South
+                        else:
+                            w = N3[nb]
+                            if c_arr[w] == cv and z_arr[w] < zv:
+                                fv = nb
+                                fw = w
+                                md = South
+                                pd = West
+            if fv < 0:
+                nb = N3[cur]
+                cv = c_arr[nb]
+                if cv >= 0:
+                    zv = z_arr[nb]
+                    w = N0[nb]
+                    if c_arr[w] == cv and z_arr[w] < zv:
+                        fv = nb
+                        fw = w
+                        md = West
+                        pd = North
+                    else:
+                        w = N2[nb]
+                        if c_arr[w] == cv and z_arr[w] < zv:
+                            fv = nb
+                            fw = w
+                            md = West
+                            pd = South
+                        else:
+                            w = N3[nb]
+                            if c_arr[w] == cv and z_arr[w] < zv:
+                                fv = nb
+                                fw = w
+                                md = West
+                                pd = West
+            if fv >= 0:
+                move(md)
+                cur = fv
+                push(pd)
+                zc = z_arr[cur] - 1
+                z_arr[cur] = zc
+                zw = z_arr[fw] - 1
+                z_arr[fw] = zw
+                bu = buried[cur]
+                if bu:
+                    nc = bu.pop()
+                elif zc > bottom:
+                    nc = measure()
+                else:
+                    nc = -1
+                c_arr[cur] = nc
+                bv = buried[fw]
+                if bv:
+                    nv = bv.pop()
+                elif zw > bottom:
+                    nv = measure(pd)
+                else:
+                    nv = -1
+                c_arr[fw] = nv
+                rem_blocks -= 2
+                rem_matches -= 1
+                idle = 0
+                if nv >= 0:
+                    add_edges(fw, nv, zw, z_arr, c_arr, ready)
                 continue
-            if not push(DIRECTIONS[i]):
-                return None
-            read_column(cache, x, y)
-            if not move(DIRECTIONS[i]) or not push(DIRECTIONS[j]):
-                return None
-            read_column(cache, mx, my)
-            read_column(cache, end[0], end[1], DIRECTIONS[j])
-            if not move(BACKS[i]):
-                return None
-            return 1
-    return fixture_match(neighbors, floor)
 
+            # 4：展开式两步过桥（600t）与双邻汇合（800t）。
+            if cu >= 0:
+                bm = -1
+                fm = -1
+                m = N0[cur]
+                zm = z_arr[m]
+                if zm < zu:
+                    w = N0[m]
+                    if c_arr[w] == cu:
+                        zw = z_arr[w]
+                        if zw <= zm:
+                            bm = m
+                            bw = w
+                            md1 = North
+                            pd2 = North
+                        elif zw >= zm + 2:
+                            fm = m
+                            fw = w
+                            fmd1 = North
+                            fpd2 = South
+                    if bm < 0:
+                        w = N1[m]
+                        if c_arr[w] == cu:
+                            zw = z_arr[w]
+                            if zw <= zm:
+                                bm = m
+                                bw = w
+                                md1 = North
+                                pd2 = East
+                            elif fm < 0 and zw >= zm + 2:
+                                fm = m
+                                fw = w
+                                fmd1 = North
+                                fpd2 = West
+                    if bm < 0:
+                        w = N3[m]
+                        if c_arr[w] == cu:
+                            zw = z_arr[w]
+                            if zw <= zm:
+                                bm = m
+                                bw = w
+                                md1 = North
+                                pd2 = West
+                            elif fm < 0 and zw >= zm + 2:
+                                fm = m
+                                fw = w
+                                fmd1 = North
+                                fpd2 = East
+                if bm < 0:
+                    m = N1[cur]
+                    zm = z_arr[m]
+                    if zm < zu:
+                        w = N0[m]
+                        if c_arr[w] == cu:
+                            zw = z_arr[w]
+                            if zw <= zm:
+                                bm = m
+                                bw = w
+                                md1 = East
+                                pd2 = North
+                            elif fm < 0 and zw >= zm + 2:
+                                fm = m
+                                fw = w
+                                fmd1 = East
+                                fpd2 = South
+                        if bm < 0:
+                            w = N1[m]
+                            if c_arr[w] == cu:
+                                zw = z_arr[w]
+                                if zw <= zm:
+                                    bm = m
+                                    bw = w
+                                    md1 = East
+                                    pd2 = East
+                                elif fm < 0 and zw >= zm + 2:
+                                    fm = m
+                                    fw = w
+                                    fmd1 = East
+                                    fpd2 = West
+                        if bm < 0:
+                            w = N2[m]
+                            if c_arr[w] == cu:
+                                zw = z_arr[w]
+                                if zw <= zm:
+                                    bm = m
+                                    bw = w
+                                    md1 = East
+                                    pd2 = South
+                                elif fm < 0 and zw >= zm + 2:
+                                    fm = m
+                                    fw = w
+                                    fmd1 = East
+                                    fpd2 = North
+                if bm < 0:
+                    m = N2[cur]
+                    zm = z_arr[m]
+                    if zm < zu:
+                        w = N1[m]
+                        if c_arr[w] == cu:
+                            zw = z_arr[w]
+                            if zw <= zm:
+                                bm = m
+                                bw = w
+                                md1 = South
+                                pd2 = East
+                            elif fm < 0 and zw >= zm + 2:
+                                fm = m
+                                fw = w
+                                fmd1 = South
+                                fpd2 = West
+                        if bm < 0:
+                            w = N2[m]
+                            if c_arr[w] == cu:
+                                zw = z_arr[w]
+                                if zw <= zm:
+                                    bm = m
+                                    bw = w
+                                    md1 = South
+                                    pd2 = South
+                                elif fm < 0 and zw >= zm + 2:
+                                    fm = m
+                                    fw = w
+                                    fmd1 = South
+                                    fpd2 = North
+                        if bm < 0:
+                            w = N3[m]
+                            if c_arr[w] == cu:
+                                zw = z_arr[w]
+                                if zw <= zm:
+                                    bm = m
+                                    bw = w
+                                    md1 = South
+                                    pd2 = West
+                                elif fm < 0 and zw >= zm + 2:
+                                    fm = m
+                                    fw = w
+                                    fmd1 = South
+                                    fpd2 = East
+                if bm < 0:
+                    m = N3[cur]
+                    zm = z_arr[m]
+                    if zm < zu:
+                        w = N0[m]
+                        if c_arr[w] == cu:
+                            zw = z_arr[w]
+                            if zw <= zm:
+                                bm = m
+                                bw = w
+                                md1 = West
+                                pd2 = North
+                            elif fm < 0 and zw >= zm + 2:
+                                fm = m
+                                fw = w
+                                fmd1 = West
+                                fpd2 = South
+                        if bm < 0:
+                            w = N2[m]
+                            if c_arr[w] == cu:
+                                zw = z_arr[w]
+                                if zw <= zm:
+                                    bm = m
+                                    bw = w
+                                    md1 = West
+                                    pd2 = South
+                                elif fm < 0 and zw >= zm + 2:
+                                    fm = m
+                                    fw = w
+                                    fmd1 = West
+                                    fpd2 = North
+                        if bm < 0:
+                            w = N3[m]
+                            if c_arr[w] == cu:
+                                zw = z_arr[w]
+                                if zw <= zm:
+                                    bm = m
+                                    bw = w
+                                    md1 = West
+                                    pd2 = West
+                                elif fm < 0 and zw >= zm + 2:
+                                    fm = m
+                                    fw = w
+                                    fmd1 = West
+                                    fpd2 = East
 
-# 当前柱B与邻柱A同高同色时，把B暂存到低两格的C，再让A经B合并到C。
-# C最终回到原高度，A/B各降低一格，不挖掉这两块蘑菇。
-def fixture_match(neighbors, floor):
-    if get_ground_type() != Grounds.Mushroom:
-        return 0
-    z = get_pos_z()
-    if z - 2 < floor:
-        return 0
-    t = measure()
-    for i in neighbors:
-        source = DIRECTIONS[i]
-        if get_pos_z(source) != z or get_ground_type(source) != Grounds.Mushroom or measure(source) != t:
-            continue
-        for j in neighbors:
-            if i == j or get_pos_z(DIRECTIONS[j]) > z - 2:
+                if bm >= 0:
+                    push(md1)
+                    zu -= 1
+                    z_arr[cur] = zu
+                    bu = buried[cur]
+                    if bu:
+                        nc = bu.pop()
+                    elif zu > bottom:
+                        nc = measure()
+                    else:
+                        nc = -1
+                    c_arr[cur] = nc
+                    old = cur
+                    move(md1)
+                    cur = bm
+                    push(pd2)
+                    zw = z_arr[bw] - 1
+                    z_arr[bw] = zw
+                    bv = buried[bw]
+                    if bv:
+                        nv = bv.pop()
+                    elif zw > bottom:
+                        nv = measure(pd2)
+                    else:
+                        nv = -1
+                    c_arr[bw] = nv
+                    rem_blocks -= 2
+                    rem_matches -= 1
+                    idle = 0
+                    if nc >= 0:
+                        add_edges(old, nc, zu, z_arr, c_arr, ready)
+                    if nv >= 0:
+                        add_edges(bw, nv, zw, z_arr, c_arr, ready)
+                    continue
+
+                if fm >= 0:
+                    push(fmd1)
+                    zu -= 1
+                    z_arr[cur] = zu
+                    bu = buried[cur]
+                    if bu:
+                        nc = bu.pop()
+                    elif zu > bottom:
+                        nc = measure()
+                    else:
+                        nc = -1
+                    c_arr[cur] = nc
+                    old = cur
+                    cur = move_xy(cur, fw)
+                    push(fpd2)
+                    zw = z_arr[fw] - 1
+                    z_arr[fw] = zw
+                    bv = buried[fw]
+                    if bv:
+                        nv = bv.pop()
+                    elif zw > bottom:
+                        nv = measure()
+                    else:
+                        nv = -1
+                    c_arr[fw] = nv
+                    rem_blocks -= 2
+                    rem_matches -= 1
+                    idle = 0
+                    if nc >= 0:
+                        add_edges(old, nc, zu, z_arr, c_arr, ready)
+                    continue
+
+            # 5：弹出LIFO就绪边；若距离>=3优先原地0移动异色堆叠蓄色。
+            fa = -1
+            cx = CELL_X[cur]
+            cy = CELL_Y[cur]
+            while ready:
+                a, b, d = ready.pop()
+                if c_arr[a] == c_arr[b] and z_arr[a] > z_arr[b]:
+                    if idle < 3 and zu >= min_stack_z:
+                        da = DX[CELL_X[a] - cx] + DX[CELL_Y[a] - cy]
+                        if da >= 3:
+                            sv = -1
+                            best_zv = 999
+                            nb = N0[cur]
+                            if z_arr[nb] < zu and z_arr[nb] < best_zv:
+                                best_zv = z_arr[nb]
+                                sv = nb
+                                sd = North
+                            nb = N1[cur]
+                            if z_arr[nb] < zu and z_arr[nb] < best_zv:
+                                best_zv = z_arr[nb]
+                                sv = nb
+                                sd = East
+                            nb = N2[cur]
+                            if z_arr[nb] < zu and z_arr[nb] < best_zv:
+                                best_zv = z_arr[nb]
+                                sv = nb
+                                sd = South
+                            nb = N3[cur]
+                            if z_arr[nb] < zu and z_arr[nb] < best_zv:
+                                best_zv = z_arr[nb]
+                                sv = nb
+                                sd = West
+                            if sv >= 0:
+                                ready.append((a, b, d))
+                                push(sd)
+                                zu -= 1
+                                z_arr[cur] = zu
+                                zv = z_arr[sv] + 1
+                                z_arr[sv] = zv
+                                if c_arr[sv] >= 0:
+                                    buried[sv].append(c_arr[sv])
+                                c_arr[sv] = cu
+                                bu = buried[cur]
+                                if bu:
+                                    nc = bu.pop()
+                                elif zu > bottom:
+                                    nc = measure()
+                                else:
+                                    nc = -1
+                                c_arr[cur] = nc
+                                idle += 1
+                                add_edges(sv, cu, zv, z_arr, c_arr, ready)
+                                fa = -2
+                                break
+                    fa = a
+                    fb = b
+                    fd = d
+                    break
+
+            if fa == -2:
                 continue
-            if not push(DIRECTIONS[j]):
-                return None
-            if not move(source) or not push(BACKS[i]):
-                return None
-            if not move(BACKS[i]) or not push(DIRECTIONS[j]):
-                return None
-            return 1
-    return 0
+            if fa >= 0:
+                cur = move_xy(cur, fa)
+                push(fd)
+                za = z_arr[fa] - 1
+                z_arr[fa] = za
+                zb = z_arr[fb] - 1
+                z_arr[fb] = zb
+                bu = buried[fa]
+                if bu:
+                    nc = bu.pop()
+                elif za > bottom:
+                    nc = measure()
+                else:
+                    nc = -1
+                c_arr[fa] = nc
+                bv = buried[fb]
+                if bv:
+                    nv = bv.pop()
+                elif zb > bottom:
+                    nv = measure(fd)
+                else:
+                    nv = -1
+                c_arr[fb] = nv
+                rem_blocks -= 2
+                rem_matches -= 1
+                idle = 0
+                if nv >= 0:
+                    add_edges(fb, nv, zb, z_arr, c_arr, ready)
+                continue
+
+            # 6：就绪栈为空时，原地异色堆叠暴露新色。
+            if idle >= max_idle:
+                break
+            if zu >= min_stack_z:
+                sv = -1
+                best_zv = 999
+                nb = N0[cur]
+                if z_arr[nb] < zu and z_arr[nb] < best_zv:
+                    best_zv = z_arr[nb]
+                    sv = nb
+                    sd = North
+                nb = N1[cur]
+                if z_arr[nb] < zu and z_arr[nb] < best_zv:
+                    best_zv = z_arr[nb]
+                    sv = nb
+                    sd = East
+                nb = N2[cur]
+                if z_arr[nb] < zu and z_arr[nb] < best_zv:
+                    best_zv = z_arr[nb]
+                    sv = nb
+                    sd = South
+                nb = N3[cur]
+                if z_arr[nb] < zu and z_arr[nb] < best_zv:
+                    best_zv = z_arr[nb]
+                    sv = nb
+                    sd = West
+                if sv >= 0:
+                    push(sd)
+                    zu -= 1
+                    z_arr[cur] = zu
+                    zv = z_arr[sv] + 1
+                    z_arr[sv] = zv
+                    if c_arr[sv] >= 0:
+                        buried[sv].append(c_arr[sv])
+                    c_arr[sv] = cu
+                    bu = buried[cur]
+                    if bu:
+                        nc = bu.pop()
+                    elif zu > bottom:
+                        nc = measure()
+                    else:
+                        nc = -1
+                    c_arr[cur] = nc
+                    idle += 1
+                    add_edges(sv, cu, zv, z_arr, c_arr, ready)
+                    continue
+
+            # 7：O(1) 均摊环形游标兜底，找首个高柱向低邻堆叠。
+            sa = -1
+            tries = 64
+            while tries:
+                tries -= 1
+                a = scan_cur
+                scan_cur = (scan_cur + 1) % 64
+                za = z_arr[a]
+                if za < min_stack_z:
+                    continue
+                nb = N0[a]
+                if z_arr[nb] < za:
+                    sa = a
+                    sv = nb
+                    sd = North
+                    break
+                nb = N1[a]
+                if z_arr[nb] < za:
+                    sa = a
+                    sv = nb
+                    sd = East
+                    break
+                nb = N2[a]
+                if z_arr[nb] < za:
+                    sa = a
+                    sv = nb
+                    sd = South
+                    break
+                nb = N3[a]
+                if z_arr[nb] < za:
+                    sa = a
+                    sv = nb
+                    sd = West
+                    break
+            if sa < 0:
+                break
+            cur = move_xy(cur, sa)
+            ca = c_arr[sa]
+            push(sd)
+            za = z_arr[sa] - 1
+            z_arr[sa] = za
+            zv = z_arr[sv] + 1
+            z_arr[sv] = zv
+            if c_arr[sv] >= 0:
+                buried[sv].append(c_arr[sv])
+            c_arr[sv] = ca
+            bu = buried[sa]
+            if bu:
+                nc = bu.pop()
+            elif za > bottom:
+                nc = measure()
+            else:
+                nc = -1
+            c_arr[sa] = nc
+            idle += 1
+            add_edges(sv, ca, zv, z_arr, c_arr, ready)
 
 
-OFFSETS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-DIRECTIONS = [North, East, South, West]
-BACKS = [South, West, North, East]
+def init_topo():
+    if N0:
+        return
+    for y in range(8):
+        for x in range(8):
+            CELL_X.append(x)
+            CELL_Y.append(y)
+            N0.append(x + ((y + 1) % 8) * 8)
+            N1.append(((x + 1) % 8) + y * 8)
+            N2.append(x + ((y - 1) % 8) * 8)
+            N3.append(((x - 1) % 8) + y * 8)
+    claimed = set(SPINE_CELLS)
+    for sc in SPINE_CELLS:
+        sx = CELL_X[sc]
+        sy = CELL_Y[sc]
+        reads = []
+        if sy < 7:
+            nb = N0[sc]
+            if nb not in claimed:
+                claimed.add(nb)
+                reads.append((nb, North))
+        if sx < 7:
+            nb = N1[sc]
+            if nb not in claimed:
+                claimed.add(nb)
+                reads.append((nb, East))
+        if sy > 0:
+            nb = N2[sc]
+            if nb not in claimed:
+                claimed.add(nb)
+                reads.append((nb, South))
+        if sx > 0:
+            nb = N3[sc]
+            if nb not in claimed:
+                claimed.add(nb)
+                reads.append((nb, West))
+        SPINE_READS.append(reads)
+
+
+def move_xy(cur, target):
+    dx = STEP_D[CELL_X[target] - CELL_X[cur]]
+    if dx > 0:
+        while dx:
+            move(East)
+            dx -= 1
+    elif dx < 0:
+        while dx:
+            move(West)
+            dx += 1
+    dy = STEP_D[CELL_Y[target] - CELL_Y[cur]]
+    if dy > 0:
+        while dy:
+            move(North)
+            dy -= 1
+    elif dy < 0:
+        while dy:
+            move(South)
+            dy += 1
+    return target
+
+
+def add_edges(p, cp, zp, z_arr, c_arr, ready):
+    nb = N0[p]
+    if c_arr[nb] == cp:
+        zn = z_arr[nb]
+        if zp > zn:
+            ready.append((p, nb, North))
+        elif zn > zp:
+            ready.append((nb, p, South))
+    nb = N1[p]
+    if c_arr[nb] == cp:
+        zn = z_arr[nb]
+        if zp > zn:
+            ready.append((p, nb, East))
+        elif zn > zp:
+            ready.append((nb, p, West))
+    nb = N2[p]
+    if c_arr[nb] == cp:
+        zn = z_arr[nb]
+        if zp > zn:
+            ready.append((p, nb, South))
+        elif zn > zp:
+            ready.append((nb, p, North))
+    nb = N3[p]
+    if c_arr[nb] == cp:
+        zn = z_arr[nb]
+        if zp > zn:
+            ready.append((p, nb, West))
+        elif zn > zp:
+            ready.append((nb, p, East))
+
+
+N0 = []
+N1 = []
+N2 = []
+N3 = []
+CELL_X = []
+CELL_Y = []
+SPINE_READS = []
+
+DX = [0, 1, 2, 3, 4, 3, 2, 1]
+STEP_D = [0, 1, 2, 3, 4, -3, -2, -1]
+
+SPINE_CELLS = [
+    0, 1, 2, 3, 4, 5, 6, 7,
+    15, 23,
+    31, 30, 29, 28, 27, 26, 25, 24,
+    32, 40,
+    48, 49, 50, 51, 52, 53, 54, 55
+]
+SPINE_DIRS = [
+    East, East, East, East, East, East, East,
+    North, North, North,
+    West, West, West, West, West, West, West,
+    North, North, North,
+    East, East, East, East, East, East, East
+]
 
 
 if __name__ == "__main__":

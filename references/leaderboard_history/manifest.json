@@ -3444,6 +3444,15 @@
           "time_tag": "九个完整场次外推299.947553105秒",
           "message": "本轮替换前的六层筛选与逐层配对实现",
           "sha256": "e0bf5bde6b43feddb889c6d53c59e5cf9d278a0a9e0335a1dd8b5f3d2214fc5b"
+        },
+        {
+          "file": "20261116_v05_4m27.653s_fc40489.py",
+          "path": "references/leaderboard_history/lb_mushrooms/20261116_v05_4m27.653s_fc40489.py",
+          "date": "2026-11-16",
+          "commit": "fc40489",
+          "time_tag": "4m27.653s",
+          "message": "优化：蘑菇多机合并成功后跳过该格扫描，7200秒场均再快2.6%",
+          "sha256": "7bbccddfce686ab47f90452ebd13e2c344886fa57dc41656eb9b521bd9b23b59"
         }
       ],
       "rejected": [
@@ -3773,6 +3782,15 @@
           "time_tag": "旧三seed完整均791.82913461秒",
           "message": "本轮替换前的六层筛选与feed结果缓存实现",
           "sha256": "1cbdac92b955d0a3be29c5a6315840e1728ef00eba8b6661ac56b729acea11e9"
+        },
+        {
+          "file": "20261116_v04_12m37.850s_c84ec62.py",
+          "path": "references/leaderboard_history/lb_mushrooms_single/20261116_v04_12m37.850s_c84ec62.py",
+          "date": "2026-11-16",
+          "commit": "c84ec62",
+          "time_tag": "12m37.850s",
+          "message": "优化：蘑菇单机先挑候选再配对，配对三seed同向快2.1秒",
+          "sha256": "55ae9b0a5bbbdf2251190461cbbd8d2125f9854d721007fe871ee86a42307b2e"
         }
       ],
       "rejected": [
@@ -6130,6 +6148,8 @@
     "lb_pyramids:0102d33": "references/leaderboard_history/lb_pyramids/20261115_baseline_0102d33.py",
     "lb_mushrooms:0102d33": "references/leaderboard_history/lb_mushrooms/20261115_baseline_0102d33.py",
     "lb_mushrooms_single:0102d33": "references/leaderboard_history/lb_mushrooms_single/20261115_baseline_0102d33.py",
+    "lb_mushrooms:fc40489": "references/leaderboard_history/lb_mushrooms/20261116_v05_4m27.653s_fc40489.py",
+    "lb_mushrooms_single:c84ec62": "references/leaderboard_history/lb_mushrooms_single/20261116_v04_12m37.850s_c84ec62.py",
     "lb_cactus:c36eb254": "scripts/leaderboard/lb_cactus.py",
     "lb_cactus:d8541c9f": "scripts/leaderboard/lb_cactus.py",
     "lb_cactus:d30b5f59": "scripts/leaderboard/lb_cactus.py",
