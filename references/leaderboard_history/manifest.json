@@ -729,6 +729,14 @@
           "commit": "13bcd149",
           "time_tag": "未记录",
           "message": "优化：迁入恐龙递归分区并提高骨头生产速率"
+        },
+        {
+          "file": "20261112_v14_ead31f5.py",
+          "path": "references/leaderboard_history/lb_dinosaur/20261112_v14_ead31f5.py",
+          "date": "2026-11-12",
+          "commit": "ead31f5",
+          "time_tag": "未记录",
+          "message": "优化：减少恐龙区域计算与主回路循环开销"
         }
       ],
       "rejected": [
@@ -6319,6 +6327,7 @@
     "lb_dinosaur:d8541c9f": "references/leaderboard_history/lb_dinosaur/20261030_v12_13m20.066s_f66370a4.py",
     "lb_dinosaur:d30b5f59": "references/leaderboard_history/lb_dinosaur/20261030_v12_13m20.066s_f66370a4.py",
     "lb_dinosaur:13bcd149": "references/leaderboard_history/lb_dinosaur/20261112_v13_13bcd149.py",
+    "lb_dinosaur:ead31f5": "references/leaderboard_history/lb_dinosaur/20261112_v14_ead31f5.py",
     "lb_fastest_reset:cb9a63d7": "scripts/leaderboard/lb_fastest_reset.py",
     "lb_fastest_reset:5bf0cea6": "references/leaderboard_history/lb_fastest_reset/20260418_v01_5bf0cea6.py",
     "lb_fastest_reset:aa7209f3": "references/leaderboard_history/lb_fastest_reset/20260422_v02_aa7209f3.py",

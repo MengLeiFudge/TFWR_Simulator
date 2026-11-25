@@ -1,0 +1,17 @@
+{
+  "template": "scripts/templates/leaderboard/lb_dinosaur.py",
+  "output": "scripts/leaderboard/lb_dinosaur.py",
+  "transforms": {
+    "unroll": true
+  },
+  "command": [
+    "python3",
+    "simulator/optimizer/generate.py",
+    "scripts/templates/leaderboard/lb_dinosaur.codegen.json"
+  ],
+  "fingerprints": {
+    "template_sha256": "92bb3e744f6c4af76e493ce965ff4122c4bbe12b6cd01fd66c863308cf8ee541",
+    "generator_sha256": "f7209e1df4f142052ab435319ba68930bb73bc23df34dd1d0c7f216315a84ccb",
+    "output_sha256": "ad4d5538d67bfe46e14fa0f7c7b022a138f74318f9caacb5dd7bf78724660fd2"
+  }
+}
