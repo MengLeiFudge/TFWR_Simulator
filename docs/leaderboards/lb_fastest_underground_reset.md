@@ -2,7 +2,7 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_fastest_underground_reset.py](../../scripts/leaderboard/lb_fastest_underground_reset.py)。公开账号最高 **43:21.273（#4）**；2026-11-25 公开 `#1 = 18:23.673`、`#3 = 36:21.646`（2× `#1` 线 `36:47.346`）。[进度总表](leaderboard_progress.md) · [公开快照](../../references/leaderboards/status_snapshot.md)
+当前脚本：[lb_fastest_underground_reset.py](../../scripts/leaderboard/lb_fastest_underground_reset.py)。2026-11-25 请求 `575` 的 4 轮完整统计均值 **36:43.926（#4）**，比账号原纪录 43:21.273 快 6:37.347，低于 #1 的两倍线 36:47.346。[进度总表](leaderboard_progress.md) · [公开快照](../../references/leaderboards/status_snapshot.md)
 
 2026-11-25 重构后，原版地下重置初始条件 + 默认游戏随机（`game_leaderboard_random`）12 轮完整验收：**12/12 达标、0 失败**（彻底根治旧版 2026-11-21 复测 19/20 失败），累计 **26,303.925 游戏秒**，均值 **36:31.994（2191.994s）**，SD **79.501s**，SE **22.950s**，95% CI **±50.513s**，区间 **35:07.073～39:27.300**（相对 `#1` 距 **+98.6%**，跨入 2× 线并较实机 `#4` 提速 **-6:49.3**、较旧版 21 轮本地均值 `43:41.735` 提速 **-7:09.7**；同 seed 1..6 配对由 `43:28.950` 降至 **`35:10.521`**，-8:18.4，0 警告；原失败种子 `1438323200` 验证通过）。
 
@@ -92,6 +92,7 @@ Special_Soils只加成种在对应地块上的作物：Loam对Carrot/Sunflower�
 | 2026-11-16 | 改前7200秒会话3轮均2991.607495秒，非新实机 | 冻结旧固定前缀，作为视频混种与路径的共同对照 | [旧固定前缀](../../references/leaderboard_history/lb_fastest_underground_reset/20261116_v17_sim_49m51.607s_3973de2.py) |
 | 2026-11-17 | 视频混种原3轮均2724.105314秒；本轮7轮2739.852639秒，新增seed8失败，21轮均值无效 | 作为小迷宫筹金改动的冻结对照，保留失败范围 | [8e6be61正式源](../../references/leaderboard_history/lb_fastest_underground_reset/20261117_v18_sim_45m24.105s_8e6be61.py) |
 | 2026-11-17 | 实机 43:21.273（#4）；本地 seed1..21 均 43:41.735；2026-11-21 随机复测 19/20 失败（seed=1438323200） | 四机独立小迷宫筹金，仍含 `empty>=8` 与 `ur_d_open_ground` 竞态 | [4ee5f51正式源](../../references/leaderboard_history/lb_fastest_underground_reset/20261117_v19_sim_43m41.735s_4ee5f51.py) |
+| 2026-11-25 | 实机 36:43.926（#4，4 轮，请求 575），随机模拟 36:31.994（12 轮） | 连续向下探测扫雷、保桩浇水采竹和四机矿采 | 当前 [lb_fastest_underground_reset.py](../../scripts/leaderboard/lb_fastest_underground_reset.py) |
 
 ### 2026-11-25 新增淘汰与对照记录
 
@@ -103,4 +104,4 @@ Special_Soils只加成种在对应地块上的作物：Loam对Carrot/Sunflower�
 
 ## 下一步优化方向
 
-- 已跨入 2× `#1` 线（`36:31.994` vs `36:47.346`）且较实机 `#4`（`43:21.273`）快 **-6:49**，满足自动实机准入；后续向阶段三 `+50%` 线（`27:35.5`）冲击的关键方向：① 打破“先满地上 4 机再下地”的 14.5 分钟前缀（评估极轻前缀 + 2 机早下地或 `Treasure_Map` 筹金买 8 机）；② 评估新前缀下 `8 机 + 16×16` 对 20k 炸药（仅 1.5–2 盘）的整体回本账。
+- 向 #1 的 +50% 线（27:35.510）推进，先比较 14.5 分钟前缀与两机早下地、藏宝图筹金，再算 8 机与 16×16 地块对末段 2 万炸药的投资回报。

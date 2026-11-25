@@ -4,6 +4,8 @@
 
 当前脚本：[lb_wood_single.py](../../scripts/leaderboard/lb_wood_single.py)。本地完整随机模拟均值 **4:18.670**，28/28 轮完赛，累计 7242.759 游戏秒，SD 1.864 秒、SE 0.352 秒、自适应 95% CI 半宽 1.343 秒，无警告。公开成绩见进度总表。
 
+2026-11-25 请求 `576` 的 28 轮完整统计均值 **4:18.103（#10）**，比账号原纪录 5:20.571 快 1:02.468。
+
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17827415/)，榜单抓取时间 `2026-11-10T06:15:50.052203+00:00`，账号查询时间 `2026-11-10T06:15:50.052237+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 
 8×8 棋盘树按双列折返，最后统一扫底行。巡回中维护伴生请求和实际支撑。冲突请求重抽，胡萝卜种料不足时先种灌木。用固定生成器展开列内步序。策略修改见 [母版](../../scripts/templates/leaderboard/lb_wood_single.py) 和 [生成配方](../../scripts/templates/leaderboard/lb_wood_single.codegen.json)。沿用 enihsyou 的 MIT 授权。

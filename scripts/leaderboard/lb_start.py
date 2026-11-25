@@ -2,7 +2,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Fastest_Reset, "lb_fastest_reset", 10000)
 # 成功条件：num_unlocked(Unlocks.Leaderboard) > 0
-# 用时（#1/最近完整统计）：22:47.800 / 41:47.696
+# 用时（#1/最近完整统计）：22:47.800 / 27:05.106
 
 # leaderboard_run(Leaderboards.Hay, "lb_hay", 10000)
 # 成功条件：num_items(Items.Hay) >= 2_000_000_000
@@ -18,7 +18,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Wood_Single, "lb_wood_single", 10000)
 # 成功条件：num_items(Items.Wood) >= 500_000_000
-# 用时（#1/最近完整统计）：3:57.957 / 5:20.571
+# 用时（#1/最近完整统计）：3:57.957 / 4:18.103
 
 # leaderboard_run(Leaderboards.Carrots, "lb_carrots", 10000)
 # 成功条件：num_items(Items.Carrot) >= 2_000_000_000
@@ -34,7 +34,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Pumpkins_Single, "lb_pumpkins_single", 10000)
 # 成功条件：num_items(Items.Pumpkin) >= 10_000_000
-# 用时（#1/最近完整统计）：6:17.398 / 7:32.911
+# 用时（#1/最近完整统计）：6:17.398 / 6:45.227
 
 # leaderboard_run(Leaderboards.Cactus, "lb_cactus", 10000)
 # 成功条件：num_items(Items.Cactus) >= 33_554_432
@@ -106,7 +106,7 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Pyramids, "lb_pyramids", 10000)
 # 成功条件：num_items(Items.Power) >= 150_000
-# 用时（#1/最近完整统计）：10:11.515 / 20:14.332
+# 用时（#1/最近完整统计）：10:11.515 / 11:34.467
 
 # leaderboard_run(Leaderboards.Pyramids_Single, "lb_pyramids_single", 10000)
 # 成功条件：num_items(Items.Power) >= 30_000
@@ -118,4 +118,4 @@ from __builtins__ import *
 
 # leaderboard_run(Leaderboards.Fastest_Underground_Reset, "lb_fastest_underground_reset", 10000)
 # 成功条件：num_unlocked(Unlocks.Underground_Leaderboard) > 0
-# 用时（#1/最近完整统计）：21:25.151 / 51:58.780
+# 用时（#1/最近完整统计）：21:25.151 / 36:43.926
