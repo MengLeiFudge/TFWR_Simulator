@@ -3135,6 +3135,14 @@
           "commit": "be0e2c24",
           "time_tag": "未记录",
           "message": "修复：按游戏原版解析语法并纠正竹子条件表达式"
+        },
+        {
+          "file": "20261115_v07_3m50.962s_f589e139.py",
+          "path": "references/leaderboard_history/lb_bamboo/20261115_v07_3m50.962s_f589e139.py",
+          "date": "2026-11-15",
+          "commit": "f589e139",
+          "time_tag": "3m50.962s",
+          "message": "优化：按公开机制提升八项榜单并接入固定生成"
         }
       ],
       "rejected": [
@@ -3213,6 +3221,14 @@
           "commit": "be0e2c24",
           "time_tag": "未记录",
           "message": "修复：按游戏原版解析语法并纠正竹子条件表达式"
+        },
+        {
+          "file": "20261115_v05_3m16.698s_f589e139.py",
+          "path": "references/leaderboard_history/lb_bamboo_single/20261115_v05_3m16.698s_f589e139.py",
+          "date": "2026-11-15",
+          "commit": "f589e139",
+          "time_tag": "3m16.698s",
+          "message": "优化：按公开机制提升八项榜单并接入固定生成"
         }
       ],
       "rejected": [
@@ -6526,6 +6542,8 @@
     "lb_fastest_underground_reset:5f25fe9a": "references/leaderboard_history/lb_fastest_underground_reset/20261112_v16_50m06.673s_5f25fe9a.py",
     "lb_fastest_underground_reset:8e6be61": "references/leaderboard_history/lb_fastest_underground_reset/20261117_v18_sim_45m24.105s_8e6be61.py",
     "lb_pyramids_single:bb379e4": "references/leaderboard_history/lb_pyramids_single/20261109_v04_17m51.530s_bb379e4.py",
-    "lb_pyramids:73ad1b7": "references/leaderboard_history/lb_pyramids/20261116_v05_20m14.332s_73ad1b7.py"
+    "lb_pyramids:73ad1b7": "references/leaderboard_history/lb_pyramids/20261116_v05_20m14.332s_73ad1b7.py",
+    "lb_bamboo_single:f589e139": "references/leaderboard_history/lb_bamboo_single/20261115_v05_3m16.698s_f589e139.py",
+    "lb_bamboo:f589e139": "references/leaderboard_history/lb_bamboo/20261115_v07_3m50.962s_f589e139.py"
   }
 }
