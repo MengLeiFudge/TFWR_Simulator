@@ -4508,6 +4508,15 @@
           "time_tag": "完整三seed均1274.445765901秒",
           "message": "本轮替换前的整列稳定采样与临时补沙实现",
           "sha256": "7f223848a4fab9f54d3271c3f417b73fc1f843a2aebc7f28380657012e268ded"
+        },
+        {
+          "file": "20261116_v05_20m14.332s_73ad1b7.py",
+          "path": "references/leaderboard_history/lb_pyramids/20261116_v05_20m14.332s_73ad1b7.py",
+          "date": "2026-11-16",
+          "commit": "73ad1b7",
+          "time_tag": "20m14.332s",
+          "message": "三维二维稳定采样、树形派发清理与逐层同步维修（2026-11-16实机6轮均值20:14.332 #6）",
+          "sha256": "d9e74d15be6cd4ec851896540bbcbfb598b25bea38a14058e5f4fea9249b9b4b"
         }
       ],
       "rejected": [
@@ -4724,6 +4733,15 @@
           "commit": "6bb1cb16",
           "time_tag": "19m22.559s",
           "message": "优化：迁入地下五榜结构改进并完成实机复验"
+        },
+        {
+          "file": "20261109_v04_17m51.530s_bb379e4.py",
+          "path": "references/leaderboard_history/lb_pyramids_single/20261109_v04_17m51.530s_bb379e4.py",
+          "date": "2026-11-09",
+          "commit": "bb379e4",
+          "time_tag": "17m51.530s",
+          "message": "固定5x5角柱读基座、蛇形清土保Sand与中心最后补尖（2026-11-16实机7轮均值17:51.530 #6）",
+          "sha256": "6bf50ae19fd357dd6152b4cc68f84554f6db5436f99059ff3f5a6634b985a944"
         }
       ],
       "rejected": [
@@ -6506,6 +6524,8 @@
     "lb_fastest_underground_reset:8ec59b43": "references/leaderboard_history/lb_fastest_underground_reset/20261111_v14_53m02.025s_8ec59b43.py",
     "lb_fastest_underground_reset:425a5024": "references/leaderboard_history/lb_fastest_underground_reset/20261112_v15_51m07.141s_425a5024.py",
     "lb_fastest_underground_reset:5f25fe9a": "references/leaderboard_history/lb_fastest_underground_reset/20261112_v16_50m06.673s_5f25fe9a.py",
-    "lb_fastest_underground_reset:8e6be61": "references/leaderboard_history/lb_fastest_underground_reset/20261117_v18_sim_45m24.105s_8e6be61.py"
+    "lb_fastest_underground_reset:8e6be61": "references/leaderboard_history/lb_fastest_underground_reset/20261117_v18_sim_45m24.105s_8e6be61.py",
+    "lb_pyramids_single:bb379e4": "references/leaderboard_history/lb_pyramids_single/20261109_v04_17m51.530s_bb379e4.py",
+    "lb_pyramids:73ad1b7": "references/leaderboard_history/lb_pyramids/20261116_v05_20m14.332s_73ad1b7.py"
   }
 }
