@@ -2,23 +2,33 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_dynamite_single.py](../../scripts/leaderboard/lb_dynamite_single.py)。公开账号最高 **4:20.318（#9）**，来自2026-11-16 request541 的28轮完整统计均值（最好4:05.695／最差4:51.014）；已有最好本地模拟 **4:18.986**。
+当前脚本：[lb_dynamite_single.py](../../scripts/leaderboard/lb_dynamite_single.py)。公开账号最高 **4:20.318（#9）**，来自 2026-11-16 request541 的 28 轮完整统计均值（最好 4:05.695／最差 4:51.014）；当前正式版在原版初始条件与默认游戏随机（`game_leaderboard_random`）下全量完整模拟均值 **3:22.374（202.374 秒）**，较旧实机快 **-57.944 秒（-22.3%）**，距 `#1 (2:10.815)` 差距由 `+99.0%` 压降至 **`+54.7%`**。
 
-公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444632/)，榜单抓取时间 `2026-11-11T09:12:48.693513+00:00`，账号查询时间 `2026-11-11T09:12:48.693513+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
+公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444632/)，榜单抓取时间与账号查询时间见[公开快照](../../references/leaderboards/status_snapshot.md)，#1、#3、#10 及差距见[进度总表](leaderboard_progress.md)。
 
-8×8单机缓存公开数字和活动约束，用全盘计数/包含关系推理并就近开确定安全格。覆盖层按实际开格才准备，推理停滞时按真实已完成围雷收益正常部分结算，再重生；不把SAFE当已挖格，每盘重建状态，目标100k Dynamite。
+**核心策略**：
+- **低开销增量推理与双侧差集**：8×8 单机使用零比较三态表（`state: 1=未知 / 0=安全或已开 / -1=雷`、`safe: 1/0`）与 `has_act[nb]` 邻接守卫（仅在格子邻接活动线索时才更新邻近约束）；停滞时运行带边界剪枝的双侧差集（`only_a/only_b`）及 `unk_total <= 9` 小前沿精确 DFS CSP。
+- **零额外损失猜格破局**：原版 `World.cs:2646-2752` 证实踩雷与挖煤灰结算同样按当前已围雷数 `num²×16` 给奖且无额外罚分，停滞且无确定格时优先猜前沿/盘外最低雷率格，猜中继续清盘冲击 `9²×16 + 55×16 = 2176` 满额平方奖。
+- **全雷已知 `all_safe` 快收**：`rem_m` 归零瞬间将所有剩余未知格标为安全并进入快收路径，跳过剩余格子的 `measure()`、邻格扫描与约束更新。
+- **合法居中 `(3,3)` 连续爆破下潜**：首盘常规找层获取初始炸药后，不再每盘 `clear()` 重回地表；原版地下每层覆盖土为 `Rock (hardness=2)` 且相邻炸药层间距恒 `>= 11`（实测分布 `11/12/26/27` 层），每发合法 `use_item(Items.Dynamite)` 在 `0.033s`（1 动作）内稳定清 `4` 层岩石且在 `(3,3)` 炸出覆盖约 `49/64` 格的浅坑。下潜策略在 `dz <= 5` 或 `12 <= dz <= 20` 时连续爆破（严格留 `>= 6` 层安全距，不误爆 `hardness=0` 的炸药层），其余逐层 `dig()` 精准落层；大幅压缩寻层与孤立格清覆土耗时。
 
-合法append初始化版三seed完整256.88164167/257.96066022/262.11541662秒，均258.98590617秒；2026-11-09 request467正式28轮261.801607143秒。
+**本地验证记录**：
+- **全量随机验收**（`game_leaderboard_random`，`--jobs 2`，原版初始条件，0 警告，0 丢输出）：**36/36 轮完赛**，累计 **`7,285.460` 游戏秒**，均值 **`3:22.374` (`202.374s`)**，SD `8.357s`，SE `1.393s`，标准 95% CI `±2.828s`，自适应 95%/99% CI `±5.409s / ±6.177s`，范围 `3:05.140 (185.140s) ~ 3:43.728 (223.728s)`。
+- **配对固定种子对照**（`seeds 1..16`）：当前版均值 **`3:21.425` (`201.425s`, SD `9.81s`, 16/16 完赛)**；旧正式版 `0cd0f82` 在 `seeds 1..6` 均值 `4:21.601` (`261.601s`)。
+- **`--hot-spots` 归因（seed 1，总耗时 `180.953s` / `3:00.953`）**：单机 `interp = 44.65s`（`842k` 解释器节点，较优化前中期版 `57.09s` 再降 `-12.44s`）、`api = 136.30s`（其中 `move = 3,310` 次占 `109.0s`，`dig` 耗时由 `32.5s` 压降至 `17.6s`）。
 
 ## 淘汰与未采用方案
 
-| 尝试方案 | 实测／模拟表现 | 原因与适用范围 | 参考代码 |
+| 尝试方案 | 实测／模拟表现 | 原因与适用范围 | 参考代码／重建依据 |
 | --- | --- | --- | --- |
-| 增加邻格measure | 完整391.166秒 | 零扩张只清覆盖层，未开雷层不能读出额外煤灰数字 | [20261108_rejected_dynamite_sensors_v1.py](../../references/leaderboard_history/lb_dynamite_single/20261108_rejected_dynamite_sensors_v1.py) |
-| 不实际开内部逻辑0格 | 完整396.117秒 | 失去自动清覆盖层，推理和后续准备费用增加 | [20261108_rejected_dynamite_interior_v1.py](../../references/leaderboard_history/lb_dynamite_single/20261108_rejected_dynamite_interior_v1.py) |
-| 只换相邻访问路线 | 完整348.072秒 | 少移动未解决重复重建约束和结算返程 | [20261108_rejected_dynamite_routes_v1.py](../../references/leaderboard_history/lb_dynamite_single/20261108_rejected_dynamite_routes_v1.py) |
-| 批次/并行规划与按区包装 | 约2692/4133秒；按区无改善 | 单机场景调度与全盘重建大于局部连续求解 | [20261106_rejected_dynamite_parallel_plan.py](../../references/leaderboard_history/lb_dynamite_single/20261106_rejected_dynamite_parallel_plan.py) |
-| 旧子集枚举和猜测求解 | 旧正式880.591秒，初版1437.266秒 | 少量高收益盘没有抵偿枚举、猜测和准备；当前直接缓存约束更快 | [旧版合集](../../references/leaderboard_history/lb_dynamite_single/)（多方向见版本表） |
+| 增加邻格 measure | 完整 391.166 秒 | 零扩张只清覆盖层，未开雷层不能读出额外煤灰数字 | [20261108_rejected_dynamite_sensors_v1.py](../../references/leaderboard_history/lb_dynamite_single/20261108_rejected_dynamite_sensors_v1.py) |
+| 不实际开内部逻辑 0 格（含全雷已知仅挖雷邻格 `v21`） | 旧版 396.117 秒；新版 `v21` seeds 1..6 均 229.774 秒（vs 基线 203.504 秒） | 8×8 单格 16 炸药占单盘 0.74%，跳过 0 格破坏连续 1 步路径并增加盘数与煤灰结算开销 | [20261108_rejected_dynamite_interior_v1.py](../../references/leaderboard_history/lb_dynamite_single/20261108_rejected_dynamite_interior_v1.py)；`v21` 在 `v20` 基础上跳过全邻格已清的 0 格并末尾原地挖煤灰 |
+| 只换相邻访问路线（含蛇形/反序 `WSEN`/`ENWS`/`(0,0)` 开局） | 旧版 348.072 秒；新版蛇形 `v23a` 210.07s、`(0,0)` 开局 217.37s、`ENWS` 215.00s | `(0,0)` 仅保 4 格安全不如内点 3×3 保 9 格；`S->W->E->N` 与近角起点天然形成低跳步扫描 | [20261108_rejected_dynamite_routes_v1.py](../../references/leaderboard_history/lb_dynamite_single/20261108_rejected_dynamite_routes_v1.py)；由当前版改动起点或 `o0..o3` 顺序重建 |
+| 去 `exposed` 改每格 `get_pos_z` (`v22a`) | seeds 1..6 均 205.780 秒（慢 +2.28s） | 失去对未露覆土格的 `+5` 避让惩罚，过早跳入深埋格导致额外挖岩 | 由 `v20` 删除 `exposed[]` 并在每次 `dig()` 前循环 `get_pos_z() > depth` 重建 |
+| 活跃盘面深埋格直接 `use_item` (`v26a`) | seeds 1..6 均 220.117 秒 | 爆炸波沿相邻已开竖井（空气硬度 0）下窜触发活跃盘面提前引爆 | 由 `v25d` 在活跃盘面 `z - depth >= 8` 时调用 `use_item(Items.Dynamite)` 重建 |
+| 浅层 `clear()` + 1~2 发地表爆破重掷 (`v28b/v28c`) | 16 seeds 均 210.584 秒（2 发超时/慢） | 丢弃 1~4 层浅盘且仍需每盘 `clear()`，不及连续爆破下潜 | 由 `v28a` 在每盘 `clear()` 后地表连炸检查 `z == -4/-8` 重建 |
+| 批次/并行规划与按区包装 | 约 2692/4133 秒；按区无改善 | 单机场景调度与全盘重建大于局部连续求解 | [20261106_rejected_dynamite_parallel_plan.py](../../references/leaderboard_history/lb_dynamite_single/20261106_rejected_dynamite_parallel_plan.py) |
+| 旧子集枚举和猜测求解 | 旧正式 880.591 秒，初版 1437.266 秒 | 早期无增量状态与剪枝，枚举和准备费用过高 | [旧版合集](../../references/leaderboard_history/lb_dynamite_single/)（多方向见版本表） |
 
 ## 历史正式版本演进
 
@@ -31,9 +41,10 @@
 | 2026-11-07 | 880.591秒（构建26462009，9轮官方完整统计；请求407）。 | 炸药单机按需准备开格覆盖层 | [20261107_v03_14m40.591s_b4936193.py](../../references/leaderboard_history/lb_dynamite_single/20261107_v03_14m40.591s_b4936193.py) |
 | 2026-11-08 | 354.964秒（本地原目标三seed均值；当前增量求解版本未实机验证）。 | 迁入地下功能与榜单的高效结构并固化模拟证据 | [20261108_v04_5m54.964s_feca66ac.py](../../references/leaderboard_history/lb_dynamite_single/20261108_v04_5m54.964s_feca66ac.py) |
 | 2026-11-09 | 未取得（缓存约束、就近开格与原地结算；本地原目标已通过）。 | 缓存扫雷约束并就近结算降低单机炸药耗时 | [20261109_v05_397be014.py](../../references/leaderboard_history/lb_dynamite_single/20261109_v05_397be014.py) |
+| 2026-11-09 | 4:20.318（#9，2026-11-16 request541 28轮官方完整统计；本地三seed模拟 4:18.986）。 | 对齐游戏乘法类型并修正初始化；停滞时原地煤灰结算不猜格 | [20261109_v06_4m20.318s_0cd0f82.py](../../references/leaderboard_history/lb_dynamite_single/20261109_v06_4m20.318s_0cd0f82.py) |
 
 ## 下一步优化方向
 
-- 按可完成围雷的实际平方收益选择安全任务；只为会改变选择的小约束支付精确推断成本。
+- 当前单机瓶颈高度集中于移动（`109.0s`，约 `68` 步/盘 vs 理论哈密顿 `55` 步/盘）与解释器开销（`44.6s`）；下一步可结合实机验证确认 `3:22` 水平，并研究面向 8×8 局部连通安全块的低 tick 死胡同优先/贴边路由，以及更低节点数的模板代码生成来继续逼近 `+25%~+35%`。
 
 新方向按[共用策略选择流程](README.md#策略选择与淘汰)记录机制、预算、置信度和停止条件；新结果写回本页及研究状态JSON。

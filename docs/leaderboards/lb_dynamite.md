@@ -2,31 +2,33 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_dynamite.py](../../scripts/leaderboard/lb_dynamite.py)。公开账号最高 **14:21.783（#6）**，来自2026-11-16 request543 的9轮完整统计均值（最好13:44.353／最差15:12.719）；已有最好本地模拟 **13:41.035（完整盘吞吐外推）**，距当前 #1 **5:09.156（+165.6%）**。
+当前脚本：[lb_dynamite.py](../../scripts/leaderboard/lb_dynamite.py)。公开账号最高 **14:21.783（#6）**，来自 2026-11-16 request543 的 9 轮完整统计均值（最好 13:44.353／最差 15:12.719）；当前正式版在原版初始条件与默认游戏随机（`game_leaderboard_random`）下全量完整模拟均值 **7:45.424（465.424 秒）**，较旧实机暴降 **-6:36.359（-46.0%）**，较旧模拟外推 `13:41.035` 快 **-5:55.611**，大破 `2×#1` 线（`10:18.3`），距当前 `#1 (5:09.156)` 差距由 `+178.8%` 压降至 **`+50.5%`**。
 
-公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444631/)，榜单抓取时间 `2026-11-16T02:16:07.616607+00:00`，账号查询时间 `2026-11-16T02:16:07.616642+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
+公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/21444631/)，榜单抓取时间与账号查询时间见[公开快照](../../references/leaderboards/status_snapshot.md)，#1、#3、#10 及差距见[进度总表](leaderboard_progress.md)。
 
-预建邻接表，32个区域独占开格，把局部确定推理和连续安全开挖都交给工人。相邻公开数字用剩余未知集合差推导SAFE/MINE，批末单调合并相容证明；全部工人回收后只正常结算一次。每盘重建事实，初始找层/覆盖准备及真实10M目标计时，不猜雷。
+**核心策略**：
+- **8 机并行预建表**：开局将 32×32 邻接表、坐标表、64 块 `4×4` 区域及 2 格 halo、精确 `wake_of` 边界唤醒表按 4 行切片并行分发给 8 机构建，将开局建表耗时由 `~15.8s` 压降至 `~2.5s`。
+- **异步事件驱动 `has_finished()` 64×(4×4) 调度（消除全局屏障）**：主机（Drone 0）常驻中心 `(15,15)` 煤灰格，通过 `has_finished(h)` 非阻塞轮询（配合轻量 28-tick 休眠节流避免空转）实时回收任意完工工作机、增量单调合并 `updates` 并立即重派新块，彻底消除旧版同步 `wait_for` 尾机长尾屏障（主机 `wait_for` 累计等待由基线 `>450s` 降至 **`6.12s`**）。中心 4 块仅 `4×4=16` 格（~1.0s 完工），迅速向外扇出拉高 32 机并发度。
+- **`safe_q` / `clue_q` 双优先级边界唤醒与延迟 `halo` 扫描**：工作机仅返回实际被新事实触及的邻块集合，区分高优 `safe_q`（新安全格或新雷格，立即派发）与低优 `clue_q`（仅边界数字更新，仅当 `safe_q` 为空且在飞 `<16` 时派发），大幅削减无效 0-目标空派；工作机先清本块已有安全目标再决定是否扫描 `halo_cells` 与跑局部双侧差集，已完工块直接早退。
+- **合法连续爆破下潜与深埋保护**：主机常驻 `(15,15)`，首盘获得初始炸药后利用原版地下相邻炸药层间距恒 `>= 11`（`11/12/26/27`）与单发 `use_item(Items.Dynamite)` 在 `0.033s` 内清 4 层 `Rock (hardness=2)` 的机制，在 `dz <= 5` 或 `12 <= dz <= 20` 时连续爆破下潜（避开 `hardness=0` 雷层），省去每盘 `clear()` + 30 步返中（寻层准备时间由 `~1.80s/盘` 降至 `~0.28s/盘`）；每 12 盘 `clear()` 一次并在工作机/主机对 `get_pos_z() - depth > 30` 的极少数孤立深埋格直接跳过防长尾挖岩。
+- **1-tick 精确 `duds` 阈值即时煤灰结算与停滞猜格**：主机用 1-tick `num_items(Items.Dynamite) - before` 实时监测已挖安全格收益，达到 `>= 13840`（`865/886` 安全格，单盘约 `290k~318k` 满额平方奖）即停止新派、收拢在飞工作机并原地 `dig()` 煤灰结算，剪掉低产出收尾拖尾；极少数全盘无进展停滞时执行全局差集或最低雷率猜格破局。
 
-三seed固定30现实秒，共31盘正常结算，以初始化加已结算吞吐外推821.034545575秒；原10M未完整跑完。2026-11-09 request464正式9轮874.707888889秒。2026-11-16本轮原生对照均采用更紧的每例15墙钟秒预算，没有重跑或放宽旧30秒窗口。
-
-当前工人已在本批安全队列耗尽后立即再次propagate，未等待下一次全局派机才推理；非零数字逐格唤醒是可比较的更激进代表，不能把已有区内循环误诊为缺失。原生模型 `Native/World.cs` 的GeneratePuzzle排除首挖周围3×3布雷，seed1前三盘首数字也均为0；零区传播清覆盖层，不能把尚未实际开挖的邻格一律视为已公开数字。跨区协作必须读取真正的煤灰数字，不取私有雷阵。
-
-本轮公共煤灰常驻代表只读本区及两格边界的真实高度、地面和measure；空闲最多八趟巡检且设4游戏秒等待，所有外层循环有上限。seed1首盘同得318880，派机批数6→3，但正常结算32.89→71.92秒；100游戏秒基线已结算三盘879616，常驻只结算一盘318880。单纯消除屏障没有覆盖巡检成本，不采用。回执、冻结源和重建器见 `.codex/five-structures-20261115/`（原始材料已于 2026-11-17 清理），不是全10M新成绩。
+**本地验证记录**：
+- **全量随机验收**（`game_leaderboard_random`，`--jobs 2`，原版初始条件，0 警告，0 丢输出）：**16/16 轮完赛**，累计 **`7,446.789` 游戏秒**，均值 **`7:45.424` (`465.424s`)**，SD `27.091s`，SE `6.773s`，标准 95% CI `±14.436s`，自适应 95%/99% CI `±24.831s / ±30.207s`，范围 `7:10.499 (430.499s) ~ 8:54.200 (534.200s)`。
+- **配对固定种子对照**（`seeds 1..4`）：均值 **`7:56.992` (`476.992s`, SD `28.69s`, 4/4 完赛)**；旧正式版 `bb379e4` 在 seed 1 前 120s 仅产 `1,203,040`（约 `28s/盘`、`avg_active=5.62/32`、主机 `wait_for=68.4s/120s`）。
+- **`--hot-spots` 归因（seed 1，总耗时 `455.813s` / `7:35.813`）**：24 机参与、总有效工时 `4,535.9s`（`interp = 1,464.5s`、`api = 3,071.4s`，其中 `move = 82,412` 次占 `2,713.2s`、`dig = 105.0s`，总节点 `27.16M`），平均活跃 **`9.95/32`**（较基线 `5.62/32` 近翻倍）；主机 `d 0` 总 `wait_for` 等待仅 **`6.12s`**（`interp = 239.78s`、`api = 214.64s`），工作机 `wait_for = 0.00s`（全无同步屏障空等）。
 
 ## 淘汰与未采用方案
 
-| 尝试方案 | 实测／模拟表现 | 原因与适用范围 | 参考代码 |
+| 尝试方案 | 实测／模拟表现 | 原因与适用范围 | 参考代码／重建依据 |
 | --- | --- | --- | --- |
-| 中心放射等面积分区 | 相同前三盘879616，95.90秒对82.99秒，批数9/9/10对6/6/8 | 细长区域增加跨区信息交接，没有减少关键批次 | [20261111_rejected_s_radial.py](../../references/leaderboard_history/lb_dynamite/20261111_rejected_s_radial.py) |
-| 物理雷标记常驻轮询 | 修正版80秒净167632、四盘完整结算 | 标记准备和外区实际读数费用过重；天然Rock与标记混淆的首版无效 | [20261108_rejected_persistent_state_v4.py](../../references/leaderboard_history/lb_dynamite/20261108_rejected_persistent_state_v4.py) |
-| 主机前沿派发/集中缓存按列开格 | 120秒825984/562960；前沿前三盘100.481秒对92.550秒 | 减少派机被主机传播和重复批次抵消 | [20261108_rejected_active_frontier_v1.py](../../references/leaderboard_history/lb_dynamite/20261108_rejected_active_frontier_v1.py) |
-| 树形归并、工人缓存 | 相同四盘118.225/116.422秒，对单调115.057秒 | 旧数字重发首版不收敛；修正后仍未减少足够费用 | [20261108_rejected_worker_cached_v2.py](../../references/leaderboard_history/lb_dynamite/20261108_rejected_worker_cached_v2.py) |
-| 就地读邻煤灰、已开零区省略 | 前三盘90.149秒对83.024秒；零区四盘116.673秒对112.030秒 | 零扩张只清覆盖层，未自动公开邻格数字；省略没有减少同步批数 | [20261109_rejected_connected_zero_v2.py](../../references/leaderboard_history/lb_dynamite/20261109_rejected_connected_zero_v2.py) |
-| 证明138雷后全局补SAFE | 相同四盘116.354秒对112.030秒，触发两次新增SAFE为0 | 全局集合维护无收益；单盘上限318880也限制纯增产路线 | [20261108_rejected_global_cap_v1.py](../../references/leaderboard_history/lb_dynamite/20261108_rejected_global_cap_v1.py) |
-| 矩形转置、16工人、固定提前结算 | 转置共同20盘均慢1.26%；前三盘最佳保守收益约10.8k～13.3k/s | 降低并行或提前丢掉平方围雷收益，未达两倍线约14.9k/s | [20261110_rejected_regions_8x4.py](../../references/leaderboard_history/lb_dynamite/20261110_rejected_regions_8x4.py) |
-| 无雷标的公共煤灰常驻巡检 | seed1首盘318880，71.92秒对32.89秒；100秒只结算一盘，对基线三盘 | 派机批数确实减少，未知边界反复走读增大关键路径；仅否定这个有限巡检代表 | [20261116_rejected_public_persistent.py](../../references/leaderboard_history/lb_dynamite/20261116_rejected_public_persistent.py) |
-| 每个新非零数字后立即propagate并补安全队列 | seed1相同前两盘590896，65.31秒对54.55秒；首盘批数仍6 | 重复传播与队列维护费用增加，未减少全局批数 | 从Git `0102d33:scripts/leaderboard/lb_dynamite.py` 在 `clues.add(cell)` 后立即传播、枚举owned补SAFE，set去重；原始 `make_dynamite_immediate.py` 与回执在本轮.codex目录 |
+| 同步 `wait_for` 分区（含 32 块 `4×8` / 径向分区 + 提前煤灰结算 `multi_v7a..v13b`） | seed 1 最好压至 `733.7s`（`12:13.7`） | 全局同步批末屏障导致主机 `wait_for` 仍占 `325s+`、平均活跃不足 `5/32`，被异步 `has_finished()` 调度淘汰 | 由当前版改回批次同步 `wait_for` 屏障重建；早期同路线见 [20261111_rejected_s_radial.py](../../references/leaderboard_history/lb_dynamite/20261111_rejected_s_radial.py) |
+| 首波 Z 扫与主机集中求解派盲挖 (`multi_v4/v5/v8`) | seed 1 `881.9s ~ 1250s` | Phase-0 Z 扫每盘耗 `3.5~4.0s` 且不减批；集中盲挖每盘 ~20 批往返通勤过重 | 集中前沿派发同路线见 [20261108_rejected_active_frontier_v1.py](../../references/leaderboard_history/lb_dynamite/20261108_rejected_active_frontier_v1.py) |
+| 1 格 halo 替代 2 格 halo (`multi_v11a/b`) | seed 1 `837.2s ~ 940s`（比 2 格 halo 慢 ~100s） | 跨块双侧差集需 2 格 halo，缩至 1 格每盘损失 ~50k 炸药 | 由 `multi_v10b` 将 `tile_halo2` 半径由 2 改为 1 重建 |
+| 异步无精确边界唤醒 + 32 块 `6×6` 中心 (`multi_v14/v15a`) | seed 1 `585.9s` (`v14`) / `567.3s` (`v15a`) | `6×6` 中心块需 3.5s 才唤醒外环（三波慢扩散），且全 8 邻唤醒致 `155` 次/盘空派；改 64×(4×4) + 双优先级队列降至 `520.6s` 再叠爆破下潜至 `465.4s` | 由当前版改回 32 块径向分区与单队列唤醒重建 |
+| 无深埋格跳过保护的纯连续爆破 (`multi_v18a`) | seed 1 `432.5s`，seed 2 `526.4s`（单盘 `69.4s` 卡死） | 煤灰结算不清空全盘，20+ 盘后孤立未挖格埋深达 300+ 层致单工作机挖岩 60s；加入每 12 盘 `clear()` + `z-depth>30` 标 `0` 跳过后彻底消除 | 由当前版移除 `since_clear >= 12` 与 `get_pos_z() - depth > 30` 守卫重建 |
+| 物理雷标记常驻轮询 / 无雷标公共煤灰常驻巡检 | 80s 净 167632；seed 1 首盘 `71.92s` 对 `32.89s` | 外区盲走读费用远超派机收益，无法跨区传雷标 | [20261108_rejected_persistent_state_v4.py](../../references/leaderboard_history/lb_dynamite/20261108_rejected_persistent_state_v4.py)、[20261116_rejected_public_persistent.py](../../references/leaderboard_history/lb_dynamite/20261116_rejected_public_persistent.py) |
+| 树形归并、工人缓存、就地读邻煤灰、138 雷全局补 SAFE、8×4 转置 | 均慢于单调合并同期基线 | 重复维护或降低并发无净收益 | [20261108_rejected_worker_cached_v2.py](../../references/leaderboard_history/lb_dynamite/20261108_rejected_worker_cached_v2.py)、[20261109_rejected_connected_zero_v2.py](../../references/leaderboard_history/lb_dynamite/20261109_rejected_connected_zero_v2.py)、[20261110_rejected_regions_8x4.py](../../references/leaderboard_history/lb_dynamite/20261110_rejected_regions_8x4.py) |
 
 ## 历史正式版本演进
 
@@ -38,11 +40,10 @@
 | 2026-11-06 | 5561.376秒（构建26462009，2轮官方完整统计；请求367）。 | 炸药多机仅回访本列未知格并完成真源复验 | [20261106_v02_92m41.376s_3d9ced58.py](../../references/leaderboard_history/lb_dynamite/20261106_v02_92m41.376s_3d9ced58.py) |
 | 2026-11-07 | 1093.692秒（本地原目标三seed均值；当前版本未实机验证）。 | 炸药多机分区推理并减少全局调度 | [20261107_v03_18m13.692s_2cb72225.py](../../references/leaderboard_history/lb_dynamite/20261107_v03_18m13.692s_2cb72225.py) |
 | 2026-11-09 | 未取得（单调事实合并；本地固定窗口已验证）。 | 压缩炸药证明合并并记录非重置结构筛选 | [20261109_v04_d48ef4a7.py](../../references/leaderboard_history/lb_dynamite/20261109_v04_d48ef4a7.py) |
+| 2026-11-09 | 14:21.783（#6，2026-11-16 request543 9轮官方完整统计；本地模拟外推 13:41.035）。 | 32 区同步批次单调合并与全回收后一次煤灰结算 | [20261109_v05_14m21.783s_bb379e4.py](../../references/leaderboard_history/lb_dynamite/20261109_v05_14m21.783s_bb379e4.py) |
 
 ## 下一步优化方向
 
-- 当前仍+144.9%。下一个跨区代表须先量出每次巡检拿到的新事实数、为一个新事实走的步数，避免再次用盲轮询换掉屏障；优先比较前沿触发的少量边界读取，而不是仅减少spawn次数。
-- 保留原本已有效的局部连续推理；逐格即时传播的代表已关闭。新结构按相同完整盘净收益比较，不把本轮负例推成所有常驻协作不可能，也不靠超过单盘奖励上限的估产翻盘。
-- 2026-11-16 `--hot-spots`：多机版≈3.4e4 tick／游戏秒，属混合；榜内雷密度固定0.135，安全格每个`1×2^(dynamite-1)`，清层按内部雷数给`num²×2^(dynamite-1)`。先量出当前每盘的有效挖格数与清层num，再比较提高num与增加盘数哪个划算。
+- 当前多机均值已压至 `7:45.424`（`+50.5%`，实机准入极强），可优先安排实机打榜验证（预计可冲 `#3 6:22` 附近或前 4）；后续继续向 `#1 (5:09.2)` 突破的主方向为：① 压低工作机往返 `(15,15)` 通勤步数（当前总 `move = 2,713s`，可研究工作机就地多块接力或中继派机）；② 将工作机 `halo` 扫描与双侧差集（`L562/L603/L593` 合计约 `182s`）改为增量线索表或更紧凑状态编码。
 
 新方向按[共用策略选择流程](README.md#策略选择与淘汰)记录机制、预算、置信度和停止条件；新结果写回本页及研究状态JSON。

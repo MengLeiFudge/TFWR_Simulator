@@ -3989,6 +3989,14 @@
           "commit": "d48ef4a7",
           "time_tag": "未记录",
           "message": "优化：压缩炸药证明合并并记录非重置结构筛选"
+        },
+        {
+          "file": "20261109_v05_14m21.783s_bb379e4.py",
+          "path": "references/leaderboard_history/lb_dynamite/20261109_v05_14m21.783s_bb379e4.py",
+          "date": "2026-11-09",
+          "commit": "bb379e4",
+          "time_tag": "14m21.783s",
+          "message": "修复：补齐蘑菇失败恢复并记录十二榜实机成绩（2026-11-16 request543 9轮官方实机14:21.783）"
         }
       ],
       "rejected": [
@@ -4373,6 +4381,14 @@
           "commit": "397be014",
           "time_tag": "未记录",
           "message": "优化：缓存扫雷约束并就近结算降低单机炸药耗时"
+        },
+        {
+          "file": "20261109_v06_4m20.318s_0cd0f82.py",
+          "path": "references/leaderboard_history/lb_dynamite_single/20261109_v06_4m20.318s_0cd0f82.py",
+          "date": "2026-11-09",
+          "commit": "0cd0f82",
+          "time_tag": "4m20.318s",
+          "message": "修复：对齐游戏乘法类型并修正竹子炸药初始化（2026-11-16 request541 28轮官方实机4:20.318）"
         }
       ],
       "rejected": [
