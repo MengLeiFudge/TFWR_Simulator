@@ -3335,6 +3335,14 @@
           "commit": "7acb6913",
           "time_tag": "10m37.147s",
           "message": "优化：矿石单双机四井采样复用同片准备"
+        },
+        {
+          "file": "20261125_v03_2m32.024s_d30b5f59.py",
+          "path": "references/leaderboard_history/lb_ores/20261125_v03_2m32.024s_d30b5f59.py",
+          "date": "2026-11-25",
+          "commit": "d30b5f59",
+          "time_tag": "2m32.024s",
+          "message": "32机相邻沟网盲挖至-39（实机151.307秒/48轮152.024秒），被45°点阵1t勘探+偏移追踪版本取代"
         }
       ],
       "rejected": [
@@ -3373,6 +3381,14 @@
           "commit": "7acb6913",
           "time_tag": "17m49.625s",
           "message": "优化：矿石单双机四井采样复用同片准备"
+        },
+        {
+          "file": "20261125_v03_9m08.381s_d30b5f59.py",
+          "path": "references/leaderboard_history/lb_ores_single/20261125_v03_9m08.381s_d30b5f59.py",
+          "date": "2026-11-25",
+          "commit": "d30b5f59",
+          "time_tag": "9m08.381s",
+          "message": "角点三口-31锚点测距+沟网回退（实机534.068秒/14轮548.381秒），被单浅锚链式勘探+偏移追踪+Voronoi逃逸版本取代"
         }
       ],
       "rejected": [
