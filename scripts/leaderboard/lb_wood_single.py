@@ -1,130 +1,207 @@
 from __builtins__ import *
-# 完整轮时间：5:20.571（2026-11-03，build26385848，官方完整23轮，request262）。
+# 完整轮时间：未取得（本地游戏随机完整抽样均值 4:18.670）。
+# 生成自：scripts/templates/leaderboard/lb_wood_single.py
+# 生成配置：scripts/templates/leaderboard/lb_wood_single.codegen.json
+# 修改策略请编辑母版并重新生成，勿直接修改本文件。
 # Copyright (c) 2026 enihsyou；MIT许可见enihsyou_LICENSE.txt。
-# 来源：enihsyou/The-Farmer-Was-Replaced，blob c82c08adf296d87664fd596501f34f62f96bcfe1。
 
 def lb_wood_single():
-    global s
-    global carrot_hay
-    global carrot_wood
+    global c_hay
+    global c_wood
+    global IS_EVEN
+    global is_tree
+    global is_soil
+    global wants
+    global trees_done
     set_world_size(8)
     clear()
-    s = get_world_size()
     cost = get_cost(Entities.Carrot)
-    carrot_hay = cost[Items.Hay]
-    carrot_wood = cost[Items.Wood]
-    work_drone_task()
-
-W = 0.16
-
-
-def traverse_rectangle_if(fn, w, h):
-    # traverse_rectangle 针对 8 x 8 的性能优化版
-    if fn():
-        return False
-    move(North)
-    for i in range(w, 0, -2):
-        for j in range(h, 1, -1):
-            if fn():
-                return False
-            if j != 2:
-                move(North)
-        move(East)
-        for j in range(h, 1, -1):
-            if fn():
-                return False
-            if j != 2:
-                move(South)
-        if i != 2:
+    c_hay = cost[Items.Hay]
+    c_wood = cost[Items.Wood]
+    IS_EVEN = [1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1]
+    is_tree = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    is_soil = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    wants = {}
+    trees_done = 0
+    while True:
+        if do_even(0):
+            return
+        move(North)
+        # 双列折返只访问 y=1..7，最后一段一起扫 y=0。
+        for base in range(0, 64, 16):
+            do_odd(base + 1)
+            offset = 2
+            move(North)
+            if do_even(base + offset):
+                return
+            move(North)
+            do_odd(base + offset + 1)
+            offset = 4
+            move(North)
+            if do_even(base + offset):
+                return
+            move(North)
+            do_odd(base + offset + 1)
+            offset = 6
+            move(North)
+            if do_even(base + offset):
+                return
+            move(North)
+            do_odd(base + offset + 1)
             move(East)
-    move(South)
-    for _ in range(1, w):
-        if fn():
-            return False
+            if do_even(base + 15):
+                return
+            offset = 14
+            move(South)
+            do_odd(base + offset)
+            move(South)
+            if do_even(base + offset - 1):
+                return
+            offset = 12
+            move(South)
+            do_odd(base + offset)
+            move(South)
+            if do_even(base + offset - 1):
+                return
+            offset = 10
+            move(South)
+            do_odd(base + offset)
+            move(South)
+            if do_even(base + offset - 1):
+                return
+            if base < 48:
+                move(East)
+        move(South)
+        do_odd(56)
+        idx = 48
+        move(West)
+        if do_even(idx):
+            return
+        move(West)
+        do_odd(idx - 8)
+        idx = 32
+        move(West)
+        if do_even(idx):
+            return
+        move(West)
+        do_odd(idx - 8)
+        idx = 16
+        move(West)
+        if do_even(idx):
+            return
+        move(West)
+        do_odd(idx - 8)
         move(West)
 
-    return True
-
-
-def traverse_rectangle(fn, w, h):
-    fn()
-    move(North)
-    for i in range(w, 0, -2):
-        for j in range(h, 1, -1):
-            fn()
-            if j != 2:
-                move(North)
-        move(East)
-        for j in range(h, 1, -1):
-            fn()
-            if j != 2:
-                move(South)
-        if i != 2:
-            move(East)
-    move(South)
-    for _ in range(1, w):
-        fn()
-        move(West)
-
-
-def is_tree_pos(p):
-    x, y = p
-    return (x + y) % 2 == 0
-
-
-def work_drone_task():
-    wants = {}  # 记录种植需求
-
-    def on_eachcell():
-        t = (get_pos_x(), get_pos_y())
-
-        # 满足当前位置的种植需求
-        if t in wants:
-            c = wants.pop(t)
-            if get_entity_type() != c:
-                harvest()
-                # 开局可能缺胡萝卜种子资源，保持原来的灌木退路。
-                if c == Entities.Carrot and (num_items(Items.Hay) < carrot_hay or num_items(Items.Wood) < carrot_wood):
+def do_even(idx):
+    global trees_done
+    if idx in wants:
+        c = wants.pop(idx)
+        if is_tree[idx]:
+            harvest()
+            is_tree[idx] = 0
+            trees_done += 1
+            if trees_done >= 1218 and num_items(Items.Wood) >= 500000000:
+                return True
+            if c == Entities.Grass:
+                if is_soil[idx]:
+                    till()
+                    is_soil[idx] = 0
+            elif c == Entities.Bush:
+                plant(Entities.Bush)
+            else:
+                if num_items(Items.Hay) >= c_hay and num_items(Items.Wood) >= c_wood:
+                    if not is_soil[idx]:
+                        till()
+                        is_soil[idx] = 1
+                    plant(Entities.Carrot)
+                else:
+                    plant(Entities.Bush)
+        else:
+            e = get_entity_type()
+            if e != c:
+                if c == Entities.Grass:
+                    if is_soil[idx]:
+                        till()
+                        is_soil[idx] = 0
+                    else:
+                        harvest()
+                elif c == Entities.Bush:
+                    if e != Entities.Grass and e != None:
+                        harvest()
                     plant(Entities.Bush)
                 else:
-                    plant(c)
-            return
-
-        # 在树的位置种树，其他位置不管
-        if is_tree_pos(t):
-            # 只在树的位置浇水
-            if get_water() < W and num_items(Items.Water) > 0:
-                # 访问间隔挺长的，不需要太多水
-                use_item(Items.Water)
-            while True:
+                    if num_items(Items.Hay) >= c_hay and num_items(Items.Wood) >= c_wood:
+                        if not is_soil[idx]:
+                            till()
+                            is_soil[idx] = 1
+                        elif e != Entities.Grass and e != None:
+                            harvest()
+                        plant(Entities.Carrot)
+                    else:
+                        if e != Entities.Grass and e != None:
+                            harvest()
+                        plant(Entities.Bush)
+        return False
+    if is_tree[idx]:
+        harvest()
+        is_tree[idx] = 0
+        trees_done += 1
+        if trees_done >= 1218 and num_items(Items.Wood) >= 500000000:
+            return True
+    else:
+        e = get_entity_type()
+        if e == Entities.Grass:
+            if num_items(Items.Hay) < 4096 and can_harvest():
                 harvest()
-                plant(Entities.Tree)
-                c, p = get_companion()
-                if is_tree_pos(p):
-                    continue  #  和树的位置冲突
-                if p in wants and wants[p] != c:
-                    continue  # 和其他植物的请求种植的冲突
-                wants[p] = c  # 标记格子接下来要种植的作物
-                break
-            return
+        elif e != None:
+            harvest()
+    if get_water() < 0.2 and num_items(Items.Water) >= 4:
+        use_item(Items.Water, 4)
+    while True:
+        plant(Entities.Tree)
+        c, p = get_companion()
+        pi = p[0] * 8 + p[1]
+        if pi in wants:
+            if wants[pi] != c:
+                harvest()
+                continue
+            is_tree[idx] = 1
+            return False
+        if IS_EVEN[pi] and c == Entities.Carrot:
+            harvest()
+            continue
+        wants[pi] = c
+        is_tree[idx] = 1
+        return False
 
-    def first_round():
-        till()
-        on_eachcell()
-
-    def range_round():
-        on_eachcell()
-
-    def while_round():
-        on_eachcell()
-        return num_items(Items.Wood) >= 500000000
-
-    traverse_rectangle(first_round, s, s)
-    for _ in range(34):  # 需要约 37 轮能够收集到足够的木头
-        traverse_rectangle(range_round, s, s)
-    while traverse_rectangle_if(while_round, s, s):
-        continue
-
+def do_odd(idx):
+    if idx in wants:
+        c = wants.pop(idx)
+        e = get_entity_type()
+        if e != c:
+            if c == Entities.Grass:
+                if is_soil[idx]:
+                    till()
+                    is_soil[idx] = 0
+                else:
+                    harvest()
+            elif c == Entities.Bush:
+                if e != Entities.Grass and e != None:
+                    harvest()
+                plant(Entities.Bush)
+            else:
+                if num_items(Items.Hay) >= c_hay and num_items(Items.Wood) >= c_wood:
+                    if not is_soil[idx]:
+                        till()
+                        is_soil[idx] = 1
+                    elif e != Entities.Grass and e != None:
+                        harvest()
+                    plant(Entities.Carrot)
+                else:
+                    if e != Entities.Grass and e != None:
+                        harvest()
+                    plant(Entities.Bush)
 
 if __name__ == "__main__":
     lb_wood_single()

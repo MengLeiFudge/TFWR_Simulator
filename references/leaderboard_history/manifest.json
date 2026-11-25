@@ -2441,6 +2441,14 @@
           "commit": "1cff7a6b",
           "time_tag": "7m38.450s",
           "message": "优化：刷新单南瓜尾部死点处理"
+        },
+        {
+          "file": "20261107_v08_7m35.284s_d30b5f5.py",
+          "path": "references/leaderboard_history/lb_pumpkins_single/20261107_v08_7m35.284s_d30b5f5.py",
+          "date": "2026-11-07",
+          "commit": "d30b5f59",
+          "time_tag": "7m35.284s",
+          "message": "整田巡查与合并编号早停（请求547，16轮官方完整统计）"
         }
       ],
       "rejected": [
@@ -3081,6 +3089,14 @@
           "commit": "13b3f691",
           "time_tag": "5m37.970s",
           "message": "优化：单机木头采用自付启动资金与冻结支撑批次"
+        },
+        {
+          "file": "20261107_v06_5m23.269s_d30b5f5.py",
+          "path": "references/leaderboard_history/lb_wood_single/20261107_v06_5m23.269s_d30b5f5.py",
+          "date": "2026-11-07",
+          "commit": "d30b5f59",
+          "time_tag": "5m23.269s",
+          "message": "棋盘树巡田处理伴生支撑与种费（请求518，三轮均值）"
         }
       ],
       "rejected": [
@@ -6398,7 +6414,7 @@
     "lb_pumpkins:66c59099": "references/leaderboard_history/lb_pumpkins/20260531_v08_6m40.273s_0224fb21.py",
     "lb_pumpkins_single:727a77ef": "scripts/leaderboard/lb_pumpkins_single.py",
     "lb_pumpkins_single:d8541c9f": "scripts/leaderboard/lb_pumpkins_single.py",
-    "lb_pumpkins_single:d30b5f59": "scripts/leaderboard/lb_pumpkins_single.py",
+    "lb_pumpkins_single:d30b5f59": "references/leaderboard_history/lb_pumpkins_single/20261107_v08_7m35.284s_d30b5f5.py",
     "lb_pumpkins_single:5bf0cea6": "references/leaderboard_history/lb_pumpkins_single/20260418_v01_5bf0cea6.py",
     "lb_pumpkins_single:54907897": "references/leaderboard_history/lb_pumpkins_single/20260418_v01_5bf0cea6.py",
     "lb_pumpkins_single:8deede45": "references/leaderboard_history/lb_pumpkins_single/20260424_v02_8deede45.py",
@@ -6459,7 +6475,7 @@
     "lb_wood:2cd0d665": "references/leaderboard_history/lb_wood/20261027_v13_4m43.895s_2cd0d665.py",
     "lb_wood_single:e470270c": "scripts/leaderboard/lb_wood_single.py",
     "lb_wood_single:d8541c9f": "scripts/leaderboard/lb_wood_single.py",
-    "lb_wood_single:d30b5f59": "scripts/leaderboard/lb_wood_single.py",
+    "lb_wood_single:d30b5f59": "references/leaderboard_history/lb_wood_single/20261107_v06_5m23.269s_d30b5f5.py",
     "lb_wood_single:5bf0cea6": "references/leaderboard_history/lb_wood_single/20260418_v01_5m40.868s_5bf0cea6.py",
     "lb_wood_single:54907897": "references/leaderboard_history/lb_wood_single/20260418_v01_5m40.868s_5bf0cea6.py",
     "lb_wood_single:8deede45": "references/leaderboard_history/lb_wood_single/20260424_v02_5m40.868s_8deede45.py",

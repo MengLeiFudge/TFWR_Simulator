@@ -1,0 +1,17 @@
+{
+  "template": "scripts/templates/leaderboard/lb_wood_single.py",
+  "output": "scripts/leaderboard/lb_wood_single.py",
+  "transforms": {
+    "unroll": true
+  },
+  "command": [
+    "python3",
+    "simulator/optimizer/generate.py",
+    "scripts/templates/leaderboard/lb_wood_single.codegen.json"
+  ],
+  "fingerprints": {
+    "template_sha256": "35f9d8a9525573814eef6aca25479c46d0a7eaea95fafe09ec692e254f8ea1e5",
+    "generator_sha256": "f7209e1df4f142052ab435319ba68930bb73bc23df34dd1d0c7f216315a84ccb",
+    "output_sha256": "0f59512df5c153e056d16ddc548dc850c5b56988b7ef316c9355e235e06dae10"
+  }
+}

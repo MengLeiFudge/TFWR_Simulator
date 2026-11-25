@@ -2,13 +2,13 @@
 
 ## 当前策略与成绩
 
-当前脚本：[lb_wood_single.py](../../scripts/leaderboard/lb_wood_single.py)。公开账号最高 **5:20.571（#31）**；2026-11-16 request518 三run均5:23.269，慢于账号记录，公开成绩未变。已有最好本地模拟 **5:13.238**（仅seed1，游戏内实际seed更慢）。
+当前脚本：[lb_wood_single.py](../../scripts/leaderboard/lb_wood_single.py)。本地完整随机模拟均值 **4:18.670**，28/28 轮完赛，累计 7242.759 游戏秒，SD 1.864 秒、SE 0.352 秒、自适应 95% CI 半宽 1.343 秒，无警告。公开成绩见进度总表。
 
 公开数据取自[该榜Steam页面](https://steamcommunity.com/stats/2060160/leaderboards/17827415/)，榜单抓取时间 `2026-11-10T06:15:50.052203+00:00`，账号查询时间 `2026-11-10T06:15:50.052237+00:00`。#1、#3、#10及差距见[进度总表](leaderboard_progress.md)；各榜来源时间见[公开快照](../../references/leaderboards/status_snapshot.md)。
 
-8×8单机棋盘树，巡田同时处理位置请求和Grass/Bush/Carrot支撑。删除独立筹首棵满倍率树的准备与冻结批次管理，开局种子不足时使用Bush退路；后续按真实种子费用和实际木材净增达标。保留0.16水位与固定巡回，来源enihsyou，MIT。
+8×8 棋盘树按双列折返，最后统一扫底行。巡回中维护伴生请求和实际支撑。冲突请求重抽，胡萝卜种料不足时先种灌木。用固定生成器展开列内步序。策略修改见 [母版](../../scripts/templates/leaderboard/lb_wood_single.py) 和 [生成配方](../../scripts/templates/leaderboard/lb_wood_single.codegen.json)。沿用 enihsyou 的 MIT 授权。
 
-seed1完整313.237685880秒；2026-11-03 request262正式23轮均320.570869565秒。
+同原版场景、同 seed 1～6 的存档版本对照均值 321.937 → 256.473 游戏秒，6/6 完赛。实验版完全展开每格，六轮均值为 255.723 秒；采用版的列内展开保留短小母版，六轮均值相差 0.750 秒。
 
 ## 淘汰与未采用方案
 
@@ -31,6 +31,7 @@ seed1完整313.237685880秒；2026-11-03 request262正式23轮均320.570869565�
 | 2026-05-31 | 版本注记 5m36.679s | 调整：收敛 leaderboard 脚本真源 | [20260531_v03_5m36.679s_0224fb21.py](../../references/leaderboard_history/lb_wood_single/20260531_v03_5m36.679s_0224fb21.py) |
 | 2026-06-09 | 版本注记 5m36.679s | 移除单机木头探针计数 | [20260609_v04_5m36.679s_380649aa.py](../../references/leaderboard_history/lb_wood_single/20260609_v04_5m36.679s_380649aa.py) |
 | 2026-10-27 | 5:37.970（2026-10-26，官方完整22轮，request 109）。 | 单机木头采用自付启动资金与冻结支撑批次 | [20261027_v05_5m37.970s_13b3f691.py](../../references/leaderboard_history/lb_wood_single/20261027_v05_5m37.970s_13b3f691.py) |
+| 2026-11-07 | 5:23.269（2026-11-16，请求 518 的三轮均值）；同条件六轮模拟均值 5:21.937。 | 棋盘树巡田同时处理伴生支撑与种费 | [20261107_v06_5m23.269s_d30b5f5.py](../../references/leaderboard_history/lb_wood_single/20261107_v06_5m23.269s_d30b5f5.py) |
 
 ## 下一步优化方向
 

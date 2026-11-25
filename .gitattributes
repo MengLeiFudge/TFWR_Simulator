@@ -8,6 +8,7 @@
 /simulator/optimizer/** text eol=lf
 /scripts/leaderboard/lb_rice.py text eol=lf
 /scripts/leaderboard/lb_sunflowers_single.py text eol=lf
+/scripts/leaderboard/lb_wood_single.py text eol=lf
 
 ###############################################################################
 # Set default behavior for command prompt diff.
